@@ -1,0 +1,831 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model GroupRole {
+  id    Int    @id @default(autoincrement())
+  name  String
+  roles Role[]
+}
+
+model Role {
+  id          Int          @id @default(autoincrement())
+  name        String
+  code        String
+  groupId     Int
+  groupRole   GroupRole    @relation(fields: [groupId], references: [id])
+  permissions Permission[]
+}
+
+model BusinessType {
+  id          Int      @id @default(autoincrement())
+  name        String
+  icon        String?
+  code        String
+  description String?  @db.Text
+  isPublic    Boolean? @default(true)
+  shops       Shop[]
+}
+
+model Permission {
+  id                Int                @id @default(autoincrement())
+  identifier        String
+  name              String
+  description       String?            @db.Text
+  roles             Role[]
+  isPublic          Boolean?           @default(true)
+  createdBy         Int?
+  updatedBy         Int?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  detailPermissions DetailPermission[]
+}
+
+model Account {
+  id           Int           @id @default(autoincrement())
+  status       Int
+  username     String?
+  password     String
+  userId       Int
+  user         User          @relation(fields: [userId], references: [id])
+  isPublic     Boolean?      @default(true)
+  createdBy    Int?
+  updatedBy    Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  activityLogs ActivityLog[]
+}
+
+model User {
+  id                Int                @id @default(autoincrement())
+  name              String
+  phone             String             @unique
+  type              Int
+  email             String?            @unique
+  photoURL          String?
+  address           String?
+  cardId            String?
+  cardDate          DateTime?
+  cardAddress       String?
+  birthday          DateTime?
+  sex               Int?
+  startDate         DateTime?
+  accounts          Account[]
+  isPublic          Boolean?           @default(true)
+  createdBy         Int?
+  updatedBy         Int?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  staffRatings      StaffRating[]
+  employeeSchedules EmployeeSchedule[]
+  timeSheets        TimeSheet[]
+  shops             Shop[]
+  detailPermissions DetailPermission[]
+}
+
+model Shop {
+  id             Int            @id @default(autoincrement())
+  businessTypeId Int
+  businessType   BusinessType?  @relation(fields: [businessTypeId], references: [id])
+  name           String
+  photoURL       String?
+  domain         String?
+  isPublic       Boolean?       @default(true)
+  createdBy      Int?
+  updatedBy      Int?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+  branches       Branch[]
+  pointSettings  PointSetting[]
+  users          User[]
+}
+
+model PrintTemplate {
+  id             Int      @id @default(autoincrement())
+  identifier     String
+  type           Int
+  name           String
+  content        String?  @db.Text
+  description    String?  @db.Text
+  isShopTemplate Boolean
+  isPublic       Boolean? @default(true)
+  createdBy      Int?
+  updatedBy      Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  branches       Branch[]
+}
+
+model CurrencyUnit {
+  id         Int      @id @default(autoincrement())
+  identifier String
+  name       String
+  code       String
+  isPublic   Boolean? @default(true)
+  createdBy  Int?
+  updatedBy  Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  branches   Branch[]
+}
+
+model MeasurementUnit {
+  id         Int       @id @default(autoincrement())
+  identifier String
+  name       String
+  code       String
+  branches   Branch[]
+  isPublic   Boolean?  @default(true)
+  createdBy  Int?
+  updatedBy  Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  products   Product[]
+}
+
+model ActivityLog {
+  id               Int      @id @default(autoincrement())
+  tableName        String
+  accountId        Int
+  type             Int
+  affectedRecordId Int?
+  branchId         Int
+  createdBy        Int?
+  createdAt        DateTime @default(now())
+  account          Account  @relation(fields: [accountId], references: [id])
+  branch           Branch   @relation(fields: [branchId], references: [id])
+}
+
+model ProductType {
+  id                     Int                     @id @default(autoincrement())
+  identifier             String
+  branchId               Int
+  branch                 Branch                  @relation(fields: [branchId], references: [id])
+  name                   String
+  description            String                  @db.Text
+  isPublic               Boolean?                @default(true)
+  createdBy              Int?
+  updatedBy              Int?
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  products               Product[]
+  otherAttributePatterns OtherAttributePattern[]
+}
+
+model OtherAttributePattern {
+  id            Int         @id @default(autoincrement())
+  branchId      Int
+  productTypeId Int
+  label         String
+  amount        Int
+  type          Int
+  isPublic      Boolean?    @default(true)
+  createdBy     Int?
+  updatedBy     Int?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  branch        Branch      @relation(fields: [branchId], references: [id])
+  productType   ProductType @relation(fields: [productTypeId], references: [id])
+}
+
+model Product {
+  id                      Int                      @id @default(autoincrement())
+  identifier              String
+  branchId                Int
+  unitId                  Int
+  productTypeId           Int
+  name                    String
+  sku                     String
+  code                    String
+  retailPrice             Float
+  wholesalePrice          Float
+  importPrice             Float
+  description             String?                  @db.Text
+  photoURL                String?                  @db.Text
+  type                    Int
+  otherAttributes         Json?
+  isInitialStock          Boolean
+  isCombo                 Boolean
+  status                  Int?
+  isPublic                Boolean?                 @default(true)
+  createdBy               Int?
+  updatedBy               Int?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  branch                  Branch                   @relation(fields: [branchId], references: [id])
+  measurementUnit         MeasurementUnit          @relation(fields: [unitId], references: [id])
+  productType             ProductType              @relation(fields: [productTypeId], references: [id])
+  comboProductItems       ComboProductItem[]
+  stocks                  Stock[]
+  deals                   Deal[]
+  couponConditionProducts CouponConditionProduct[]
+  couponProducts          CouponProduct[]
+  orderDetails            OrderDetail[]
+}
+
+model ComboProductItem {
+  id        Int      @id @default(autoincrement())
+  branchId  Int
+  productId Int
+  amount    Boolean
+  isPublic  Boolean? @default(true)
+  createdBy Int?
+  updatedBy Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Stock {
+  id            Int      @id @default(autoincrement())
+  branchId      Int
+  productId     Int
+  capitalPrice  Float?
+  totalQuantity Float?
+  isPublic      Boolean? @default(true)
+  createdBy     Int?
+  updatedBy     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  branch        Branch   @relation(fields: [branchId], references: [id])
+  product       Product  @relation(fields: [productId], references: [id])
+}
+
+model CustomerType {
+  id          Int        @id @default(autoincrement())
+  branchId    Int
+  name        String
+  description String?    @db.Text
+  discount    Float?
+  isPublic    Boolean?   @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch     @relation(fields: [branchId], references: [id])
+  customers   Customer[]
+}
+
+model Customer {
+  id                  Int                 @id @default(autoincrement())
+  branchId            Int
+  customerName        String
+  customerTypeId      Int?
+  code                String?
+  email               String?
+  phone               String
+  address             String?
+  description         String?             @db.Text
+  representativeName  String?
+  representativePhone String?
+  birthDay            DateTime?
+  endow               Int
+  discount            Float?
+  sex                 Int?
+  fax                 String?
+  tax                 String?
+  isPublic            Boolean?            @default(true)
+  createdBy           Int?
+  updatedBy           Int?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  branch              Branch              @relation(fields: [branchId], references: [id])
+  customerType        CustomerType?       @relation(fields: [customerTypeId], references: [id])
+  orders              Order[]
+  pointAccumulations  PointAccumulation[]
+  pointRedemptions    PointRedemption[]
+}
+
+model SupplierType {
+  id          Int        @id @default(autoincrement())
+  branchId    Int
+  name        String
+  description String?    @db.Text
+  isPublic    Boolean?   @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch     @relation(fields: [branchId], references: [id])
+  suppliers   Supplier[]
+}
+
+model Supplier {
+  id                  Int          @id @default(autoincrement())
+  branchId            Int
+  supplierName        String
+  email               String?
+  phone               String
+  address             String?
+  representativeName  String?
+  representativePhone String?
+  supplierTypeId      Int
+  isPublic            Boolean?     @default(true)
+  createdBy           Int?
+  updatedBy           Int?
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+  branch              Branch       @relation(fields: [branchId], references: [id])
+  supplierType        SupplierType @relation(fields: [supplierTypeId], references: [id])
+}
+
+model Deal {
+  id                 Int       @id @default(autoincrement())
+  branchId           Int
+  identifier         String
+  name               String
+  code               String?
+  description        String?   @db.Text
+  type               Int
+  value              Float
+  noEndDate          Boolean?
+  discountAllProduct Boolean
+  unlimitedNumber    Boolean
+  isPublic           Boolean?  @default(true)
+  createdBy          Int?
+  updatedBy          Int?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+  branch             Branch    @relation(fields: [branchId], references: [id])
+  products           Product[]
+  orders             Order[]
+}
+
+model Coupon {
+  id                      Int                      @id @default(autoincrement())
+  branchId                Int
+  identifier              String
+  name                    String
+  code                    String?
+  startDate               DateTime
+  endDate                 DateTime?
+  limitPerCoupon          Int
+  limitPerCustomer        Int?
+  nolimitPerCoupon        Boolean
+  noEndDate               Boolean?
+  description             String?
+  value                   Float
+  typeCouponValue         Int
+  typeCoupon              Int
+  applyAllBranch          Boolean
+  isPublic                Boolean?                 @default(true)
+  createdBy               Int?
+  updatedBy               Int?
+  createdAt               DateTime                 @default(now())
+  updatedAt               DateTime                 @updatedAt
+  branch                  Branch                   @relation(fields: [branchId], references: [id])
+  couponConditionProducts CouponConditionProduct[]
+  couponProducts          CouponProduct[]
+}
+
+model CouponConditionProduct {
+  id        Int      @id @default(autoincrement())
+  branchId  Int
+  couponId  Int
+  productId Int
+  amount    Int
+  isPublic  Boolean? @default(true)
+  createdBy Int?
+  updatedBy Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  coupon    Coupon   @relation(fields: [couponId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model CouponProduct {
+  id          Int      @id @default(autoincrement())
+  branchId    Int
+  couponId    Int
+  productId   Int?
+  amount      Int
+  productName String?
+  photoURL    String?
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  coupon      Coupon   @relation(fields: [couponId], references: [id])
+  product     Product? @relation(fields: [productId], references: [id])
+}
+
+model Order {
+  id                    Int                @id @default(autoincrement())
+  branchId              Int
+  tableId               Int?
+  customerId            Int?
+  areaId                Int?
+  name                  String?
+  phone                 String?
+  email                 String?
+  orderDate             DateTime
+  address               String?
+  cancelReason          String?
+  cancelDate            DateTime?
+  paymentMethodId       Int
+  transactionId         String?
+  amount                Float
+  note                  String?
+  orderStatus           Int
+  isPublic              Boolean?           @default(true)
+  createdBy             Int?
+  updatedBy             Int?
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
+  branch                Branch             @relation(fields: [branchId], references: [id])
+  table                 Table?             @relation(fields: [tableId], references: [id])
+  customer              Customer?          @relation(fields: [customerId], references: [id])
+  paymentMethod         PaymentMethod      @relation(fields: [paymentMethodId], references: [id])
+  orderDetails          OrderDetail[]
+  deals                 Deal[]
+  invoices              Invoice[]
+  customerRequests      CustomerRequest[]
+  orderRatings          OrderRating[]
+  fromOrderTransactions OrderTransaction[] @relation("FromOrder")
+  toOrderTransactions   OrderTransaction[] @relation("ToOrder")
+}
+
+model OrderDetail {
+  id        Int      @id @default(autoincrement())
+  branchId  Int
+  orderId   Int
+  productId Int
+  amount    Float
+  note      String?
+  status    Int
+  price     Float
+  isPublic  Boolean? @default(true)
+  createdBy Int?
+  updatedBy Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
+  product   Product  @relation(fields: [productId], references: [id])
+}
+
+model Invoice {
+  id                         Int                        @id @default(autoincrement())
+  branchId                   Int
+  orderId                    Int
+  paymentStatus              Int
+  isPublic                   Boolean?                   @default(true)
+  createdBy                  Int?
+  updatedBy                  Int?
+  createdAt                  DateTime                   @default(now())
+  updatedAt                  DateTime                   @updatedAt
+  branch                     Branch                     @relation(fields: [branchId], references: [id])
+  order                      Order                      @relation(fields: [orderId], references: [id])
+  pointAccumulationHistories PointAccumulationHistory[]
+  pointRedemptions           PointRedemption[]
+}
+
+model PaymentMethod {
+  id          Int      @id @default(autoincrement())
+  branchId    Int
+  identifier  String
+  name        String
+  logo        String?
+  description String?
+  status      Int
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  orders      Order[]
+}
+
+model OrderTransaction {
+  id          Int      @id @default(autoincrement())
+  branchId    Int
+  type        Int
+  fromOrderId Int
+  toOrderId   Int
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  fromOrder   Order    @relation("FromOrder", fields: [fromOrderId], references: [id])
+  toOrder     Order    @relation("ToOrder", fields: [toOrderId], references: [id])
+}
+
+model Area {
+  id          Int      @id @default(autoincrement())
+  branchId    Int
+  name        String
+  code        String
+  description String?
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  tables      Table[]
+}
+
+model Table {
+  id          Int      @id @default(autoincrement())
+  branchId    Int
+  areaId      Int
+  name        String
+  code        String
+  description String?
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  area        Area     @relation(fields: [areaId], references: [id])
+  orders      Order[]
+}
+
+model DiscountIssue {
+  id                   Int            @id @default(autoincrement())
+  identifier           String
+  branchId             Int
+  name                 String
+  code                 String?
+  discountType         Int
+  discountValue        Float
+  startDay             DateTime
+  endDay               DateTime?
+  noEndDay             Boolean?
+  description          String?
+  limitPerCode         Int
+  limitPerCustomer     Int
+  noLimitPerCode       Boolean
+  noLimitCustomer      Boolean
+  applyAllBranch       Boolean
+  otherDiscountApplied Boolean
+  minTotalOrder        Float?
+  isPublic             Boolean?       @default(true)
+  createdBy            Int?
+  updatedBy            Int?
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+  branch               Branch         @relation(fields: [branchId], references: [id])
+  discountCodes        DiscountCode[]
+}
+
+model DiscountCode {
+  id              Int           @id @default(autoincrement())
+  branchId        Int
+  code            String
+  discountIssueId Int
+  quantityUsed    Int
+  isPublic        Boolean?      @default(true)
+  createdBy       Int?
+  updatedBy       Int?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  branch          Branch        @relation(fields: [branchId], references: [id])
+  discountIssue   DiscountIssue @relation(fields: [discountIssueId], references: [id])
+}
+
+model PointSetting {
+  id        Int      @id @default(autoincrement())
+  shopId    Int
+  point     String
+  value     Float
+  pointType Int?
+  isPublic  Boolean? @default(true)
+  updatedBy Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  shop      Shop     @relation(fields: [shopId], references: [id])
+}
+
+model PointAccumulation {
+  id         Int      @id @default(autoincrement())
+  branchId   Int
+  customerId Int
+  point      Float
+  isPublic   Boolean? @default(true)
+  createdBy  Int?
+  updatedBy  Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  branch     Branch   @relation(fields: [branchId], references: [id])
+  customer   Customer @relation(fields: [customerId], references: [id])
+}
+
+model PointRedemption {
+  id             Int      @id @default(autoincrement())
+  branchId       Int
+  customerId     Int
+  invoiceId      Int
+  pointToRedeem  Float
+  amountRedeemed Float
+  isPublic       Boolean? @default(true)
+  createdBy      Int?
+  updatedBy      Int?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  branch         Branch   @relation(fields: [branchId], references: [id])
+  customer       Customer @relation(fields: [customerId], references: [id])
+  invoice        Invoice  @relation(fields: [invoiceId], references: [id])
+}
+
+model PointAccumulationHistory {
+  id        Int      @id @default(autoincrement())
+  branchId  Int
+  point     Float?
+  invoiceId Int
+  isPublic  Boolean? @default(true)
+  createdBy Int?
+  updatedBy Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+}
+
+model CustomerRequest {
+  id            Int      @id @default(autoincrement())
+  branchId      Int
+  orderId       Int
+  requestType   Int
+  requestDetail String
+  isPublic      Boolean? @default(true)
+  createdBy     Int?
+  updatedBy     Int?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  branch        Branch   @relation(fields: [branchId], references: [id])
+  order         Order    @relation(fields: [orderId], references: [id])
+}
+
+model OrderRating {
+  id          Int      @id @default(autoincrement())
+  branchId    Int
+  orderId     Int
+  ratingValue Int
+  comment     String
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  order       Order?   @relation(fields: [orderId], references: [id])
+}
+
+model StaffRating {
+  id          Int      @id @default(autoincrement())
+  branchId    Int
+  ratingValue Int
+  userId      Int
+  comment     String
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  user        User     @relation(fields: [userId], references: [id])
+}
+
+model DetailPermission {
+  id           Int         @id @default(autoincrement())
+  branchId     Int
+  userId       Int
+  permissionId Int?
+  user         User        @relation(fields: [userId], references: [id])
+  branch       Branch      @relation(fields: [branchId], references: [id])
+  permission   Permission? @relation(fields: [permissionId], references: [id])
+  isPublic     Boolean?    @default(true)
+  createdBy    Int?
+  updatedBy    Int?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+}
+
+model Branch {
+  id                         Int                        @id @default(autoincrement())
+  shopId                     Int
+  shop                       Shop?                      @relation(fields: [shopId], references: [id])
+  photoURL                   String?
+  name                       String
+  address                    String?
+  status                     Int?
+  isPublic                   Boolean?                   @default(true)
+  createdBy                  Int?
+  updatedBy                  Int?
+  createdAt                  DateTime                   @default(now())
+  updatedAt                  DateTime                   @updatedAt
+  printTemplates             PrintTemplate[]
+  currencyUnits              CurrencyUnit[]
+  measurementUnits           MeasurementUnit[]
+  activityLogs               ActivityLog[]
+  productTypes               ProductType[]
+  products                   Product[]
+  comboProductItems          ComboProductItem[]
+  stocks                     Stock[]
+  customerTypes              CustomerType[]
+  customers                  Customer[]
+  supplierTypes              SupplierType[]
+  suppliers                  Supplier[]
+  deals                      Deal[]
+  coupons                    Coupon[]
+  couponConditionProducts    CouponConditionProduct[]
+  couponProducts             CouponProduct[]
+  orders                     Order[]
+  areas                      Area[]
+  paymentMethods             PaymentMethod[]
+  discountIssues             DiscountIssue[]
+  discountCodes              DiscountCode[]
+  pointAccumulations         PointAccumulation[]
+  pointRedemptions           PointRedemption[]
+  pointAccumulationHistories PointAccumulationHistory[]
+  orderDetails               OrderDetail[]
+  invoices                   Invoice[]
+  customerRequests           CustomerRequest[]
+  orderRatings               OrderRating[]
+  staffRatings               StaffRating[]
+  workShifts                 WorkShift[]
+  employeeSchedules          EmployeeSchedule[]
+  timeSheets                 TimeSheet[]
+  salaries                   Salary[]
+  orderTransactions          OrderTransaction[]
+  detailPermissions          DetailPermission[]
+  otherAttributePatterns     OtherAttributePattern[]
+  tables                     Table[]
+}
+
+model WorkShift {
+  id                Int                @id
+  branchId          Int
+  name              String
+  startTime         String
+  endTime           String
+  isPublic          Boolean?           @default(true)
+  createdBy         Int?
+  updatedBy         Int?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  branch            Branch             @relation(fields: [branchId], references: [id])
+  employeeSchedules EmployeeSchedule[]
+}
+
+model EmployeeSchedule {
+  id          Int       @id
+  branchId    Int
+  employeeId  Int
+  workShiftId Int
+  date        DateTime
+  isPublic    Boolean?  @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  employee    User      @relation(fields: [employeeId], references: [id])
+  workShift   WorkShift @relation(fields: [workShiftId], references: [id])
+}
+
+model TimeSheet {
+  id         Int       @id
+  branchId   Int
+  employeeId Int
+  checkIn    DateTime?
+  checkOut   DateTime?
+  date       DateTime?
+  isPublic   Boolean?  @default(true)
+  createdBy  Int?
+  updatedBy  Int?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  branch     Branch    @relation(fields: [branchId], references: [id])
+  employee   User      @relation(fields: [employeeId], references: [id])
+}
+
+model Salary {
+  id          Int      @id
+  branchId    Int
+  baseSalary  Float
+  hourlyRate  Float
+  dailyRate   Float
+  weeklyRate  Float
+  monthlyRate Float
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+}
