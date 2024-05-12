@@ -1,24 +1,11 @@
+import { Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import {
   Injectable,
   NestInterceptor,
   ExecutionContext,
   CallHandler,
-  HttpStatus,
 } from '@nestjs/common';
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
-
-export function createApiResponse<T>(
-  data: T,
-  statusCode: number = HttpStatus.OK,
-  message: string = 'Thành công!',
-) {
-  return {
-    message,
-    statusCode,
-    data,
-  };
-}
 
 export interface Response<T> {
   statusCode: number;

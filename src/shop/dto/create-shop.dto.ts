@@ -5,10 +5,10 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
-import { CreateUserDto } from 'src/user/dto/create-user-dto';
+import { CreateBranchDTO } from 'src/branch/dto/create-branch.dto';
+import { CreateUserDTO } from 'src/user/dto/create-user-dto';
 
-export class CreateShopDto {
+export class CreateShopDTO {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
@@ -20,11 +20,11 @@ export class CreateShopDto {
 
   @IsNotEmpty({ message: 'Phải cung cấp thông tin chi nhánh!' })
   @ValidateNested()
-  @Type(() => CreateBranchDto)
-  branch: CreateBranchDto;
+  @Type(() => CreateBranchDTO)
+  branch: CreateBranchDTO;
 
   @IsNotEmpty({ message: 'Phải cung cấp thông tin người dùng!' })
   @ValidateNested()
-  @Type(() => CreateUserDto)
-  user: CreateUserDto;
+  @Type(() => CreateUserDTO)
+  user: CreateUserDTO;
 }

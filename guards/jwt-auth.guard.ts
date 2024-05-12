@@ -1,5 +1,11 @@
-import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
+import {
+  Injectable,
+  CanActivate,
+  ExecutionContext,
+  HttpStatus,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
 export class JwtAuthGuard implements CanActivate {
@@ -12,9 +18,16 @@ export class JwtAuthGuard implements CanActivate {
     if (!authHeader) return false;
 
     const [_, token] = authHeader.split(' ');
+
+    if (!token)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        'Không tim thấy token!',
+      );
+
     const payload = this.jwtService.decode(token);
 
-    request.account = { id: payload.id };
+    request.tokenPayload = payload;
 
     return true;
   }

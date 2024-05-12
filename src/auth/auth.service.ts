@@ -4,9 +4,10 @@ import { PrismaService } from 'nestjs-prisma';
 import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { mapResponseLogin } from 'map-responses/account.map-response';
-import { createApiResponse } from 'utils/ApiResponse';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { ACCOUNT_STATUS } from 'enums/user.enum';
+import { AccessBranchDTO } from './dto/access-branch-dto';
+import { TokenPayload } from 'interfaces/common.interface';
 
 @Injectable()
 export class AuthService {
@@ -21,10 +22,7 @@ export class AuthService {
         isPublic: true,
         user: {
           isPublic: true,
-          phone: loginDto.phone,
-          shops: {
-            some: { id: loginDto.shopId, isPublic: true },
-          },
+          OR: [{ phone: loginDto.username }, { email: loginDto.username }],
         },
       },
       include: {
@@ -56,21 +54,85 @@ export class AuthService {
     ) {
       throw new CustomHttpException(
         HttpStatus.UNAUTHORIZED,
-        'Tài khoản hoặc mật khẩu không chính xác!',
+        '#1 login - Tài khoản hoặc mật khẩu không chính xác!',
       );
     }
 
     if (account.status == ACCOUNT_STATUS.INACTIVE) {
       throw new CustomHttpException(
         HttpStatus.FORBIDDEN,
-        'Tài khoản đã bị khóa!',
+        '#2 login - Tài khoản đã bị khóa!',
       );
     }
 
-    const payload = { id: account.id };
+    const payload = { accountId: account.id };
 
     return {
-      access_token: await this.jwtService.signAsync(payload),
+      accountToken: await this.jwtService.signAsync(payload, {
+        expiresIn: '5m',
+      }),
+      ...mapResponseLogin(account),
+    };
+  }
+
+  async accessBranch(
+    AccessBranchDTO: AccessBranchDTO,
+    tokenPayload: TokenPayload,
+  ) {
+    const account = await this.prisma.account.findFirst({
+      where: {
+        isPublic: true,
+        id: tokenPayload.accountId,
+        user: {
+          detailPermissions: {
+            some: {
+              branchId: AccessBranchDTO.branchId,
+            },
+          },
+        },
+      },
+      include: {
+        user: {
+          include: {
+            shops: {
+              select: {
+                id: true,
+                photoURL: true,
+                name: true,
+                branches: {
+                  select: {
+                    id: true,
+                    photoURL: true,
+                    name: true,
+                    address: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
+    if (!account) {
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        '#1 accessBranch - Không tìm thấy tài nguyên!',
+      );
+    }
+
+    return {
+      accessToken: await this.jwtService.signAsync(
+        {
+          type: account.user.type,
+          accountId: tokenPayload.accountId,
+          branchId: tokenPayload.branchId,
+          shopId: account.user.shops[0].id,
+        } as TokenPayload,
+        {
+          expiresIn: '48h',
+        },
+      ),
       ...mapResponseLogin(account),
     };
   }

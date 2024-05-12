@@ -9,8 +9,9 @@ import { AuthModule } from './auth/auth.module';
 import { BranchModule } from './branch/branch.module';
 import { ShopModule } from './shop/shop.module';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from 'utils/constants';
+import { jwtConstants } from 'utils/Constants';
 import { TransformInterceptor } from 'utils/ApiResponse';
+import { MeasurementUnitModule } from './measurement-unit/measurement-unit.module';
 
 @Module({
   imports: [
@@ -30,6 +31,7 @@ import { TransformInterceptor } from 'utils/ApiResponse';
     AuthModule,
     BranchModule,
     ShopModule,
+    MeasurementUnitModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor],

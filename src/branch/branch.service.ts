@@ -1,4 +1,4 @@
-import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
+import { CreateBranchDTO } from 'src/branch/dto/create-branch.dto';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 
@@ -6,5 +6,5 @@ import { PrismaService } from 'nestjs-prisma';
 export class BranchService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(createBranchDto: CreateBranchDto) {}
+  async create(CreateBranchDTO: CreateBranchDTO) {}
 }

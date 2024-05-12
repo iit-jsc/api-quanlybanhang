@@ -29,7 +29,6 @@ async function bootstrap() {
       skipNullProperties: false,
       exceptionFactory: (errors: ValidationError[]) => {
         const formattedErrors = errorFormatter(errors);
-
         return new BadRequestException({
           statusCode: HttpStatus.BAD_REQUEST,
           message: 'Validation failed!',

@@ -15,7 +15,7 @@ interface ErrorItem {
 export class CustomHttpException extends HttpException {
   constructor(statusCode: number, message: string, errors: ErrorItem[] = []) {
     const response: ErrorResponse = {
-      statusCode,
+      statusCode: statusCode,
       message,
     };
 
@@ -26,7 +26,7 @@ export class CustomHttpException extends HttpException {
       }));
     }
 
-    super(response, HttpStatus.BAD_REQUEST);
+    super(response, statusCode);
   }
 }
 
@@ -38,6 +38,7 @@ export function errorFormatter(
   const message = errMessage || {};
   let errorField = '';
   let validationsList = [];
+  console.log(errors);
 
   errors.forEach((error) => {
     errorField = parentField
@@ -61,6 +62,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
+
     console.log(exception);
 
     if (exception.code === 'P2002') {
@@ -83,7 +85,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       });
     }
 
-    if (exception.code === 'P2003') {
+    if (exception.code === 'P2003' || exception.code === 'P2025') {
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.BAD_REQUEST,
         message: 'Dữ liệu không tồn tại (2)!',
@@ -94,7 +96,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
       const { message, errors } = exception.getResponse() as any;
 
-      return response.status(status).json({
+      return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: status,
         message: message || 'UNKNOWN ERROR',
         errors: errors || {},
