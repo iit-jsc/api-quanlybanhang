@@ -57,7 +57,7 @@ export class MeasurementUnitController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findOne(@Param('id') id: string, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.measurementUnitService.findUniq(

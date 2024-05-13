@@ -4,7 +4,6 @@ import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import {
   calculatePagination,
-  generateUniqueId,
   getAccountPermissionCondition,
 } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
@@ -31,6 +30,13 @@ export class MeasurementUnitService {
   async findAll(params: FindMeasurementUnitDTO, tokenPayload: TokenPayload) {
     let { skip, take } = params;
 
+    const where = {
+      isPublic: true,
+      branches: {
+        some: getAccountPermissionCondition(tokenPayload.accountId),
+      },
+    };
+
     const [data, totalRecords] = await Promise.all([
       this.prisma.measurementUnit.findMany({
         skip,
@@ -38,12 +44,7 @@ export class MeasurementUnitService {
         orderBy: {
           createdAt: 'desc',
         },
-        where: {
-          isPublic: true,
-          branches: {
-            some: getAccountPermissionCondition(tokenPayload.accountId),
-          },
-        },
+        where,
         select: {
           id: true,
           name: true,
@@ -58,20 +59,13 @@ export class MeasurementUnitService {
         },
       }),
       this.prisma.measurementUnit.count({
-        where: {
-          isPublic: true,
-          branches: {
-            some: getAccountPermissionCondition(tokenPayload.accountId),
-          },
-        },
+        where,
       }),
     ]);
 
-    const pagination = calculatePagination(totalRecords, skip, take);
-
     return {
       list: data,
-      pagination,
+      pagination: calculatePagination(totalRecords, skip, take),
     };
   }
 

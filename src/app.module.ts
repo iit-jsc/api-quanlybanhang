@@ -1,7 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { PrismaModule } from 'nestjs-prisma';
+import { PrismaModule, PrismaService } from 'nestjs-prisma';
 import { UserModule } from './user/user.module';
 import { AccountModule } from './account/account.module';
 import { ConfigModule } from '@nestjs/config';
@@ -13,6 +13,8 @@ import { jwtConstants } from 'utils/Constants';
 import { TransformInterceptor } from 'utils/ApiResponse';
 import { MeasurementUnitModule } from './measurement-unit/measurement-unit.module';
 import { MulterModule } from '@nestjs/platform-express';
+import { ServeStaticModule } from '@nestjs/serve-static';
+import { join } from 'path';
 
 @Module({
   imports: [
@@ -35,6 +37,6 @@ import { MulterModule } from '@nestjs/platform-express';
     MeasurementUnitModule,
   ],
   controllers: [AppController],
-  providers: [AppService, TransformInterceptor],
+  providers: [AppService, TransformInterceptor, PrismaService],
 })
 export class AppModule {}

@@ -8,7 +8,4 @@ export class FindMeasurementUnitDTO {
 
   @Type(() => Number)
   take?: number;
-
-  @IsString()
-  orderBy?: string = DEFAULT_OPTION_FIND.DEFAULT_ORDER;
 }

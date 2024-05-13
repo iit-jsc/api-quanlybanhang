@@ -14,7 +14,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const cfgService = app.get(ConfigService);
 
-  app.use('/uploads', static_('upload'));
+  app.use('/uploads', static_('uploads'));
   app.use(json({ limit: '200mb' }));
   app.useGlobalFilters(new PrismaExceptionFilter());
   app.useGlobalInterceptors(new TransformInterceptor());

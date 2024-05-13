@@ -4,3 +4,9 @@ export interface TokenPayload {
   branchId?: number;
   type?: number;
 }
+
+export interface PaginationResult {
+  totalRecords: number;
+  totalPages: number;
+  currentPage: number;
+}

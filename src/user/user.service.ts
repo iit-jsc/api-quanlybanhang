@@ -23,4 +23,17 @@ export class UserService {
       },
     });
   }
+
+  async getByAccountId(id: number) {
+    return this.prisma.user.findFirst({
+      where: {
+        isPublic: true,
+        accounts: {
+          some: {
+            id,
+          },
+        },
+      },
+    });
+  }
 }

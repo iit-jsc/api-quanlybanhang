@@ -41,7 +41,7 @@ const imageFileFilter = (req, file, callback) => {
   callback(null, true);
 };
 
-const maxSize = 5 * 1024 * 1024; // 5MB
+const maxSize = 200 * 1024 * 1024;
 
 export const CustomFileInterceptor = (
   fieldName: string,

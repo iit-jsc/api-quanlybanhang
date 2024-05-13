@@ -1,13 +1,8 @@
 import { generate as generateIdentifier } from 'short-uuid';
-
+import { Type } from 'class-transformer';
+import { PaginationResult } from 'interfaces/common.interface';
 export function generateUniqueId(): string {
   return generateIdentifier();
-}
-
-export interface PaginationResult {
-  totalRecords: number;
-  totalPages: number;
-  currentPage: number;
 }
 
 export function calculatePagination(
@@ -38,4 +33,12 @@ export function getAccountPermissionCondition(accountId: number) {
       },
     },
   };
+}
+
+export class FindManyDTO {
+  @Type(() => Number)
+  skip?: number;
+
+  @Type(() => Number)
+  take?: number;
 }
