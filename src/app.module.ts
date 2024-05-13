@@ -12,6 +12,7 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'utils/Constants';
 import { TransformInterceptor } from 'utils/ApiResponse';
 import { MeasurementUnitModule } from './measurement-unit/measurement-unit.module';
+import { MulterModule } from '@nestjs/platform-express';
 
 @Module({
   imports: [

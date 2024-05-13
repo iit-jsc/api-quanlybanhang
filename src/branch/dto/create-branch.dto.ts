@@ -12,4 +12,6 @@ export class CreateBranchDTO {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   address?: string;
+  photoURL?: string;
+  status?: number;
 }

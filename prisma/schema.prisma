@@ -107,7 +107,6 @@ model Shop {
 
 model PrintTemplate {
   id             Int      @id @default(autoincrement())
-  identifier     String
   type           Int
   name           String
   content        String?  @db.Text
@@ -122,30 +121,28 @@ model PrintTemplate {
 }
 
 model CurrencyUnit {
-  id         Int      @id @default(autoincrement())
-  identifier String
-  name       String
-  code       String
-  isPublic   Boolean? @default(true)
-  createdBy  Int?
-  updatedBy  Int?
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  branches   Branch[]
+  id        Int      @id @default(autoincrement())
+  name      String
+  code      String
+  isPublic  Boolean? @default(true)
+  createdBy Int?
+  updatedBy Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branches  Branch[]
 }
 
 model MeasurementUnit {
-  id         Int       @id @default(autoincrement())
-  identifier String
-  name       String
-  code       String
-  branches   Branch[]
-  isPublic   Boolean?  @default(true)
-  createdBy  Int?
-  updatedBy  Int?
-  createdAt  DateTime  @default(now())
-  updatedAt  DateTime  @updatedAt
-  products   Product[]
+  id        Int       @id @default(autoincrement())
+  name      String
+  code      String
+  branches  Branch[]
+  isPublic  Boolean?  @default(true)
+  createdBy Int?
+  updatedBy Int?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
 }
 
 model ActivityLog {

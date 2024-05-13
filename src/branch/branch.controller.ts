@@ -4,11 +4,14 @@ import {
   HttpCode,
   HttpStatus,
   Post,
+  UploadedFile,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BranchService } from './branch.service';
 import { CreateBranchDTO } from './dto/create-branch.dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
+import { CustomFileInterceptor } from 'utils/ApiResponse';
 
 @Controller('branch')
 export class BranchController {
@@ -17,7 +20,13 @@ export class BranchController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  create(@Body() CreateBranchDTO: CreateBranchDTO) {
-    return this.branchService.create(CreateBranchDTO);
+  @UseInterceptors(CustomFileInterceptor('photoURL'))
+  create(
+    @Body() createBranchDto: CreateBranchDTO,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    console.log(file);
+
+    return this.branchService.create(createBranchDto);
   }
 }

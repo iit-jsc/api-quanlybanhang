@@ -1,9 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
+  Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -25,13 +28,13 @@ export class MeasurementUnitController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   create(
-    @Body() createMeasurementUnit: CreateMeasurementUnitDTO,
+    @Body() createMeasurementUnitDto: CreateMeasurementUnitDTO,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.measurementUnitService.create(
-      createMeasurementUnit,
+      createMeasurementUnitDto,
       tokenPayload,
     );
   }
@@ -49,5 +52,32 @@ export class MeasurementUnitController {
       findMeasurementUnitDTO,
       tokenPayload,
     );
+  }
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  findOne(@Param('id') id: string, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.measurementUnitService.findUniq(
+      {
+        id: +id,
+      },
+      tokenPayload,
+    );
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() createMeasurementUnitDto: CreateMeasurementUnitDTO,
+  ) {
+    return this.measurementUnitService.update({
+      where: {
+        id: +id,
+      },
+      data: createMeasurementUnitDto,
+    });
   }
 }

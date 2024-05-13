@@ -6,6 +6,9 @@ import {
   ExecutionContext,
   CallHandler,
 } from '@nestjs/common';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+import { FileInterceptor } from '@nestjs/platform-express';
 
 export interface Response<T> {
   statusCode: number;
@@ -30,3 +33,32 @@ export class TransformInterceptor<T>
     );
   }
 }
+
+const imageFileFilter = (req, file, callback) => {
+  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
+    return callback(new Error('Only image files are allowed!'), false);
+  }
+  callback(null, true);
+};
+
+const maxSize = 5 * 1024 * 1024; // 5MB
+
+export const CustomFileInterceptor = (
+  fieldName: string,
+  destinationPath: string = './uploads',
+  fileSize: number = maxSize,
+) =>
+  FileInterceptor(fieldName, {
+    storage: diskStorage({
+      destination: destinationPath,
+      filename: (req, file, cb) => {
+        const randomName = Array(32)
+          .fill(null)
+          .map(() => Math.round(Math.random() * 16).toString(16))
+          .join('');
+        cb(null, `${randomName}${extname(file.originalname)}`);
+      },
+    }),
+    fileFilter: imageFileFilter,
+    limits: { fileSize },
+  });

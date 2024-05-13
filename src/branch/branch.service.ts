@@ -6,5 +6,5 @@ import { PrismaService } from 'nestjs-prisma';
 export class BranchService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(CreateBranchDTO: CreateBranchDTO) {}
+  async create(createBranchDto: CreateBranchDTO) {}
 }

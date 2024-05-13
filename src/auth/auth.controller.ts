@@ -26,9 +26,9 @@ export class AuthController {
   @Post('/access-branch')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  accessBranch(@Body() AccessBranchDTO: AccessBranchDTO, @Req() req: any) {
+  accessBranch(@Body() accessBranchDTO: AccessBranchDTO, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.authService.accessBranch(AccessBranchDTO, tokenPayload);
+    return this.authService.accessBranch(accessBranchDTO, tokenPayload);
   }
 }

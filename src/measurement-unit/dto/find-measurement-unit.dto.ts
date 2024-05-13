@@ -1,16 +1,14 @@
-import { Prisma } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsObject } from 'class-validator';
+import { IsString } from 'class-validator';
+import { DEFAULT_OPTION_FIND } from 'enums/common.enum';
 
 export class FindMeasurementUnitDTO {
   @Type(() => Number)
-  skip?: number = 0;
+  skip?: number;
 
   @Type(() => Number)
-  take?: number = 10;
+  take?: number;
 
-  @Type(() => Object)
-  orderBy?: Prisma.MeasurementUnitOrderByWithRelationInput = {
-    createdAt: 'desc',
-  };
+  @IsString()
+  orderBy?: string = DEFAULT_OPTION_FIND.DEFAULT_ORDER;
 }

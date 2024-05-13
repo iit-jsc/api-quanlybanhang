@@ -2,7 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
 import { TokenPayload } from 'interfaces/common.interface';
-import { generateUniqueId } from 'utils/Helps';
+import {
+  calculatePagination,
+  generateUniqueId,
+  getAccountPermissionCondition,
+} from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindMeasurementUnitDTO } from './dto/find-measurement-unit.dto';
 
@@ -11,13 +15,10 @@ export class MeasurementUnitService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateMeasurementUnitDTO, tokenPayload: TokenPayload) {
-    const identifier = generateUniqueId();
-
     return await this.prisma.measurementUnit.create({
       data: {
         name: data.name,
         code: data.code,
-        identifier: identifier,
         createdBy: tokenPayload.accountId,
         updatedBy: tokenPayload.accountId,
         branches: {
@@ -28,21 +29,82 @@ export class MeasurementUnitService {
   }
 
   async findAll(params: FindMeasurementUnitDTO, tokenPayload: TokenPayload) {
-    const { skip, take, orderBy } = params;
+    let { skip, take } = params;
 
-    return this.prisma.measurementUnit.findMany({
-      skip,
-      take,
-      orderBy,
+    const [data, totalRecords] = await Promise.all([
+      this.prisma.measurementUnit.findMany({
+        skip,
+        take,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        where: {
+          isPublic: true,
+          branches: {
+            some: getAccountPermissionCondition(tokenPayload.accountId),
+          },
+        },
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          branches: {
+            select: {
+              id: true,
+              photoURL: true,
+              name: true,
+            },
+          },
+        },
+      }),
+      this.prisma.measurementUnit.count({
+        where: {
+          isPublic: true,
+          branches: {
+            some: getAccountPermissionCondition(tokenPayload.accountId),
+          },
+        },
+      }),
+    ]);
+
+    const pagination = calculatePagination(totalRecords, skip, take);
+
+    return {
+      list: data,
+      pagination,
+    };
+  }
+
+  async findUniq(
+    where: Prisma.MeasurementUnitWhereUniqueInput,
+    tokenPayload: TokenPayload,
+  ) {
+    return this.prisma.measurementUnit.findUniqueOrThrow({
       where: {
-        isPublic: true,
+        ...where,
+        branches: {
+          some: getAccountPermissionCondition(tokenPayload.accountId),
+        },
       },
       select: {
         id: true,
-        identifier: true,
         name: true,
         code: true,
+        branches: {
+          select: {
+            id: true,
+            photoURL: true,
+            name: true,
+          },
+        },
       },
     });
+  }
+
+  async update(params: {
+    where: Prisma.MeasurementUnitWhereUniqueInput;
+    data: Prisma.MeasurementUnitUpdateInput;
+  }) {
+    const { where, data } = params;
   }
 }

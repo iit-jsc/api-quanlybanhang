@@ -8,7 +8,7 @@ export class ShopController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  create(@Body() CreateShopDTO: CreateShopDTO) {
-    return this.shopService.create(CreateShopDTO);
+  create(@Body() createShopDto: CreateShopDTO) {
+    return this.shopService.create(createShopDto);
   }
 }
