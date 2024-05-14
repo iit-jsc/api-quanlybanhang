@@ -2,10 +2,12 @@ import { CreateBranchDTO } from 'src/branch/dto/create-branch.dto';
 import { Injectable } from '@nestjs/common';
 import { TokenPayload } from 'interfaces/common.interface';
 import { UserService } from 'src/user/user.service';
-import { FindManyDTO, calculatePagination } from 'utils/Helps';
-import { Prisma, PrismaClient } from '@prisma/client';
-import { pagination } from 'prisma-extension-pagination';
-import { DEFAULT_OPTION_FIND } from 'enums/common.enum';
+import {
+  FindManyDTO,
+  calculatePagination,
+  getPermissionBranch,
+} from 'utils/Helps';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 
 @Injectable()
@@ -103,11 +105,58 @@ export class BranchService {
 
   async update(
     params: {
-      where: Prisma.MeasurementUnitWhereUniqueInput;
-      data: Prisma.MeasurementUnitUpdateInput;
+      where: Prisma.BranchWhereUniqueInput;
+      data: Prisma.BranchUpdateInput;
     },
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    return this.prisma.branch.update({
+      data: {
+        name: data.name,
+        address: data.address,
+        status: data.status,
+        updatedBy: tokenPayload.accountId,
+      },
+      where: {
+        ...where,
+        ...getPermissionBranch(tokenPayload),
+      },
+    });
+  }
+
+  async removeMany(where: Prisma.BranchWhereInput, tokenPayload: TokenPayload) {
+    return this.prisma.branch.updateMany({
+      where: {
+        ...where,
+        ...getPermissionBranch(tokenPayload),
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
+
+  async updatePhotoURL(
+    params: {
+      where: Prisma.BranchWhereUniqueInput;
+      data: Prisma.BranchUpdateInput;
+    },
+    tokenPayload: TokenPayload,
+  ) {
+    const { where, data } = params;
+
+    return this.prisma.branch.update({
+      data: {
+        photoURL: data.photoURL,
+        updatedBy: tokenPayload.accountId,
+      },
+      where: {
+        ...where,
+        ...getPermissionBranch(tokenPayload),
+      },
+    });
   }
 }

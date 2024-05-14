@@ -69,15 +69,23 @@ export class MeasurementUnitController {
   }
 
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
     @Body() createMeasurementUnitDto: CreateMeasurementUnitDTO,
+    @Req() req: any,
   ) {
-    return this.measurementUnitService.update({
-      where: {
-        id: +id,
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.measurementUnitService.update(
+      {
+        where: {
+          id: +id,
+        },
+        data: createMeasurementUnitDto,
       },
-      data: createMeasurementUnitDto,
-    });
+      tokenPayload,
+    );
   }
 }

@@ -1,6 +1,8 @@
+import { TokenPayload } from './../interfaces/common.interface';
 import { generate as generateIdentifier } from 'short-uuid';
 import { Type } from 'class-transformer';
 import { PaginationResult } from 'interfaces/common.interface';
+import { USER_TYPE } from 'enums/user.enum';
 export function generateUniqueId(): string {
   return generateIdentifier();
 }
@@ -19,14 +21,25 @@ export function calculatePagination(
     currentPage,
   };
 }
-export function getAccountPermissionCondition(accountId: number) {
+export function getPermissionBranch(tokenPayload: TokenPayload) {
+  if (tokenPayload.type === USER_TYPE.STORE_OWNER)
+    return {
+      shop: {
+        id: tokenPayload.shopId,
+        isPublic: true,
+      },
+    };
+
   return {
+    isPublic: true,
     detailPermissions: {
       some: {
         user: {
+          isPublic: true,
           accounts: {
             some: {
-              id: accountId,
+              id: tokenPayload.accountId,
+              isPublic: true,
             },
           },
         },

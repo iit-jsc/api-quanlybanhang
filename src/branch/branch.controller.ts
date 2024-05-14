@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -19,6 +20,7 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { CustomFileInterceptor } from 'utils/ApiResponse';
 import { TokenPayload } from 'interfaces/common.interface';
 import { FindManyDTO } from 'utils/Helps';
+import { DeleteBranchDto } from './dto/delete-branch.dto';
 
 @Controller('branch')
 export class BranchController {
@@ -68,18 +70,58 @@ export class BranchController {
   }
 
   @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
     @Body() createBranchDto: CreateBranchDTO,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
+
     return this.branchService.update(
       {
         where: {
           id: +id,
         },
         data: createBranchDto,
+      },
+      tokenPayload,
+    );
+  }
+
+  @Delete('')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  remove(@Body() deleteDocumentDto: DeleteBranchDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+    return this.branchService.removeMany(
+      {
+        id: {
+          in: deleteDocumentDto.ids,
+        },
+      },
+      tokenPayload,
+    );
+  }
+
+  @Patch(':id/update-photo')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(CustomFileInterceptor('photoURL'))
+  updatePhotoURL(
+    @Param('id') id: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.branchService.updatePhotoURL(
+      {
+        where: {
+          id: +id,
+        },
+        data: { photoURL: file.path },
       },
       tokenPayload,
     );

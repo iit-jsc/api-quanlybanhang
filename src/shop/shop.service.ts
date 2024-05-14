@@ -5,6 +5,7 @@ import { CreateShopDTO } from './dto/create-shop.dto';
 import { ACCOUNT_STATUS, USER_TYPE } from 'enums/user.enum';
 import { UserService } from 'src/user/user.service';
 import { CreateAccountDTO } from 'src/account/dto/create-account.dto';
+import { BRANCH_STATUS } from 'enums/branch.enum';
 
 @Injectable()
 export class ShopService {
@@ -41,6 +42,7 @@ export class ShopService {
             create: {
               name: branch.name,
               address: branch.address,
+              status: BRANCH_STATUS.ACTIVE,
               detailPermissions: {
                 create: {
                   userId: newShopOwner.id,

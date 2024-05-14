@@ -1,6 +1,5 @@
-import { Prisma } from '@prisma/client';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { ArrayNotEmpty, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateMeasurementUnitDTO {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -14,5 +13,6 @@ export class CreateMeasurementUnitDTO {
   code?: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
   branchIds: number[];
 }

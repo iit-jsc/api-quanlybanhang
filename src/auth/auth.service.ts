@@ -76,7 +76,7 @@ export class AuthService {
   }
 
   async accessBranch(
-    AccessBranchDTO: AccessBranchDTO,
+    accessBranchDto: AccessBranchDTO,
     tokenPayload: TokenPayload,
   ) {
     const account = await this.prisma.account.findFirst({
@@ -86,7 +86,17 @@ export class AuthService {
         user: {
           detailPermissions: {
             some: {
-              branchId: AccessBranchDTO.branchId,
+              isPublic: true,
+              branch: {
+                isPublic: true,
+                id: accessBranchDto.branchId,
+              },
+            },
+          },
+          shops: {
+            some: {
+              isPublic: true,
+              id: tokenPayload.shopId,
             },
           },
         },
@@ -100,6 +110,10 @@ export class AuthService {
                 photoURL: true,
                 name: true,
                 branches: {
+                  where: {
+                    isPublic: true,
+                    id: accessBranchDto.branchId,
+                  },
                   select: {
                     id: true,
                     photoURL: true,
@@ -126,7 +140,7 @@ export class AuthService {
         {
           type: account.user.type,
           accountId: tokenPayload.accountId,
-          branchId: tokenPayload.branchId,
+          branchId: accessBranchDto.branchId,
           shopId: account.user.shops[0].id,
         } as TokenPayload,
         {
