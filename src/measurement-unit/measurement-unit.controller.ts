@@ -18,6 +18,7 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { FindMeasurementUnitDTO } from './dto/find-measurement-unit.dto';
 import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
 import { BranchGuard } from 'guards/branch.guard';
+import { DeleteBranchDto } from './dto/delete-measurement-unit.dto';
 
 @Controller('measurement-unit')
 export class MeasurementUnitController {
@@ -85,6 +86,26 @@ export class MeasurementUnitController {
           id: +id,
         },
         data: createMeasurementUnitDto,
+      },
+      tokenPayload,
+    );
+  }
+
+  @Delete('')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, BranchGuard)
+  deleteMany(
+    @Param('id') id: string,
+    @Body() deleteBranchDto: DeleteBranchDto,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.measurementUnitService.removeMany(
+      {
+        id: {
+          in: deleteBranchDto.ids,
+        },
       },
       tokenPayload,
     );

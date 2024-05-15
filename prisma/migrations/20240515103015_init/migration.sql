@@ -1,9 +1,9 @@
 -- CreateTable
 CREATE TABLE "GroupRole" (
-    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "code" TEXT NOT NULL,
 
-    CONSTRAINT "GroupRole_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "GroupRole_pkey" PRIMARY KEY ("code")
 );
 
 -- CreateTable
@@ -11,7 +11,7 @@ CREATE TABLE "Role" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT NOT NULL,
-    "groupId" INTEGER NOT NULL,
+    "groupCode" TEXT NOT NULL,
 
     CONSTRAINT "Role_pkey" PRIMARY KEY ("id")
 );
@@ -102,7 +102,6 @@ CREATE TABLE "Shop" (
 -- CreateTable
 CREATE TABLE "PrintTemplate" (
     "id" SERIAL NOT NULL,
-    "identifier" TEXT NOT NULL,
     "type" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "content" TEXT,
@@ -120,7 +119,6 @@ CREATE TABLE "PrintTemplate" (
 -- CreateTable
 CREATE TABLE "CurrencyUnit" (
     "id" SERIAL NOT NULL,
-    "identifier" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
@@ -135,7 +133,6 @@ CREATE TABLE "CurrencyUnit" (
 -- CreateTable
 CREATE TABLE "MeasurementUnit" (
     "id" SERIAL NOT NULL,
-    "identifier" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
@@ -890,7 +887,7 @@ CREATE UNIQUE INDEX "_BranchToMeasurementUnit_AB_unique" ON "_BranchToMeasuremen
 CREATE INDEX "_BranchToMeasurementUnit_B_index" ON "_BranchToMeasurementUnit"("B");
 
 -- AddForeignKey
-ALTER TABLE "Role" ADD CONSTRAINT "Role_groupId_fkey" FOREIGN KEY ("groupId") REFERENCES "GroupRole"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Role" ADD CONSTRAINT "Role_groupCode_fkey" FOREIGN KEY ("groupCode") REFERENCES "GroupRole"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

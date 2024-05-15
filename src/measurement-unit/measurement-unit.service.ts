@@ -31,6 +31,7 @@ export class MeasurementUnitService {
     let { skip, take } = params;
 
     const where = {
+      isPublic: true,
       branches: {
         some: determineAccessConditions(tokenPayload),
       },
@@ -75,6 +76,7 @@ export class MeasurementUnitService {
     return this.prisma.measurementUnit.findUniqueOrThrow({
       where: {
         ...where,
+        isPublic: true,
         branches: {
           some: determineAccessConditions(tokenPayload),
         },
@@ -116,6 +118,19 @@ export class MeasurementUnitService {
         updatedBy: tokenPayload.accountId,
       },
       where,
+    });
+  }
+
+  async removeMany(
+    where: Prisma.MeasurementUnitWhereInput,
+    tokenPayload: TokenPayload,
+  ) {
+    return this.prisma.measurementUnit.updateMany({
+      where,
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
     });
   }
 }

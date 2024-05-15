@@ -74,6 +74,68 @@ async function main() {
       },
     ],
   });
+
+  await prisma.groupRole.createMany({
+    data: [
+      {
+        name: 'Quản lý nhân viên',
+        code: 'EMPLOYEE',
+      },
+      {
+        name: 'Quản lý đơn vị tính',
+        code: 'MEASUREMENT_UNIT',
+      },
+      {
+        name: 'Phân quyền',
+        code: 'PERMISSION',
+      },
+    ],
+  });
+
+  await prisma.role.createMany({
+    data: [
+      {
+        name: 'Xem danh sách nhân viên',
+        code: 'CREATE_EMPLOYEE',
+        groupCode: 'EMPLOYEE',
+      },
+      {
+        name: 'Thêm nhân viên',
+        code: 'CREATE_EMPLOYEE',
+        groupCode: 'EMPLOYEE',
+      },
+      {
+        name: 'Chỉnh sửa thông tin nhân viên',
+        code: 'UPDATE_EMPLOYEE',
+        groupCode: 'EMPLOYEE',
+      },
+      {
+        name: 'Xóa nhân viên',
+        code: 'DELETE_EMPLOYEE',
+        groupCode: 'EMPLOYEE',
+      },
+      {
+        name: 'Xem danh sách đơn vị tính',
+        code: 'CREATE_MEASUREMENT_UNIT',
+        groupCode: 'MEASUREMENT_UNIT',
+      },
+      {
+        name: 'Thêm đơn vị tính',
+        code: 'CREATE_MEASUREMENT_UNIT',
+        groupCode: 'MEASUREMENT_UNIT',
+      },
+      {
+        name: 'Chỉnh sửa thông tin đơn vị tính',
+        code: 'UPDATE_MEASUREMENT_UNIT',
+        groupCode: 'MEASUREMENT_UNIT',
+      },
+      {
+        name: 'Xóa đơn vị tính',
+        code: 'DELETE_MEASUREMENT_UNIT',
+        groupCode: 'MEASUREMENT_UNIT',
+      },
+    ],
+  });
 }
 
 main()

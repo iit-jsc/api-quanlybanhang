@@ -93,7 +93,7 @@ export class BranchController {
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  remove(@Body() deleteDocumentDto: DeleteBranchDto, @Req() req: any) {
+  removeMany(@Body() deleteDocumentDto: DeleteBranchDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.branchService.removeMany(
       {

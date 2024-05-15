@@ -16,6 +16,7 @@ import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { LoggerMiddleware } from 'middlewares/check-branch.middleware';
+import { PermissionModule } from './permission/permission.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { LoggerMiddleware } from 'middlewares/check-branch.middleware';
     BranchModule,
     ShopModule,
     MeasurementUnitModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],
