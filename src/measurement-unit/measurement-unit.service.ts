@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
 import { TokenPayload } from 'interfaces/common.interface';
-import { calculatePagination, getPermissionBranch } from 'utils/Helps';
+import { calculatePagination, determineAccessConditions } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindMeasurementUnitDTO } from './dto/find-measurement-unit.dto';
 
@@ -32,7 +32,7 @@ export class MeasurementUnitService {
 
     const where = {
       branches: {
-        some: getPermissionBranch(tokenPayload),
+        some: determineAccessConditions(tokenPayload),
       },
     };
 
@@ -43,13 +43,7 @@ export class MeasurementUnitService {
         orderBy: {
           createdAt: 'desc',
         },
-        where: {
-          branches: {
-            some: {
-              ...getPermissionBranch(tokenPayload),
-            },
-          },
-        },
+        where,
         select: {
           id: true,
           name: true,
@@ -82,7 +76,7 @@ export class MeasurementUnitService {
       where: {
         ...where,
         branches: {
-          some: getPermissionBranch(tokenPayload),
+          some: determineAccessConditions(tokenPayload),
         },
       },
       select: {
@@ -117,17 +111,11 @@ export class MeasurementUnitService {
           set: [],
           connect: data.branchIds.map((id) => ({
             id,
-            shop: { isPublic: true, id: tokenPayload.shopId },
           })),
         },
         updatedBy: tokenPayload.accountId,
       },
-      where: {
-        ...where,
-        branches: {
-          some: getPermissionBranch(tokenPayload),
-        },
-      },
+      where,
     });
   }
 }

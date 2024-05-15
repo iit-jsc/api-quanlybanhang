@@ -21,9 +21,10 @@ export function calculatePagination(
     currentPage,
   };
 }
-export function getPermissionBranch(tokenPayload: TokenPayload) {
+export function determineAccessConditions(tokenPayload: TokenPayload) {
   if (tokenPayload.type === USER_TYPE.STORE_OWNER)
     return {
+      isPublic: true,
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,
@@ -32,19 +33,7 @@ export function getPermissionBranch(tokenPayload: TokenPayload) {
 
   return {
     isPublic: true,
-    detailPermissions: {
-      some: {
-        user: {
-          isPublic: true,
-          accounts: {
-            some: {
-              id: tokenPayload.accountId,
-              isPublic: true,
-            },
-          },
-        },
-      },
-    },
+    id: tokenPayload.branchId,
   };
 }
 

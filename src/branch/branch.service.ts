@@ -5,7 +5,7 @@ import { UserService } from 'src/user/user.service';
 import {
   FindManyDTO,
   calculatePagination,
-  getPermissionBranch,
+  determineAccessConditions,
 } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
@@ -49,10 +49,7 @@ export class BranchService {
   async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
     let { skip, take } = params;
 
-    const where = {
-      isPublic: true,
-      shopId: tokenPayload.shopId,
-    };
+    const where = determineAccessConditions(tokenPayload);
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.branch.findMany({
@@ -89,8 +86,7 @@ export class BranchService {
     return await this.prisma.branch.findUniqueOrThrow({
       where: {
         ...where,
-        isPublic: true,
-        shopId: tokenPayload.shopId,
+        ...determineAccessConditions(tokenPayload),
       },
       select: {
         id: true,
@@ -121,7 +117,7 @@ export class BranchService {
       },
       where: {
         ...where,
-        ...getPermissionBranch(tokenPayload),
+        ...determineAccessConditions(tokenPayload),
       },
     });
   }
@@ -130,7 +126,7 @@ export class BranchService {
     return this.prisma.branch.updateMany({
       where: {
         ...where,
-        ...getPermissionBranch(tokenPayload),
+        ...determineAccessConditions(tokenPayload),
       },
       data: {
         isPublic: false,
@@ -155,7 +151,7 @@ export class BranchService {
       },
       where: {
         ...where,
-        ...getPermissionBranch(tokenPayload),
+        ...determineAccessConditions(tokenPayload),
       },
     });
   }

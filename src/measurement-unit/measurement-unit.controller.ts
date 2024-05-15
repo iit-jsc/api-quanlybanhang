@@ -17,6 +17,7 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { FindMeasurementUnitDTO } from './dto/find-measurement-unit.dto';
 import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
+import { BranchGuard } from 'guards/branch.guard';
 
 @Controller('measurement-unit')
 export class MeasurementUnitController {
@@ -26,7 +27,7 @@ export class MeasurementUnitController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, BranchGuard)
   create(
     @Body() createMeasurementUnitDto: CreateMeasurementUnitDTO,
     @Req() req: any,
@@ -70,7 +71,7 @@ export class MeasurementUnitController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, BranchGuard)
   update(
     @Param('id') id: string,
     @Body() createMeasurementUnitDto: CreateMeasurementUnitDTO,

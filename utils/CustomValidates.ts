@@ -1,3 +1,5 @@
+import { PrismaService } from 'nestjs-prisma';
+import { TokenPayload } from './../interfaces/common.interface';
 import {
   registerDecorator,
   ValidationOptions,

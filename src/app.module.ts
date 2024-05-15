@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, RequestMethod } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule, PrismaService } from 'nestjs-prisma';
@@ -15,6 +15,7 @@ import { MeasurementUnitModule } from './measurement-unit/measurement-unit.modul
 import { MulterModule } from '@nestjs/platform-express';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
+import { LoggerMiddleware } from 'middlewares/check-branch.middleware';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { join } from 'path';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '48h' },
     }),
+
     UserModule,
     AccountModule,
     AuthModule,
@@ -39,4 +41,10 @@ import { join } from 'path';
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(LoggerMiddleware)
+      .forRoutes({ path: 'measurement-unit', method: RequestMethod.POST });
+  }
+}
