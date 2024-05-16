@@ -4,7 +4,8 @@ import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { calculatePagination, determineAccessConditions } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
-import { FindMeasurementUnitDTO } from './dto/find-measurement-unit.dto';
+import { FindManyDTO } from 'utils/Common.dto';
+import { MEASUREMENT_UNIT_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class MeasurementUnitService {
@@ -27,15 +28,32 @@ export class MeasurementUnitService {
     });
   }
 
-  async findAll(params: FindMeasurementUnitDTO, tokenPayload: TokenPayload) {
-    let { skip, take } = params;
+  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+    let { skip, take, keyword, branchIds } = params;
 
-    const where = {
+    let where = {
       isPublic: true,
       branches: {
         some: determineAccessConditions(tokenPayload),
       },
+      AND: [],
     };
+
+    if (keyword) {
+      where.AND.push({
+        OR: [{ name: { contains: keyword, mode: 'insensitive' } }],
+      });
+    }
+
+    if (branchIds && branchIds.length > 0) {
+      where.AND.push({
+        branches: {
+          some: {
+            id: { in: branchIds },
+          },
+        },
+      });
+    }
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.measurementUnit.findMany({
@@ -45,18 +63,7 @@ export class MeasurementUnitService {
           createdAt: 'desc',
         },
         where,
-        select: {
-          id: true,
-          name: true,
-          code: true,
-          branches: {
-            select: {
-              id: true,
-              photoURL: true,
-              name: true,
-            },
-          },
-        },
+        select: MEASUREMENT_UNIT_SELECT,
       }),
       this.prisma.measurementUnit.count({
         where,
@@ -81,18 +88,7 @@ export class MeasurementUnitService {
           some: determineAccessConditions(tokenPayload),
         },
       },
-      select: {
-        id: true,
-        name: true,
-        code: true,
-        branches: {
-          select: {
-            id: true,
-            photoURL: true,
-            name: true,
-          },
-        },
-      },
+      select: MEASUREMENT_UNIT_SELECT,
     });
   }
 
@@ -126,7 +122,7 @@ export class MeasurementUnitService {
     tokenPayload: TokenPayload,
   ) {
     return this.prisma.measurementUnit.updateMany({
-      where,
+      where: { ...where, isPublic: true },
       data: {
         isPublic: false,
         updatedBy: tokenPayload.accountId,

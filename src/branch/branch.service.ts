@@ -2,13 +2,11 @@ import { CreateBranchDTO } from 'src/branch/dto/create-branch.dto';
 import { Injectable } from '@nestjs/common';
 import { TokenPayload } from 'interfaces/common.interface';
 import { UserService } from 'src/user/user.service';
-import {
-  FindManyDTO,
-  calculatePagination,
-  determineAccessConditions,
-} from 'utils/Helps';
+import { calculatePagination, determineAccessConditions } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
+import { FindManyDTO } from 'utils/Common.dto';
+import { BRANCH_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class BranchService {
@@ -47,9 +45,18 @@ export class BranchService {
   }
 
   async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
-    let { skip, take } = params;
+    let { skip, take, keyword } = params;
 
-    const where = determineAccessConditions(tokenPayload);
+    let where = {
+      ...determineAccessConditions(tokenPayload),
+      AND: [],
+    };
+
+    if (keyword) {
+      where.AND.push({
+        OR: [{ name: { contains: keyword, mode: 'insensitive' } }],
+      });
+    }
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.branch.findMany({
@@ -59,14 +66,7 @@ export class BranchService {
           createdAt: 'desc',
         },
         where,
-        select: {
-          id: true,
-          name: true,
-          photoURL: true,
-          address: true,
-          status: true,
-          createdAt: true,
-        },
+        select: BRANCH_SELECT,
       }),
       this.prisma.branch.count({
         where,
@@ -88,14 +88,7 @@ export class BranchService {
         ...where,
         ...determineAccessConditions(tokenPayload),
       },
-      select: {
-        id: true,
-        name: true,
-        photoURL: true,
-        address: true,
-        status: true,
-        createdAt: true,
-      },
+      select: BRANCH_SELECT,
     });
   }
 
@@ -127,6 +120,7 @@ export class BranchService {
       where: {
         ...where,
         ...determineAccessConditions(tokenPayload),
+        isPublic: true,
       },
       data: {
         isPublic: false,

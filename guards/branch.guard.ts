@@ -30,8 +30,31 @@ export class BranchGuard implements CanActivate {
       },
     });
 
+    if (tokenPayload.type !== USER_TYPE.STORE_OWNER) {
+      const branches = await this.prisma.branch.findMany({
+        where: {
+          isPublic: true,
+          id: {
+            in: branchIds,
+          },
+          detailPermissions: {
+            some: {
+              isPublic: true,
+            },
+          },
+        },
+      });
+
+      if (branches.length !== branchIds.length)
+        throw new UnauthorizedException(
+          '#1 canActivate - Chi nhánh không tồn tại!',
+        );
+    }
+
     if (branches.length !== branchIds.length)
-      throw new UnauthorizedException('Chi nhánh không thuộc cửa hàng!');
+      throw new UnauthorizedException(
+        '#2 canActivate - Chi nhánh không thuộc cửa hàng!',
+      );
 
     return true;
   }

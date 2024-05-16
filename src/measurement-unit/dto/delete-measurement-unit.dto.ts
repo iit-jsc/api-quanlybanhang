@@ -1,3 +1,3 @@
-export class DeleteBranchDto {
+export class DeleteMeasurementUnitDto {
   ids: number[];
 }

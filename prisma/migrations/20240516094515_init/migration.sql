@@ -31,7 +31,6 @@ CREATE TABLE "BusinessType" (
 -- CreateTable
 CREATE TABLE "Permission" (
     "id" SERIAL NOT NULL,
-    "identifier" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "isPublic" BOOLEAN DEFAULT true,
@@ -63,6 +62,7 @@ CREATE TABLE "Account" (
 CREATE TABLE "User" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
+    "code" TEXT,
     "phone" TEXT NOT NULL,
     "type" INTEGER NOT NULL,
     "email" TEXT,
@@ -74,6 +74,7 @@ CREATE TABLE "User" (
     "birthday" TIMESTAMP(3),
     "sex" INTEGER,
     "startDate" TIMESTAMP(3),
+    "employeeGroupId" INTEGER,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
@@ -81,6 +82,20 @@ CREATE TABLE "User" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "EmployeeGroup" (
+    "id" SERIAL NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "isPublic" BOOLEAN DEFAULT true,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "EmployeeGroup_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -838,6 +853,18 @@ CREATE TABLE "_BranchToMeasurementUnit" (
     "B" INTEGER NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "_BranchToPermission" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "_BranchToEmployeeGroup" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
 
@@ -886,11 +913,26 @@ CREATE UNIQUE INDEX "_BranchToMeasurementUnit_AB_unique" ON "_BranchToMeasuremen
 -- CreateIndex
 CREATE INDEX "_BranchToMeasurementUnit_B_index" ON "_BranchToMeasurementUnit"("B");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "_BranchToPermission_AB_unique" ON "_BranchToPermission"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_BranchToPermission_B_index" ON "_BranchToPermission"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_BranchToEmployeeGroup_AB_unique" ON "_BranchToEmployeeGroup"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_BranchToEmployeeGroup_B_index" ON "_BranchToEmployeeGroup"("B");
+
 -- AddForeignKey
 ALTER TABLE "Role" ADD CONSTRAINT "Role_groupCode_fkey" FOREIGN KEY ("groupCode") REFERENCES "GroupRole"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Account" ADD CONSTRAINT "Account_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_employeeGroupId_fkey" FOREIGN KEY ("employeeGroupId") REFERENCES "EmployeeGroup"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Shop" ADD CONSTRAINT "Shop_businessTypeId_fkey" FOREIGN KEY ("businessTypeId") REFERENCES "BusinessType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1146,3 +1188,15 @@ ALTER TABLE "_BranchToMeasurementUnit" ADD CONSTRAINT "_BranchToMeasurementUnit_
 
 -- AddForeignKey
 ALTER TABLE "_BranchToMeasurementUnit" ADD CONSTRAINT "_BranchToMeasurementUnit_B_fkey" FOREIGN KEY ("B") REFERENCES "MeasurementUnit"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_BranchToPermission" ADD CONSTRAINT "_BranchToPermission_A_fkey" FOREIGN KEY ("A") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_BranchToPermission" ADD CONSTRAINT "_BranchToPermission_B_fkey" FOREIGN KEY ("B") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_BranchToEmployeeGroup" ADD CONSTRAINT "_BranchToEmployeeGroup_A_fkey" FOREIGN KEY ("A") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_BranchToEmployeeGroup" ADD CONSTRAINT "_BranchToEmployeeGroup_B_fkey" FOREIGN KEY ("B") REFERENCES "EmployeeGroup"("id") ON DELETE CASCADE ON UPDATE CASCADE;

@@ -8,6 +8,7 @@ import { CustomHttpException } from 'utils/ApiErrors';
 import { ACCOUNT_STATUS } from 'enums/user.enum';
 import { AccessBranchDTO } from './dto/access-branch-dto';
 import { TokenPayload } from 'interfaces/common.interface';
+import { USER_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class AuthService {
@@ -27,23 +28,7 @@ export class AuthService {
       },
       include: {
         user: {
-          include: {
-            shops: {
-              select: {
-                id: true,
-                photoURL: true,
-                name: true,
-                branches: {
-                  select: {
-                    id: true,
-                    photoURL: true,
-                    name: true,
-                    address: true,
-                  },
-                },
-              },
-            },
-          },
+          select: USER_SELECT,
         },
       },
     });
@@ -103,27 +88,7 @@ export class AuthService {
       },
       include: {
         user: {
-          include: {
-            shops: {
-              select: {
-                id: true,
-                photoURL: true,
-                name: true,
-                branches: {
-                  where: {
-                    isPublic: true,
-                    id: accessBranchDto.branchId,
-                  },
-                  select: {
-                    id: true,
-                    photoURL: true,
-                    name: true,
-                    address: true,
-                  },
-                },
-              },
-            },
-          },
+          select: USER_SELECT,
         },
       },
     });

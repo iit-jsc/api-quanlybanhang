@@ -1,0 +1,152 @@
+import { Injectable } from '@nestjs/common';
+import { PrismaService } from 'nestjs-prisma';
+import { CreateEmployeeGroupDTO } from './dto/create-employee-group.dto';
+import { TokenPayload } from 'interfaces/common.interface';
+import { Prisma } from '@prisma/client';
+import { calculatePagination, determineAccessConditions } from 'utils/Helps';
+import { FindManyDTO } from 'utils/Common.dto';
+
+@Injectable()
+export class EmployeeGroupService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async create(data: CreateEmployeeGroupDTO, tokenPayload: TokenPayload) {
+    return this.prisma.employeeGroup.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        branches: {
+          connect: data.branchIds.map((id) => ({
+            id,
+          })),
+        },
+        createdBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
+
+  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+    let { skip, take, keyword, branchIds } = params;
+
+    let where = {
+      isPublic: true,
+      branches: {
+        some: determineAccessConditions(tokenPayload),
+      },
+      AND: [],
+    };
+
+    if (keyword) {
+      where.AND.push({
+        OR: [{ name: { contains: keyword, mode: 'insensitive' } }],
+      });
+    }
+
+    if (branchIds && branchIds.length > 0) {
+      where.AND.push({
+        branches: {
+          some: {
+            id: { in: branchIds },
+          },
+        },
+      });
+    }
+
+    const [data, totalRecords] = await Promise.all([
+      this.prisma.employeeGroup.findMany({
+        skip,
+        take,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        where,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          branches: {
+            select: {
+              id: true,
+              photoURL: true,
+              name: true,
+            },
+          },
+        },
+      }),
+      this.prisma.employeeGroup.count({
+        where,
+      }),
+    ]);
+
+    return {
+      list: data,
+      pagination: calculatePagination(totalRecords, skip, take),
+    };
+  }
+
+  async findUniq(
+    where: Prisma.EmployeeGroupWhereUniqueInput,
+    tokenPayload: TokenPayload,
+  ) {
+    return this.prisma.employeeGroup.findUniqueOrThrow({
+      where: {
+        ...where,
+        isPublic: true,
+        branches: {
+          some: determineAccessConditions(tokenPayload),
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        branches: {
+          select: {
+            id: true,
+            photoURL: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
+
+  // async update(
+  //   params: {
+  //     where: Prisma.MeasurementUnitWhereUniqueInput;
+  //     data: Prisma.MeasurementUnitUpdateInput & { branchIds: number[] };
+  //   },
+  //   tokenPayload: TokenPayload,
+  // ) {
+  //   const { where, data } = params;
+
+  //   return this.prisma.employeeGroup.update({
+  //     data: {
+  //       name: data.name,
+  //       code: data.code,
+  //       branches: {
+  //         set: [],
+  //         connect: data.branchIds.map((id) => ({
+  //           id,
+  //         })),
+  //       },
+  //       updatedBy: tokenPayload.accountId,
+  //     },
+  //     where,
+  //   });
+  // }
+
+  // async removeMany(
+  //   where: Prisma.MeasurementUnitWhereInput,
+  //   tokenPayload: TokenPayload,
+  // ) {
+  //   return this.prisma.employeeGroup.updateMany({
+  //     where: { ...where, isPublic: true },
+  //     data: {
+  //       isPublic: false,
+  //       updatedBy: tokenPayload.accountId,
+  //     },
+  //   });
+  // }
+}

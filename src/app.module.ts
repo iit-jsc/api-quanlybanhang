@@ -17,6 +17,7 @@ import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { LoggerMiddleware } from 'middlewares/check-branch.middleware';
 import { PermissionModule } from './permission/permission.module';
+import { EmployeeGroupModule } from './employee-group/employee-group.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { PermissionModule } from './permission/permission.module';
     ShopModule,
     MeasurementUnitModule,
     PermissionModule,
+    EmployeeGroupModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

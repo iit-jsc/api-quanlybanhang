@@ -22,25 +22,25 @@ export function calculatePagination(
   };
 }
 export function determineAccessConditions(tokenPayload: TokenPayload) {
-  if (tokenPayload.type === USER_TYPE.STORE_OWNER)
+  if (tokenPayload.type !== USER_TYPE.STORE_OWNER)
     return {
       isPublic: true,
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,
       },
+      detailPermissions: {
+        some: {
+          isPublic: true,
+        },
+      },
     };
 
   return {
     isPublic: true,
-    id: tokenPayload.branchId,
+    shop: {
+      id: tokenPayload.shopId,
+      isPublic: true,
+    },
   };
-}
-
-export class FindManyDTO {
-  @Type(() => Number)
-  skip?: number;
-
-  @Type(() => Number)
-  take?: number;
 }

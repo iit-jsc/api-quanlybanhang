@@ -19,8 +19,7 @@ import { CreateBranchDTO } from './dto/create-branch.dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { CustomFileInterceptor } from 'utils/ApiResponse';
 import { TokenPayload } from 'interfaces/common.interface';
-import { FindManyDTO } from 'utils/Helps';
-import { DeleteBranchDto } from './dto/delete-branch.dto';
+import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
 
 @Controller('branch')
 export class BranchController {
@@ -93,12 +92,12 @@ export class BranchController {
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  removeMany(@Body() deleteDocumentDto: DeleteBranchDto, @Req() req: any) {
+  removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.branchService.removeMany(
       {
         id: {
-          in: deleteDocumentDto.ids,
+          in: deleteManyDto.ids,
         },
       },
       tokenPayload,

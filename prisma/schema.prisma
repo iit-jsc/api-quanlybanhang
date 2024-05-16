@@ -34,10 +34,10 @@ model BusinessType {
 
 model Permission {
   id                Int                @id @default(autoincrement())
-  identifier        String
   name              String
   description       String?            @db.Text
   roles             Role[]
+  branches          Branch[]
   isPublic          Boolean?           @default(true)
   createdBy         Int?
   updatedBy         Int?
@@ -64,6 +64,7 @@ model Account {
 model User {
   id                Int                @id @default(autoincrement())
   name              String
+  code              String?
   phone             String             @unique
   type              Int
   email             String?            @unique
@@ -76,6 +77,8 @@ model User {
   sex               Int?
   startDate         DateTime?
   accounts          Account[]
+  employeeGroupId   Int?
+  employeeGroup     EmployeeGroup?     @relation(fields: [employeeGroupId], references: [id])
   isPublic          Boolean?           @default(true)
   createdBy         Int?
   updatedBy         Int?
@@ -86,6 +89,19 @@ model User {
   timeSheets        TimeSheet[]
   shops             Shop[]
   detailPermissions DetailPermission[]
+}
+
+model EmployeeGroup {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?  @db.Text
+  users       User[]
+  branches    Branch[]
+  isPublic    Boolean? @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 }
 
 model Shop {
@@ -762,6 +778,8 @@ model Branch {
   detailPermissions          DetailPermission[]
   otherAttributePatterns     OtherAttributePattern[]
   tables                     Table[]
+  permissions                Permission[]
+  employeeGroups             EmployeeGroup[]
 }
 
 model WorkShift {
