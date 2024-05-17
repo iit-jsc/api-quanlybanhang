@@ -24,14 +24,12 @@ export class AuthService {
         user: {
           isPublic: true,
           OR: [{ phone: loginDto.username }, { email: loginDto.username }],
-          shops: {
-            some: {
-              isPublic: true,
-            },
-          },
         },
       },
-      include: {
+      select: {
+        id: true,
+        status: true,
+        password: true,
         user: {
           select: {
             id: true,
@@ -102,21 +100,34 @@ export class AuthService {
     accessBranchDto: AccessBranchDTO,
     tokenPayload: TokenPayload,
   ) {
-    const account = await this.prisma.account.findFirst({
+    const account = await this.prisma.account.findUnique({
       where: {
-        isPublic: true,
         id: tokenPayload.accountId,
+        isPublic: true,
         user: {
           isPublic: true,
           shops: {
             some: {
               isPublic: true,
-              id: tokenPayload.shopId,
+              branches: {
+                some: {
+                  isPublic: true,
+                  detailPermissions: {
+                    some: {
+                      isPublic: true,
+                      id: accessBranchDto.branchId,
+                    },
+                  },
+                },
+              },
             },
           },
         },
       },
-      include: {
+      select: {
+        id: true,
+        username: true,
+        createdAt: true,
         user: {
           select: {
             id: true,
@@ -126,29 +137,31 @@ export class AuthService {
             birthday: true,
             type: true,
             shops: {
-              where: {
-                isPublic: true,
-              },
               select: {
                 id: true,
                 name: true,
                 photoURL: true,
                 businessType: true,
                 branches: {
-                  where: {
-                    detailPermissions: {
-                      some: {
-                        isPublic: true,
-                      },
-                    },
-                  },
                   select: {
                     id: true,
                     name: true,
                     photoURL: true,
                     address: true,
                   },
+                  where: {
+                    isPublic: true,
+                    detailPermissions: {
+                      some: {
+                        isPublic: true,
+                        id: accessBranchDto.branchId,
+                      },
+                    },
+                  },
                 },
+              },
+              where: {
+                isPublic: true,
               },
             },
           },

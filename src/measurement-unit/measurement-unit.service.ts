@@ -5,7 +5,7 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { calculatePagination, determineAccessConditions } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindManyDTO } from 'utils/Common.dto';
-import { MEASUREMENT_UNIT_SELECT } from 'enums/select.enum';
+import { selectOption } from 'enums/select.enum';
 
 @Injectable()
 export class MeasurementUnitService {
@@ -63,7 +63,7 @@ export class MeasurementUnitService {
           createdAt: 'desc',
         },
         where,
-        select: MEASUREMENT_UNIT_SELECT,
+        select: selectOption.measurementUnit(tokenPayload),
       }),
       this.prisma.measurementUnit.count({
         where,
@@ -88,7 +88,7 @@ export class MeasurementUnitService {
           some: determineAccessConditions(tokenPayload, 'measurementUnits'),
         },
       },
-      select: MEASUREMENT_UNIT_SELECT,
+      select: selectOption.measurementUnit(tokenPayload),
     });
   }
 

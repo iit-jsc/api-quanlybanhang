@@ -27,6 +27,7 @@ export function determineAccessConditions(
 ) {
   if (tokenPayload.type !== USER_TYPE.STORE_OWNER) {
     const condition = {
+      id: tokenPayload.branchId,
       isPublic: true,
       shop: {
         id: tokenPayload.shopId,
@@ -43,11 +44,6 @@ export function determineAccessConditions(
       condition[modelBinding] = {
         some: {
           isPublic: true,
-          branches: {
-            some: {
-              id: tokenPayload.branchId,
-            },
-          },
         },
       };
     }
