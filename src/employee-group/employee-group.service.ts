@@ -5,6 +5,7 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
 import { calculatePagination, determineAccessConditions } from 'utils/Helps';
 import { FindManyDTO } from 'utils/Common.dto';
+import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class EmployeeGroupService {
@@ -32,7 +33,7 @@ export class EmployeeGroupService {
     let where = {
       isPublic: true,
       branches: {
-        some: determineAccessConditions(tokenPayload),
+        some: determineAccessConditions(tokenPayload, 'employeeGroups'),
       },
       AND: [],
     };
@@ -61,18 +62,7 @@ export class EmployeeGroupService {
           createdAt: 'desc',
         },
         where,
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          branches: {
-            select: {
-              id: true,
-              photoURL: true,
-              name: true,
-            },
-          },
-        },
+        select: EMPLOYEE_GROUP_SELECT,
       }),
       this.prisma.employeeGroup.count({
         where,
@@ -94,21 +84,10 @@ export class EmployeeGroupService {
         ...where,
         isPublic: true,
         branches: {
-          some: determineAccessConditions(tokenPayload),
+          some: determineAccessConditions(tokenPayload, 'employeeGroups'),
         },
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        branches: {
-          select: {
-            id: true,
-            photoURL: true,
-            name: true,
-          },
-        },
-      },
+      select: EMPLOYEE_GROUP_SELECT,
     });
   }
 

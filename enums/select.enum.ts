@@ -50,3 +50,12 @@ export const PERMISSION_SELECT = {
     select: BRANCH_SELECT,
   },
 };
+
+export const EMPLOYEE_GROUP_SELECT = {
+  id: true,
+  name: true,
+  description: true,
+  branches: {
+    select: BRANCH_SELECT,
+  },
+};

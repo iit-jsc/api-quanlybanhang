@@ -21,9 +21,12 @@ export function calculatePagination(
     currentPage,
   };
 }
-export function determineAccessConditions(tokenPayload: TokenPayload) {
-  if (tokenPayload.type !== USER_TYPE.STORE_OWNER)
-    return {
+export function determineAccessConditions(
+  tokenPayload: TokenPayload,
+  modelBinding?: string,
+) {
+  if (tokenPayload.type !== USER_TYPE.STORE_OWNER) {
+    const condition = {
       isPublic: true,
       shop: {
         id: tokenPayload.shopId,
@@ -35,6 +38,22 @@ export function determineAccessConditions(tokenPayload: TokenPayload) {
         },
       },
     };
+
+    if (modelBinding) {
+      condition[modelBinding] = {
+        some: {
+          isPublic: true,
+          branches: {
+            some: {
+              id: tokenPayload.branchId,
+            },
+          },
+        },
+      };
+    }
+
+    return condition;
+  }
 
   return {
     isPublic: true,

@@ -34,7 +34,7 @@ export class MeasurementUnitService {
     let where = {
       isPublic: true,
       branches: {
-        some: determineAccessConditions(tokenPayload),
+        some: determineAccessConditions(tokenPayload, 'measurementUnits'),
       },
       AND: [],
     };
@@ -85,7 +85,7 @@ export class MeasurementUnitService {
         ...where,
         isPublic: true,
         branches: {
-          some: determineAccessConditions(tokenPayload),
+          some: determineAccessConditions(tokenPayload, 'measurementUnits'),
         },
       },
       select: MEASUREMENT_UNIT_SELECT,
@@ -113,7 +113,13 @@ export class MeasurementUnitService {
         },
         updatedBy: tokenPayload.accountId,
       },
-      where,
+      where: {
+        ...where,
+        isPublic: true,
+        branches: {
+          some: determineAccessConditions(tokenPayload, 'measurementUnits'),
+        },
+      },
     });
   }
 
@@ -122,7 +128,13 @@ export class MeasurementUnitService {
     tokenPayload: TokenPayload,
   ) {
     return this.prisma.measurementUnit.updateMany({
-      where: { ...where, isPublic: true },
+      where: {
+        ...where,
+        isPublic: true,
+        branches: {
+          some: determineAccessConditions(tokenPayload, 'measurementUnits'),
+        },
+      },
       data: {
         isPublic: false,
         updatedBy: tokenPayload.accountId,

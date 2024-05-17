@@ -24,11 +24,49 @@ export class AuthService {
         user: {
           isPublic: true,
           OR: [{ phone: loginDto.username }, { email: loginDto.username }],
+          shops: {
+            some: {
+              isPublic: true,
+            },
+          },
         },
       },
       include: {
         user: {
-          select: USER_SELECT,
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            address: true,
+            birthday: true,
+            type: true,
+            shops: {
+              where: {
+                isPublic: true,
+              },
+              select: {
+                id: true,
+                name: true,
+                photoURL: true,
+                businessType: true,
+                branches: {
+                  where: {
+                    detailPermissions: {
+                      some: {
+                        isPublic: true,
+                      },
+                    },
+                  },
+                  select: {
+                    id: true,
+                    name: true,
+                    photoURL: true,
+                    address: true,
+                  },
+                },
+              },
+            },
+          },
         },
       },
     });
@@ -69,15 +107,7 @@ export class AuthService {
         isPublic: true,
         id: tokenPayload.accountId,
         user: {
-          detailPermissions: {
-            some: {
-              isPublic: true,
-              branch: {
-                isPublic: true,
-                id: accessBranchDto.branchId,
-              },
-            },
-          },
+          isPublic: true,
           shops: {
             some: {
               isPublic: true,
@@ -88,7 +118,40 @@ export class AuthService {
       },
       include: {
         user: {
-          select: USER_SELECT,
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            address: true,
+            birthday: true,
+            type: true,
+            shops: {
+              where: {
+                isPublic: true,
+              },
+              select: {
+                id: true,
+                name: true,
+                photoURL: true,
+                businessType: true,
+                branches: {
+                  where: {
+                    detailPermissions: {
+                      some: {
+                        isPublic: true,
+                      },
+                    },
+                  },
+                  select: {
+                    id: true,
+                    name: true,
+                    photoURL: true,
+                    address: true,
+                  },
+                },
+              },
+            },
+          },
         },
       },
     });
