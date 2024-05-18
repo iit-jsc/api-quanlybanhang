@@ -1,10 +1,12 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
   Param,
+  Patch,
   Post,
   Query,
   Req,
@@ -15,7 +17,7 @@ import { EmployeeGroupService } from './employee-group.service';
 import { CreateEmployeeGroupDTO } from './dto/create-employee-group.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { BranchGuard } from 'guards/branch.guard';
-import { FindManyDTO } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
 
 @Controller('employee-group')
 export class EmployeeGroupController {
@@ -59,44 +61,44 @@ export class EmployeeGroupController {
     );
   }
 
-  // @Patch(':id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, BranchGuard)
-  // update(
-  //   @Param('id') id: string,
-  //   @Body() createMeasurementUnitDto: CreateMeasurementUnitDTO,
-  //   @Req() req: any,
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload;
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, BranchGuard)
+  update(
+    @Param('id') id: string,
+    @Body() createEmployeeGroupDto: CreateEmployeeGroupDTO,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
 
-  //   return this.employeeGroupService.update(
-  //     {
-  //       where: {
-  //         id: +id,
-  //       },
-  //       data: createMeasurementUnitDto,
-  //     },
-  //     tokenPayload,
-  //   );
-  // }
+    return this.employeeGroupService.update(
+      {
+        where: {
+          id: +id,
+        },
+        data: createEmployeeGroupDto,
+      },
+      tokenPayload,
+    );
+  }
 
-  // @Delete('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, BranchGuard)
-  // deleteMany(
-  //   @Param('id') id: string,
-  //   @Body() deleteManyDto: DeleteManyDto,
-  //   @Req() req: any,
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload;
+  @Delete('')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, BranchGuard)
+  deleteMany(
+    @Param('id') id: string,
+    @Body() deleteManyDto: DeleteManyDto,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
 
-  //   return this.employeeGroupService.removeMany(
-  //     {
-  //       id: {
-  //         in: deleteManyDto.ids,
-  //       },
-  //     },
-  //     tokenPayload,
-  //   );
-  // }
+    return this.employeeGroupService.removeMany(
+      {
+        id: {
+          in: deleteManyDto.ids,
+        },
+      },
+      tokenPayload,
+    );
+  }
 }

@@ -1,19 +1,6 @@
 import { TokenPayload } from 'interfaces/common.interface';
 import { USER_TYPE } from './user.enum';
 
-export const selectOption = {
-  measurementUnit(tokenPayload: TokenPayload) {
-    return {
-      id: true,
-      name: true,
-      code: true,
-      ...(tokenPayload.type === USER_TYPE.STORE_OWNER
-        ? { branches: { select: BRANCH_SELECT } }
-        : {}),
-    };
-  },
-};
-
 export const BRANCH_SELECT = {
   id: true,
   photoURL: true,
@@ -22,12 +9,20 @@ export const BRANCH_SELECT = {
   createdAt: true,
 };
 
+export const MEASUREMENT_UNIT_SELECT = {
+  id: true,
+  name: true,
+  code: true,
+  branches: { select: BRANCH_SELECT, where: { isPublic: true } },
+};
+
 export const SHOP_SELECT = {
   id: true,
   photoURL: true,
   name: true,
   branches: {
     select: BRANCH_SELECT,
+    where: { isPublic: true },
   },
 };
 
@@ -46,6 +41,7 @@ export const USER_SELECT = {
   startDate: true,
   shops: {
     select: SHOP_SELECT,
+    where: { isPublic: true },
   },
 };
 
@@ -55,6 +51,7 @@ export const PERMISSION_SELECT = {
   description: true,
   branches: {
     select: BRANCH_SELECT,
+    where: { isPublic: true },
   },
 };
 
@@ -64,5 +61,6 @@ export const EMPLOYEE_GROUP_SELECT = {
   description: true,
   branches: {
     select: BRANCH_SELECT,
+    where: { isPublic: true },
   },
 };

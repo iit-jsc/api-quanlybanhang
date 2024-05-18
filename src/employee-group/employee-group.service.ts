@@ -3,7 +3,11 @@ import { PrismaService } from 'nestjs-prisma';
 import { CreateEmployeeGroupDTO } from './dto/create-employee-group.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
-import { calculatePagination, determineAccessConditions } from 'utils/Helps';
+import {
+  calculatePagination,
+  onlyBranchFilter,
+  roleBasedBranchFilter,
+} from 'utils/Helps';
 import { FindManyDTO } from 'utils/Common.dto';
 import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 
@@ -33,7 +37,7 @@ export class EmployeeGroupService {
     let where = {
       isPublic: true,
       branches: {
-        some: determineAccessConditions(tokenPayload, 'employeeGroups'),
+        some: onlyBranchFilter(tokenPayload),
       },
       AND: [],
     };
@@ -84,48 +88,59 @@ export class EmployeeGroupService {
         ...where,
         isPublic: true,
         branches: {
-          some: determineAccessConditions(tokenPayload, 'employeeGroups'),
+          some: onlyBranchFilter(tokenPayload),
         },
       },
       select: EMPLOYEE_GROUP_SELECT,
     });
   }
 
-  // async update(
-  //   params: {
-  //     where: Prisma.MeasurementUnitWhereUniqueInput;
-  //     data: Prisma.MeasurementUnitUpdateInput & { branchIds: number[] };
-  //   },
-  //   tokenPayload: TokenPayload,
-  // ) {
-  //   const { where, data } = params;
+  async update(
+    params: {
+      where: Prisma.EmployeeGroupWhereUniqueInput;
+      data: Prisma.EmployeeGroupUpdateInput & { branchIds: number[] };
+    },
+    tokenPayload: TokenPayload,
+  ) {
+    const { where, data } = params;
 
-  //   return this.prisma.employeeGroup.update({
-  //     data: {
-  //       name: data.name,
-  //       code: data.code,
-  //       branches: {
-  //         set: [],
-  //         connect: data.branchIds.map((id) => ({
-  //           id,
-  //         })),
-  //       },
-  //       updatedBy: tokenPayload.accountId,
-  //     },
-  //     where,
-  //   });
-  // }
+    return this.prisma.employeeGroup.update({
+      data: {
+        name: data.name,
+        description: data.description,
+        branches: {
+          set: [],
+          connect: data.branchIds.map((id) => ({
+            id,
+          })),
+        },
+        updatedBy: tokenPayload.accountId,
+      },
+      where: {
+        ...where,
+        branches: {
+          some: onlyBranchFilter(tokenPayload),
+        },
+      },
+    });
+  }
 
-  // async removeMany(
-  //   where: Prisma.MeasurementUnitWhereInput,
-  //   tokenPayload: TokenPayload,
-  // ) {
-  //   return this.prisma.employeeGroup.updateMany({
-  //     where: { ...where, isPublic: true },
-  //     data: {
-  //       isPublic: false,
-  //       updatedBy: tokenPayload.accountId,
-  //     },
-  //   });
-  // }
+  async removeMany(
+    where: Prisma.EmployeeGroupWhereInput,
+    tokenPayload: TokenPayload,
+  ) {
+    return this.prisma.employeeGroup.updateMany({
+      where: {
+        ...where,
+        isPublic: true,
+        branches: {
+          some: onlyBranchFilter(tokenPayload),
+        },
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
 }

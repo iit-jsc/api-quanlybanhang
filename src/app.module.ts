@@ -18,6 +18,7 @@ import { join } from 'path';
 import { LoggerMiddleware } from 'middlewares/check-branch.middleware';
 import { PermissionModule } from './permission/permission.module';
 import { EmployeeGroupModule } from './employee-group/employee-group.module';
+import { UserService } from './user/user.service';
 
 @Module({
   imports: [

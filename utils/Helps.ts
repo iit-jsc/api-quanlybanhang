@@ -1,6 +1,5 @@
 import { TokenPayload } from './../interfaces/common.interface';
 import { generate as generateIdentifier } from 'short-uuid';
-import { Type } from 'class-transformer';
 import { PaginationResult } from 'interfaces/common.interface';
 import { USER_TYPE } from 'enums/user.enum';
 export function generateUniqueId(): string {
@@ -21,41 +20,37 @@ export function calculatePagination(
     currentPage,
   };
 }
-export function determineAccessConditions(
-  tokenPayload: TokenPayload,
-  modelBinding?: string,
-) {
-  if (tokenPayload.type !== USER_TYPE.STORE_OWNER) {
-    const condition = {
-      id: tokenPayload.branchId,
-      isPublic: true,
-      shop: {
-        id: tokenPayload.shopId,
-        isPublic: true,
-      },
-      detailPermissions: {
-        some: {
-          isPublic: true,
-        },
-      },
-    };
 
-    if (modelBinding) {
-      condition[modelBinding] = {
-        some: {
-          isPublic: true,
-        },
-      };
-    }
-
-    return condition;
-  }
-
-  return {
+export function roleBasedBranchFilter(tokenPayload: TokenPayload) {
+  const baseConditions = {
     isPublic: true,
     shop: {
       id: tokenPayload.shopId,
       isPublic: true,
+    },
+  };
+
+  return tokenPayload.type !== USER_TYPE.STORE_OWNER
+    ? {
+        ...baseConditions,
+        id: tokenPayload.branchId,
+        detailPermissions: {
+          some: {
+            isPublic: true,
+          },
+        },
+      }
+    : baseConditions;
+}
+
+export function onlyBranchFilter(tokenPayload: TokenPayload) {
+  return {
+    id: tokenPayload.branchId,
+    isPublic: true,
+    detailPermissions: {
+      some: {
+        isPublic: true,
+      },
     },
   };
 }

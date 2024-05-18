@@ -5,7 +5,9 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
+import { UserService } from 'src/user/user.service';
 import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
@@ -15,7 +17,7 @@ export class JwtAuthGuard implements CanActivate {
     private readonly prisma: PrismaService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
@@ -29,30 +31,20 @@ export class JwtAuthGuard implements CanActivate {
         'Không tim thấy token!',
       );
 
-    const payload = this.jwtService.decode(token);
+    const payload: TokenPayload = this.jwtService.decode(token);
 
-    request.tokenPayload = payload;
+    const user = await this.prisma.user.findFirst({
+      where: {
+        isPublic: true,
+        accounts: {
+          some: {
+            id: payload.accountId,
+          },
+        },
+      },
+    });
 
-    return true;
-  }
-
-  getAuth(context: ExecutionContext): boolean {
-    const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.authorization;
-
-    if (!authHeader) return false;
-
-    const [_, token] = authHeader.split(' ');
-
-    if (!token)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        'Không tim thấy token!',
-      );
-
-    const payload = this.jwtService.decode(token);
-
-    request.tokenPayload = payload;
+    request.tokenPayload = { ...payload, type: user.type };
 
     return true;
   }

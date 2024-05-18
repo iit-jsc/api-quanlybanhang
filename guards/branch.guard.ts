@@ -17,19 +17,6 @@ export class BranchGuard implements CanActivate {
     const tokenPayload = request.tokenPayload as TokenPayload;
     const branchIds = request.body.branchIds || [];
 
-    const branches = await this.prisma.branch.findMany({
-      where: {
-        id: {
-          in: branchIds,
-        },
-        isPublic: true,
-        shop: {
-          id: tokenPayload.shopId,
-          isPublic: true,
-        },
-      },
-    });
-
     if (tokenPayload.type !== USER_TYPE.STORE_OWNER) {
       const branches = await this.prisma.branch.findMany({
         where: {
@@ -50,6 +37,19 @@ export class BranchGuard implements CanActivate {
           '#1 canActivate - Chi nhánh không tồn tại!',
         );
     }
+
+    const branches = await this.prisma.branch.findMany({
+      where: {
+        id: {
+          in: branchIds,
+        },
+        isPublic: true,
+        shop: {
+          id: tokenPayload.shopId,
+          isPublic: true,
+        },
+      },
+    });
 
     if (branches.length !== branchIds.length)
       throw new UnauthorizedException(

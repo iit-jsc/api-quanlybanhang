@@ -2,7 +2,7 @@ import { CreateBranchDTO } from 'src/branch/dto/create-branch.dto';
 import { Injectable } from '@nestjs/common';
 import { TokenPayload } from 'interfaces/common.interface';
 import { UserService } from 'src/user/user.service';
-import { calculatePagination, determineAccessConditions } from 'utils/Helps';
+import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { FindManyDTO } from 'utils/Common.dto';
@@ -48,7 +48,16 @@ export class BranchService {
     let { skip, take, keyword } = params;
 
     let where = {
-      ...determineAccessConditions(tokenPayload),
+      isPublic: true,
+      shop: {
+        id: tokenPayload.shopId,
+        isPublic: true,
+      },
+      detailPermissions: {
+        some: {
+          isPublic: true,
+        },
+      },
       AND: [],
     };
 
@@ -86,7 +95,16 @@ export class BranchService {
     return await this.prisma.branch.findUniqueOrThrow({
       where: {
         ...where,
-        ...determineAccessConditions(tokenPayload),
+        isPublic: true,
+        shop: {
+          id: tokenPayload.shopId,
+          isPublic: true,
+        },
+        detailPermissions: {
+          some: {
+            isPublic: true,
+          },
+        },
       },
       select: BRANCH_SELECT,
     });
@@ -110,7 +128,16 @@ export class BranchService {
       },
       where: {
         ...where,
-        ...determineAccessConditions(tokenPayload),
+        isPublic: true,
+        shop: {
+          id: tokenPayload.shopId,
+          isPublic: true,
+        },
+        detailPermissions: {
+          some: {
+            isPublic: true,
+          },
+        },
       },
     });
   }
@@ -119,8 +146,16 @@ export class BranchService {
     return this.prisma.branch.updateMany({
       where: {
         ...where,
-        ...determineAccessConditions(tokenPayload),
         isPublic: true,
+        shop: {
+          id: tokenPayload.shopId,
+          isPublic: true,
+        },
+        detailPermissions: {
+          some: {
+            isPublic: true,
+          },
+        },
       },
       data: {
         isPublic: false,
@@ -145,7 +180,16 @@ export class BranchService {
       },
       where: {
         ...where,
-        ...determineAccessConditions(tokenPayload),
+        isPublic: true,
+        shop: {
+          id: tokenPayload.shopId,
+          isPublic: true,
+        },
+        detailPermissions: {
+          some: {
+            isPublic: true,
+          },
+        },
       },
     });
   }

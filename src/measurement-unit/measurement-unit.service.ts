@@ -2,10 +2,10 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
 import { TokenPayload } from 'interfaces/common.interface';
-import { calculatePagination, determineAccessConditions } from 'utils/Helps';
+import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindManyDTO } from 'utils/Common.dto';
-import { selectOption } from 'enums/select.enum';
+import { MEASUREMENT_UNIT_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class MeasurementUnitService {
@@ -34,7 +34,7 @@ export class MeasurementUnitService {
     let where = {
       isPublic: true,
       branches: {
-        some: determineAccessConditions(tokenPayload, 'measurementUnits'),
+        some: roleBasedBranchFilter(tokenPayload),
       },
       AND: [],
     };
@@ -50,6 +50,7 @@ export class MeasurementUnitService {
         branches: {
           some: {
             id: { in: branchIds },
+            isPublic: true,
           },
         },
       });
@@ -63,7 +64,7 @@ export class MeasurementUnitService {
           createdAt: 'desc',
         },
         where,
-        select: selectOption.measurementUnit(tokenPayload),
+        select: MEASUREMENT_UNIT_SELECT,
       }),
       this.prisma.measurementUnit.count({
         where,
@@ -85,10 +86,10 @@ export class MeasurementUnitService {
         ...where,
         isPublic: true,
         branches: {
-          some: determineAccessConditions(tokenPayload, 'measurementUnits'),
+          some: roleBasedBranchFilter(tokenPayload),
         },
       },
-      select: selectOption.measurementUnit(tokenPayload),
+      select: MEASUREMENT_UNIT_SELECT,
     });
   }
 
@@ -116,9 +117,6 @@ export class MeasurementUnitService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: determineAccessConditions(tokenPayload, 'measurementUnits'),
-        },
       },
     });
   }
@@ -131,9 +129,6 @@ export class MeasurementUnitService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: determineAccessConditions(tokenPayload, 'measurementUnits'),
-        },
       },
       data: {
         isPublic: false,

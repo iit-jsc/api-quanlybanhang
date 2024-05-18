@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { CreatePermissionDTO } from './dto/create-permission.dto';
-import { calculatePagination, determineAccessConditions } from 'utils/Helps';
+import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindManyDTO } from 'utils/Common.dto';
 import { PERMISSION_SELECT } from 'enums/select.enum';
@@ -34,7 +34,7 @@ export class PermissionService {
     const where = {
       isPublic: true,
       branches: {
-        some: determineAccessConditions(tokenPayload),
+        some: roleBasedBranchFilter(tokenPayload),
       },
       AND: [],
     };
@@ -110,7 +110,7 @@ export class PermissionService {
         ...where,
         isPublic: true,
         branches: {
-          some: determineAccessConditions(tokenPayload),
+          some: roleBasedBranchFilter(tokenPayload),
         },
       },
       select: PERMISSION_SELECT,
