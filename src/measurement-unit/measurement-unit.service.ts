@@ -31,30 +31,20 @@ export class MeasurementUnitService {
   async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
     let { skip, take, keyword, branchIds } = params;
 
-    let where = {
+    let where: Prisma.MeasurementUnitWhereInput = {
       isPublic: true,
       branches: {
         some: roleBasedBranchFilter(tokenPayload),
       },
-      AND: [],
-    };
-
-    if (keyword) {
-      where.AND.push({
-        OR: [{ name: { contains: keyword, mode: 'insensitive' } }],
-      });
-    }
-
-    if (branchIds && branchIds.length > 0) {
-      where.AND.push({
+      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(branchIds?.length > 0 && {
         branches: {
           some: {
             id: { in: branchIds },
-            isPublic: true,
           },
         },
-      });
-    }
+      }),
+    };
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.measurementUnit.findMany({

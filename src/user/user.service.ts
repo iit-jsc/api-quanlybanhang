@@ -36,4 +36,14 @@ export class UserService {
       },
     });
   }
+
+  async findByPhoneWithType(phone: string, type: number) {
+    return this.prisma.user.findFirst({
+      where: {
+        isPublic: true,
+        type,
+        phone,
+      },
+    });
+  }
 }

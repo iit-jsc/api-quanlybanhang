@@ -20,6 +20,7 @@ export const SHOP_SELECT = {
   id: true,
   photoURL: true,
   name: true,
+  businessType: true,
   branches: {
     select: BRANCH_SELECT,
     where: { isPublic: true },

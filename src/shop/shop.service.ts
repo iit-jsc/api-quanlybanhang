@@ -18,24 +18,39 @@ export class ShopService {
     const { user, branch } = data;
 
     await this.prisma.$transaction(async (prisma) => {
-      const newShopOwner = await this.userService.create({
-        name: user.name,
-        phone: user.phone,
-        email: user.email,
-        type: USER_TYPE.STORE_OWNER,
-        account: {
-          password: user.account.password,
-          status: ACCOUNT_STATUS.ACTIVE,
-        } as CreateAccountDTO,
-      });
+      const userExisted = await this.userService.findByPhoneWithType(
+        user.phone,
+        USER_TYPE.STORE_OWNER,
+      );
+
+      let ownerShop = userExisted;
+
+      if (!userExisted)
+        ownerShop = await prisma.user.create({
+          data: {
+            name: user.name,
+            phone: user.phone,
+            email: user.email,
+            type: USER_TYPE.STORE_OWNER,
+            accounts: {
+              create: {
+                password: bcrypt.hashSync(user.account.password, 10),
+                status: ACCOUNT_STATUS.ACTIVE,
+              },
+            },
+          },
+        });
+
+      const shopCode = await this.generateShopCode();
 
       await prisma.shop.create({
         data: {
           name: data.name,
+          code: shopCode,
           businessTypeId: data.businessTypeId,
           users: {
             connect: {
-              id: newShopOwner.id,
+              id: ownerShop.id,
             },
           },
           branches: {
@@ -45,7 +60,7 @@ export class ShopService {
               status: BRANCH_STATUS.ACTIVE,
               detailPermissions: {
                 create: {
-                  userId: newShopOwner.id,
+                  userId: ownerShop.id,
                 },
               },
             },
@@ -53,5 +68,26 @@ export class ShopService {
         },
       });
     });
+
+    return;
+  }
+
+  async generateShopCode() {
+    const shop = await this.prisma.shop.findFirst({
+      orderBy: {
+        code: 'desc',
+      },
+      select: {
+        code: true,
+      },
+    });
+
+    if (!shop) return 'IIT0001';
+
+    const numberPart = +shop.code.slice(3);
+
+    const nextNumber = (numberPart + 1).toString().padStart(4, '0');
+
+    return `IIT${nextNumber}`;
   }
 }

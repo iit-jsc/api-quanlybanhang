@@ -101,6 +101,7 @@ CREATE TABLE "EmployeeGroup" (
 -- CreateTable
 CREATE TABLE "Shop" (
     "id" SERIAL NOT NULL,
+    "code" TEXT NOT NULL,
     "businessTypeId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "photoURL" TEXT,
@@ -866,10 +867,7 @@ CREATE TABLE "_BranchToEmployeeGroup" (
 );
 
 -- CreateIndex
-CREATE UNIQUE INDEX "User_phone_key" ON "User"("phone");
-
--- CreateIndex
-CREATE UNIQUE INDEX "User_email_key" ON "User"("email");
+CREATE UNIQUE INDEX "Shop_code_key" ON "Shop"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B");

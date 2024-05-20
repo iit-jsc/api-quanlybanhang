@@ -5,10 +5,10 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
-import { ACCOUNT_STATUS } from 'enums/user.enum';
+import { ACCOUNT_STATUS, USER_TYPE } from 'enums/user.enum';
 import { AccessBranchDTO } from './dto/access-branch-dto';
 import { TokenPayload } from 'interfaces/common.interface';
-import { USER_SELECT } from 'enums/select.enum';
+import { SHOP_SELECT, USER_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +24,18 @@ export class AuthService {
         user: {
           isPublic: true,
           OR: [{ phone: loginDto.username }, { email: loginDto.username }],
+          ...(loginDto.shopCode
+            ? {
+                shops: {
+                  some: {
+                    isPublic: true,
+                    code: loginDto.shopCode,
+                  },
+                },
+              }
+            : {
+                type: USER_TYPE.STORE_OWNER,
+              }),
         },
       },
       select: {
@@ -46,6 +58,7 @@ export class AuthService {
                 id: true,
                 name: true,
                 photoURL: true,
+                code: true,
                 businessType: true,
                 branches: {
                   where: {
@@ -102,8 +115,8 @@ export class AuthService {
   ) {
     const account = await this.prisma.account.findUnique({
       where: {
-        id: tokenPayload.accountId,
         isPublic: true,
+        id: tokenPayload.accountId,
         user: {
           isPublic: true,
           shops: {
@@ -112,56 +125,27 @@ export class AuthService {
               branches: {
                 some: {
                   isPublic: true,
-                  detailPermissions: {
-                    some: {
-                      isPublic: true,
-                      id: accessBranchDto.branchId,
-                    },
-                  },
+                  id: accessBranchDto.branchId,
                 },
               },
             },
           },
         },
       },
-      select: {
-        id: true,
-        username: true,
-        createdAt: true,
+      include: {
         user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-            address: true,
-            birthday: true,
-            type: true,
+          include: {
             shops: {
-              select: {
-                id: true,
-                name: true,
-                photoURL: true,
-                businessType: true,
-                branches: {
-                  select: {
-                    id: true,
-                    name: true,
-                    photoURL: true,
-                    address: true,
-                  },
-                  where: {
-                    isPublic: true,
-                    detailPermissions: {
-                      some: {
-                        isPublic: true,
-                        id: accessBranchDto.branchId,
-                      },
-                    },
-                  },
-                },
+              include: {
+                branches: true,
               },
               where: {
-                isPublic: true,
+                branches: {
+                  some: {
+                    isPublic: true,
+                    id: accessBranchDto.branchId,
+                  },
+                },
               },
             },
           },

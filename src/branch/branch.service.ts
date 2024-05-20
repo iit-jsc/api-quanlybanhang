@@ -47,7 +47,7 @@ export class BranchService {
   async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
 
-    let where = {
+    let where: Prisma.BranchWhereInput = {
       isPublic: true,
       shop: {
         id: tokenPayload.shopId,
@@ -58,14 +58,8 @@ export class BranchService {
           isPublic: true,
         },
       },
-      AND: [],
+      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
     };
-
-    if (keyword) {
-      where.AND.push({
-        OR: [{ name: { contains: keyword, mode: 'insensitive' } }],
-      });
-    }
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.branch.findMany({

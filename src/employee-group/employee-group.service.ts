@@ -34,29 +34,20 @@ export class EmployeeGroupService {
   async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
     let { skip, take, keyword, branchIds } = params;
 
-    let where = {
+    let where: Prisma.EmployeeGroupWhereInput = {
       isPublic: true,
       branches: {
         some: onlyBranchFilter(tokenPayload),
       },
-      AND: [],
-    };
-
-    if (keyword) {
-      where.AND.push({
-        OR: [{ name: { contains: keyword, mode: 'insensitive' } }],
-      });
-    }
-
-    if (branchIds && branchIds.length > 0) {
-      where.AND.push({
+      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(branchIds?.length > 0 && {
         branches: {
           some: {
             id: { in: branchIds },
           },
         },
-      });
-    }
+      }),
+    };
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.employeeGroup.findMany({
