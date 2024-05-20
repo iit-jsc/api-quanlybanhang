@@ -1,15 +1,12 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateEmployeeGroupDTO } from './dto/create-employee-group.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
-import {
-  calculatePagination,
-  onlyBranchFilter,
-  roleBasedBranchFilter,
-} from 'utils/Helps';
+import { calculatePagination, onlyBranchFilter } from 'utils/Helps';
 import { FindManyDTO } from 'utils/Common.dto';
 import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
+import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
 export class EmployeeGroupService {
@@ -133,5 +130,28 @@ export class EmployeeGroupService {
         updatedBy: tokenPayload.accountId,
       },
     });
+  }
+
+  async findByIdWithBranch(id: number, branchId: number) {
+    const employeeGroup = await this.prisma.employeeGroup.findUnique({
+      where: {
+        id: +id,
+        isPublic: true,
+        branches: {
+          some: {
+            id: branchId,
+          },
+        },
+      },
+      select: EMPLOYEE_GROUP_SELECT,
+    });
+
+    if (!employeeGroup)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        '#1 findByIdWithBranch - Nhóm nhân viên không tồn tại!',
+      );
+
+    return employeeGroup;
   }
 }

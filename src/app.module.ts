@@ -12,13 +12,10 @@ import { JwtModule } from '@nestjs/jwt';
 import { jwtConstants } from 'utils/Constants';
 import { TransformInterceptor } from 'utils/ApiResponse';
 import { MeasurementUnitModule } from './measurement-unit/measurement-unit.module';
-import { MulterModule } from '@nestjs/platform-express';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import { join } from 'path';
 import { LoggerMiddleware } from 'middlewares/check-branch.middleware';
 import { PermissionModule } from './permission/permission.module';
 import { EmployeeGroupModule } from './employee-group/employee-group.module';
-import { UserService } from './user/user.service';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -33,7 +30,6 @@ import { UserService } from './user/user.service';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '48h' },
     }),
-
     UserModule,
     AccountModule,
     AuthModule,
@@ -42,6 +38,7 @@ import { UserService } from './user/user.service';
     MeasurementUnitModule,
     PermissionModule,
     EmployeeGroupModule,
+    CommonModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

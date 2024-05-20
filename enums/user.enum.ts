@@ -8,3 +8,9 @@ export enum USER_TYPE {
   MANAGER = 2,
   STAFF = 3,
 }
+
+export enum SEX_TYPE {
+  MALE = 1,
+  FEMALE = 2,
+  OTHER = 3,
+}

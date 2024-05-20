@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { CreatePermissionDTO } from './dto/create-permission.dto';
@@ -6,6 +6,7 @@ import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindManyDTO } from 'utils/Common.dto';
 import { PERMISSION_SELECT } from 'enums/select.enum';
+import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
 export class PermissionService {
@@ -128,5 +129,27 @@ export class PermissionService {
         updatedBy: tokenPayload.accountId,
       },
     });
+  }
+
+  async findByIdWithBranch(id: number, branchId: number) {
+    const permission = await this.prisma.permission.findUnique({
+      where: {
+        id: +id,
+        isPublic: true,
+        branches: {
+          some: {
+            id: branchId,
+          },
+        },
+      },
+    });
+
+    if (!permission)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        '#1 findByIdWithBranch - Nhóm quyền không tồn tại!',
+      );
+
+    return permission;
   }
 }

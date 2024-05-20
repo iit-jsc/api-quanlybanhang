@@ -39,7 +39,7 @@ export class BranchController {
     return this.branchService.create(
       {
         ...createBranchDto,
-        photoURL: file.path,
+        photoURL: file?.path,
       },
       tokenPayload,
     );
@@ -120,7 +120,7 @@ export class BranchController {
         where: {
           id: +id,
         },
-        data: { photoURL: file.path },
+        data: { photoURL: file?.path },
       },
       tokenPayload,
     );

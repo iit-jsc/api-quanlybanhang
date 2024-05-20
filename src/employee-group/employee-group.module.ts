@@ -4,6 +4,7 @@ import { EmployeeGroupController } from './employee-group.controller';
 
 @Module({
   providers: [EmployeeGroupService],
-  controllers: [EmployeeGroupController]
+  controllers: [EmployeeGroupController],
+  exports: [EmployeeGroupService],
 })
 export class EmployeeGroupModule {}
