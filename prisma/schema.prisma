@@ -87,7 +87,6 @@ model User {
   staffRatings      StaffRating[]
   employeeSchedules EmployeeSchedule[]
   timeSheets        TimeSheet[]
-  shops             Shop[]
   detailPermissions DetailPermission[]
 }
 
@@ -119,7 +118,6 @@ model Shop {
   updatedAt      DateTime       @updatedAt
   branches       Branch[]
   pointSettings  PointSetting[]
-  users          User[]
 }
 
 model PrintTemplate {

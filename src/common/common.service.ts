@@ -1,4 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 import { PrismaService } from 'nestjs-prisma';
 import { permission } from 'process';
@@ -75,6 +76,52 @@ export class CommonService {
             id: shopId,
           },
         },
+        ...where,
+      },
+    });
+  }
+
+  async findManyShopByUserId(id: number) {
+    return await this.prisma.shop.findMany({
+      where: {
+        isPublic: true,
+        branches: {
+          some: {
+            isPublic: true,
+            detailPermissions: {
+              some: {
+                userId: id,
+              },
+            },
+          },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        photoURL: true,
+        branches: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            photoURL: true,
+          },
+        },
+        businessType: {
+          where: {
+            isPublic: true,
+          },
+        },
+      },
+    });
+  }
+
+  async findShopByCondition(where: Prisma.ShopWhereInput) {
+    return await this.prisma.shop.findFirst({
+      where: {
+        isPublic: true,
         ...where,
       },
     });

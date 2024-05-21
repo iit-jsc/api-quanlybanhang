@@ -48,11 +48,6 @@ export class ShopService {
           name: data.name,
           code: shopCode,
           businessTypeId: data.businessTypeId,
-          users: {
-            connect: {
-              id: ownerShop.id,
-            },
-          },
           branches: {
             create: {
               name: branch.name,

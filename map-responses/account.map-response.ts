@@ -1,6 +1,6 @@
 export function mapResponseLogin(data: any) {
   return {
-    type: data.user.type,
+    type: data.user?.type,
     name: data.user?.name,
     phone: data.user?.phone,
     email: data.user?.email,

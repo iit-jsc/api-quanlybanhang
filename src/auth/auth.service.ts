@@ -9,12 +9,15 @@ import { ACCOUNT_STATUS, USER_TYPE } from 'enums/user.enum';
 import { AccessBranchDTO } from './dto/access-branch-dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { SHOP_SELECT, USER_SELECT } from 'enums/select.enum';
+import { CommonService } from 'src/common/common.service';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
     private jwtService: JwtService,
+    private commonService: CommonService,
   ) {}
 
   async login(loginDto: LoginDto) {
@@ -38,46 +41,10 @@ export class AuthService {
               }),
         },
       },
-      select: {
-        id: true,
-        status: true,
-        password: true,
+      include: {
         user: {
           select: {
             id: true,
-            name: true,
-            email: true,
-            address: true,
-            birthday: true,
-            type: true,
-            shops: {
-              where: {
-                isPublic: true,
-                ...(loginDto.shopCode && { code: loginDto.shopCode }),
-              },
-              select: {
-                id: true,
-                name: true,
-                photoURL: true,
-                code: true,
-                businessType: true,
-                branches: {
-                  where: {
-                    detailPermissions: {
-                      some: {
-                        isPublic: true,
-                      },
-                    },
-                  },
-                  select: {
-                    id: true,
-                    name: true,
-                    photoURL: true,
-                    address: true,
-                  },
-                },
-              },
-            },
           },
         },
       },
@@ -100,13 +67,17 @@ export class AuthService {
       );
     }
 
+    const shops = await this.commonService.findManyShopByUserId(
+      account.user.id,
+    );
+
     const payload = { accountId: account.id };
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
         expiresIn: '5m',
       }),
-      ...mapResponseLogin(account),
+      shops,
     };
   }
 
@@ -120,37 +91,16 @@ export class AuthService {
         id: tokenPayload.accountId,
         user: {
           isPublic: true,
-          shops: {
+          detailPermissions: {
             some: {
               isPublic: true,
-              branches: {
-                some: {
-                  isPublic: true,
-                  id: accessBranchDto.branchId,
-                },
-              },
+              branchId: accessBranchDto.branchId,
             },
           },
         },
       },
       include: {
-        user: {
-          include: {
-            shops: {
-              include: {
-                branches: true,
-              },
-              where: {
-                branches: {
-                  some: {
-                    isPublic: true,
-                    id: accessBranchDto.branchId,
-                  },
-                },
-              },
-            },
-          },
-        },
+        user: true,
       },
     });
 
@@ -161,13 +111,20 @@ export class AuthService {
       );
     }
 
+    const shop = await this.commonService.findShopByCondition({
+      branches: {
+        some: {
+          id: accessBranchDto.branchId,
+        },
+      },
+    } as Prisma.ShopWhereInput);
+
     return {
       accessToken: await this.jwtService.signAsync(
         {
-          type: account.user.type,
           accountId: tokenPayload.accountId,
           branchId: accessBranchDto.branchId,
-          shopId: account.user.shops[0].id,
+          shopId: shop.id,
         } as TokenPayload,
         {
           expiresIn: '48h',

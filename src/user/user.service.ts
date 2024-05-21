@@ -64,11 +64,6 @@ export class UserService {
             updatedBy: tokenPayload.accountId,
           },
         },
-        shops: {
-          connect: {
-            id: tokenPayload.shopId,
-          },
-        },
       },
     });
   }
