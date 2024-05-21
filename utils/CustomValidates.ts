@@ -1,10 +1,12 @@
-import { PrismaService } from 'nestjs-prisma';
-import { TokenPayload } from './../interfaces/common.interface';
+import { Injectable } from '@nestjs/common';
 import {
   registerDecorator,
   ValidationOptions,
   ValidationArguments,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
+import { PrismaService } from 'nestjs-prisma';
 
 export function IsVietnamesePhoneNumber(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {

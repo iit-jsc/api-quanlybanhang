@@ -12,7 +12,7 @@ import {
   MinLength,
   ValidateNested,
 } from 'class-validator';
-import { SEX_TYPE } from 'enums/user.enum';
+import { ACCOUNT_STATUS, SEX_TYPE } from 'enums/user.enum';
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
 export class CreateEmployeeDTO {
@@ -43,6 +43,11 @@ export class CreateEmployeeDTO {
   @Type(() => Number)
   @IsEnum(SEX_TYPE, { message: 'Giới tính không hợp lệ!' })
   sex: number;
+
+  @Optional()
+  @Type(() => Number)
+  @IsEnum(ACCOUNT_STATUS, { message: 'Trạng thái không hợp lệ!' })
+  status: number;
 
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
@@ -92,4 +97,8 @@ export class CreateEmployeeDTO {
 
   @IsOptional()
   cardAddress: string;
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  code: string;
 }

@@ -68,7 +68,7 @@ export class UserController {
     );
   }
 
-  @Patch(':id')
+  @Patch('/employee/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   update(
@@ -83,7 +83,7 @@ export class UserController {
         where: {
           id: +id,
         },
-        data: createEmployeeDto,
+        data: { ...createEmployeeDto },
       },
       tokenPayload,
     );

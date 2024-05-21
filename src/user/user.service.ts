@@ -1,3 +1,4 @@
+import { permission } from 'process';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateEmployeeDTO } from './dto/create-employee-dto';
@@ -40,6 +41,7 @@ export class UserService {
     await this.prisma.user.create({
       data: {
         name: data.name,
+        code: data.code,
         phone: data.phone,
         email: data.email,
         sex: data.sex,
@@ -63,7 +65,7 @@ export class UserService {
         accounts: {
           create: {
             password: bcrypt.hashSync(data.password || '', 10),
-            status: ACCOUNT_STATUS.ACTIVE,
+            status: data.status,
             createdBy: tokenPayload.accountId,
             updatedBy: tokenPayload.accountId,
           },
@@ -74,7 +76,16 @@ export class UserService {
 
   async checkUserExisted(data: CreateEmployeeDTO, tokenPayload: TokenPayload) {
     const user = await this.commonService.findUserByCondition({
-      OR: [{ phone: data.phone }, { email: data.email }],
+      OR: [
+        { phone: data.phone },
+        { email: data.email },
+        {
+          code: {
+            equals: data.code,
+            mode: 'insensitive',
+          },
+        },
+      ],
       detailPermissions: {
         some: {
           branchId: tokenPayload.branchId,
@@ -100,6 +111,14 @@ export class UserService {
                 {
                   message: 'Email đã được sử dụng!',
                   property: 'email',
+                },
+              ]
+            : []),
+          ...(user.code?.toLocaleLowerCase() == data.code?.toLocaleLowerCase()
+            ? [
+                {
+                  message: 'Mã nhân viên đã được sử dụng!',
+                  property: 'code',
                 },
               ]
             : []),
@@ -152,10 +171,17 @@ export class UserService {
           birthday: true,
           sex: true,
           startDate: true,
+          photoURL: true,
           employeeGroup: {
             select: {
               id: true,
               name: true,
+            },
+          },
+          detailPermissions: {
+            select: {
+              id: true,
+              permission: true,
             },
           },
         },
@@ -194,6 +220,7 @@ export class UserService {
         cardAddress: true,
         birthday: true,
         sex: true,
+        photoURL: true,
         startDate: true,
         employeeGroup: {
           select: {
@@ -208,10 +235,56 @@ export class UserService {
   async update(
     params: {
       where: Prisma.UserWhereUniqueInput;
-      data: Prisma.UserUpdateInput;
+      data: CreateEmployeeDTO;
     },
     tokenPayload: TokenPayload,
-  ) {}
+  ) {
+    const { where, data } = params;
+
+    await this.checkUserExisted(
+      { ...data, id: where.id } as CreateEmployeeDTO,
+      tokenPayload,
+    );
+
+    return this.prisma.user.update({
+      data: {
+        name: data.name,
+        code: data.code,
+        phone: data.phone,
+        email: data.email,
+        sex: data.sex,
+        birthday: data.birthday,
+        cardDate: data.cardDate,
+        startDate: data.startDate,
+        type: USER_TYPE.STAFF,
+        employeeGroupId: data.employeeGroupId,
+        photoURL: data.photoURL,
+        address: data.address,
+        cardId: data.cardId,
+        cardAddress: data.cardAddress,
+        updatedBy: tokenPayload.accountId,
+        detailPermissions: {
+          create: {
+            branchId: tokenPayload.branchId,
+            permissionId: data.permissionId,
+          },
+        },
+        accounts: {
+          create: {
+            password: bcrypt.hashSync(data.password || '', 10),
+            status: data.status,
+            createdBy: tokenPayload.accountId,
+            updatedBy: tokenPayload.accountId,
+          },
+        },
+      },
+      where: {
+        ...where,
+        isPublic: true,
+        detailPermissions: detailPermissionFilter(tokenPayload),
+      },
+    });
+  }
 
   async removeMany(
     where: Prisma.BranchWhereInput,
