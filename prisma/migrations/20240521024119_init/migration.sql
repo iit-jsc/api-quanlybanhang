@@ -720,8 +720,6 @@ CREATE TABLE "DetailPermission" (
     "userId" INTEGER NOT NULL,
     "permissionId" INTEGER,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

@@ -41,6 +41,7 @@ export class MeasurementUnitService {
         branches: {
           some: {
             id: { in: branchIds },
+            ...roleBasedBranchFilter(tokenPayload),
           },
         },
       }),

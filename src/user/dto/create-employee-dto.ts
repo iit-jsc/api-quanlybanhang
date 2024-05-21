@@ -16,6 +16,11 @@ import { SEX_TYPE } from 'enums/user.enum';
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
 export class CreateEmployeeDTO {
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  id: number;
+
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()

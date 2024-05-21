@@ -41,6 +41,7 @@ export class EmployeeGroupService {
         branches: {
           some: {
             id: { in: branchIds },
+            ...onlyBranchFilter(tokenPayload),
           },
         },
       }),
@@ -130,28 +131,5 @@ export class EmployeeGroupService {
         updatedBy: tokenPayload.accountId,
       },
     });
-  }
-
-  async findByIdWithBranch(id: number, branchId: number) {
-    const employeeGroup = await this.prisma.employeeGroup.findUnique({
-      where: {
-        id: +id,
-        isPublic: true,
-        branches: {
-          some: {
-            id: branchId,
-          },
-        },
-      },
-      select: EMPLOYEE_GROUP_SELECT,
-    });
-
-    if (!employeeGroup)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        '#1 findByIdWithBranch - Nhóm nhân viên không tồn tại!',
-      );
-
-    return employeeGroup;
   }
 }

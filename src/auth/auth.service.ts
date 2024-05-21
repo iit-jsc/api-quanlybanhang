@@ -53,6 +53,7 @@ export class AuthService {
             shops: {
               where: {
                 isPublic: true,
+                ...(loginDto.shopCode && { code: loginDto.shopCode }),
               },
               select: {
                 id: true,

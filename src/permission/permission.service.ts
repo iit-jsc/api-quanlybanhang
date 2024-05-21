@@ -32,29 +32,21 @@ export class PermissionService {
   async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
     let { skip, take, branchIds, keyword } = params;
 
-    const where = {
+    const where: Prisma.PermissionWhereInput = {
       isPublic: true,
       branches: {
         some: roleBasedBranchFilter(tokenPayload),
       },
-      AND: [],
-    };
-
-    if (keyword) {
-      where.AND.push({
-        OR: [{ name: { contains: keyword, mode: 'insensitive' } }],
-      });
-    }
-
-    if (branchIds && branchIds.length > 0) {
-      where.AND.push({
+      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(branchIds?.length > 0 && {
         branches: {
           some: {
             id: { in: branchIds },
+            ...roleBasedBranchFilter(tokenPayload),
           },
         },
-      });
-    }
+      }),
+    };
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.permission.findMany({
@@ -129,27 +121,5 @@ export class PermissionService {
         updatedBy: tokenPayload.accountId,
       },
     });
-  }
-
-  async findByIdWithBranch(id: number, branchId: number) {
-    const permission = await this.prisma.permission.findUnique({
-      where: {
-        id: +id,
-        isPublic: true,
-        branches: {
-          some: {
-            id: branchId,
-          },
-        },
-      },
-    });
-
-    if (!permission)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        '#1 findByIdWithBranch - Nhóm quyền không tồn tại!',
-      );
-
-    return permission;
   }
 }

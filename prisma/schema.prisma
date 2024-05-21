@@ -723,8 +723,6 @@ model DetailPermission {
   branch       Branch      @relation(fields: [branchId], references: [id])
   permission   Permission? @relation(fields: [permissionId], references: [id])
   isPublic     Boolean?    @default(true)
-  createdBy    Int?
-  updatedBy    Int?
   createdAt    DateTime    @default(now())
   updatedAt    DateTime    @updatedAt
 }

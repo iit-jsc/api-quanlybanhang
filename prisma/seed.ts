@@ -4,35 +4,35 @@ import { faker } from '@faker-js/faker';
 const prisma = new PrismaClient();
 
 async function main() {
-  await prisma.user.createMany({
-    data: [
-      {
-        id: 1,
-        name: 'Vinh Xo',
-        phone: '0909888777',
-        type: 1,
-        email: faker.internet.email(),
-        isPublic: true,
-        createdBy: 1,
-        updatedBy: 1,
-      },
-    ],
-  });
+  // await prisma.user.createMany({
+  //   data: [
+  //     {
+  //       id: 1,
+  //       name: 'Vinh Xo',
+  //       phone: '0909888777',
+  //       type: 1,
+  //       email: faker.internet.email(),
+  //       isPublic: true,
+  //       createdBy: 1,
+  //       updatedBy: 1,
+  //     },
+  //   ],
+  // });
 
-  await prisma.account.createMany({
-    data: [
-      {
-        status: 1,
-        username: 'admin',
-        password:
-          '$2b$10$/hD1wjOI81327vFmMsKTeed6ahdktoON1PfDjUO0tFsm4UNhssgfC',
-        userId: 1,
-        isPublic: true,
-        createdBy: 1,
-        updatedBy: 1,
-      },
-    ],
-  });
+  // await prisma.account.createMany({
+  //   data: [
+  //     {
+  //       status: 1,
+  //       username: 'admin',
+  //       password:
+  //         '$2b$10$/hD1wjOI81327vFmMsKTeed6ahdktoON1PfDjUO0tFsm4UNhssgfC',
+  //       userId: 1,
+  //       isPublic: true,
+  //       createdBy: 1,
+  //       updatedBy: 1,
+  //     },
+  //   ],
+  // });
 
   await prisma.businessType.createMany({
     data: [

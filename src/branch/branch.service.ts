@@ -7,16 +7,19 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { FindManyDTO } from 'utils/Common.dto';
 import { BRANCH_SELECT } from 'enums/select.enum';
+import { CommonService } from 'src/common/common.service';
 
 @Injectable()
 export class BranchService {
   constructor(
     private readonly prisma: PrismaService,
-    private userService: UserService,
+    private commonService: CommonService,
   ) {}
 
   async create(createBranchDto: CreateBranchDTO, tokenPayload: TokenPayload) {
-    const user = await this.userService.getByAccountId(tokenPayload.accountId);
+    const user = await this.commonService.findUserByAccountId(
+      tokenPayload.accountId,
+    );
 
     return this.prisma.branch.create({
       data: {
