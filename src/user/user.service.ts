@@ -8,7 +8,11 @@ import { ACCOUNT_STATUS, USER_TYPE } from 'enums/user.enum';
 import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import { FindManyDTO } from 'utils/Common.dto';
-import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
+import {
+  calculatePagination,
+  detailPermissionFilter,
+  roleBasedBranchFilter,
+} from 'utils/Helps';
 import { USER_SELECT } from 'enums/select.enum';
 
 @Injectable()
@@ -58,7 +62,7 @@ export class UserService {
         },
         accounts: {
           create: {
-            password: bcrypt.hashSync(data.password, 10),
+            password: bcrypt.hashSync(data.password || '', 10),
             status: ACCOUNT_STATUS.ACTIVE,
             createdBy: tokenPayload.accountId,
             updatedBy: tokenPayload.accountId,
@@ -69,12 +73,14 @@ export class UserService {
   }
 
   async checkUserExisted(data: CreateEmployeeDTO, tokenPayload: TokenPayload) {
-    const user = await this.commonService.findUserByCondition(
-      {
-        OR: [{ phone: data.phone }, { email: data.email }],
+    const user = await this.commonService.findUserByCondition({
+      OR: [{ phone: data.phone }, { email: data.email }],
+      detailPermissions: {
+        some: {
+          branchId: tokenPayload.branchId,
+        },
       },
-      tokenPayload.shopId,
-    );
+    } as Prisma.UserWhereInput);
 
     if (user && user.id !== data.id) {
       throw new CustomHttpException(
@@ -104,27 +110,24 @@ export class UserService {
     return true;
   }
 
-  async findByPhoneWithType(phone: string, type: number) {
-    return this.prisma.user.findFirst({
-      where: {
-        isPublic: true,
-        type,
-        phone,
-      },
-    });
-  }
-
   async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    const { skip, take, keyword, employeeGroupIds } = params;
 
-    let where: Prisma.UserWhereInput = {
+    const keySearch = ['name', 'code', 'email', 'phone'];
+
+    const where: Prisma.UserWhereInput = {
       isPublic: true,
-      detailPermissions: {
-        some: {
-          branchId: tokenPayload.branchId,
+      detailPermissions: detailPermissionFilter(tokenPayload),
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword, mode: 'insensitive' },
+        })),
+      }),
+      ...(employeeGroupIds?.length > 0 && {
+        employeeGroupId: {
+          in: employeeGroupIds,
         },
-      },
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      }),
     };
 
     const [data, totalRecords] = await Promise.all([
@@ -137,6 +140,7 @@ export class UserService {
         where,
         select: {
           id: true,
+          name: true,
           code: true,
           type: true,
           phone: true,
@@ -148,7 +152,12 @@ export class UserService {
           birthday: true,
           sex: true,
           startDate: true,
-          employeeGroup: true,
+          employeeGroup: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
         },
       }),
       this.prisma.user.count({
@@ -163,14 +172,43 @@ export class UserService {
   }
 
   async findUniq(
-    where: Prisma.BranchWhereUniqueInput,
+    where: Prisma.UserWhereUniqueInput,
     tokenPayload: TokenPayload,
-  ) {}
+  ) {
+    return this.prisma.user.findUniqueOrThrow({
+      where: {
+        ...where,
+        isPublic: true,
+        detailPermissions: detailPermissionFilter(tokenPayload),
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        type: true,
+        phone: true,
+        email: true,
+        address: true,
+        cardId: true,
+        cardDate: true,
+        cardAddress: true,
+        birthday: true,
+        sex: true,
+        startDate: true,
+        employeeGroup: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+  }
 
   async update(
     params: {
-      where: Prisma.BranchWhereUniqueInput;
-      data: Prisma.BranchUpdateInput;
+      where: Prisma.UserWhereUniqueInput;
+      data: Prisma.UserUpdateInput;
     },
     tokenPayload: TokenPayload,
   ) {}

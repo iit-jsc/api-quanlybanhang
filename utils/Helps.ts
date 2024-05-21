@@ -54,3 +54,12 @@ export function onlyBranchFilter(tokenPayload: TokenPayload) {
     },
   };
 }
+
+export function detailPermissionFilter(tokenPayload: TokenPayload) {
+  return {
+    some: {
+      isPublic: true,
+      branchId: tokenPayload.branchId,
+    },
+  };
+}

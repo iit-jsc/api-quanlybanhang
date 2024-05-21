@@ -6,19 +6,20 @@ import { ACCOUNT_STATUS, USER_TYPE } from 'enums/user.enum';
 import { UserService } from 'src/user/user.service';
 import { CreateAccountDTO } from 'src/account/dto/create-account.dto';
 import { BRANCH_STATUS } from 'enums/branch.enum';
+import { CommonService } from 'src/common/common.service';
 
 @Injectable()
 export class ShopService {
   constructor(
     private readonly prisma: PrismaService,
-    private userService: UserService,
+    private commonService: CommonService,
   ) {}
 
   async create(data: CreateShopDTO) {
     const { user, branch } = data;
 
     await this.prisma.$transaction(async (prisma) => {
-      const userExisted = await this.userService.findByPhoneWithType(
+      const userExisted = await this.commonService.findUserByPhoneWithType(
         user.phone,
         USER_TYPE.STORE_OWNER,
       );

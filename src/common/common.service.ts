@@ -67,15 +67,10 @@ export class CommonService {
     return permission;
   }
 
-  async findUserByCondition(where: any, shopId: number) {
+  async findUserByCondition(where: any) {
     return await this.prisma.user.findFirst({
       where: {
         isPublic: true,
-        shops: {
-          some: {
-            id: shopId,
-          },
-        },
         ...where,
       },
     });
@@ -123,6 +118,16 @@ export class CommonService {
       where: {
         isPublic: true,
         ...where,
+      },
+    });
+  }
+
+  async findUserByPhoneWithType(phone: string, type: number) {
+    return this.prisma.user.findFirst({
+      where: {
+        isPublic: true,
+        type,
+        phone,
       },
     });
   }

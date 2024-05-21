@@ -20,6 +20,15 @@ export class FindManyDTO {
       .filter((id: number) => !isNaN(id));
   })
   branchIds: number[];
+
+  @Optional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  employeeGroupIds: number[];
 }
 
 export class DeleteManyDto {

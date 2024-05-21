@@ -54,7 +54,7 @@ export class UserController {
     return this.userService.findAll(findManyDto, tokenPayload);
   }
 
-  @Get(':id')
+  @Get('/employee/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   findUniq(@Param('id') id: string, @Req() req: any) {
@@ -73,7 +73,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
-    @Body() createBranchDto: CreateBranchDTO,
+    @Body() createEmployeeDto: CreateEmployeeDTO,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -83,7 +83,7 @@ export class UserController {
         where: {
           id: +id,
         },
-        data: createBranchDto,
+        data: createEmployeeDto,
       },
       tokenPayload,
     );
