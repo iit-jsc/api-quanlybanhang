@@ -90,7 +90,12 @@ export class PermissionService {
         },
         updatedBy: tokenPayload.accountId,
       },
-      where,
+      where: {
+        ...where,
+        branches: {
+          some: roleBasedBranchFilter(tokenPayload),
+        },
+      },
     });
   }
 
@@ -115,7 +120,13 @@ export class PermissionService {
     tokenPayload: TokenPayload,
   ) {
     return this.prisma.permission.updateMany({
-      where: { ...where, isPublic: true },
+      where: {
+        ...where,
+        isPublic: true,
+        branches: {
+          some: roleBasedBranchFilter(tokenPayload),
+        },
+      },
       data: {
         isPublic: false,
         updatedBy: tokenPayload.accountId,

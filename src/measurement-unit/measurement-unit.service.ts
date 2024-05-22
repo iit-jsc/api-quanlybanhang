@@ -108,6 +108,9 @@ export class MeasurementUnitService {
       where: {
         ...where,
         isPublic: true,
+        branches: {
+          some: roleBasedBranchFilter(tokenPayload),
+        },
       },
     });
   }

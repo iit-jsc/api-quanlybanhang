@@ -34,13 +34,9 @@ export class BranchService {
             id: tokenPayload.shopId,
           },
         },
-        detailPermissions: {
-          create: {
-            user: {
-              connect: {
-                id: user.id,
-              },
-            },
+        users: {
+          connect: {
+            id: user.id,
           },
         },
       },
@@ -56,7 +52,7 @@ export class BranchService {
         id: tokenPayload.shopId,
         isPublic: true,
       },
-      detailPermissions: {
+      users: {
         some: {
           isPublic: true,
         },
@@ -97,7 +93,7 @@ export class BranchService {
           id: tokenPayload.shopId,
           isPublic: true,
         },
-        detailPermissions: {
+        users: {
           some: {
             isPublic: true,
           },
@@ -130,7 +126,7 @@ export class BranchService {
           id: tokenPayload.shopId,
           isPublic: true,
         },
-        detailPermissions: {
+        users: {
           some: {
             isPublic: true,
           },
@@ -148,7 +144,7 @@ export class BranchService {
           id: tokenPayload.shopId,
           isPublic: true,
         },
-        detailPermissions: {
+        users: {
           some: {
             isPublic: true,
           },
@@ -182,7 +178,7 @@ export class BranchService {
           id: tokenPayload.shopId,
           isPublic: true,
         },
-        detailPermissions: {
+        users: {
           some: {
             isPublic: true,
           },

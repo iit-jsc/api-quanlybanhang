@@ -33,22 +33,23 @@ model BusinessType {
 }
 
 model Permission {
-  id                Int                @id @default(autoincrement())
-  name              String
-  description       String?            @db.Text
-  roles             Role[]
-  branches          Branch[]
-  isPublic          Boolean?           @default(true)
-  createdBy         Int?
-  updatedBy         Int?
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  detailPermissions DetailPermission[]
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?   @db.Text
+  roles       Role[]
+  branches    Branch[]
+  accounts    Account[]
+  isPublic    Boolean?  @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
 }
 
 model Account {
   id           Int           @id @default(autoincrement())
   status       Int
+  type         Int
   username     String?
   password     String
   userId       Int
@@ -59,6 +60,7 @@ model Account {
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   activityLogs ActivityLog[]
+  permissions  Permission[]
 }
 
 model User {
@@ -66,7 +68,6 @@ model User {
   name              String
   code              String?
   phone             String
-  type              Int
   email             String?
   photoURL          String?
   address           String?
@@ -87,7 +88,7 @@ model User {
   staffRatings      StaffRating[]
   employeeSchedules EmployeeSchedule[]
   timeSheets        TimeSheet[]
-  detailPermissions DetailPermission[]
+  branches          Branch[]
 }
 
 model EmployeeGroup {
@@ -712,19 +713,6 @@ model StaffRating {
   user        User     @relation(fields: [userId], references: [id])
 }
 
-model DetailPermission {
-  id           Int         @id @default(autoincrement())
-  branchId     Int
-  userId       Int
-  permissionId Int?
-  user         User        @relation(fields: [userId], references: [id])
-  branch       Branch      @relation(fields: [branchId], references: [id])
-  permission   Permission? @relation(fields: [permissionId], references: [id])
-  isPublic     Boolean?    @default(true)
-  createdAt    DateTime    @default(now())
-  updatedAt    DateTime    @updatedAt
-}
-
 model Branch {
   id                         Int                        @id @default(autoincrement())
   shopId                     Int
@@ -772,11 +760,11 @@ model Branch {
   timeSheets                 TimeSheet[]
   salaries                   Salary[]
   orderTransactions          OrderTransaction[]
-  detailPermissions          DetailPermission[]
   otherAttributePatterns     OtherAttributePattern[]
   tables                     Table[]
   permissions                Permission[]
   employeeGroups             EmployeeGroup[]
+  users                      User[]
 }
 
 model WorkShift {

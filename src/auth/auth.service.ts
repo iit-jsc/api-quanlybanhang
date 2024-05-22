@@ -5,7 +5,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
-import { ACCOUNT_STATUS, USER_TYPE } from 'enums/user.enum';
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { AccessBranchDTO } from './dto/access-branch-dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { SHOP_SELECT, USER_SELECT } from 'enums/select.enum';
@@ -27,18 +27,19 @@ export class AuthService {
         user: {
           isPublic: true,
           OR: [{ phone: loginDto.username }, { email: loginDto.username }],
-          ...(loginDto.shopCode
-            ? {
-                shops: {
-                  some: {
-                    isPublic: true,
-                    code: loginDto.shopCode,
-                  },
-                },
-              }
-            : {
-                type: USER_TYPE.STORE_OWNER,
-              }),
+          ...(loginDto.shopCode && {
+            shops: {
+              some: {
+                isPublic: true,
+                code: loginDto.shopCode,
+              },
+            },
+          }),
+          accounts: {
+            some: {
+              ...(loginDto.shopCode && { type: ACCOUNT_TYPE.STORE_OWNER }),
+            },
+          },
         },
       },
       include: {
@@ -91,10 +92,10 @@ export class AuthService {
         id: tokenPayload.accountId,
         user: {
           isPublic: true,
-          detailPermissions: {
+          branches: {
             some: {
+              id: accessBranchDto.branchId,
               isPublic: true,
-              branchId: accessBranchDto.branchId,
             },
           },
         },

@@ -1,6 +1,3 @@
-import { TokenPayload } from 'interfaces/common.interface';
-import { USER_TYPE } from './user.enum';
-
 export const BRANCH_SELECT = {
   id: true,
   photoURL: true,

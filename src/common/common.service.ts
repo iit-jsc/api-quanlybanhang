@@ -83,9 +83,10 @@ export class CommonService {
         branches: {
           some: {
             isPublic: true,
-            detailPermissions: {
+            users: {
               some: {
-                userId: id,
+                id: id,
+                isPublic: true,
               },
             },
           },
@@ -126,8 +127,12 @@ export class CommonService {
     return this.prisma.user.findFirst({
       where: {
         isPublic: true,
-        type,
         phone,
+        accounts: {
+          some: {
+            type,
+          },
+        },
       },
     });
   }

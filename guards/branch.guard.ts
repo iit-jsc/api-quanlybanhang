@@ -4,7 +4,7 @@ import {
   ExecutionContext,
   UnauthorizedException,
 } from '@nestjs/common';
-import { USER_TYPE } from 'enums/user.enum';
+import { ACCOUNT_TYPE } from 'enums/user.enum';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 
@@ -17,16 +17,20 @@ export class BranchGuard implements CanActivate {
     const tokenPayload = request.tokenPayload as TokenPayload;
     const branchIds = request.body.branchIds || [];
 
-    if (tokenPayload.type !== USER_TYPE.STORE_OWNER) {
+    if (tokenPayload.type !== ACCOUNT_TYPE.STORE_OWNER) {
       const branches = await this.prisma.branch.findMany({
         where: {
           isPublic: true,
           id: {
             in: branchIds,
           },
-          detailPermissions: {
+          users: {
             some: {
-              isPublic: true,
+              accounts: {
+                some: {
+                  id: tokenPayload.accountId,
+                },
+              },
             },
           },
         },

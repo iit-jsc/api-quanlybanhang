@@ -1,7 +1,7 @@
 import { TokenPayload } from './../interfaces/common.interface';
 import { generate as generateIdentifier } from 'short-uuid';
 import { PaginationResult } from 'interfaces/common.interface';
-import { USER_TYPE } from 'enums/user.enum';
+import { ACCOUNT_TYPE } from 'enums/user.enum';
 export function generateUniqueId(): string {
   return generateIdentifier();
 }
@@ -30,15 +30,10 @@ export function roleBasedBranchFilter(tokenPayload: TokenPayload) {
     },
   };
 
-  return tokenPayload.type !== USER_TYPE.STORE_OWNER
+  return tokenPayload.type !== ACCOUNT_TYPE.STORE_OWNER
     ? {
         ...baseConditions,
         id: tokenPayload.branchId,
-        detailPermissions: {
-          some: {
-            isPublic: true,
-          },
-        },
       }
     : baseConditions;
 }
@@ -47,11 +42,6 @@ export function onlyBranchFilter(tokenPayload: TokenPayload) {
   return {
     id: tokenPayload.branchId,
     isPublic: true,
-    detailPermissions: {
-      some: {
-        isPublic: true,
-      },
-    },
   };
 }
 

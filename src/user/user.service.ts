@@ -1,20 +1,14 @@
-import { permission } from 'process';
+import * as bcrypt from 'bcrypt';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateEmployeeDTO } from './dto/create-employee-dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { CommonService } from 'src/common/common.service';
-import { ACCOUNT_STATUS, USER_TYPE } from 'enums/user.enum';
-import * as bcrypt from 'bcrypt';
 import { Prisma } from '@prisma/client';
 import { FindManyDTO } from 'utils/Common.dto';
-import {
-  calculatePagination,
-  detailPermissionFilter,
-  roleBasedBranchFilter,
-} from 'utils/Helps';
-import { USER_SELECT } from 'enums/select.enum';
+import { calculatePagination } from 'utils/Helps';
+import { ACCOUNT_TYPE } from 'enums/user.enum';
 
 @Injectable()
 export class UserService {
@@ -24,18 +18,6 @@ export class UserService {
   ) {}
 
   async create(data: CreateEmployeeDTO, tokenPayload: TokenPayload) {
-    if (data.employeeGroupId)
-      await this.commonService.findEmployeeByIdWithBranch(
-        data.employeeGroupId,
-        tokenPayload.branchId,
-      );
-
-    if (data.permissionId)
-      await this.commonService.findPermissionByIdWithBranch(
-        data.permissionId,
-        tokenPayload.branchId,
-      );
-
     await this.checkUserExisted(data, tokenPayload);
 
     await this.prisma.user.create({
@@ -48,7 +30,6 @@ export class UserService {
         birthday: data.birthday,
         cardDate: data.cardDate,
         startDate: data.startDate,
-        type: USER_TYPE.STAFF,
         employeeGroupId: data.employeeGroupId,
         photoURL: data.photoURL,
         address: data.address,
@@ -56,18 +37,18 @@ export class UserService {
         cardAddress: data.cardAddress,
         createdBy: tokenPayload.accountId,
         updatedBy: tokenPayload.accountId,
-        detailPermissions: {
-          create: {
-            branchId: tokenPayload.branchId,
-            permissionId: data.permissionId,
-          },
-        },
         accounts: {
           create: {
             password: bcrypt.hashSync(data.password || '', 10),
             status: data.status,
             createdBy: tokenPayload.accountId,
             updatedBy: tokenPayload.accountId,
+            type: ACCOUNT_TYPE.STAFF,
+          },
+        },
+        branches: {
+          connect: {
+            id: tokenPayload.branchId,
           },
         },
       },
@@ -136,7 +117,12 @@ export class UserService {
 
     const where: Prisma.UserWhereInput = {
       isPublic: true,
-      detailPermissions: detailPermissionFilter(tokenPayload),
+      branches: {
+        some: {
+          isPublic: true,
+          id: tokenPayload.branchId,
+        },
+      },
       ...(keyword && {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword, mode: 'insensitive' },
@@ -161,7 +147,6 @@ export class UserService {
           id: true,
           name: true,
           code: true,
-          type: true,
           phone: true,
           email: true,
           address: true,
@@ -177,11 +162,14 @@ export class UserService {
               id: true,
               name: true,
             },
-          },
-          detailPermissions: {
-            select: {
-              id: true,
-              permission: true,
+            where: {
+              isPublic: true,
+              branches: {
+                some: {
+                  id: tokenPayload.branchId,
+                  isPublic: true,
+                },
+              },
             },
           },
         },
@@ -205,13 +193,17 @@ export class UserService {
       where: {
         ...where,
         isPublic: true,
-        detailPermissions: detailPermissionFilter(tokenPayload),
+        branches: {
+          some: {
+            id: tokenPayload.branchId,
+            isPublic: true,
+          },
+        },
       },
       select: {
         id: true,
         name: true,
         code: true,
-        type: true,
         phone: true,
         email: true,
         address: true,
@@ -256,32 +248,22 @@ export class UserService {
         birthday: data.birthday,
         cardDate: data.cardDate,
         startDate: data.startDate,
-        type: USER_TYPE.STAFF,
         employeeGroupId: data.employeeGroupId,
         photoURL: data.photoURL,
         address: data.address,
         cardId: data.cardId,
         cardAddress: data.cardAddress,
         updatedBy: tokenPayload.accountId,
-        detailPermissions: {
-          create: {
-            branchId: tokenPayload.branchId,
-            permissionId: data.permissionId,
-          },
-        },
-        accounts: {
-          create: {
-            password: bcrypt.hashSync(data.password || '', 10),
-            status: data.status,
-            createdBy: tokenPayload.accountId,
-            updatedBy: tokenPayload.accountId,
-          },
-        },
       },
       where: {
         ...where,
         isPublic: true,
-        detailPermissions: detailPermissionFilter(tokenPayload),
+        branches: {
+          some: {
+            id: tokenPayload.branchId,
+            isPublic: true,
+          },
+        },
       },
     });
   }

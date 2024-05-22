@@ -2,7 +2,7 @@ import * as bcrypt from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateShopDTO } from './dto/create-shop.dto';
-import { ACCOUNT_STATUS, USER_TYPE } from 'enums/user.enum';
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { UserService } from 'src/user/user.service';
 import { CreateAccountDTO } from 'src/account/dto/create-account.dto';
 import { BRANCH_STATUS } from 'enums/branch.enum';
@@ -19,24 +19,22 @@ export class ShopService {
     const { user, branch } = data;
 
     await this.prisma.$transaction(async (prisma) => {
-      const userExisted = await this.commonService.findUserByPhoneWithType(
+      let ownerShop = await this.commonService.findUserByPhoneWithType(
         user.phone,
-        USER_TYPE.STORE_OWNER,
+        ACCOUNT_TYPE.STORE_OWNER,
       );
 
-      let ownerShop = userExisted;
-
-      if (!userExisted)
+      if (!ownerShop)
         ownerShop = await prisma.user.create({
           data: {
             name: user.name,
             phone: user.phone,
             email: user.email,
-            type: USER_TYPE.STORE_OWNER,
             accounts: {
               create: {
                 password: bcrypt.hashSync(user.account.password, 10),
                 status: ACCOUNT_STATUS.ACTIVE,
+                type: ACCOUNT_TYPE.STORE_OWNER,
               },
             },
           },
@@ -54,9 +52,9 @@ export class ShopService {
               name: branch.name,
               address: branch.address,
               status: BRANCH_STATUS.ACTIVE,
-              detailPermissions: {
-                create: {
-                  userId: ownerShop.id,
+              users: {
+                connect: {
+                  id: ownerShop.id,
                 },
               },
             },

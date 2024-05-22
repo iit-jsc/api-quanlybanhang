@@ -10,7 +10,6 @@ import {
   IsString,
   MaxDate,
   MinLength,
-  ValidateNested,
 } from 'class-validator';
 import { ACCOUNT_STATUS, SEX_TYPE } from 'enums/user.enum';
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
@@ -75,10 +74,14 @@ export class CreateEmployeeDTO {
   @Type(() => Number)
   employeeGroupId: number;
 
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  permissionId: number;
+  @Optional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  permissionIds: number[];
 
   @IsOptional()
   photoURL: string;
