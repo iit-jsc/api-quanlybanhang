@@ -16,6 +16,7 @@ import { LoggerMiddleware } from 'middlewares/check-branch.middleware';
 import { PermissionModule } from './permission/permission.module';
 import { EmployeeGroupModule } from './employee-group/employee-group.module';
 import { CommonModule } from './common/common.module';
+import { ProductTypeModule } from './product-type/product-type.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { CommonModule } from './common/common.module';
     PermissionModule,
     EmployeeGroupModule,
     CommonModule,
+    ProductTypeModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

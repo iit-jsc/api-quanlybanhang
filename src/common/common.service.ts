@@ -104,6 +104,15 @@ export class CommonService {
             address: true,
             photoURL: true,
           },
+          where: {
+            isPublic: true,
+            users: {
+              some: {
+                id: id,
+                isPublic: true,
+              },
+            },
+          },
         },
         businessType: {
           where: {

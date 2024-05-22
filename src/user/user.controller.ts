@@ -71,9 +71,11 @@ export class UserController {
   @Patch('/employee/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
+  @UseInterceptors(CustomFileInterceptor('photoURL'))
   update(
     @Param('id') id: string,
     @Body() createEmployeeDto: CreateEmployeeDTO,
+    @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -83,7 +85,7 @@ export class UserController {
         where: {
           id: +id,
         },
-        data: { ...createEmployeeDto },
+        data: { ...createEmployeeDto, photoURL: file?.path },
       },
       tokenPayload,
     );
@@ -99,28 +101,6 @@ export class UserController {
         id: {
           in: deleteManyDto.ids,
         },
-      },
-      tokenPayload,
-    );
-  }
-
-  @Patch(':id/update-photo')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
-  updatePhotoURL(
-    @Param('id') id: string,
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: any,
-  ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.userService.updatePhotoURL(
-      {
-        where: {
-          id: +id,
-        },
-        data: { photoURL: file?.path },
       },
       tokenPayload,
     );

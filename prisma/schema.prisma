@@ -48,7 +48,7 @@ model Permission {
 
 model Account {
   id           Int           @id @default(autoincrement())
-  status       Int
+  status       Int           @default(1)
   type         Int
   username     String?
   password     String
@@ -188,6 +188,8 @@ model ProductType {
   updatedAt              DateTime                @updatedAt
   products               Product[]
   otherAttributePatterns OtherAttributePattern[]
+
+  @@unique([identifier, branchId])
 }
 
 model OtherAttributePattern {

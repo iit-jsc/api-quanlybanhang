@@ -45,7 +45,7 @@ CREATE TABLE "Permission" (
 -- CreateTable
 CREATE TABLE "Account" (
     "id" SERIAL NOT NULL,
-    "status" INTEGER NOT NULL,
+    "status" INTEGER NOT NULL DEFAULT 1,
     "type" INTEGER NOT NULL,
     "username" TEXT,
     "password" TEXT NOT NULL,

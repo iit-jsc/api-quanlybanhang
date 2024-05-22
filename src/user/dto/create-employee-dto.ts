@@ -38,15 +38,10 @@ export class CreateEmployeeDTO {
   )
   email: string;
 
-  @Optional()
+  @IsOptional()
   @Type(() => Number)
   @IsEnum(SEX_TYPE, { message: 'Giới tính không hợp lệ!' })
   sex: number;
-
-  @Optional()
-  @Type(() => Number)
-  @IsEnum(ACCOUNT_STATUS, { message: 'Trạng thái không hợp lệ!' })
-  status: number;
 
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
@@ -74,7 +69,7 @@ export class CreateEmployeeDTO {
   @Type(() => Number)
   employeeGroupId: number;
 
-  @Optional()
+  @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value
       ?.split(',')
@@ -91,12 +86,6 @@ export class CreateEmployeeDTO {
 
   @IsOptional()
   cardId: string;
-
-  @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
-  @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 kí tự.' })
-  password: string;
 
   @IsOptional()
   cardAddress: string;

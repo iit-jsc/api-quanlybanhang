@@ -37,15 +37,6 @@ export class UserService {
         cardAddress: data.cardAddress,
         createdBy: tokenPayload.accountId,
         updatedBy: tokenPayload.accountId,
-        accounts: {
-          create: {
-            password: bcrypt.hashSync(data.password || '', 10),
-            status: data.status,
-            createdBy: tokenPayload.accountId,
-            updatedBy: tokenPayload.accountId,
-            type: ACCOUNT_TYPE.STAFF,
-          },
-        },
         branches: {
           connect: {
             id: tokenPayload.branchId,
@@ -61,15 +52,24 @@ export class UserService {
         { phone: data.phone },
         { email: data.email },
         {
-          code: {
-            equals: data.code,
-            mode: 'insensitive',
-          },
+          AND: [
+            {
+              code: {
+                equals: data.code,
+                mode: 'insensitive',
+              },
+            },
+            {
+              code: {
+                not: '',
+              },
+            },
+          ],
         },
       ],
-      detailPermissions: {
+      branches: {
         some: {
-          branchId: tokenPayload.branchId,
+          id: tokenPayload.branchId,
         },
       },
     } as Prisma.UserWhereInput);
@@ -129,8 +129,15 @@ export class UserService {
         })),
       }),
       ...(employeeGroupIds?.length > 0 && {
-        employeeGroupId: {
-          in: employeeGroupIds,
+        employeeGroup: {
+          id: { in: employeeGroupIds },
+          isPublic: true,
+          branches: {
+            some: {
+              id: tokenPayload.branchId,
+              isPublic: true,
+            },
+          },
         },
       }),
     };
@@ -163,7 +170,6 @@ export class UserService {
               name: true,
             },
             where: {
-              isPublic: true,
               branches: {
                 some: {
                   id: tokenPayload.branchId,
@@ -212,12 +218,20 @@ export class UserService {
         cardAddress: true,
         birthday: true,
         sex: true,
-        photoURL: true,
         startDate: true,
+        photoURL: true,
         employeeGroup: {
           select: {
             id: true,
             name: true,
+          },
+          where: {
+            branches: {
+              some: {
+                id: tokenPayload.branchId,
+                isPublic: true,
+              },
+            },
           },
         },
       },
@@ -268,16 +282,22 @@ export class UserService {
     });
   }
 
-  async removeMany(
-    where: Prisma.BranchWhereInput,
-    tokenPayload: TokenPayload,
-  ) {}
-
-  async updatePhotoURL(
-    params: {
-      where: Prisma.BranchWhereUniqueInput;
-      data: Prisma.BranchUpdateInput;
-    },
-    tokenPayload: TokenPayload,
-  ) {}
+  async removeMany(where: Prisma.UserWhereInput, tokenPayload: TokenPayload) {
+    return this.prisma.user.updateMany({
+      where: {
+        ...where,
+        isPublic: true,
+        branches: {
+          some: {
+            isPublic: true,
+            id: tokenPayload.branchId,
+          },
+        },
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
 }
