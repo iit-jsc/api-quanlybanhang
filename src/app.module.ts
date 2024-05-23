@@ -18,6 +18,7 @@ import { EmployeeGroupModule } from './employee-group/employee-group.module';
 import { CommonModule } from './common/common.module';
 import { ProductTypeModule } from './product-type/product-type.module';
 import { ProductModule } from './product/product.module';
+import { CustomerTypeModule } from './customer-type/customer-type.module';
 
 @Module({
   imports: [
@@ -43,6 +44,7 @@ import { ProductModule } from './product/product.module';
     CommonModule,
     ProductTypeModule,
     ProductModule,
+    CustomerTypeModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

@@ -15,11 +15,7 @@ import {
 import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import {
-  DeleteManyDto,
-  DeleteManyWithIdentifierDto,
-  FindManyDTO,
-} from 'utils/Common.dto';
+import { DeleteManyWithIdentifierDto, FindManyDTO } from 'utils/Common.dto';
 import { ProductTypeService } from './product-type.service';
 import { CreateProductTypeDTO } from './dto/create-product-type.dto';
 import { UpdateProductTypeDTO } from './dto/update-product-type.dto';
