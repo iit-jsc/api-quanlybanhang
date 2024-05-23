@@ -33,32 +33,3 @@ export class TransformInterceptor<T>
     );
   }
 }
-
-const imageFileFilter = (req, file, callback) => {
-  if (!file.originalname.match(/\.(jpg|jpeg|png|gif)$/)) {
-    return callback(new Error('Only image files are allowed!'), false);
-  }
-  callback(null, true);
-};
-
-const maxSize = 200 * 1024 * 1024;
-
-export const CustomFileInterceptor = (
-  fieldName: string,
-  destinationPath: string = './uploads',
-  fileSize: number = maxSize,
-) =>
-  FileInterceptor(fieldName, {
-    storage: diskStorage({
-      destination: destinationPath,
-      filename: (req, file, cb) => {
-        const randomName = Array(32)
-          .fill(null)
-          .map(() => Math.round(Math.random() * 16).toString(16))
-          .join('');
-        cb(null, `${randomName}${extname(file.originalname)}`);
-      },
-    }),
-    fileFilter: imageFileFilter,
-    limits: { fileSize },
-  });

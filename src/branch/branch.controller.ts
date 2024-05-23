@@ -17,9 +17,9 @@ import {
 import { BranchService } from './branch.service';
 import { CreateBranchDTO } from './dto/create-branch.dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { CustomFileInterceptor } from 'utils/ApiResponse';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
+import { CustomFileInterceptor } from 'utils/Helps';
 
 @Controller('branch')
 export class BranchController {

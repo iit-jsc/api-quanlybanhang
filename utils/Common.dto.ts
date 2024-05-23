@@ -1,5 +1,5 @@
-import { Optional } from '@nestjs/common';
 import { Transform, TransformFnParams, Type } from 'class-transformer';
+import { ArrayNotEmpty, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class FindManyDTO {
   @Type(() => Number)
@@ -12,7 +12,7 @@ export class FindManyDTO {
   @Type(() => String)
   keyword?: string;
 
-  @Optional()
+  @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value
       ?.split(',')
@@ -21,7 +21,7 @@ export class FindManyDTO {
   })
   branchIds: number[];
 
-  @Optional()
+  @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value
       ?.split(',')
@@ -29,8 +29,50 @@ export class FindManyDTO {
       .filter((id: number) => !isNaN(id));
   })
   employeeGroupIds: number[];
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  measurementUnitIds: number[];
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  productTypeIds: number[];
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  statuses?: number[];
+
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isCombo?: boolean;
 }
 
 export class DeleteManyDto {
   ids: number[];
+}
+
+export class DeleteManyWithIdentifierDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách identifier không được rỗng!' })
+  identifiers: string[];
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
+  branchIds: number[];
 }

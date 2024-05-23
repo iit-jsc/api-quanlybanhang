@@ -16,11 +16,11 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateEmployeeDTO } from './dto/create-employee-dto';
-import { CustomFileInterceptor } from 'utils/ApiResponse';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
 import { CreateBranchDTO } from 'src/branch/dto/create-branch.dto';
+import { CustomFileInterceptor } from 'utils/Helps';
 
 @Controller('user')
 export class UserController {

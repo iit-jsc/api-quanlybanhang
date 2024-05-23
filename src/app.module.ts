@@ -17,6 +17,7 @@ import { PermissionModule } from './permission/permission.module';
 import { EmployeeGroupModule } from './employee-group/employee-group.module';
 import { CommonModule } from './common/common.module';
 import { ProductTypeModule } from './product-type/product-type.module';
+import { ProductModule } from './product/product.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { ProductTypeModule } from './product-type/product-type.module';
     EmployeeGroupModule,
     CommonModule,
     ProductTypeModule,
+    ProductModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

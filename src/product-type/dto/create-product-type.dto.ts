@@ -1,14 +1,18 @@
-import { Optional } from '@nestjs/common';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { ArrayNotEmpty, IsNotEmpty, IsString } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
-export class CreateCategoryDTO {
+export class CreateProductTypeDTO {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   name: string;
 
-  @Optional()
+  @IsOptional()
   @IsString()
   description?: string;
 

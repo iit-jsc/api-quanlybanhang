@@ -17,6 +17,12 @@ export class BranchGuard implements CanActivate {
     const tokenPayload = request.tokenPayload as TokenPayload;
     const branchIds = request.body.branchIds || [];
 
+    if (new Set(branchIds).size !== branchIds.length) {
+      throw new UnauthorizedException(
+        'Danh sách chi nhánh không được chứa giá trị trùng lặp!',
+      );
+    }
+
     if (tokenPayload.type !== ACCOUNT_TYPE.STORE_OWNER) {
       const branches = await this.prisma.branch.findMany({
         where: {

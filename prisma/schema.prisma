@@ -216,17 +216,16 @@ model Product {
   productTypeId           Int
   name                    String
   sku                     String
-  code                    String
-  retailPrice             Float
-  wholesalePrice          Float
-  importPrice             Float
+  code                    String?
+  retailPrice             Float                    @default(0)
+  wholesalePrice          Float                    @default(0)
+  importPrice             Float                    @default(0)
   description             String?                  @db.Text
-  photoURL                String?                  @db.Text
-  type                    Int
+  photoURLs               Json?
   otherAttributes         Json?
-  isInitialStock          Boolean
-  isCombo                 Boolean
-  status                  Int?
+  isCombo                 Boolean                  @default(false)
+  status                  Int?                     @default(1)
+  isInitialStock          Boolean                  @default(false)
   isPublic                Boolean?                 @default(true)
   createdBy               Int?
   updatedBy               Int?
@@ -241,6 +240,10 @@ model Product {
   couponConditionProducts CouponConditionProduct[]
   couponProducts          CouponProduct[]
   orderDetails            OrderDetail[]
+
+  @@unique([sku, branchId])
+  @@unique([code, branchId])
+  @@unique([identifier, branchId])
 }
 
 model ComboProductItem {

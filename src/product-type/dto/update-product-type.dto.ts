@@ -1,3 +1,4 @@
+import { Optional } from '@nestjs/common';
 import { Transform, TransformFnParams } from 'class-transformer';
 import {
   ArrayNotEmpty,
@@ -6,7 +7,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class CreateEmployeeGroupDTO {
+export class UpdateProductTypeDTO {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()

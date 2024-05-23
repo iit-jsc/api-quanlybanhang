@@ -145,4 +145,37 @@ export class CommonService {
       },
     });
   }
+
+  async findByIdWithBranches(
+    id: number,
+    model: Prisma.ModelName,
+    branchId: number,
+  ) {
+    return this.prisma[model].findFirstOrThrow({
+      where: {
+        isPublic: true,
+        id: id,
+        branches: {
+          some: {
+            isPublic: true,
+            id: branchId,
+          },
+        },
+      },
+    });
+  }
+
+  async findByIdWithBranch(
+    id: number,
+    model: Prisma.ModelName,
+    branchId: number,
+  ) {
+    return this.prisma[model].findFirstOrThrow({
+      where: {
+        isPublic: true,
+        id: id,
+        branchId: branchId,
+      },
+    });
+  }
 }

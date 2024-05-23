@@ -1,0 +1,4 @@
+export enum PRODUCT_STATUS {
+  SELL_ALLOW = 1,
+  NOT_SELL_ALLOW = 2,
+}

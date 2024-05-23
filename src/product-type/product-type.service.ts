@@ -5,13 +5,14 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { FindManyDTO } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
-import { CreateCategoryDTO } from './dto/create-product-type.dto';
+import { CreateProductTypeDTO } from './dto/create-product-type.dto';
+import { UpdateProductTypeDTO } from './dto/update-product-type.dto';
 
 @Injectable()
 export class ProductTypeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateCategoryDTO, tokenPayload: TokenPayload) {
+  async create(data: CreateProductTypeDTO, tokenPayload: TokenPayload) {
     const identifier = generateUniqueId();
 
     const productTypes = data.branchIds.map((id) => ({
@@ -25,7 +26,6 @@ export class ProductTypeService {
 
     return await this.prisma.productType.createMany({
       data: productTypes,
-      skipDuplicates: true,
     });
   }
 
@@ -84,55 +84,43 @@ export class ProductTypeService {
 
   async update(
     params: {
-      where: Prisma.ProductTypeWhereUniqueInput;
-      data: Prisma.ProductTypeUpdateInput & { branchIds: number[] };
+      where: Prisma.ProductTypeWhereInput;
+      data: UpdateProductTypeDTO;
     },
     tokenPayload: TokenPayload,
   ) {
-    // const { where, data } = params;
-    // return this.prisma.productType.update({
-    //   data: {
-    //     name: data.name,
-    //     description: data.description,
-    //     branches: {
-    //       set: [],
-    //       connect: data.branchIds.map((id) => ({
-    //         id,
-    //       })),
-    //     },
-    //     updatedBy: tokenPayload.accountId,
-    //   },
-    //   where: {
-    //     ...where,
-    //     branches: {
-    //       some: {
-    //         isPublic: true,
-    //         id: tokenPayload.branchId,
-    //       },
-    //     },
-    //   },
-    // });
+    const { where, data } = params;
+    return this.prisma.productType.updateMany({
+      where: {
+        ...where,
+        isPublic: true,
+        branch: {
+          id: {
+            in: data.branchIds,
+          },
+        },
+      },
+      data: {
+        name: data.name,
+        description: data.description,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
   }
 
   async removeMany(
     where: Prisma.ProductTypeWhereInput,
     tokenPayload: TokenPayload,
   ) {
-    // return this.prisma.productType.updateMany({
-    //   where: {
-    //     ...where,
-    //     isPublic: true,
-    //     branches: {
-    //       some: {
-    //         isPublic: true,
-    //         id: tokenPayload.branchId,
-    //       },
-    //     },
-    //   },
-    //   data: {
-    //     isPublic: false,
-    //     updatedBy: tokenPayload.accountId,
-    //   },
-    // });
+    return this.prisma.productType.updateMany({
+      where: {
+        ...where,
+        isPublic: true,
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
   }
 }

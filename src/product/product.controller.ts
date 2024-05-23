@@ -10,31 +10,38 @@ import {
   Post,
   Query,
   Req,
+  UploadedFiles,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import {
-  DeleteManyDto,
-  DeleteManyWithIdentifierDto,
-  FindManyDTO,
-} from 'utils/Common.dto';
-import { ProductTypeService } from './product-type.service';
-import { CreateProductTypeDTO } from './dto/create-product-type.dto';
-import { UpdateProductTypeDTO } from './dto/update-product-type.dto';
+import { DeleteManyWithIdentifierDto, FindManyDTO } from 'utils/Common.dto';
+import { ProductService } from './product.service';
+import { CreateProductDTO } from './dto/create-product.dto';
+import { CustomFilesInterceptor } from 'utils/Helps';
 
-@Controller('product-type')
-export class ProductTypeController {
-  constructor(private readonly productTypeService: ProductTypeService) {}
+@Controller('product')
+export class ProductController {
+  constructor(private readonly productService: ProductService) {}
 
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  create(@Body() createProductTypeDto: CreateProductTypeDTO, @Req() req: any) {
+  @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
+  create(
+    @Body() createProductDto: CreateProductDTO,
+    @UploadedFiles() files: Array<Express.Multer.File>,
+    @Req() req: any,
+  ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
+    const photoURLs = files.map((file) => file.path);
 
-    return this.productTypeService.create(createProductTypeDto, tokenPayload);
+    return this.productService.create(
+      { ...createProductDto, photoURLs },
+      tokenPayload,
+    );
   }
 
   @Get('')
@@ -43,7 +50,7 @@ export class ProductTypeController {
   findAll(@Query() findManyDTO: FindManyDTO, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.productTypeService.findAll(findManyDTO, tokenPayload);
+    return this.productService.findAll(findManyDTO, tokenPayload);
   }
 
   @Get(':id')
@@ -52,7 +59,7 @@ export class ProductTypeController {
   findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.productTypeService.findUniq(
+    return this.productService.findUniq(
       {
         id: +id,
       },
@@ -63,19 +70,22 @@ export class ProductTypeController {
   @Patch(':identifier')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
   update(
     @Param('identifier') identifier: string,
-    @Body() updateProductTypeDTO: UpdateProductTypeDTO,
+    @Body() createProductDto: CreateProductDTO,
     @Req() req: any,
+    @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
+    const photoURLs = files.map((file) => file.path);
 
-    return this.productTypeService.update(
+    return this.productService.update(
       {
         where: {
           identifier: identifier,
         },
-        data: updateProductTypeDTO,
+        data: { ...createProductDto, photoURLs },
       },
       tokenPayload,
     );
@@ -90,7 +100,7 @@ export class ProductTypeController {
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.productTypeService.removeMany(
+    return this.productService.removeMany(
       {
         identifier: {
           in: deleteManyDto.identifiers,

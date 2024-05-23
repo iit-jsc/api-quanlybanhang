@@ -1,6 +1,5 @@
-import { Optional } from '@nestjs/common';
 import { Transform, TransformFnParams } from 'class-transformer';
-import { ArrayNotEmpty, IsArray, IsNotEmpty, IsString } from 'class-validator';
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreatePermissionDTO {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -8,11 +7,11 @@ export class CreatePermissionDTO {
   @IsString()
   name: string;
 
-  @Optional()
+  @IsOptional()
   @IsString()
   description?: string;
 
   @IsArray()
-  @Optional()
+  @IsOptional()
   branchIds: number[];
 }

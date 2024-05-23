@@ -66,7 +66,9 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     console.log(exception);
 
     if (exception.code === 'P2002') {
-      const failedField = exception.meta.target;
+      let failedField = exception.meta.target;
+
+      if (exception.meta?.target?.length > 1) failedField = failedField[0];
 
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.CONFLICT,
