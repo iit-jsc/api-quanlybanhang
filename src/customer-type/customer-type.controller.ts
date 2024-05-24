@@ -15,10 +15,13 @@ import {
 import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { CreateProductTypeDTO } from 'src/product-type/dto/create-product-type.dto';
-import { UpdateProductTypeDTO } from 'src/product-type/dto/update-product-type.dto';
-import { DeleteManyWithIdentifierDto, FindManyDTO } from 'utils/Common.dto';
+import {
+  DeleteManyDto,
+  DeleteManyWithIdentifierDto,
+  FindManyDTO,
+} from 'utils/Common.dto';
 import { CustomerTypeService } from './customer-type.service';
+import { CreateCustomerTypeDTO } from './dto/create-customer-type';
 
 @Controller('customer-type')
 export class CustomerTypeController {
@@ -26,11 +29,14 @@ export class CustomerTypeController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
-  create(@Body() createProductTypeDto: CreateProductTypeDTO, @Req() req: any) {
+  @UseGuards(JwtAuthGuard)
+  create(
+    @Body() createCustomerTypeDto: CreateCustomerTypeDTO,
+    @Req() req: any,
+  ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.customTypeService.create(createProductTypeDto, tokenPayload);
+    return this.customTypeService.create(createCustomerTypeDto, tokenPayload);
   }
 
   @Get('')
@@ -56,22 +62,21 @@ export class CustomerTypeController {
     );
   }
 
-  @Patch(':identifier')
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
-    @Param('identifier') identifier: string,
-    @Body() updateProductTypeDTO: UpdateProductTypeDTO,
+    @Param('id') id: number,
+    @Body() updateCustomerTypeDTO: CreateCustomerTypeDTO,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-
     return this.customTypeService.update(
       {
         where: {
-          identifier: identifier,
+          id: id,
         },
-        data: updateProductTypeDTO,
+        data: updateCustomerTypeDTO,
       },
       tokenPayload,
     );
@@ -80,21 +85,12 @@ export class CustomerTypeController {
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  deleteMany(
-    @Body() deleteManyDto: DeleteManyWithIdentifierDto,
-    @Req() req: any,
-  ) {
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-
     return this.customTypeService.removeMany(
       {
-        identifier: {
-          in: deleteManyDto.identifiers,
-        },
-        branch: {
-          id: {
-            in: deleteManyDto.branchIds,
-          },
+        id: {
+          in: deleteManyDto.ids,
         },
       },
       tokenPayload,

@@ -1,4 +1,3 @@
-import { Injectable } from '@nestjs/common';
 import {
   registerDecorator,
   ValidationOptions,
@@ -6,7 +5,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface,
 } from 'class-validator';
-import { PrismaService } from 'nestjs-prisma';
+import { DISCOUNT_TYPE } from 'enums/common.enum';
 
 export function IsVietnamesePhoneNumber(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
@@ -26,4 +25,21 @@ export function IsVietnamesePhoneNumber(validationOptions?: ValidationOptions) {
       },
     });
   };
+}
+
+@ValidatorConstraint({ name: 'discountConstraint', async: false })
+export class DiscountConstraint implements ValidatorConstraintInterface {
+  validate(discount: any, args: ValidationArguments) {
+    const relatedValues = args.object as any;
+
+    if (relatedValues.type === DISCOUNT_TYPE.PERCENT && discount > 100) {
+      return false;
+    }
+
+    return true;
+  }
+
+  defaultMessage(args: ValidationArguments) {
+    return 'Giá trị phải nhỏ hơn hoặc bằng 100.';
+  }
 }

@@ -119,6 +119,8 @@ model Shop {
   updatedAt      DateTime       @updatedAt
   branches       Branch[]
   pointSettings  PointSetting[]
+  customerTypes  CustomerType[]
+  customers      Customer[]
 }
 
 model PrintTemplate {
@@ -277,22 +279,22 @@ model Stock {
 
 model CustomerType {
   id          Int        @id @default(autoincrement())
-  branchId    Int
   name        String
   description String?    @db.Text
   discount    Float?
+  type        Int?
   isPublic    Boolean?   @default(true)
   createdBy   Int?
   updatedBy   Int?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  branch      Branch     @relation(fields: [branchId], references: [id])
+  shopId      Int
+  shop        Shop       @relation(fields: [shopId], references: [id])
   customers   Customer[]
 }
 
 model Customer {
   id                  Int                 @id @default(autoincrement())
-  branchId            Int
   customerName        String
   customerTypeId      Int?
   code                String?
@@ -313,7 +315,8 @@ model Customer {
   updatedBy           Int?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
-  branch              Branch              @relation(fields: [branchId], references: [id])
+  shopId              Int
+  shop                Shop                @relation(fields: [shopId], references: [id])
   customerType        CustomerType?       @relation(fields: [customerTypeId], references: [id])
   orders              Order[]
   pointAccumulations  PointAccumulation[]
@@ -739,8 +742,6 @@ model Branch {
   products                   Product[]
   comboProductItems          ComboProductItem[]
   stocks                     Stock[]
-  customerTypes              CustomerType[]
-  customers                  Customer[]
   supplierTypes              SupplierType[]
   suppliers                  Supplier[]
   deals                      Deal[]

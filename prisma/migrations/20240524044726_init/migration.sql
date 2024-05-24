@@ -216,17 +216,16 @@ CREATE TABLE "Product" (
     "productTypeId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "sku" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
-    "retailPrice" DOUBLE PRECISION NOT NULL,
-    "wholesalePrice" DOUBLE PRECISION NOT NULL,
-    "importPrice" DOUBLE PRECISION NOT NULL,
+    "code" TEXT,
+    "retailPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "wholesalePrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "importPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "description" TEXT,
-    "photoURL" TEXT,
-    "type" INTEGER NOT NULL,
+    "photoURLs" JSONB,
     "otherAttributes" JSONB,
-    "isInitialStock" BOOLEAN NOT NULL,
-    "isCombo" BOOLEAN NOT NULL,
-    "status" INTEGER,
+    "isCombo" BOOLEAN NOT NULL DEFAULT false,
+    "status" INTEGER DEFAULT 1,
+    "isInitialStock" BOOLEAN NOT NULL DEFAULT false,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
@@ -270,15 +269,16 @@ CREATE TABLE "Stock" (
 -- CreateTable
 CREATE TABLE "CustomerType" (
     "id" SERIAL NOT NULL,
-    "branchId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "discount" DOUBLE PRECISION,
+    "type" INTEGER,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "shopId" INTEGER NOT NULL,
 
     CONSTRAINT "CustomerType_pkey" PRIMARY KEY ("id")
 );
@@ -286,7 +286,6 @@ CREATE TABLE "CustomerType" (
 -- CreateTable
 CREATE TABLE "Customer" (
     "id" SERIAL NOT NULL,
-    "branchId" INTEGER NOT NULL,
     "customerName" TEXT NOT NULL,
     "customerTypeId" INTEGER,
     "code" TEXT,
@@ -307,6 +306,7 @@ CREATE TABLE "Customer" (
     "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "shopId" INTEGER NOT NULL,
 
     CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
 );
@@ -861,6 +861,18 @@ CREATE TABLE "_BranchToUser" (
 CREATE UNIQUE INDEX "Shop_code_key" ON "Shop"("code");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ProductType_identifier_branchId_key" ON "ProductType"("identifier", "branchId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Product_sku_branchId_key" ON "Product"("sku", "branchId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Product_code_branchId_key" ON "Product"("code", "branchId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Product_identifier_branchId_key" ON "Product"("identifier", "branchId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B");
 
 -- CreateIndex
@@ -969,10 +981,10 @@ ALTER TABLE "Stock" ADD CONSTRAINT "Stock_branchId_fkey" FOREIGN KEY ("branchId"
 ALTER TABLE "Stock" ADD CONSTRAINT "Stock_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CustomerType" ADD CONSTRAINT "CustomerType_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CustomerType" ADD CONSTRAINT "CustomerType_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Customer" ADD CONSTRAINT "Customer_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Customer" ADD CONSTRAINT "Customer_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Customer" ADD CONSTRAINT "Customer_customerTypeId_fkey" FOREIGN KEY ("customerTypeId") REFERENCES "CustomerType"("id") ON DELETE SET NULL ON UPDATE CASCADE;

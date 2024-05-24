@@ -2,41 +2,44 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateProductTypeDTO } from 'src/product-type/dto/create-product-type.dto';
-import { UpdateProductTypeDTO } from 'src/product-type/dto/update-product-type.dto';
 import { FindManyDTO } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
+import { CreateCustomerTypeDTO } from './dto/create-customer-type';
 
 @Injectable()
 export class CustomerTypeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateProductTypeDTO, tokenPayload: TokenPayload) {
-    const identifier = generateUniqueId();
-
-    const productTypes = data.branchIds.map((id) => ({
-      identifier,
-      name: data.name,
-      description: data.description,
-      branchId: id,
-      createdBy: tokenPayload.accountId,
-      updatedBy: tokenPayload.accountId,
-    })) as Prisma.ProductTypeCreateManyInput[];
-
-    return await this.prisma.productType.createMany({
-      data: productTypes,
+  async create(data: CreateCustomerTypeDTO, tokenPayload: TokenPayload) {
+    return await this.prisma.customerType.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        type: data.type,
+        discount: data.discount,
+        createdBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId,
+        shop: {
+          connect: {
+            id: tokenPayload.shopId,
+          },
+        },
+      },
     });
   }
 
   async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
-    let where: Prisma.ProductTypeWhereInput = {
+    let where: Prisma.CustomerTypeWhereInput = {
       isPublic: true,
-      branchId: tokenPayload.branchId,
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      shop: {
+        id: tokenPayload.shopId,
+        isPublic: true,
+      },
     };
     const [data, totalRecords] = await Promise.all([
-      this.prisma.productType.findMany({
+      this.prisma.customerType.findMany({
         skip,
         take,
         orderBy: {
@@ -45,13 +48,13 @@ export class CustomerTypeService {
         where,
         select: {
           id: true,
-          identifier: true,
-          branchId: true,
           name: true,
           description: true,
+          discount: true,
+          type: true,
         },
       }),
-      this.prisma.productType.count({
+      this.prisma.customerType.count({
         where,
       }),
     ]);
@@ -62,59 +65,67 @@ export class CustomerTypeService {
   }
 
   async findUniq(
-    where: Prisma.ProductTypeWhereUniqueInput,
+    where: Prisma.CustomerTypeWhereUniqueInput,
     tokenPayload: TokenPayload,
   ) {
-    return this.prisma.productType.findUniqueOrThrow({
+    return this.prisma.customerType.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        shop: {
+          id: tokenPayload.shopId,
+          isPublic: true,
+        },
       },
       select: {
         id: true,
-        identifier: true,
-        branchId: true,
         name: true,
         description: true,
+        discount: true,
+        type: true,
       },
     });
   }
 
   async update(
     params: {
-      where: Prisma.ProductTypeWhereInput;
-      data: UpdateProductTypeDTO;
+      where: Prisma.CustomerTypeWhereInput;
+      data: CreateCustomerTypeDTO;
     },
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-    return this.prisma.productType.updateMany({
+    return this.prisma.customerType.updateMany({
       where: {
         ...where,
         isPublic: true,
-        branch: {
-          id: {
-            in: data.branchIds,
-          },
+        shop: {
+          id: tokenPayload.shopId,
+          isPublic: true,
         },
       },
       data: {
         name: data.name,
         description: data.description,
+        type: data.type,
+        discount: data.discount,
         updatedBy: tokenPayload.accountId,
       },
     });
   }
 
   async removeMany(
-    where: Prisma.ProductTypeWhereInput,
+    where: Prisma.CustomerTypeWhereInput,
     tokenPayload: TokenPayload,
   ) {
-    return this.prisma.productType.updateMany({
+    return this.prisma.customerType.updateMany({
       where: {
         ...where,
         isPublic: true,
+        shop: {
+          id: tokenPayload.shopId,
+          isPublic: true,
+        },
       },
       data: {
         isPublic: false,
