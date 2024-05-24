@@ -18,7 +18,6 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyWithIdentifierDto, FindManyDTO } from 'utils/Common.dto';
 import { ProductTypeService } from './product-type.service';
 import { CreateProductTypeDTO } from './dto/create-product-type.dto';
-import { UpdateProductTypeDTO } from './dto/update-product-type.dto';
 
 @Controller('product-type')
 export class ProductTypeController {
@@ -61,7 +60,7 @@ export class ProductTypeController {
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
     @Param('identifier') identifier: string,
-    @Body() updateProductTypeDTO: UpdateProductTypeDTO,
+    @Body() createProductTypeDto: CreateProductTypeDTO,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -71,7 +70,7 @@ export class ProductTypeController {
         where: {
           identifier: identifier,
         },
-        data: updateProductTypeDTO,
+        data: createProductTypeDto,
       },
       tokenPayload,
     );

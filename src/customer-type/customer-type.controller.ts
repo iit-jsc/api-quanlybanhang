@@ -67,7 +67,7 @@ export class CustomerTypeController {
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
     @Param('id') id: number,
-    @Body() updateCustomerTypeDTO: CreateCustomerTypeDTO,
+    @Body() createCustomerTypeDTO: CreateCustomerTypeDTO,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -76,7 +76,7 @@ export class CustomerTypeController {
         where: {
           id: id,
         },
-        data: updateCustomerTypeDTO,
+        data: createCustomerTypeDTO,
       },
       tokenPayload,
     );

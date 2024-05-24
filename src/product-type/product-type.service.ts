@@ -6,7 +6,6 @@ import { PrismaService } from 'nestjs-prisma';
 import { FindManyDTO } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
 import { CreateProductTypeDTO } from './dto/create-product-type.dto';
-import { UpdateProductTypeDTO } from './dto/update-product-type.dto';
 
 @Injectable()
 export class ProductTypeService {
@@ -85,7 +84,7 @@ export class ProductTypeService {
   async update(
     params: {
       where: Prisma.ProductTypeWhereInput;
-      data: UpdateProductTypeDTO;
+      data: CreateProductTypeDTO;
     },
     tokenPayload: TokenPayload,
   ) {
