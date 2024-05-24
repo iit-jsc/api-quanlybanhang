@@ -85,7 +85,7 @@ export class CommonService {
             isPublic: true,
             users: {
               some: {
-                id: id,
+                id,
                 isPublic: true,
               },
             },
@@ -108,7 +108,7 @@ export class CommonService {
             isPublic: true,
             users: {
               some: {
-                id: id,
+                id,
                 isPublic: true,
               },
             },
@@ -154,7 +154,7 @@ export class CommonService {
     return this.prisma[model].findFirstOrThrow({
       where: {
         isPublic: true,
-        id: id,
+        id,
         branches: {
           some: {
             isPublic: true,
@@ -173,8 +173,21 @@ export class CommonService {
     return this.prisma[model].findFirstOrThrow({
       where: {
         isPublic: true,
-        id: id,
+        id,
         branchId: branchId,
+      },
+    });
+  }
+
+  async findByIdWithShop(id: number, model: Prisma.ModelName, shopId: number) {
+    return this.prisma[model].findFirstOrThrow({
+      where: {
+        isPublic: true,
+        id,
+        shop: {
+          id: shopId,
+          isPublic: true,
+        },
       },
     });
   }

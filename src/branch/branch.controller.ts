@@ -57,12 +57,12 @@ export class BranchController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.branchService.findUniq(
       {
-        id: +id,
+        id,
       },
       tokenPayload,
     );
@@ -72,7 +72,7 @@ export class BranchController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() createBranchDto: CreateBranchDto,
     @Req() req: any,
   ) {
@@ -81,7 +81,7 @@ export class BranchController {
     return this.branchService.update(
       {
         where: {
-          id: +id,
+          id,
         },
         data: createBranchDto,
       },
@@ -109,7 +109,7 @@ export class BranchController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(CustomFileInterceptor('photoURL'))
   updatePhotoURL(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
@@ -118,7 +118,7 @@ export class BranchController {
     return this.branchService.updatePhotoURL(
       {
         where: {
-          id: +id,
+          id,
         },
         data: { photoURL: file?.path },
       },

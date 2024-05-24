@@ -1,14 +1,21 @@
 import { Transform, TransformFnParams } from 'class-transformer';
 import {
+  IsDate,
+  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  MaxDate,
   Validate,
 } from 'class-validator';
 import { DISCOUNT_TYPE } from 'enums/common.enum';
-import { DiscountConstraint } from 'utils/CustomValidates';
+import { SEX_TYPE } from 'enums/user.enum';
+import {
+  DiscountConstraint,
+  IsVietnamesePhoneNumber,
+} from 'utils/CustomValidates';
 
 export class CreateCustomerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -17,16 +24,69 @@ export class CreateCustomerDto {
   name: string;
 
   @IsOptional()
+  @IsNumber()
+  customerTypeId: number;
+
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
+  code: string;
+
+  @IsOptional()
+  @IsEmail()
+  email: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  @IsVietnamesePhoneNumber()
+  phone: string;
+
+  @IsOptional()
+  @IsString()
+  address: string;
+
+  @IsOptional()
   @IsString()
   description: string;
 
   @IsOptional()
+  @IsString()
+  representativeName: string;
+
+  @IsOptional()
+  @IsString()
+  representativePhone: string;
+
+  @IsOptional()
+  @Transform(({ value }) => value && new Date(value))
+  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
+  @MaxDate(new Date(), { message: 'Ngày tháng phải nhỏ hơn ngày hiện tại!' })
+  birthDay: Date;
+
+  @IsOptional()
   @IsNumber()
-  @IsEnum(DISCOUNT_TYPE, { message: 'Loại giảm giá không hợp lệ!' })
-  type: number;
+  endow: number;
 
   @IsOptional()
   @IsNumber()
   @Validate(DiscountConstraint)
   discount: number;
+
+  @IsOptional()
+  @IsNumber()
+  @IsEnum(DISCOUNT_TYPE, { message: 'Loại giảm giá không hợp lệ!' })
+  discountType: number;
+
+  @IsOptional()
+  @IsNumber()
+  @IsEnum(SEX_TYPE, { message: 'Giới tính không hợp lệ!' })
+  sex: number;
+
+  @IsOptional()
+  @IsString()
+  fax: string;
+
+  @IsOptional()
+  @IsString()
+  tax: string;
 }

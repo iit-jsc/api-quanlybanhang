@@ -23,7 +23,7 @@ export class CreateCustomerTypeDto {
   @IsOptional()
   @IsNumber()
   @IsEnum(DISCOUNT_TYPE, { message: 'Loại giảm giá không hợp lệ!' })
-  type: number;
+  discountType: number;
 
   @IsOptional()
   @IsNumber()

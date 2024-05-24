@@ -278,24 +278,24 @@ model Stock {
 }
 
 model CustomerType {
-  id          Int        @id @default(autoincrement())
-  name        String
-  description String?    @db.Text
-  discount    Float?
-  type        Int?
-  isPublic    Boolean?   @default(true)
-  createdBy   Int?
-  updatedBy   Int?
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
-  shopId      Int
-  shop        Shop       @relation(fields: [shopId], references: [id])
-  customers   Customer[]
+  id           Int        @id @default(autoincrement())
+  name         String
+  description  String?    @db.Text
+  discount     Float?
+  discountType Int?
+  isPublic     Boolean?   @default(true)
+  createdBy    Int?
+  updatedBy    Int?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  shopId       Int
+  shop         Shop       @relation(fields: [shopId], references: [id])
+  customers    Customer[]
 }
 
 model Customer {
   id                  Int                 @id @default(autoincrement())
-  customerName        String
+  name                String
   customerTypeId      Int?
   code                String?
   email               String?
@@ -307,6 +307,7 @@ model Customer {
   birthDay            DateTime?
   endow               Int
   discount            Float?
+  discountType        Int?
   sex                 Int?
   fax                 String?
   tax                 String?
@@ -321,6 +322,10 @@ model Customer {
   orders              Order[]
   pointAccumulations  PointAccumulation[]
   pointRedemptions    PointRedemption[]
+
+  @@unique([code, shopId])
+  @@unique([email, shopId])
+  @@unique([phone, shopId])
 }
 
 model SupplierType {

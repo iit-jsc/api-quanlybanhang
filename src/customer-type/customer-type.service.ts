@@ -15,7 +15,7 @@ export class CustomerTypeService {
       data: {
         name: data.name,
         description: data.description,
-        type: data.type,
+        discountType: data.discountType,
         discount: data.discount,
         createdBy: tokenPayload.accountId,
         updatedBy: tokenPayload.accountId,
@@ -51,7 +51,7 @@ export class CustomerTypeService {
           name: true,
           description: true,
           discount: true,
-          type: true,
+          discountType: true,
         },
       }),
       this.prisma.customerType.count({
@@ -82,22 +82,22 @@ export class CustomerTypeService {
         name: true,
         description: true,
         discount: true,
-        type: true,
+        discountType: true,
       },
     });
   }
 
   async update(
     params: {
-      where: Prisma.CustomerTypeWhereInput;
+      where: Prisma.CustomerTypeWhereUniqueInput;
       data: CreateCustomerTypeDto;
     },
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-    return this.prisma.customerType.updateMany({
+    return this.prisma.customerType.update({
       where: {
-        ...where,
+        id: where.id,
         isPublic: true,
         shop: {
           id: tokenPayload.shopId,
@@ -107,7 +107,7 @@ export class CustomerTypeService {
       data: {
         name: data.name,
         description: data.description,
-        type: data.type,
+        discountType: data.discountType,
         discount: data.discount,
         updatedBy: tokenPayload.accountId,
       },

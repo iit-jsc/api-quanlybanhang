@@ -32,7 +32,10 @@ export class DiscountConstraint implements ValidatorConstraintInterface {
   validate(discount: any, args: ValidationArguments) {
     const relatedValues = args.object as any;
 
-    if (relatedValues.type === DISCOUNT_TYPE.PERCENT && discount > 100) {
+    if (
+      relatedValues.discountType === DISCOUNT_TYPE.PERCENT &&
+      discount > 100
+    ) {
       return false;
     }
 

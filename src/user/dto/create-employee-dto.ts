@@ -92,5 +92,6 @@ export class CreateEmployeeDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
   code: string;
 }

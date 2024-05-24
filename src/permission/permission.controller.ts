@@ -45,7 +45,7 @@ export class PermissionController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() createPermissionDto: CreatePermissionDto,
     @Req() req: any,
   ) {
@@ -54,7 +54,7 @@ export class PermissionController {
     return this.permissionService.update(
       {
         where: {
-          id: +id,
+          id,
         },
         data: createPermissionDto,
       },
@@ -65,12 +65,12 @@ export class PermissionController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.permissionService.findUniq(
       {
-        id: +id,
+        id,
       },
       tokenPayload,
     );
@@ -79,11 +79,7 @@ export class PermissionController {
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  deleteMany(
-    @Param('id') id: string,
-    @Body() deleteManyDto: DeleteManyDto,
-    @Req() req: any,
-  ) {
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.permissionService.removeMany(

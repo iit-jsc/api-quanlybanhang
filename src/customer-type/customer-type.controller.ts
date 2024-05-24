@@ -12,20 +12,15 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import {
-  DeleteManyDto,
-  DeleteManyWithIdentifierDto,
-  FindManyDto,
-} from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CustomerTypeService } from './customer-type.service';
 import { CreateCustomerTypeDto } from './dto/create-customer-type';
 
 @Controller('customer-type')
 export class CustomerTypeController {
-  constructor(private readonly customTypeService: CustomerTypeService) {}
+  constructor(private readonly customerTypeService: CustomerTypeService) {}
 
   @Post('')
   @HttpCode(HttpStatus.OK)
@@ -36,7 +31,7 @@ export class CustomerTypeController {
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.customTypeService.create(createCustomerTypeDto, tokenPayload);
+    return this.customerTypeService.create(createCustomerTypeDto, tokenPayload);
   }
 
   @Get('')
@@ -45,18 +40,18 @@ export class CustomerTypeController {
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.customTypeService.findAll(findManyDto, tokenPayload);
+    return this.customerTypeService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.customTypeService.findUniq(
+    return this.customerTypeService.findUniq(
       {
-        id: +id,
+        id,
       },
       tokenPayload,
     );
@@ -64,17 +59,17 @@ export class CustomerTypeController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: number,
     @Body() createCustomerTypeDto: CreateCustomerTypeDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.customTypeService.update(
+    return this.customerTypeService.update(
       {
         where: {
-          id: id,
+          id,
         },
         data: createCustomerTypeDto,
       },
@@ -84,10 +79,10 @@ export class CustomerTypeController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.customTypeService.removeMany(
+    return this.customerTypeService.removeMany(
       {
         id: {
           in: deleteManyDto.ids,

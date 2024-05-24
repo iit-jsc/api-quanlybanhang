@@ -44,12 +44,12 @@ export class ProductTypeController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.productTypeService.findUniq(
       {
-        id: +id,
+        id,
       },
       tokenPayload,
     );

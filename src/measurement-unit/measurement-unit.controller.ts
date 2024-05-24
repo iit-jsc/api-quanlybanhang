@@ -53,12 +53,12 @@ export class MeasurementUnitController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.measurementUnitService.findUniq(
       {
-        id: +id,
+        id,
       },
       tokenPayload,
     );
@@ -68,7 +68,7 @@ export class MeasurementUnitController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
-    @Param('id') id: string,
+    @Param('id') id: number,
     @Body() createMeasurementUnitDto: CreateMeasurementUnitDto,
     @Req() req: any,
   ) {
@@ -77,7 +77,7 @@ export class MeasurementUnitController {
     return this.measurementUnitService.update(
       {
         where: {
-          id: +id,
+          id,
         },
         data: createMeasurementUnitDto,
       },
@@ -88,11 +88,7 @@ export class MeasurementUnitController {
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  deleteMany(
-    @Param('id') id: string,
-    @Body() deleteManyDto: DeleteManyDto,
-    @Req() req: any,
-  ) {
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.measurementUnitService.removeMany(
