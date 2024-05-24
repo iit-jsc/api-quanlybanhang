@@ -6,7 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
-import { AccessBranchDTO } from './dto/access-branch-dto';
+import { AccessBranchDto } from './dto/access-branch-dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { SHOP_SELECT, USER_SELECT } from 'enums/select.enum';
 import { CommonService } from 'src/common/common.service';
@@ -83,7 +83,7 @@ export class AuthService {
   }
 
   async accessBranch(
-    accessBranchDto: AccessBranchDTO,
+    accessBranchDto: AccessBranchDto,
     tokenPayload: TokenPayload,
   ) {
     const account = await this.prisma.account.findUnique({

@@ -1,10 +1,10 @@
 import * as bcrypt from 'bcrypt';
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateShopDTO } from './dto/create-shop.dto';
+import { CreateShopDto } from './dto/create-shop.dto';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { UserService } from 'src/user/user.service';
-import { CreateAccountDTO } from 'src/account/dto/create-account.dto';
+import { CreateAccountDto } from 'src/account/dto/create-account.dto';
 import { BRANCH_STATUS } from 'enums/branch.enum';
 import { CommonService } from 'src/common/common.service';
 
@@ -15,7 +15,7 @@ export class ShopService {
     private commonService: CommonService,
   ) {}
 
-  async create(data: CreateShopDTO) {
+  async create(data: CreateShopDto) {
     const { user, branch } = data;
 
     await this.prisma.$transaction(async (prisma) => {

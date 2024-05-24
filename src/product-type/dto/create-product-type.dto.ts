@@ -6,7 +6,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class CreateProductTypeDTO {
+export class CreateProductTypeDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()

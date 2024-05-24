@@ -15,10 +15,10 @@ import {
 import { MeasurementUnitService } from './measurement-unit.service';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
+import { CreateMeasurementUnitDto } from './dto/create-measurement-unit.dto';
 import { BranchGuard } from 'guards/branch.guard';
 import { DeleteMeasurementUnitDto } from './dto/delete-measurement-unit.dto';
-import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Controller('measurement-unit')
 export class MeasurementUnitController {
@@ -30,7 +30,7 @@ export class MeasurementUnitController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
   create(
-    @Body() createMeasurementUnitDto: CreateMeasurementUnitDTO,
+    @Body() createMeasurementUnitDto: CreateMeasurementUnitDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -44,10 +44,10 @@ export class MeasurementUnitController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDTO: FindManyDTO, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.measurementUnitService.findAll(findManyDTO, tokenPayload);
+    return this.measurementUnitService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(':id')
@@ -69,7 +69,7 @@ export class MeasurementUnitController {
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
     @Param('id') id: string,
-    @Body() createMeasurementUnitDto: CreateMeasurementUnitDTO,
+    @Body() createMeasurementUnitDto: CreateMeasurementUnitDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;

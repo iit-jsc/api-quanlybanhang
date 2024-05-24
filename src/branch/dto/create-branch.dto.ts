@@ -2,7 +2,7 @@ import { Transform, TransformFnParams, Type } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 import { BRANCH_STATUS } from 'enums/branch.enum';
 
-export class CreateBranchDTO {
+export class CreateBranchDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()

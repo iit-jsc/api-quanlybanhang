@@ -1,17 +1,17 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateMeasurementUnitDTO } from './dto/create-measurement-unit.dto';
+import { CreateMeasurementUnitDto } from './dto/create-measurement-unit.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
-import { FindManyDTO } from 'utils/Common.dto';
+import { FindManyDto } from 'utils/Common.dto';
 import { MEASUREMENT_UNIT_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class MeasurementUnitService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateMeasurementUnitDTO, tokenPayload: TokenPayload) {
+  async create(data: CreateMeasurementUnitDto, tokenPayload: TokenPayload) {
     return await this.prisma.measurementUnit.create({
       data: {
         name: data.name,
@@ -28,7 +28,7 @@ export class MeasurementUnitService {
     });
   }
 
-  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword, branchIds } = params;
 
     let where: Prisma.MeasurementUnitWhereInput = {

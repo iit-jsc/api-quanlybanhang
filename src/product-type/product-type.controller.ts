@@ -15,9 +15,9 @@ import {
 import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyWithIdentifierDto, FindManyDTO } from 'utils/Common.dto';
+import { DeleteManyWithIdentifierDto, FindManyDto } from 'utils/Common.dto';
 import { ProductTypeService } from './product-type.service';
-import { CreateProductTypeDTO } from './dto/create-product-type.dto';
+import { CreateProductTypeDto } from './dto/create-product-type.dto';
 
 @Controller('product-type')
 export class ProductTypeController {
@@ -26,7 +26,7 @@ export class ProductTypeController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  create(@Body() createProductTypeDto: CreateProductTypeDTO, @Req() req: any) {
+  create(@Body() createProductTypeDto: CreateProductTypeDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.productTypeService.create(createProductTypeDto, tokenPayload);
@@ -35,10 +35,10 @@ export class ProductTypeController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDTO: FindManyDTO, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.productTypeService.findAll(findManyDTO, tokenPayload);
+    return this.productTypeService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(':id')
@@ -60,7 +60,7 @@ export class ProductTypeController {
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
     @Param('identifier') identifier: string,
-    @Body() createProductTypeDto: CreateProductTypeDTO,
+    @Body() createProductTypeDto: CreateProductTypeDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;

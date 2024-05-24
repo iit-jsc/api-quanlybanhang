@@ -10,7 +10,7 @@ import {
 import { DISCOUNT_TYPE } from 'enums/common.enum';
 import { DiscountConstraint } from 'utils/CustomValidates';
 
-export class CreateCustomerTypeDto {
+export class CreateCustomerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()

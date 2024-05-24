@@ -1,10 +1,10 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { CreatePermissionDTO } from './dto/create-permission.dto';
+import { CreatePermissionDto } from './dto/create-permission.dto';
 import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
-import { FindManyDTO } from 'utils/Common.dto';
+import { FindManyDto } from 'utils/Common.dto';
 import { PERMISSION_SELECT } from 'enums/select.enum';
 import { CustomHttpException } from 'utils/ApiErrors';
 
@@ -12,7 +12,7 @@ import { CustomHttpException } from 'utils/ApiErrors';
 export class PermissionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreatePermissionDTO, tokenPayload: TokenPayload) {
+  async create(data: CreatePermissionDto, tokenPayload: TokenPayload) {
     return this.prisma.permission.create({
       data: {
         name: data.name,
@@ -29,7 +29,7 @@ export class PermissionService {
     });
   }
 
-  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, branchIds, keyword } = params;
 
     const where: Prisma.PermissionWhereInput = {

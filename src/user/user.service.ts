@@ -1,12 +1,12 @@
 import * as bcrypt from 'bcrypt';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateEmployeeDTO } from './dto/create-employee-dto';
+import { CreateEmployeeDto } from './dto/create-employee-dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { CommonService } from 'src/common/common.service';
 import { Prisma } from '@prisma/client';
-import { FindManyDTO } from 'utils/Common.dto';
+import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 import { ACCOUNT_TYPE } from 'enums/user.enum';
 
@@ -17,7 +17,7 @@ export class UserService {
     private commonService: CommonService,
   ) {}
 
-  async create(data: CreateEmployeeDTO, tokenPayload: TokenPayload) {
+  async create(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
     await this.checkUserExisted(data, tokenPayload);
 
     await this.prisma.user.create({
@@ -46,7 +46,7 @@ export class UserService {
     });
   }
 
-  async checkUserExisted(data: CreateEmployeeDTO, tokenPayload: TokenPayload) {
+  async checkUserExisted(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
     const user = await this.commonService.findUserByCondition({
       OR: [
         { phone: data.phone },
@@ -110,7 +110,7 @@ export class UserService {
     return true;
   }
 
-  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword, employeeGroupIds } = params;
 
     const keySearch = ['name', 'code', 'email', 'phone'];
@@ -241,14 +241,14 @@ export class UserService {
   async update(
     params: {
       where: Prisma.UserWhereUniqueInput;
-      data: CreateEmployeeDTO;
+      data: CreateEmployeeDto;
     },
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
 
     await this.checkUserExisted(
-      { ...data, id: where.id } as CreateEmployeeDTO,
+      { ...data, id: where.id } as CreateEmployeeDto,
       tokenPayload,
     );
 

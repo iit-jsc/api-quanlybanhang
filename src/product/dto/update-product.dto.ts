@@ -10,7 +10,7 @@ import {
   IsString,
 } from 'class-validator';
 
-export class UpdateProductDTO {
+export class UpdateProductDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()

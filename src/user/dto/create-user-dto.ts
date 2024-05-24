@@ -10,10 +10,10 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { CreateAccountDTO } from 'src/account/dto/create-account.dto';
+import { CreateAccountDto } from 'src/account/dto/create-account.dto';
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
-export class CreateUserDTO {
+export class CreateUserDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
@@ -33,8 +33,8 @@ export class CreateUserDTO {
 
   @IsNotEmpty({ message: 'Phải cung cấp thông tin người dùng!' })
   @ValidateNested()
-  @Type(() => CreateAccountDTO)
-  account: CreateAccountDTO;
+  @Type(() => CreateAccountDto)
+  account: CreateAccountDto;
 
   @IsOptional()
   @IsNumber()

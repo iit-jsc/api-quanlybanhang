@@ -15,11 +15,11 @@ import {
   Get,
 } from '@nestjs/common';
 import { UserService } from './user.service';
-import { CreateEmployeeDTO } from './dto/create-employee-dto';
+import { CreateEmployeeDto } from './dto/create-employee-dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
-import { CreateBranchDTO } from 'src/branch/dto/create-branch.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
 import { CustomFileInterceptor } from 'utils/Helps';
 
 @Controller('user')
@@ -31,7 +31,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(CustomFileInterceptor('photoURL'))
   create(
-    @Body() createEmployeeDto: CreateEmployeeDTO,
+    @Body() createEmployeeDto: CreateEmployeeDto,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
@@ -48,7 +48,7 @@ export class UserController {
   @Get('/employee')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDTO, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.userService.findAll(findManyDto, tokenPayload);
@@ -74,7 +74,7 @@ export class UserController {
   @UseInterceptors(CustomFileInterceptor('photoURL'))
   update(
     @Param('id') id: string,
-    @Body() createEmployeeDto: CreateEmployeeDTO,
+    @Body() createEmployeeDto: CreateEmployeeDto,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {

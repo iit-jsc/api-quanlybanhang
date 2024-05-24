@@ -14,10 +14,10 @@ import {
 } from '@nestjs/common';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { EmployeeGroupService } from './employee-group.service';
-import { CreateEmployeeGroupDTO } from './dto/create-employee-group.dto';
+import { CreateEmployeeGroupDto } from './dto/create-employee-group.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { BranchGuard } from 'guards/branch.guard';
-import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Controller('employee-group')
 export class EmployeeGroupController {
@@ -27,7 +27,7 @@ export class EmployeeGroupController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
   create(
-    @Body() createEmployeeGroupDto: CreateEmployeeGroupDTO,
+    @Body() createEmployeeGroupDto: CreateEmployeeGroupDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -41,10 +41,10 @@ export class EmployeeGroupController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDTO: FindManyDTO, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.employeeGroupService.findAll(findManyDTO, tokenPayload);
+    return this.employeeGroupService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(':id')
@@ -66,7 +66,7 @@ export class EmployeeGroupController {
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
     @Param('id') id: string,
-    @Body() createEmployeeGroupDto: CreateEmployeeGroupDTO,
+    @Body() createEmployeeGroupDto: CreateEmployeeGroupDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;

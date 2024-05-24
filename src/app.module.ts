@@ -19,6 +19,7 @@ import { CommonModule } from './common/common.module';
 import { ProductTypeModule } from './product-type/product-type.module';
 import { ProductModule } from './product/product.module';
 import { CustomerTypeModule } from './customer-type/customer-type.module';
+import { CustomerModule } from './customer/customer.module';
 
 @Module({
   imports: [
@@ -45,6 +46,7 @@ import { CustomerTypeModule } from './customer-type/customer-type.module';
     ProductTypeModule,
     ProductModule,
     CustomerTypeModule,
+    CustomerModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

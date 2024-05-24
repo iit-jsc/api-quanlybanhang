@@ -1,7 +1,7 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import { ArrayNotEmpty, IsNotEmpty, IsOptional } from 'class-validator';
 
-export class FindManyDTO {
+export class FindManyDto {
   @Type(() => Number)
   skip?: number;
 

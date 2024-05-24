@@ -1,10 +1,10 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateEmployeeGroupDTO } from './dto/create-employee-group.dto';
+import { CreateEmployeeGroupDto } from './dto/create-employee-group.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
 import { calculatePagination, onlyBranchFilter } from 'utils/Helps';
-import { FindManyDTO } from 'utils/Common.dto';
+import { FindManyDto } from 'utils/Common.dto';
 import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 import { CustomHttpException } from 'utils/ApiErrors';
 
@@ -12,7 +12,7 @@ import { CustomHttpException } from 'utils/ApiErrors';
 export class EmployeeGroupService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateEmployeeGroupDTO, tokenPayload: TokenPayload) {
+  async create(data: CreateEmployeeGroupDto, tokenPayload: TokenPayload) {
     return this.prisma.employeeGroup.create({
       data: {
         name: data.name,
@@ -28,7 +28,7 @@ export class EmployeeGroupService {
     });
   }
 
-  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
 
     let where: Prisma.EmployeeGroupWhereInput = {

@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { LoginDto } from './dto/login-dto';
 import { AuthService } from './auth.service';
-import { AccessBranchDTO } from './dto/access-branch-dto';
+import { AccessBranchDto } from './dto/access-branch-dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 
@@ -26,9 +26,9 @@ export class AuthController {
   @Post('/access-branch')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  accessBranch(@Body() accessBranchDTO: AccessBranchDTO, @Req() req: any) {
+  accessBranch(@Body() accessBranchDto: AccessBranchDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.authService.accessBranch(accessBranchDTO, tokenPayload);
+    return this.authService.accessBranch(accessBranchDto, tokenPayload);
   }
 }

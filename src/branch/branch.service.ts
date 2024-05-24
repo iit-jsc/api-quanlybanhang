@@ -1,11 +1,11 @@
-import { CreateBranchDTO } from 'src/branch/dto/create-branch.dto';
+import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
 import { Injectable } from '@nestjs/common';
 import { TokenPayload } from 'interfaces/common.interface';
 import { UserService } from 'src/user/user.service';
 import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
-import { FindManyDTO } from 'utils/Common.dto';
+import { FindManyDto } from 'utils/Common.dto';
 import { BRANCH_SELECT } from 'enums/select.enum';
 import { CommonService } from 'src/common/common.service';
 
@@ -16,7 +16,7 @@ export class BranchService {
     private commonService: CommonService,
   ) {}
 
-  async create(createBranchDto: CreateBranchDTO, tokenPayload: TokenPayload) {
+  async create(createBranchDto: CreateBranchDto, tokenPayload: TokenPayload) {
     const user = await this.commonService.findUserByAccountId(
       tokenPayload.accountId,
     );
@@ -43,7 +43,7 @@ export class BranchService {
     });
   }
 
-  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
 
     let where: Prisma.BranchWhereInput = {

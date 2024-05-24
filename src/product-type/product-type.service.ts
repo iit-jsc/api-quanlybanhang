@@ -3,15 +3,15 @@ import { Prisma } from '@prisma/client';
 import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { FindManyDTO } from 'utils/Common.dto';
+import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
-import { CreateProductTypeDTO } from './dto/create-product-type.dto';
+import { CreateProductTypeDto } from './dto/create-product-type.dto';
 
 @Injectable()
 export class ProductTypeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateProductTypeDTO, tokenPayload: TokenPayload) {
+  async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
     const identifier = generateUniqueId();
 
     const productTypes = data.branchIds.map((id) => ({
@@ -28,7 +28,7 @@ export class ProductTypeService {
     });
   }
 
-  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
     let where: Prisma.ProductTypeWhereInput = {
       isPublic: true,
@@ -84,7 +84,7 @@ export class ProductTypeService {
   async update(
     params: {
       where: Prisma.ProductTypeWhereInput;
-      data: CreateProductTypeDTO;
+      data: CreateProductTypeDto;
     },
     tokenPayload: TokenPayload,
   ) {

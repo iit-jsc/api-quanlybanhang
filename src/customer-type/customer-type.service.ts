@@ -2,15 +2,15 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { FindManyDTO } from 'utils/Common.dto';
+import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
-import { CreateCustomerTypeDTO } from './dto/create-customer-type';
+import { CreateCustomerTypeDto } from './dto/create-customer-type';
 
 @Injectable()
 export class CustomerTypeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateCustomerTypeDTO, tokenPayload: TokenPayload) {
+  async create(data: CreateCustomerTypeDto, tokenPayload: TokenPayload) {
     return await this.prisma.customerType.create({
       data: {
         name: data.name,
@@ -28,7 +28,7 @@ export class CustomerTypeService {
     });
   }
 
-  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
     let where: Prisma.CustomerTypeWhereInput = {
       isPublic: true,
@@ -90,7 +90,7 @@ export class CustomerTypeService {
   async update(
     params: {
       where: Prisma.CustomerTypeWhereInput;
-      data: CreateCustomerTypeDTO;
+      data: CreateCustomerTypeDto;
     },
     tokenPayload: TokenPayload,
   ) {

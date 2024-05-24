@@ -15,10 +15,10 @@ import {
   UseInterceptors,
 } from '@nestjs/common';
 import { BranchService } from './branch.service';
-import { CreateBranchDTO } from './dto/create-branch.dto';
+import { CreateBranchDto } from './dto/create-branch.dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CustomFileInterceptor } from 'utils/Helps';
 
 @Controller('branch')
@@ -30,7 +30,7 @@ export class BranchController {
   @UseGuards(JwtAuthGuard)
   @UseInterceptors(CustomFileInterceptor('photoURL'))
   create(
-    @Body() createBranchDto: CreateBranchDTO,
+    @Body() createBranchDto: CreateBranchDto,
     @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
@@ -48,7 +48,7 @@ export class BranchController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDTO, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.branchService.findAll(findManyDto, tokenPayload);
@@ -73,7 +73,7 @@ export class BranchController {
   @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: string,
-    @Body() createBranchDto: CreateBranchDTO,
+    @Body() createBranchDto: CreateBranchDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;

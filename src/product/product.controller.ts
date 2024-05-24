@@ -17,9 +17,9 @@ import {
 import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyWithIdentifierDto, FindManyDTO } from 'utils/Common.dto';
+import { DeleteManyWithIdentifierDto, FindManyDto } from 'utils/Common.dto';
 import { ProductService } from './product.service';
-import { CreateProductDTO } from './dto/create-product.dto';
+import { CreateProductDto } from './dto/create-product.dto';
 import { CustomFilesInterceptor } from 'utils/Helps';
 
 @Controller('product')
@@ -31,7 +31,7 @@ export class ProductController {
   @UseGuards(JwtAuthGuard, BranchGuard)
   @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
   create(
-    @Body() createProductDto: CreateProductDTO,
+    @Body() createProductDto: CreateProductDto,
     @UploadedFiles() files: Array<Express.Multer.File>,
     @Req() req: any,
   ) {
@@ -47,10 +47,10 @@ export class ProductController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDTO: FindManyDTO, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.productService.findAll(findManyDTO, tokenPayload);
+    return this.productService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(':id')
@@ -73,7 +73,7 @@ export class ProductController {
   @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
   update(
     @Param('identifier') identifier: string,
-    @Body() createProductDto: CreateProductDTO,
+    @Body() createProductDto: CreateProductDto,
     @Req() req: any,
     @UploadedFiles() files: Array<Express.Multer.File>,
   ) {

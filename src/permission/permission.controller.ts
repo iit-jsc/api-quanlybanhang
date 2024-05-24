@@ -13,11 +13,11 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { PermissionService } from './permission.service';
-import { CreatePermissionDTO } from './dto/create-permission.dto';
+import { CreatePermissionDto } from './dto/create-permission.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { BranchGuard } from 'guards/branch.guard';
-import { DeleteManyDto, FindManyDTO } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Controller('permission')
 export class PermissionController {
@@ -26,7 +26,7 @@ export class PermissionController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  create(@Body() createPermissionDto: CreatePermissionDTO, @Req() req: any) {
+  create(@Body() createPermissionDto: CreatePermissionDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.permissionService.create(createPermissionDto, tokenPayload);
@@ -35,7 +35,7 @@ export class PermissionController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDTO, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.permissionService.findAll(findManyDto, tokenPayload);
@@ -46,7 +46,7 @@ export class PermissionController {
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
     @Param('id') id: string,
-    @Body() createPermissionDto: CreatePermissionDTO,
+    @Body() createPermissionDto: CreatePermissionDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;

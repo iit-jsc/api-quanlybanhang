@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { FindManyDTO } from 'utils/Common.dto';
+import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
-import { CreateProductDTO } from './dto/create-product.dto';
+import { CreateProductDto } from './dto/create-product.dto';
 import { CommonService } from 'src/common/common.service';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class ProductService {
     private commonService: CommonService,
   ) {}
 
-  async create(data: CreateProductDTO, tokenPayload: TokenPayload) {
+  async create(data: CreateProductDto, tokenPayload: TokenPayload) {
     const identifier = generateUniqueId();
 
     await this.commonService.findByIdWithBranches(
@@ -54,7 +54,7 @@ export class ProductService {
     });
   }
 
-  async findAll(params: FindManyDTO, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let {
       skip,
       take,
@@ -197,7 +197,7 @@ export class ProductService {
   async update(
     params: {
       where: Prisma.ProductWhereInput;
-      data: CreateProductDTO;
+      data: CreateProductDto;
     },
     tokenPayload: TokenPayload,
   ) {

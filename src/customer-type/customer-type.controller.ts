@@ -18,10 +18,10 @@ import { TokenPayload } from 'interfaces/common.interface';
 import {
   DeleteManyDto,
   DeleteManyWithIdentifierDto,
-  FindManyDTO,
+  FindManyDto,
 } from 'utils/Common.dto';
 import { CustomerTypeService } from './customer-type.service';
-import { CreateCustomerTypeDTO } from './dto/create-customer-type';
+import { CreateCustomerTypeDto } from './dto/create-customer-type';
 
 @Controller('customer-type')
 export class CustomerTypeController {
@@ -31,7 +31,7 @@ export class CustomerTypeController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   create(
-    @Body() createCustomerTypeDto: CreateCustomerTypeDTO,
+    @Body() createCustomerTypeDto: CreateCustomerTypeDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -42,10 +42,10 @@ export class CustomerTypeController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDTO: FindManyDTO, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.customTypeService.findAll(findManyDTO, tokenPayload);
+    return this.customTypeService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(':id')
@@ -67,7 +67,7 @@ export class CustomerTypeController {
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
     @Param('id') id: number,
-    @Body() createCustomerTypeDTO: CreateCustomerTypeDTO,
+    @Body() createCustomerTypeDto: CreateCustomerTypeDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -76,7 +76,7 @@ export class CustomerTypeController {
         where: {
           id: id,
         },
-        data: createCustomerTypeDTO,
+        data: createCustomerTypeDto,
       },
       tokenPayload,
     );
