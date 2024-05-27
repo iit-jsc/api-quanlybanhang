@@ -62,6 +62,7 @@ export class CreateEmployeeDto {
   startDate: Date;
 
   @IsOptional()
+  @IsNumber()
   type: number;
 
   @IsOptional()
@@ -79,15 +80,19 @@ export class CreateEmployeeDto {
   permissionIds: number[];
 
   @IsOptional()
+  @IsString()
   photoURL: string;
 
   @IsOptional()
+  @IsString()
   address: string;
 
   @IsOptional()
+  @IsString()
   cardId: string;
 
   @IsOptional()
+  @IsString()
   cardAddress: string;
 
   @IsOptional()

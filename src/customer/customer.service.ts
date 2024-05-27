@@ -57,10 +57,24 @@ export class CustomerService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
-    let where: Prisma.CustomerWhereInput = {
+    const { skip, take, keyword, customerTypeIds } = params;
+
+    const keySearch = ['name', 'code', 'email', 'phone'];
+
+    const where: Prisma.CustomerWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword, mode: 'insensitive' },
+        })),
+      }),
+      ...(customerTypeIds?.length > 0 && {
+        customerType: {
+          id: { in: customerTypeIds },
+          isPublic: true,
+          shopId: tokenPayload.shopId,
+        },
+      }),
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,

@@ -135,8 +135,11 @@ CREATE TABLE "PrintTemplate" (
 -- CreateTable
 CREATE TABLE "CurrencyUnit" (
     "id" SERIAL NOT NULL,
+    "identifier" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT NOT NULL,
+    "isUsed" BOOLEAN NOT NULL DEFAULT false,
+    "branchId" INTEGER,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
@@ -205,6 +208,24 @@ CREATE TABLE "OtherAttributePattern" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "OtherAttributePattern_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "Topping" (
+    "id" SERIAL NOT NULL,
+    "identifier" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "photoURL" TEXT,
+    "price" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "branchId" INTEGER NOT NULL,
+    "isPublic" BOOLEAN DEFAULT true,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Topping_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -436,7 +457,6 @@ CREATE TABLE "Order" (
     "branchId" INTEGER NOT NULL,
     "tableId" INTEGER,
     "customerId" INTEGER,
-    "areaId" INTEGER,
     "name" TEXT,
     "phone" TEXT,
     "email" TEXT,
@@ -446,7 +466,6 @@ CREATE TABLE "Order" (
     "cancelDate" TIMESTAMP(3),
     "paymentMethodId" INTEGER NOT NULL,
     "transactionId" TEXT,
-    "amount" DOUBLE PRECISION NOT NULL,
     "note" TEXT,
     "orderStatus" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
@@ -813,6 +832,12 @@ CREATE TABLE "_AccountToPermission" (
 );
 
 -- CreateTable
+CREATE TABLE "_ProductToTopping" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "_DealToProduct" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
@@ -826,12 +851,6 @@ CREATE TABLE "_DealToOrder" (
 
 -- CreateTable
 CREATE TABLE "_BranchToPrintTemplate" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL
-);
-
--- CreateTable
-CREATE TABLE "_BranchToCurrencyUnit" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
 );
@@ -864,28 +883,31 @@ CREATE TABLE "_BranchToUser" (
 CREATE UNIQUE INDEX "Shop_code_key" ON "Shop"("code");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProductType_identifier_branchId_key" ON "ProductType"("identifier", "branchId");
+CREATE UNIQUE INDEX "ProductType_identifier_branchId_isPublic_key" ON "ProductType"("identifier", "branchId", "isPublic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Product_sku_branchId_key" ON "Product"("sku", "branchId");
+CREATE UNIQUE INDEX "Product_sku_branchId_isPublic_key" ON "Product"("sku", "branchId", "isPublic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Product_code_branchId_key" ON "Product"("code", "branchId");
+CREATE UNIQUE INDEX "Product_code_branchId_isPublic_key" ON "Product"("code", "branchId", "isPublic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Product_identifier_branchId_key" ON "Product"("identifier", "branchId");
+CREATE UNIQUE INDEX "Product_identifier_branchId_isPublic_key" ON "Product"("identifier", "branchId", "isPublic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_code_shopId_key" ON "Customer"("code", "shopId");
+CREATE UNIQUE INDEX "Customer_code_shopId_isPublic_key" ON "Customer"("code", "shopId", "isPublic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_email_shopId_key" ON "Customer"("email", "shopId");
+CREATE UNIQUE INDEX "Customer_email_shopId_isPublic_key" ON "Customer"("email", "shopId", "isPublic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_phone_shopId_key" ON "Customer"("phone", "shopId");
+CREATE UNIQUE INDEX "Customer_phone_shopId_isPublic_key" ON "Customer"("phone", "shopId", "isPublic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Area_code_branchId_key" ON "Area"("code", "branchId");
+CREATE UNIQUE INDEX "Area_code_branchId_isPublic_key" ON "Area"("code", "branchId", "isPublic");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Table_code_branchId_isPublic_key" ON "Table"("code", "branchId", "isPublic");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B");
@@ -898,6 +920,12 @@ CREATE UNIQUE INDEX "_AccountToPermission_AB_unique" ON "_AccountToPermission"("
 
 -- CreateIndex
 CREATE INDEX "_AccountToPermission_B_index" ON "_AccountToPermission"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_ProductToTopping_AB_unique" ON "_ProductToTopping"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_ProductToTopping_B_index" ON "_ProductToTopping"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_DealToProduct_AB_unique" ON "_DealToProduct"("A", "B");
@@ -916,12 +944,6 @@ CREATE UNIQUE INDEX "_BranchToPrintTemplate_AB_unique" ON "_BranchToPrintTemplat
 
 -- CreateIndex
 CREATE INDEX "_BranchToPrintTemplate_B_index" ON "_BranchToPrintTemplate"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_BranchToCurrencyUnit_AB_unique" ON "_BranchToCurrencyUnit"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_BranchToCurrencyUnit_B_index" ON "_BranchToCurrencyUnit"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_BranchToMeasurementUnit_AB_unique" ON "_BranchToMeasurementUnit"("A", "B");
@@ -960,6 +982,9 @@ ALTER TABLE "User" ADD CONSTRAINT "User_employeeGroupId_fkey" FOREIGN KEY ("empl
 ALTER TABLE "Shop" ADD CONSTRAINT "Shop_businessTypeId_fkey" FOREIGN KEY ("businessTypeId") REFERENCES "BusinessType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "CurrencyUnit" ADD CONSTRAINT "CurrencyUnit_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "ActivityLog" ADD CONSTRAINT "ActivityLog_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -973,6 +998,9 @@ ALTER TABLE "OtherAttributePattern" ADD CONSTRAINT "OtherAttributePattern_branch
 
 -- AddForeignKey
 ALTER TABLE "OtherAttributePattern" ADD CONSTRAINT "OtherAttributePattern_productTypeId_fkey" FOREIGN KEY ("productTypeId") REFERENCES "ProductType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Topping" ADD CONSTRAINT "Topping_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Product" ADD CONSTRAINT "Product_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1042,9 +1070,6 @@ ALTER TABLE "Order" ADD CONSTRAINT "Order_branchId_fkey" FOREIGN KEY ("branchId"
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_areaId_fkey" FOREIGN KEY ("areaId") REFERENCES "Area"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1176,6 +1201,12 @@ ALTER TABLE "_AccountToPermission" ADD CONSTRAINT "_AccountToPermission_A_fkey" 
 ALTER TABLE "_AccountToPermission" ADD CONSTRAINT "_AccountToPermission_B_fkey" FOREIGN KEY ("B") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "_ProductToTopping" ADD CONSTRAINT "_ProductToTopping_A_fkey" FOREIGN KEY ("A") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_ProductToTopping" ADD CONSTRAINT "_ProductToTopping_B_fkey" FOREIGN KEY ("B") REFERENCES "Topping"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "_DealToProduct" ADD CONSTRAINT "_DealToProduct_A_fkey" FOREIGN KEY ("A") REFERENCES "Deal"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1192,12 +1223,6 @@ ALTER TABLE "_BranchToPrintTemplate" ADD CONSTRAINT "_BranchToPrintTemplate_A_fk
 
 -- AddForeignKey
 ALTER TABLE "_BranchToPrintTemplate" ADD CONSTRAINT "_BranchToPrintTemplate_B_fkey" FOREIGN KEY ("B") REFERENCES "PrintTemplate"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_BranchToCurrencyUnit" ADD CONSTRAINT "_BranchToCurrencyUnit_A_fkey" FOREIGN KEY ("A") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_BranchToCurrencyUnit" ADD CONSTRAINT "_BranchToCurrencyUnit_B_fkey" FOREIGN KEY ("B") REFERENCES "CurrencyUnit"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_BranchToMeasurementUnit" ADD CONSTRAINT "_BranchToMeasurementUnit_A_fkey" FOREIGN KEY ("A") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;

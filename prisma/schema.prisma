@@ -139,15 +139,18 @@ model PrintTemplate {
 }
 
 model CurrencyUnit {
-  id        Int      @id @default(autoincrement())
-  name      String
-  code      String
-  isPublic  Boolean? @default(true)
-  createdBy Int?
-  updatedBy Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  branches  Branch[]
+  id         Int      @id @default(autoincrement())
+  identifier String
+  name       String
+  code       String
+  isUsed     Boolean  @default(false)
+  branches   Branch?  @relation(fields: [branchId], references: [id])
+  branchId   Int?
+  isPublic   Boolean? @default(true)
+  createdBy  Int?
+  updatedBy  Int?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model MeasurementUnit {
@@ -210,6 +213,23 @@ model OtherAttributePattern {
   productType   ProductType @relation(fields: [productTypeId], references: [id])
 }
 
+model Topping {
+  id          Int       @id @default(autoincrement())
+  identifier  String
+  name        String
+  description String?
+  photoURLs   Json?
+  price       Float     @default(0)
+  products    Product[]
+  branchId    Int
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  isPublic    Boolean?  @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
 model Product {
   id                      Int                      @id @default(autoincrement())
   identifier              String
@@ -242,6 +262,7 @@ model Product {
   couponConditionProducts CouponConditionProduct[]
   couponProducts          CouponProduct[]
   orderDetails            OrderDetail[]
+  toppings                Topping[]
 
   @@unique([sku, branchId, isPublic])
   @@unique([code, branchId, isPublic])
@@ -449,7 +470,6 @@ model Order {
   branchId              Int
   tableId               Int?
   customerId            Int?
-  areaId                Int?
   name                  String?
   phone                 String?
   email                 String?
@@ -459,7 +479,6 @@ model Order {
   cancelDate            DateTime?
   paymentMethodId       Int
   transactionId         String?
-  amount                Float
   note                  String?
   orderStatus           Int
   isPublic              Boolean?           @default(true)
@@ -469,7 +488,6 @@ model Order {
   updatedAt             DateTime           @updatedAt
   branch                Branch             @relation(fields: [branchId], references: [id])
   table                 Table?             @relation(fields: [tableId], references: [id])
-  area                  Area?              @relation(fields: [areaId], references: [id])
   customer              Customer?          @relation(fields: [customerId], references: [id])
   paymentMethod         PaymentMethod      @relation(fields: [paymentMethodId], references: [id])
   orderDetails          OrderDetail[]
@@ -563,7 +581,6 @@ model Area {
   updatedAt   DateTime @updatedAt
   branch      Branch   @relation(fields: [branchId], references: [id])
   tables      Table[]
-  Order       Order[]
 
   @@unique([code, branchId, isPublic])
 }
@@ -784,6 +801,7 @@ model Branch {
   permissions                Permission[]
   employeeGroups             EmployeeGroup[]
   users                      User[]
+  toppings                   Topping[]
 }
 
 model WorkShift {

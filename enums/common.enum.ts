@@ -9,3 +9,8 @@ export const DISCOUNT_TYPE = {
   PERCENT: 1,
   VALUE: 2,
 };
+
+export const PAYMENT_TYPE = {
+  CASH: 1,
+  CREDIT: 2,
+};
