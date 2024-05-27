@@ -65,8 +65,6 @@ export class ProductService {
       isCombo,
     } = params;
 
-    console.log(isCombo);
-
     const keySearch = ['name', 'code', 'sku'];
 
     let where: Prisma.ProductWhereInput = {

@@ -69,8 +69,8 @@ model User {
   code              String?
   phone             String
   email             String?
-  photoURL          String?
-  address           String?
+  photoURL          String?            @db.Text
+  address           String?            @db.Text
   cardId            String?
   cardDate          DateTime?
   cardAddress       String?
@@ -110,7 +110,7 @@ model Shop {
   businessTypeId Int
   businessType   BusinessType?  @relation(fields: [businessTypeId], references: [id])
   name           String
-  photoURL       String?
+  photoURL       String?        @db.Text
   domain         String?
   isPublic       Boolean?       @default(true)
   createdBy      Int?
@@ -191,7 +191,7 @@ model ProductType {
   products               Product[]
   otherAttributePatterns OtherAttributePattern[]
 
-  @@unique([identifier, branchId])
+  @@unique([identifier, branchId, isPublic])
 }
 
 model OtherAttributePattern {
@@ -243,9 +243,9 @@ model Product {
   couponProducts          CouponProduct[]
   orderDetails            OrderDetail[]
 
-  @@unique([sku, branchId])
-  @@unique([code, branchId])
-  @@unique([identifier, branchId])
+  @@unique([sku, branchId, isPublic])
+  @@unique([code, branchId, isPublic])
+  @@unique([identifier, branchId, isPublic])
 }
 
 model ComboProductItem {
@@ -300,7 +300,7 @@ model Customer {
   code                String?
   email               String?
   phone               String
-  address             String?
+  address             String?             @db.Text
   description         String?             @db.Text
   representativeName  String?
   representativePhone String?
@@ -323,9 +323,9 @@ model Customer {
   pointAccumulations  PointAccumulation[]
   pointRedemptions    PointRedemption[]
 
-  @@unique([code, shopId])
-  @@unique([email, shopId])
-  @@unique([phone, shopId])
+  @@unique([code, shopId, isPublic])
+  @@unique([email, shopId, isPublic])
+  @@unique([phone, shopId, isPublic])
 }
 
 model SupplierType {
@@ -348,7 +348,7 @@ model Supplier {
   supplierName        String
   email               String?
   phone               String
-  address             String?
+  address             String?      @db.Text
   representativeName  String?
   representativePhone String?
   supplierTypeId      Int
@@ -395,7 +395,7 @@ model Coupon {
   limitPerCustomer        Int?
   nolimitPerCoupon        Boolean
   noEndDate               Boolean?
-  description             String?
+  description             String?                  @db.Text
   value                   Float
   typeCouponValue         Int
   typeCoupon              Int
@@ -433,7 +433,7 @@ model CouponProduct {
   productId   Int?
   amount      Int
   productName String?
-  photoURL    String?
+  photoURL    String?  @db.Text
   isPublic    Boolean? @default(true)
   createdBy   Int?
   updatedBy   Int?
@@ -454,7 +454,7 @@ model Order {
   phone                 String?
   email                 String?
   orderDate             DateTime
-  address               String?
+  address               String?            @db.Text
   cancelReason          String?
   cancelDate            DateTime?
   paymentMethodId       Int
@@ -469,6 +469,7 @@ model Order {
   updatedAt             DateTime           @updatedAt
   branch                Branch             @relation(fields: [branchId], references: [id])
   table                 Table?             @relation(fields: [tableId], references: [id])
+  area                  Area?              @relation(fields: [areaId], references: [id])
   customer              Customer?          @relation(fields: [customerId], references: [id])
   paymentMethod         PaymentMethod      @relation(fields: [paymentMethodId], references: [id])
   orderDetails          OrderDetail[]
@@ -521,7 +522,7 @@ model PaymentMethod {
   identifier  String
   name        String
   logo        String?
-  description String?
+  description String?  @db.Text
   status      Int
   isPublic    Boolean? @default(true)
   createdBy   Int?
@@ -553,7 +554,8 @@ model Area {
   branchId    Int
   name        String
   code        String
-  description String?
+  description String?  @db.Text
+  photoURL    String?  @db.Text
   isPublic    Boolean? @default(true)
   createdBy   Int?
   updatedBy   Int?
@@ -561,6 +563,9 @@ model Area {
   updatedAt   DateTime @updatedAt
   branch      Branch   @relation(fields: [branchId], references: [id])
   tables      Table[]
+  Order       Order[]
+
+  @@unique([code, branchId, isPublic])
 }
 
 model Table {
@@ -569,7 +574,8 @@ model Table {
   areaId      Int
   name        String
   code        String
-  description String?
+  photoURL    String?  @db.Text
+  description String?  @db.Text
   isPublic    Boolean? @default(true)
   createdBy   Int?
   updatedBy   Int?
@@ -578,6 +584,8 @@ model Table {
   branch      Branch   @relation(fields: [branchId], references: [id])
   area        Area     @relation(fields: [areaId], references: [id])
   orders      Order[]
+
+  @@unique([code, branchId, isPublic])
 }
 
 model DiscountIssue {
@@ -591,7 +599,7 @@ model DiscountIssue {
   startDay             DateTime
   endDay               DateTime?
   noEndDay             Boolean?
-  description          String?
+  description          String?        @db.Text
   limitPerCode         Int
   limitPerCustomer     Int
   noLimitPerCode       Boolean
@@ -730,9 +738,9 @@ model Branch {
   id                         Int                        @id @default(autoincrement())
   shopId                     Int
   shop                       Shop?                      @relation(fields: [shopId], references: [id])
-  photoURL                   String?
+  photoURL                   String?                    @db.Text
   name                       String
-  address                    String?
+  address                    String?                    @db.Text
   status                     Int?
   isPublic                   Boolean?                   @default(true)
   createdBy                  Int?

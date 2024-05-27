@@ -20,6 +20,8 @@ import { ProductTypeModule } from './product-type/product-type.module';
 import { ProductModule } from './product/product.module';
 import { CustomerTypeModule } from './customer-type/customer-type.module';
 import { CustomerModule } from './customer/customer.module';
+import { AreaModule } from './area/area.module';
+import { TableModule } from './table/table.module';
 
 @Module({
   imports: [
@@ -47,6 +49,8 @@ import { CustomerModule } from './customer/customer.module';
     ProductModule,
     CustomerTypeModule,
     CustomerModule,
+    AreaModule,
+    TableModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

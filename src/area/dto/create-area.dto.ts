@@ -1,0 +1,22 @@
+import { Transform, TransformFnParams } from 'class-transformer';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+
+export class CreateAreaDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  description: string;
+
+  @IsOptional()
+  @IsString()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
+  code: string;
+
+  @IsOptional()
+  photoURL?: string;
+}

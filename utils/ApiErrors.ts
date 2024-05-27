@@ -79,7 +79,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
 
     if (exception.code === 'P2011') {
       return response.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: HttpStatus.BAD_REQUEST,
+        statusCode: HttpStatus.NOT_FOUND,
         message: 'Validation failed',
         errors: {
           [exception.meta.constraint[0]]: `Dữ liệu không tồn tại (1)!`,
@@ -89,7 +89,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
 
     if (exception.code === 'P2003' || exception.code === 'P2025') {
       return response.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: HttpStatus.BAD_REQUEST,
+        statusCode: HttpStatus.NOT_FOUND,
         message: 'Dữ liệu không tồn tại (2)!',
       });
     }

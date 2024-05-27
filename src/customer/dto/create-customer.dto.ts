@@ -30,6 +30,7 @@ export class CreateCustomerDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   code: string;
 
   @IsOptional()

@@ -21,6 +21,8 @@ export class FindManyDto {
   })
   branchIds: number[];
 
+  /* ====== employee filter  ====== */
+
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value
@@ -29,6 +31,8 @@ export class FindManyDto {
       .filter((id: number) => !isNaN(id));
   })
   employeeGroupIds: number[];
+
+  /* ====== product filter  ====== */
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
@@ -61,6 +65,16 @@ export class FindManyDto {
     return Boolean(+value);
   })
   isCombo?: boolean;
+
+  /* ====== table filter  ====== */
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  areaIds: number[];
 }
 
 export class DeleteManyDto {
