@@ -1,16 +1,14 @@
-import { Transform, TransformFnParams } from 'class-transformer';
+import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
-  IsArray,
-  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
+  ValidateNested,
 } from 'class-validator';
 import { PAYMENT_TYPE } from 'enums/common.enum';
-import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
 export class CreateOrderByEmployeeDto {
   @IsOptional()
@@ -23,18 +21,6 @@ export class CreateOrderByEmployeeDto {
 
   @IsOptional()
   @IsString()
-  name: string;
-
-  @IsOptional()
-  @IsVietnamesePhoneNumber()
-  phone: string;
-
-  @IsOptional()
-  @IsString()
-  address: string;
-
-  @IsOptional()
-  @IsString()
   note: string;
 
   @IsOptional()
@@ -42,16 +28,19 @@ export class CreateOrderByEmployeeDto {
   @IsNumber()
   paymentMethodId: number;
 
-  @IsOptional()
-  @IsEmail(
-    {},
-    {
-      message: 'Email không đúng định dạng.',
-    },
-  )
-  email: string;
-
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
-  productIds: number[];
+  @ValidateNested({ each: true })
+  @Type(() => Product)
+  products: Product[];
+}
+
+class Product {
+  @IsNotEmpty({ message: 'ID sản phẩm không được để trống!' })
+  @IsNumber({}, { message: 'ID sản phẩm phải là số!' })
+  productId: number;
+
+  @IsOptional()
+  @IsNumber({}, { message: 'ID topping phải là số!' })
+  toppingId: number;
 }

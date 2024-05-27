@@ -17,7 +17,7 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { BranchGuard } from 'guards/branch.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { CreateOrderByEmployeeDto } from './dto/create-order.dto';
+import { CreateOrderByEmployeeDto } from './dto/create-order-by-employee.dto';
 
 @Controller('order')
 export class OrderController {
