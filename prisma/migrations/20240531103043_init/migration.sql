@@ -216,7 +216,7 @@ CREATE TABLE "Topping" (
     "identifier" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
-    "photoURL" TEXT,
+    "photoURLs" JSONB,
     "price" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "branchId" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
@@ -452,6 +452,21 @@ CREATE TABLE "CouponProduct" (
 );
 
 -- CreateTable
+CREATE TABLE "OrderStatus" (
+    "id" SERIAL NOT NULL,
+    "isPublic" BOOLEAN DEFAULT true,
+    "name" TEXT NOT NULL,
+    "description" TEXT,
+    "shopId" INTEGER NOT NULL,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "OrderStatus_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
 CREATE TABLE "Order" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
@@ -464,10 +479,10 @@ CREATE TABLE "Order" (
     "address" TEXT,
     "cancelReason" TEXT,
     "cancelDate" TIMESTAMP(3),
-    "paymentMethodId" INTEGER NOT NULL,
     "transactionId" TEXT,
     "note" TEXT,
-    "orderStatus" INTEGER NOT NULL,
+    "orderStatusId" INTEGER NOT NULL,
+    "paymentMethod" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
@@ -483,9 +498,9 @@ CREATE TABLE "OrderDetail" (
     "branchId" INTEGER NOT NULL,
     "orderId" INTEGER NOT NULL,
     "productId" INTEGER NOT NULL,
+    "toppingId" INTEGER NOT NULL,
     "amount" DOUBLE PRECISION NOT NULL,
     "note" TEXT,
-    "status" INTEGER NOT NULL,
     "price" DOUBLE PRECISION NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
@@ -509,24 +524,6 @@ CREATE TABLE "Invoice" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Invoice_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "PaymentMethod" (
-    "id" SERIAL NOT NULL,
-    "branchId" INTEGER NOT NULL,
-    "identifier" TEXT NOT NULL,
-    "name" TEXT NOT NULL,
-    "logo" TEXT,
-    "description" TEXT,
-    "status" INTEGER NOT NULL,
-    "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "PaymentMethod_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -832,12 +829,6 @@ CREATE TABLE "_AccountToPermission" (
 );
 
 -- CreateTable
-CREATE TABLE "_ProductToTopping" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL
-);
-
--- CreateTable
 CREATE TABLE "_DealToProduct" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
@@ -920,12 +911,6 @@ CREATE UNIQUE INDEX "_AccountToPermission_AB_unique" ON "_AccountToPermission"("
 
 -- CreateIndex
 CREATE INDEX "_AccountToPermission_B_index" ON "_AccountToPermission"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_ProductToTopping_AB_unique" ON "_ProductToTopping"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_ProductToTopping_B_index" ON "_ProductToTopping"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_DealToProduct_AB_unique" ON "_DealToProduct"("A", "B");
@@ -1066,7 +1051,13 @@ ALTER TABLE "CouponProduct" ADD CONSTRAINT "CouponProduct_couponId_fkey" FOREIGN
 ALTER TABLE "CouponProduct" ADD CONSTRAINT "CouponProduct_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "OrderStatus" ADD CONSTRAINT "OrderStatus_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Order" ADD CONSTRAINT "Order_orderStatusId_fkey" FOREIGN KEY ("orderStatusId") REFERENCES "OrderStatus"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE SET NULL ON UPDATE CASCADE;
@@ -1075,10 +1066,10 @@ ALTER TABLE "Order" ADD CONSTRAINT "Order_tableId_fkey" FOREIGN KEY ("tableId") 
 ALTER TABLE "Order" ADD CONSTRAINT "Order_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_paymentMethodId_fkey" FOREIGN KEY ("paymentMethodId") REFERENCES "PaymentMethod"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_toppingId_fkey" FOREIGN KEY ("toppingId") REFERENCES "Topping"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1091,9 +1082,6 @@ ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_branchId_fkey" FOREIGN KEY ("branc
 
 -- AddForeignKey
 ALTER TABLE "Invoice" ADD CONSTRAINT "Invoice_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "PaymentMethod" ADD CONSTRAINT "PaymentMethod_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderTransaction" ADD CONSTRAINT "OrderTransaction_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1199,12 +1187,6 @@ ALTER TABLE "_AccountToPermission" ADD CONSTRAINT "_AccountToPermission_A_fkey" 
 
 -- AddForeignKey
 ALTER TABLE "_AccountToPermission" ADD CONSTRAINT "_AccountToPermission_B_fkey" FOREIGN KEY ("B") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_ProductToTopping" ADD CONSTRAINT "_ProductToTopping_A_fkey" FOREIGN KEY ("A") REFERENCES "Product"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_ProductToTopping" ADD CONSTRAINT "_ProductToTopping_B_fkey" FOREIGN KEY ("B") REFERENCES "Topping"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_DealToProduct" ADD CONSTRAINT "_DealToProduct_A_fkey" FOREIGN KEY ("A") REFERENCES "Deal"("id") ON DELETE CASCADE ON UPDATE CASCADE;

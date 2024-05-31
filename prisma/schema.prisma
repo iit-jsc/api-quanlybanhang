@@ -121,6 +121,7 @@ model Shop {
   pointSettings  PointSetting[]
   customerTypes  CustomerType[]
   customers      Customer[]
+  orderStatuses  OrderStatus[]
 }
 
 model PrintTemplate {
@@ -214,19 +215,20 @@ model OtherAttributePattern {
 }
 
 model Topping {
-  id          Int      @id @default(autoincrement())
-  identifier  String
-  name        String
-  description String?
-  photoURLs   Json?
-  price       Float    @default(0)
-  branchId    Int
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  isPublic    Boolean? @default(true)
-  createdBy   Int?
-  updatedBy   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id           Int           @id @default(autoincrement())
+  identifier   String
+  name         String
+  description  String?
+  photoURLs    Json?
+  price        Float         @default(0)
+  branchId     Int
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  isPublic     Boolean?      @default(true)
+  createdBy    Int?
+  updatedBy    Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  orderDetails OrderDetail[]
 }
 
 model Product {
@@ -463,11 +465,26 @@ model CouponProduct {
   product     Product? @relation(fields: [productId], references: [id])
 }
 
+model OrderStatus {
+  id          Int      @id @default(autoincrement())
+  isPublic    Boolean? @default(true)
+  name        String
+  description String?
+  shopId      Int
+  shop        Shop     @relation(fields: [shopId], references: [id])
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  orders      Order[]
+}
+
 model Order {
   id                    Int                @id @default(autoincrement())
   branchId              Int
   tableId               Int?
   customerId            Int?
+  code                  String
   name                  String?
   phone                 String?
   email                 String?
@@ -475,19 +492,19 @@ model Order {
   address               String?            @db.Text
   cancelReason          String?
   cancelDate            DateTime?
-  paymentMethodId       Int                @default(1)
   transactionId         String?
   note                  String?
-  orderStatus           Int
+  orderStatusId         Int
+  paymentMethod         Int
   isPublic              Boolean?           @default(true)
   createdBy             Int?
   updatedBy             Int?
   createdAt             DateTime           @default(now())
   updatedAt             DateTime           @updatedAt
   branch                Branch             @relation(fields: [branchId], references: [id])
+  orderStatus           OrderStatus        @relation(fields: [orderStatusId], references: [id])
   table                 Table?             @relation(fields: [tableId], references: [id])
   customer              Customer?          @relation(fields: [customerId], references: [id])
-  paymentMethod         PaymentMethod      @relation(fields: [paymentMethodId], references: [id])
   orderDetails          OrderDetail[]
   deals                 Deal[]
   invoices              Invoice[]
@@ -502,9 +519,9 @@ model OrderDetail {
   branchId  Int
   orderId   Int
   productId Int
+  toppingId Int
   amount    Float
   note      String?
-  status    Int
   price     Float
   isPublic  Boolean? @default(true)
   createdBy Int?
@@ -512,6 +529,7 @@ model OrderDetail {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   branch    Branch   @relation(fields: [branchId], references: [id])
+  topping   Topping  @relation(fields: [toppingId], references: [id])
   order     Order    @relation(fields: [orderId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
 }
@@ -530,23 +548,6 @@ model Invoice {
   order                      Order                      @relation(fields: [orderId], references: [id])
   pointAccumulationHistories PointAccumulationHistory[]
   pointRedemptions           PointRedemption[]
-}
-
-model PaymentMethod {
-  id          Int      @id @default(autoincrement())
-  branchId    Int
-  identifier  String
-  name        String
-  logo        String?
-  description String?  @db.Text
-  status      Int
-  isPublic    Boolean? @default(true)
-  createdBy   Int?
-  updatedBy   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  orders      Order[]
 }
 
 model OrderTransaction {
@@ -778,7 +779,6 @@ model Branch {
   couponProducts             CouponProduct[]
   orders                     Order[]
   areas                      Area[]
-  paymentMethods             PaymentMethod[]
   discountIssues             DiscountIssue[]
   discountCodes              DiscountCode[]
   pointAccumulations         PointAccumulation[]

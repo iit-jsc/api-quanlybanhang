@@ -23,7 +23,7 @@ import { CreateOrderByEmployeeDto } from './dto/create-order-by-employee.dto';
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Post('')
+  @Post('by-employee')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
   createByEmployee(

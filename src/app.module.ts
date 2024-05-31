@@ -24,6 +24,7 @@ import { AreaModule } from './area/area.module';
 import { TableModule } from './table/table.module';
 import { OrderModule } from './order/order.module';
 import { ToppingModule } from './topping/topping.module';
+import { OrderStatusModule } from './order-status/order-status.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { ToppingModule } from './topping/topping.module';
     TableModule,
     OrderModule,
     ToppingModule,
+    OrderStatusModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

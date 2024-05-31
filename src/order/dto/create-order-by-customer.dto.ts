@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 import { PRICE_TYPE } from 'enums/product.enum';
 
-export class CreateOrderByEmployeeDto {
+export class CreateOrderByCustomerDto {
   @IsOptional()
   @IsNumber()
   tableId: number;

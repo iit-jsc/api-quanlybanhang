@@ -10,14 +10,7 @@ export const DISCOUNT_TYPE = {
   VALUE: 2,
 };
 
-export const PAYMENT_TYPE = {
-  CASH: 1,
-  CREDIT: 2,
-};
-
-export const ORDER_STATUS = {
-  PROCESSING: 1,
-  WAITING_DELIVERY: 2,
-  RECEIVED: 3,
-  CANCEL: 4,
+export const PAYMENT_STATUS = {
+  ACTIVE: 1,
+  DISABLE: 2,
 };
