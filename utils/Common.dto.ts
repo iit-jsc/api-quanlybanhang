@@ -85,6 +85,16 @@ export class FindManyDto {
       .filter((id: number) => !isNaN(id));
   })
   customerTypeIds: number[];
+
+  /* ====== order status filter  ====== */
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  businessTypeIds: number[];
 }
 
 export class DeleteManyDto {

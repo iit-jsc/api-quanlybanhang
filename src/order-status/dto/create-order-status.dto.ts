@@ -1,5 +1,5 @@
 import { Transform, TransformFnParams } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateOrderStatusDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -10,4 +10,8 @@ export class CreateOrderStatusDto {
   @IsOptional()
   @IsString()
   description: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNumber()
+  businessTypeId: number;
 }

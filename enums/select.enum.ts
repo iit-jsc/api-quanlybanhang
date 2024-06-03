@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 export const BRANCH_SELECT = {
   id: true,
   photoURL: true,
@@ -10,7 +11,7 @@ export const MEASUREMENT_UNIT_SELECT = {
   id: true,
   name: true,
   code: true,
-  branches: { select: BRANCH_SELECT, where: { isPublic: true } },
+  branches: { select: BRANCH_SELECT },
 };
 
 export const SHOP_SELECT = {
@@ -59,6 +60,118 @@ export const EMPLOYEE_GROUP_SELECT = {
   description: true,
   branches: {
     select: BRANCH_SELECT,
-    where: { isPublic: true },
   },
 };
+
+export const CREATE_ORDER_BY_EMPLOYEE_SELECT = {
+  id: true,
+  code: true,
+  orderType: true,
+  note: true,
+  paymentMethod: true,
+  orderStatus: true,
+  customer: {
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      phone: true,
+    },
+  },
+  table: {
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      photoURL: true,
+    },
+  },
+  orderDetails: {
+    select: {
+      id: true,
+      amount: true,
+      note: true,
+      price: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          photoURLs: true,
+          code: true,
+        },
+      },
+      topping: {
+        select: {
+          id: true,
+          name: true,
+          photoURLs: true,
+        },
+      },
+    },
+  },
+  createdByAccount: {
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          photoURL: true,
+        },
+      },
+    },
+  },
+  updatedByAccount: {
+    select: {
+      id: true,
+      user: {
+        select: {
+          id: true,
+          name: true,
+          phone: true,
+          photoURL: true,
+        },
+      },
+    },
+  },
+  createdAt: true,
+  updatedAt: true,
+} as Prisma.OrderSelect;
+
+export const CREATE_ORDER_BY_CUSTOMER_SELECT = {
+  table: {
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      photoURL: true,
+    },
+  },
+  name: true,
+  note: true,
+  orderStatus: true,
+  orderDetails: {
+    select: {
+      id: true,
+      amount: true,
+      note: true,
+      price: true,
+      product: {
+        select: {
+          id: true,
+          name: true,
+          photoURLs: true,
+          code: true,
+        },
+      },
+      topping: {
+        select: {
+          id: true,
+          name: true,
+          photoURLs: true,
+        },
+      },
+    },
+  },
+} as Prisma.OrderSelect;

@@ -1,6 +1,7 @@
-import { Type } from 'class-transformer';
+import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
+  IsEmail,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -8,12 +9,46 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { PAYMENT_METHOD } from 'enums/common.enum';
 import { PRICE_TYPE } from 'enums/product.enum';
+import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
-export class CreateOrderByCustomerDto {
-  @IsOptional()
+export class CreateOrderByCustomerWithTableDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   tableId: number;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  name: string;
+
+  @IsOptional()
+  @IsString()
+  note: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
+  @ValidateNested({ each: true })
+  @Type(() => ProductInOrder)
+  products: ProductInOrder[];
+}
+
+export class CreateOrderByCustomerOnlineDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  name: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsVietnamesePhoneNumber()
+  phone: string;
+
+  @IsOptional()
+  @IsEmail()
+  email: string;
+
+  @IsOptional()
+  @IsString()
+  address: string;
 
   @IsOptional()
   @IsNumber()
@@ -23,22 +58,19 @@ export class CreateOrderByCustomerDto {
   @IsString()
   note: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  orderStatusId: number;
-
   @IsOptional()
   @IsNumber()
+  @IsEnum(PAYMENT_METHOD, { message: 'Phương thức thanh toán không hợp lệ!' })
   paymentMethod: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
   @ValidateNested({ each: true })
-  @Type(() => Product)
-  products: Product[];
+  @Type(() => ProductInOrder)
+  products: ProductInOrder[];
 }
 
-class Product {
+export class ProductInOrder {
   @IsNotEmpty({ message: 'ID sản phẩm không được để trống!' })
   @IsNumber({}, { message: 'ID sản phẩm phải là số!' })
   id: number;

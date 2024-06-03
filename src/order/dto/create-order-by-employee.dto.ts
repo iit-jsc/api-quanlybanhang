@@ -1,6 +1,7 @@
-import { Type } from 'class-transformer';
+import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -12,20 +13,30 @@ import { PRICE_TYPE } from 'enums/product.enum';
 
 export class CreateOrderByEmployeeDto {
   @IsOptional()
-  @IsNumber()
-  tableId: number;
+  @IsString()
+  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  code: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsBoolean()
+  isTable: number;
 
   @IsOptional()
   @IsNumber()
   customerId: number;
 
   @IsOptional()
+  @IsNumber()
+  tableId: number;
+
+  @IsOptional()
   @IsString()
   note: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsOptional()
   @IsNumber()
-  orderStatusId: number;
+  orderStatus: number;
 
   @IsOptional()
   @IsNumber()

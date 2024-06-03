@@ -61,6 +61,10 @@ model Account {
   updatedAt    DateTime      @updatedAt
   activityLogs ActivityLog[]
   permissions  Permission[]
+  createdUsers User[]        @relation("createdByRelation")
+  updatedUsers User[]        @relation("updatedByRelation")
+  createOrders Order[]       @relation("createdByRelation")
+  updateOrders Order[]       @relation("updatedByRelation")
 }
 
 model User {
@@ -89,6 +93,8 @@ model User {
   employeeSchedules EmployeeSchedule[]
   timeSheets        TimeSheet[]
   branches          Branch[]
+  createdByAccount  Account?           @relation("createdByRelation", fields: [createdBy], references: [id])
+  updatedByAccount  Account?           @relation("updatedByRelation", fields: [updatedBy], references: [id])
 }
 
 model EmployeeGroup {
@@ -121,7 +127,6 @@ model Shop {
   pointSettings  PointSetting[]
   customerTypes  CustomerType[]
   customers      Customer[]
-  orderStatuses  OrderStatus[]
 }
 
 model PrintTemplate {
@@ -465,53 +470,45 @@ model CouponProduct {
   product     Product? @relation(fields: [productId], references: [id])
 }
 
-model OrderStatus {
-  id          Int      @id @default(autoincrement())
-  isPublic    Boolean? @default(true)
-  name        String
-  description String?
-  shopId      Int
-  shop        Shop     @relation(fields: [shopId], references: [id])
-  createdBy   Int?
-  updatedBy   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  orders      Order[]
-}
-
 model Order {
-  id                    Int                @id @default(autoincrement())
-  branchId              Int
-  tableId               Int?
-  customerId            Int?
-  code                  String
-  name                  String?
-  phone                 String?
-  email                 String?
-  orderDate             DateTime
-  address               String?            @db.Text
-  cancelReason          String?
-  cancelDate            DateTime?
-  transactionId         String?
-  note                  String?
-  orderStatusId         Int
-  paymentMethod         Int
-  isPublic              Boolean?           @default(true)
-  createdBy             Int?
-  updatedBy             Int?
-  createdAt             DateTime           @default(now())
-  updatedAt             DateTime           @updatedAt
-  branch                Branch             @relation(fields: [branchId], references: [id])
-  orderStatus           OrderStatus        @relation(fields: [orderStatusId], references: [id])
-  table                 Table?             @relation(fields: [tableId], references: [id])
-  customer              Customer?          @relation(fields: [customerId], references: [id])
-  orderDetails          OrderDetail[]
-  deals                 Deal[]
-  invoices              Invoice[]
-  customerRequests      CustomerRequest[]
-  orderRatings          OrderRating[]
-  fromOrderTransactions OrderTransaction[] @relation("FromOrder")
-  toOrderTransactions   OrderTransaction[] @relation("ToOrder")
+  id                         Int                        @id @default(autoincrement())
+  branchId                   Int
+  tableId                    Int?
+  customerId                 Int?
+  code                       String
+  name                       String?
+  phone                      String?
+  email                      String?
+  orderDate                  DateTime
+  address                    String?                    @db.Text
+  cancelReason               String?
+  cancelDate                 DateTime?
+  transactionId              String?
+  note                       String?
+  orderType                  Int
+  paymentMethod              Int?
+  isPaid                     Boolean?                   @default(false)
+  isPublic                   Boolean?                   @default(true)
+  createdBy                  Int?
+  updatedBy                  Int?
+  createdAt                  DateTime                   @default(now())
+  updatedAt                  DateTime                   @updatedAt
+  branch                     Branch                     @relation(fields: [branchId], references: [id])
+  orderStatus                Int
+  table                      Table?                     @relation(fields: [tableId], references: [id])
+  customer                   Customer?                  @relation(fields: [customerId], references: [id])
+  orderDetails               OrderDetail[]
+  deals                      Deal[]
+  customerRequests           CustomerRequest[]
+  orderRatings               OrderRating[]
+  fromOrderTransactions      OrderTransaction[]         @relation("FromOrder")
+  toOrderTransactions        OrderTransaction[]         @relation("ToOrder")
+  createdByAccount           Account?                   @relation("createdByRelation", fields: [createdBy], references: [id])
+  updatedByAccount           Account?                   @relation("updatedByRelation", fields: [updatedBy], references: [id])
+  pointRedemptions           PointRedemption[]
+  pointAccumulationHistories PointAccumulationHistory[]
+
+  @@unique([code, branchId])
 }
 
 model OrderDetail {
@@ -519,7 +516,7 @@ model OrderDetail {
   branchId  Int
   orderId   Int
   productId Int
-  toppingId Int
+  toppingId Int?
   amount    Float
   note      String?
   price     Float
@@ -529,25 +526,9 @@ model OrderDetail {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   branch    Branch   @relation(fields: [branchId], references: [id])
-  topping   Topping  @relation(fields: [toppingId], references: [id])
+  topping   Topping? @relation(fields: [toppingId], references: [id])
   order     Order    @relation(fields: [orderId], references: [id])
   product   Product  @relation(fields: [productId], references: [id])
-}
-
-model Invoice {
-  id                         Int                        @id @default(autoincrement())
-  branchId                   Int
-  orderId                    Int
-  paymentStatus              Int
-  isPublic                   Boolean?                   @default(true)
-  createdBy                  Int?
-  updatedBy                  Int?
-  createdAt                  DateTime                   @default(now())
-  updatedAt                  DateTime                   @updatedAt
-  branch                     Branch                     @relation(fields: [branchId], references: [id])
-  order                      Order                      @relation(fields: [orderId], references: [id])
-  pointAccumulationHistories PointAccumulationHistory[]
-  pointRedemptions           PointRedemption[]
 }
 
 model OrderTransaction {
@@ -678,7 +659,7 @@ model PointRedemption {
   id             Int      @id @default(autoincrement())
   branchId       Int
   customerId     Int
-  invoiceId      Int
+  orderId        Int
   pointToRedeem  Float
   amountRedeemed Float
   isPublic       Boolean? @default(true)
@@ -688,21 +669,21 @@ model PointRedemption {
   updatedAt      DateTime @updatedAt
   branch         Branch   @relation(fields: [branchId], references: [id])
   customer       Customer @relation(fields: [customerId], references: [id])
-  invoice        Invoice  @relation(fields: [invoiceId], references: [id])
+  order          Order    @relation(fields: [orderId], references: [id])
 }
 
 model PointAccumulationHistory {
   id        Int      @id @default(autoincrement())
   branchId  Int
   point     Float?
-  invoiceId Int
+  orderId   Int
   isPublic  Boolean? @default(true)
   createdBy Int?
   updatedBy Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   branch    Branch   @relation(fields: [branchId], references: [id])
-  invoice   Invoice  @relation(fields: [invoiceId], references: [id])
+  order     Order    @relation(fields: [orderId], references: [id])
 }
 
 model CustomerRequest {
@@ -785,7 +766,6 @@ model Branch {
   pointRedemptions           PointRedemption[]
   pointAccumulationHistories PointAccumulationHistory[]
   orderDetails               OrderDetail[]
-  invoices                   Invoice[]
   customerRequests           CustomerRequest[]
   orderRatings               OrderRating[]
   staffRatings               StaffRating[]

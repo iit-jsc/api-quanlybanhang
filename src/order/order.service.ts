@@ -1,12 +1,23 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { FindManyDto } from 'utils/Common.dto';
 import { CreateOrderByEmployeeDto } from './dto/create-order-by-employee.dto';
 import { CommonService } from 'src/common/common.service';
-import { calculatePagination } from 'utils/Helps';
+import { calculatePagination, generateOrderCode } from 'utils/Helps';
 import { PRICE_TYPE } from 'enums/product.enum';
+import {
+  CreateOrderByCustomerOnlineDto,
+  CreateOrderByCustomerWithTableDto,
+  ProductInOrder,
+} from './dto/create-order-by-customer.dto';
+import { CustomHttpException } from 'utils/ApiErrors';
+import {
+  CREATE_ORDER_BY_CUSTOMER_SELECT,
+  CREATE_ORDER_BY_EMPLOYEE_SELECT,
+} from 'enums/select.enum';
+import { ORDER_STATUS_COMMON, ORDER_TYPE } from 'enums/order.enum';
 @Injectable()
 export class OrderService {
   constructor(
@@ -18,41 +29,45 @@ export class OrderService {
     data: CreateOrderByEmployeeDto,
     tokenPayload: TokenPayload,
   ) {
-    const orderDetails = await Promise.all(
-      data.products.map(async (product) => {
-        const productExist = (await this.commonService.findByIdWithBranch(
-          product.id,
-          'Product',
-          tokenPayload.branchId,
-        )) as Prisma.ProductCreateInput;
+    if (data.isTable) {
+      if (!data.tableId)
+        throw new CustomHttpException(
+          HttpStatus.NOT_FOUND,
+          '#1 createByEmployee - ID bàn không được để trống!',
+        );
 
-        return {
-          price: this.getPrice(productExist, product.priceType),
-          toppingId: product.toppingId,
-          productId: product.id,
-          amount: product.amount,
-          branchId: tokenPayload.branchId,
-        } as Prisma.OrderDetailCreateManyInput;
-      }),
+      await this.commonService.findByIdWithBranch(
+        data.tableId,
+        'Table',
+        tokenPayload.branchId,
+      );
+    }
+
+    if (data.customerId)
+      await this.commonService.findByIdWithShop(
+        data.customerId,
+        'Customer',
+        tokenPayload.shopId,
+      );
+
+    const orderDetails = await this.getOrderDetails(
+      data.products,
+      tokenPayload,
     );
 
     return this.prisma.order.create({
       data: {
         note: data.note,
+        orderType: ORDER_TYPE.BY_EMPLOYEE,
+        orderStatus: data.orderStatus || ORDER_STATUS_COMMON.WAITING,
         orderDate: new Date(),
+        code: data.code || generateOrderCode(),
         paymentMethod: data.paymentMethod,
         orderDetails: {
           createMany: {
             data: orderDetails,
           },
         },
-        ...(data.customerId && {
-          customer: {
-            connect: {
-              id: data.customerId,
-            },
-          },
-        }),
         ...(data.tableId && {
           table: {
             connect: {
@@ -60,10 +75,10 @@ export class OrderService {
             },
           },
         }),
-        ...(data.orderStatusId && {
-          orderStatus: {
+        ...(data.customerId && {
+          customer: {
             connect: {
-              id: data.orderStatusId,
+              id: data.customerId,
             },
           },
         }),
@@ -73,8 +88,116 @@ export class OrderService {
             isPublic: true,
           },
         },
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
+        createdByAccount: {
+          connect: {
+            id: tokenPayload.accountId,
+            isPublic: true,
+          },
+        },
+        updatedByAccount: {
+          connect: {
+            id: tokenPayload.accountId,
+            isPublic: true,
+          },
+        },
+      },
+      select: CREATE_ORDER_BY_EMPLOYEE_SELECT,
+    });
+  }
+
+  async createByCustomerWithTable(
+    data: CreateOrderByCustomerWithTableDto,
+    tokenPayload: TokenPayload,
+  ) {
+    const orderDetails = await this.getOrderDetails(
+      data.products,
+      tokenPayload,
+    );
+
+    return this.prisma.order.create({
+      data: {
+        name: data.name,
+        orderType: ORDER_TYPE.BY_CUSTOMER_WITH_TABLE,
+        orderStatus: ORDER_STATUS_COMMON.WAITING,
+        note: data.note,
+        code: generateOrderCode(),
+        orderDate: new Date(),
+        orderDetails: {
+          createMany: {
+            data: orderDetails,
+          },
+        },
+        table: {
+          connect: {
+            id: data.tableId,
+          },
+        },
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
+            isPublic: true,
+          },
+        },
+        createdByAccount: {
+          connect: {
+            id: tokenPayload.accountId,
+            isPublic: true,
+          },
+        },
+        updatedByAccount: {
+          connect: {
+            id: tokenPayload.accountId,
+            isPublic: true,
+          },
+        },
+      },
+      select: CREATE_ORDER_BY_CUSTOMER_SELECT,
+    });
+  }
+
+  async createByCustomerOnline(
+    data: CreateOrderByCustomerOnlineDto,
+    tokenPayload: TokenPayload,
+  ) {
+    const orderDetails = await this.getOrderDetails(
+      data.products,
+      tokenPayload,
+    );
+
+    return this.prisma.order.create({
+      data: {
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+        note: data.note,
+        orderType: ORDER_TYPE.ONLINE,
+        orderStatus: ORDER_STATUS_COMMON.WAITING,
+        code: generateOrderCode(),
+        orderDate: new Date(),
+        orderDetails: {
+          createMany: {
+            data: orderDetails,
+          },
+        },
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
+            isPublic: true,
+          },
+        },
+        createdByAccount: {
+          connect: {
+            id: tokenPayload.accountId,
+            isPublic: true,
+          },
+        },
+        updatedByAccount: {
+          connect: {
+            id: tokenPayload.accountId,
+            isPublic: true,
+          },
+        },
       },
       select: {
         id: true,
@@ -83,19 +206,54 @@ export class OrderService {
         email: true,
         orderDate: true,
         address: true,
-        cancelReason: true,
-        cancelDate: true,
         note: true,
-        paymentMethod: true,
-        createdBy: true,
-        updatedBy: true,
-        createdAt: true,
-        updatedAt: true,
+        orderStatus: true,
+        orderDetails: {
+          select: {
+            id: true,
+            amount: true,
+            note: true,
+            price: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                photoURLs: true,
+                code: true,
+              },
+            },
+          },
+        },
       },
     });
   }
 
-  async createByCustomer() {}
+  async getOrderDetails(
+    products: ProductInOrder[],
+    tokenPayload: TokenPayload,
+  ) {
+    return await Promise.all(
+      products.map(async (product) => {
+        const productExist = (await this.commonService.findByIdWithBranch(
+          product.id,
+          'Product',
+          tokenPayload.branchId,
+        )) as Prisma.ProductCreateInput;
+
+        return {
+          ...(product.toppingId && {
+            toppingId: product.toppingId,
+          }),
+          price: this.getPrice(productExist, product.priceType),
+          productId: product.id,
+          amount: product.amount,
+          branchId: tokenPayload.branchId,
+          createdBy: tokenPayload.accountId,
+          updatedBy: tokenPayload.accountId,
+        } as Prisma.OrderDetailCreateManyInput;
+      }),
+    );
+  }
 
   getPrice(product: Prisma.ProductCreateInput, priceType: number) {
     return priceType === PRICE_TYPE.IMPORT_PRICE

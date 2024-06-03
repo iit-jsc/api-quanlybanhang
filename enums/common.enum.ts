@@ -14,3 +14,8 @@ export const PAYMENT_STATUS = {
   ACTIVE: 1,
   DISABLE: 2,
 };
+
+export const PAYMENT_METHOD = {
+  CASH: 1,
+  CARD: 2,
+};

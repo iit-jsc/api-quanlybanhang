@@ -18,6 +18,10 @@ import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { BranchGuard } from 'guards/branch.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { CreateOrderByEmployeeDto } from './dto/create-order-by-employee.dto';
+import {
+  CreateOrderByCustomerOnlineDto,
+  CreateOrderByCustomerWithTableDto,
+} from './dto/create-order-by-customer.dto';
 
 @Controller('order')
 export class OrderController {
@@ -34,6 +38,37 @@ export class OrderController {
 
     return this.orderService.createByEmployee(
       createOrderByEmployeeDto,
+      tokenPayload,
+    );
+  }
+
+  @Post('by-customer-with-table')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, BranchGuard)
+  createByCustomerWithTable(
+    @Body()
+    createOrderByCustomerWithTableDto: CreateOrderByCustomerWithTableDto,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.createByCustomerWithTable(
+      createOrderByCustomerWithTableDto,
+      tokenPayload,
+    );
+  }
+
+  @Post('by-customer-online')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, BranchGuard)
+  createByCustomerOnline(
+    @Body() CreateOrderByCustomerOnlineDto: CreateOrderByCustomerOnlineDto,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.createByCustomerOnline(
+      CreateOrderByCustomerOnlineDto,
       tokenPayload,
     );
   }

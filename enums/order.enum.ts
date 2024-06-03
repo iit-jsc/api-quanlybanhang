@@ -1,0 +1,11 @@
+export const ORDER_TYPE = {
+  BY_CUSTOMER_WITH_TABLE: 1,
+  BY_EMPLOYEE: 2,
+  ONLINE: 3,
+};
+
+export const ORDER_STATUS_COMMON = {
+  WAITING: 1,
+  PREPARING: 2,
+  DONE: 3,
+};
