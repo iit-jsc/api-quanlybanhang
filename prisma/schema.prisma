@@ -245,9 +245,7 @@ model Product {
   name                    String
   sku                     String
   code                    String?
-  retailPrice             Float                    @default(0)
-  wholesalePrice          Float                    @default(0)
-  importPrice             Float                    @default(0)
+  price                   Float                    @default(0)
   description             String?                  @db.Text
   photoURLs               Json?
   otherAttributes         Json?
@@ -521,8 +519,6 @@ model OrderDetail {
   note      String?
   price     Float
   isPublic  Boolean? @default(true)
-  createdBy Int?
-  updatedBy Int?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   branch    Branch   @relation(fields: [branchId], references: [id])

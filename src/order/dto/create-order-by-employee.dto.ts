@@ -45,11 +45,11 @@ export class CreateOrderByEmployeeDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
   @ValidateNested({ each: true })
-  @Type(() => Product)
-  products: Product[];
+  @Type(() => ProductInOrder)
+  products: ProductInOrder[];
 }
 
-class Product {
+class ProductInOrder {
   @IsNotEmpty({ message: 'ID sản phẩm không được để trống!' })
   @IsNumber({}, { message: 'ID sản phẩm phải là số!' })
   id: number;
@@ -57,11 +57,6 @@ class Product {
   @IsNotEmpty({ message: 'Số lượng sản phẩm không được để trống!' })
   @IsNumber({}, { message: 'Số lượng sản phẩm phải là số!' })
   amount: number;
-
-  @IsNotEmpty({ message: 'Loại giá không được để trống!' })
-  @IsNumber({}, { message: 'Loại giá phải là số!' })
-  @IsEnum(PRICE_TYPE, { message: 'Loại giá không hợp lệ!' })
-  priceType: number;
 
   @IsOptional()
   @IsNumber({}, { message: 'ID topping phải là số!' })

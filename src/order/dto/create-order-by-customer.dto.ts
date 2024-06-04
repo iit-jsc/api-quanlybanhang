@@ -16,6 +16,10 @@ import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 export class CreateOrderByCustomerWithTableDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
+  branchId: number;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNumber()
   tableId: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -34,6 +38,10 @@ export class CreateOrderByCustomerWithTableDto {
 }
 
 export class CreateOrderByCustomerOnlineDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNumber()
+  branchId: number;
+
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
   name: string;
@@ -78,11 +86,6 @@ export class ProductInOrder {
   @IsNotEmpty({ message: 'Số lượng sản phẩm không được để trống!' })
   @IsNumber({}, { message: 'Số lượng sản phẩm phải là số!' })
   amount: number;
-
-  @IsNotEmpty({ message: 'Loại giá không được để trống!' })
-  @IsNumber({}, { message: 'Loại giá phải là số!' })
-  @IsEnum(PRICE_TYPE, { message: 'Loại giá không hợp lệ!' })
-  priceType: number;
 
   @IsOptional()
   @IsNumber({}, { message: 'ID topping phải là số!' })

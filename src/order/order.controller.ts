@@ -44,32 +44,23 @@ export class OrderController {
 
   @Post('by-customer-with-table')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
   createByCustomerWithTable(
     @Body()
     createOrderByCustomerWithTableDto: CreateOrderByCustomerWithTableDto,
-    @Req() req: any,
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
     return this.orderService.createByCustomerWithTable(
       createOrderByCustomerWithTableDto,
-      tokenPayload,
     );
   }
 
   @Post('by-customer-online')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
   createByCustomerOnline(
     @Body() CreateOrderByCustomerOnlineDto: CreateOrderByCustomerOnlineDto,
     @Req() req: any,
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
     return this.orderService.createByCustomerOnline(
       CreateOrderByCustomerOnlineDto,
-      tokenPayload,
     );
   }
 

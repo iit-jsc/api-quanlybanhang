@@ -52,7 +52,7 @@ export class OrderService {
 
     const orderDetails = await this.getOrderDetails(
       data.products,
-      tokenPayload,
+      tokenPayload.branchId,
     );
 
     return this.prisma.order.create({
@@ -105,13 +105,10 @@ export class OrderService {
     });
   }
 
-  async createByCustomerWithTable(
-    data: CreateOrderByCustomerWithTableDto,
-    tokenPayload: TokenPayload,
-  ) {
+  async createByCustomerWithTable(data: CreateOrderByCustomerWithTableDto) {
     const orderDetails = await this.getOrderDetails(
       data.products,
-      tokenPayload,
+      data.branchId,
     );
 
     return this.prisma.order.create({
@@ -134,19 +131,7 @@ export class OrderService {
         },
         branch: {
           connect: {
-            id: tokenPayload.branchId,
-            isPublic: true,
-          },
-        },
-        createdByAccount: {
-          connect: {
-            id: tokenPayload.accountId,
-            isPublic: true,
-          },
-        },
-        updatedByAccount: {
-          connect: {
-            id: tokenPayload.accountId,
+            id: data.branchId,
             isPublic: true,
           },
         },
@@ -155,13 +140,10 @@ export class OrderService {
     });
   }
 
-  async createByCustomerOnline(
-    data: CreateOrderByCustomerOnlineDto,
-    tokenPayload: TokenPayload,
-  ) {
+  async createByCustomerOnline(data: CreateOrderByCustomerOnlineDto) {
     const orderDetails = await this.getOrderDetails(
       data.products,
-      tokenPayload,
+      data.branchId,
     );
 
     return this.prisma.order.create({
@@ -182,19 +164,7 @@ export class OrderService {
         },
         branch: {
           connect: {
-            id: tokenPayload.branchId,
-            isPublic: true,
-          },
-        },
-        createdByAccount: {
-          connect: {
-            id: tokenPayload.accountId,
-            isPublic: true,
-          },
-        },
-        updatedByAccount: {
-          connect: {
-            id: tokenPayload.accountId,
+            id: data.branchId,
             isPublic: true,
           },
         },
@@ -228,39 +198,26 @@ export class OrderService {
     });
   }
 
-  async getOrderDetails(
-    products: ProductInOrder[],
-    tokenPayload: TokenPayload,
-  ) {
+  async getOrderDetails(products: ProductInOrder[], branchId: number) {
     return await Promise.all(
       products.map(async (product) => {
         const productExist = (await this.commonService.findByIdWithBranch(
           product.id,
           'Product',
-          tokenPayload.branchId,
+          branchId,
         )) as Prisma.ProductCreateInput;
 
         return {
           ...(product.toppingId && {
             toppingId: product.toppingId,
           }),
-          price: this.getPrice(productExist, product.priceType),
+          price: productExist.price,
           productId: product.id,
           amount: product.amount,
-          branchId: tokenPayload.branchId,
-          createdBy: tokenPayload.accountId,
-          updatedBy: tokenPayload.accountId,
+          branchId,
         } as Prisma.OrderDetailCreateManyInput;
       }),
     );
-  }
-
-  getPrice(product: Prisma.ProductCreateInput, priceType: number) {
-    return priceType === PRICE_TYPE.IMPORT_PRICE
-      ? product.importPrice
-      : priceType === PRICE_TYPE.RETAIL_PRICE
-        ? product.retailPrice
-        : product.wholesalePrice;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {

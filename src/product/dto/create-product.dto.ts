@@ -54,17 +54,7 @@ export class CreateProductDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  retailPrice: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  wholesalePrice: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  importPrice: number;
+  price: number;
 
   @IsOptional()
   @IsArray()
