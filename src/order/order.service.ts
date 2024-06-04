@@ -245,19 +245,14 @@ export class OrderService {
         where,
         select: {
           id: true,
-          name: true,
-          phone: true,
-          email: true,
-          orderDate: true,
-          address: true,
-          cancelReason: true,
-          cancelDate: true,
-          note: true,
-          paymentMethod: true,
-          createdBy: true,
-          updatedBy: true,
-          createdAt: true,
-          updatedAt: true,
+          table: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              photoURL: true,
+            },
+          },
         },
       }),
       this.prisma.order.count({
@@ -266,6 +261,7 @@ export class OrderService {
     ]);
     return {
       list: data,
+
       pagination: calculatePagination(totalRecords, skip, take),
     };
   }
