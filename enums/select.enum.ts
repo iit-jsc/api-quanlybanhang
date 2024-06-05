@@ -91,7 +91,8 @@ export const CREATE_ORDER_BY_EMPLOYEE_SELECT = {
       id: true,
       amount: true,
       note: true,
-      price: true,
+      productPrice: true,
+      toppingPrice: true,
       product: {
         select: {
           id: true,
@@ -156,7 +157,8 @@ export const CREATE_ORDER_BY_CUSTOMER_SELECT = {
       id: true,
       amount: true,
       note: true,
-      price: true,
+      productPrice: true,
+      toppingPrice: true,
       product: {
         select: {
           id: true,

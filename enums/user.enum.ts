@@ -14,3 +14,8 @@ export enum SEX_TYPE {
   FEMALE = 2,
   OTHER = 3,
 }
+
+export enum ENDOW_TYPE {
+  BY_GROUP = 1,
+  BY_CUSTOMER = 2,
+}

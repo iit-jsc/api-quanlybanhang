@@ -329,7 +329,7 @@ model Customer {
   representativeName  String?
   representativePhone String?
   birthDay            DateTime?
-  endow               Int
+  endow               Int?                @default(1)
   discount            Float?
   discountType        Int?
   sex                 Int?
@@ -348,7 +348,6 @@ model Customer {
   pointRedemptions    PointRedemption[]
 
   @@unique([code, shopId, isPublic])
-  @@unique([email, shopId, isPublic])
   @@unique([phone, shopId, isPublic])
 }
 
@@ -474,11 +473,6 @@ model Order {
   tableId                    Int?
   customerId                 Int?
   code                       String
-  name                       String?
-  phone                      String?
-  email                      String?
-  orderDate                  DateTime
-  address                    String?                    @db.Text
   cancelReason               String?
   cancelDate                 DateTime?
   transactionId              String?
@@ -510,21 +504,22 @@ model Order {
 }
 
 model OrderDetail {
-  id        Int      @id @default(autoincrement())
-  branchId  Int
-  orderId   Int
-  productId Int
-  toppingId Int?
-  amount    Float
-  note      String?
-  price     Float
-  isPublic  Boolean? @default(true)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  branch    Branch   @relation(fields: [branchId], references: [id])
-  topping   Topping? @relation(fields: [toppingId], references: [id])
-  order     Order    @relation(fields: [orderId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
+  id           Int      @id @default(autoincrement())
+  branchId     Int
+  orderId      Int
+  productId    Int
+  toppingId    Int?
+  amount       Float
+  note         String?
+  productPrice Float
+  toppingPrice Float    @default(0)
+  isPublic     Boolean? @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+  branch       Branch   @relation(fields: [branchId], references: [id])
+  topping      Topping? @relation(fields: [toppingId], references: [id])
+  order        Order    @relation(fields: [orderId], references: [id])
+  product      Product  @relation(fields: [productId], references: [id])
 }
 
 model OrderTransaction {
@@ -563,6 +558,7 @@ model Area {
 
 model Table {
   id          Int      @id @default(autoincrement())
+  orderId     Int?
   branchId    Int
   areaId      Int
   name        String

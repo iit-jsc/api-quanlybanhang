@@ -82,6 +82,7 @@ export class TableService {
           id: true,
           name: true,
           description: true,
+          orderId: true,
           code: true,
           photoURL: true,
           area: {
@@ -124,6 +125,7 @@ export class TableService {
         description: true,
         code: true,
         photoURL: true,
+        orderId: true,
         area: {
           select: {
             id: true,

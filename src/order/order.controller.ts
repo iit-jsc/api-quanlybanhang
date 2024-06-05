@@ -22,6 +22,7 @@ import {
   CreateOrderByCustomerOnlineDto,
   CreateOrderByCustomerWithTableDto,
 } from './dto/create-order-by-customer.dto';
+import { approveOrderDto } from './dto/confirm-order.dto';
 
 @Controller('order')
 export class OrderController {
@@ -57,7 +58,6 @@ export class OrderController {
   @HttpCode(HttpStatus.OK)
   createByCustomerOnline(
     @Body() CreateOrderByCustomerOnlineDto: CreateOrderByCustomerOnlineDto,
-    @Req() req: any,
   ) {
     return this.orderService.createByCustomerOnline(
       CreateOrderByCustomerOnlineDto,
@@ -76,20 +76,18 @@ export class OrderController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  update(
+  approveOrder(
     @Param('id') id: number,
-    @Body() createOrderDto: CreateOrderByEmployeeDto,
     @Req() req: any,
+    @Body() approveOrderDto: approveOrderDto,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.orderService.update(
+    return this.orderService.approveOrder(
       {
-        where: {
-          id,
-        },
-        data: createOrderDto,
+        id,
       },
+      approveOrderDto,
       tokenPayload,
     );
   }

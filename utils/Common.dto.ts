@@ -1,5 +1,5 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer';
-import { ArrayNotEmpty, IsNotEmpty, IsOptional } from 'class-validator';
+import { ArrayNotEmpty, IsDate, IsNotEmpty, IsOptional } from 'class-validator';
 
 export class FindManyDto {
   @Type(() => Number)
@@ -95,6 +95,34 @@ export class FindManyDto {
       .filter((id: number) => !isNaN(id));
   })
   businessTypeIds: number[];
+
+  /* ====== order  filter  ====== */
+  @Type(() => Number)
+  customerId?: number;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  from?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  to?: Date;
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  orderTypes: number[];
+
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isPaid?: boolean;
 }
 
 export class DeleteManyDto {

@@ -11,7 +11,7 @@ import {
   Validate,
 } from 'class-validator';
 import { DISCOUNT_TYPE } from 'enums/common.enum';
-import { SEX_TYPE } from 'enums/user.enum';
+import { ENDOW_TYPE, SEX_TYPE } from 'enums/user.enum';
 import {
   DiscountConstraint,
   IsVietnamesePhoneNumber,
@@ -66,6 +66,7 @@ export class CreateCustomerDto {
 
   @IsOptional()
   @IsNumber()
+  @IsEnum(ENDOW_TYPE, { message: 'Endow không hợp lệ!' })
   endow: number;
 
   @IsOptional()

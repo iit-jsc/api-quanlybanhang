@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
@@ -6,18 +6,17 @@ import { FindManyDto } from 'utils/Common.dto';
 import { CreateOrderByEmployeeDto } from './dto/create-order-by-employee.dto';
 import { CommonService } from 'src/common/common.service';
 import { calculatePagination, generateOrderCode } from 'utils/Helps';
-import { PRICE_TYPE } from 'enums/product.enum';
 import {
   CreateOrderByCustomerOnlineDto,
   CreateOrderByCustomerWithTableDto,
   ProductInOrder,
 } from './dto/create-order-by-customer.dto';
-import { CustomHttpException } from 'utils/ApiErrors';
 import {
   CREATE_ORDER_BY_CUSTOMER_SELECT,
   CREATE_ORDER_BY_EMPLOYEE_SELECT,
 } from 'enums/select.enum';
 import { ORDER_STATUS_COMMON, ORDER_TYPE } from 'enums/order.enum';
+import { approveOrderDto } from './dto/confirm-order.dto';
 @Injectable()
 export class OrderService {
   constructor(
@@ -29,20 +28,6 @@ export class OrderService {
     data: CreateOrderByEmployeeDto,
     tokenPayload: TokenPayload,
   ) {
-    if (data.isTable) {
-      if (!data.tableId)
-        throw new CustomHttpException(
-          HttpStatus.NOT_FOUND,
-          '#1 createByEmployee - ID bàn không được để trống!',
-        );
-
-      await this.commonService.findByIdWithBranch(
-        data.tableId,
-        'Table',
-        tokenPayload.branchId,
-      );
-    }
-
     if (data.customerId)
       await this.commonService.findByIdWithShop(
         data.customerId,
@@ -55,54 +40,66 @@ export class OrderService {
       tokenPayload.branchId,
     );
 
-    return this.prisma.order.create({
-      data: {
-        note: data.note,
-        orderType: ORDER_TYPE.BY_EMPLOYEE,
-        orderStatus: data.orderStatus || ORDER_STATUS_COMMON.WAITING,
-        orderDate: new Date(),
-        code: data.code || generateOrderCode(),
-        paymentMethod: data.paymentMethod,
-        orderDetails: {
-          createMany: {
-            data: orderDetails,
-          },
-        },
-        ...(data.tableId && {
-          table: {
-            connect: {
-              id: data.tableId,
+    const order = await this.prisma.$transaction(async (prisma) => {
+      const newOrder = await prisma.order.create({
+        data: {
+          note: data.note,
+          orderType: ORDER_TYPE.BY_EMPLOYEE,
+          orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
+          code: data.code || generateOrderCode(),
+          paymentMethod: data.paymentMethod,
+          orderDetails: {
+            createMany: {
+              data: orderDetails,
             },
           },
-        }),
-        ...(data.customerId && {
-          customer: {
+          ...(data.tableId && {
+            table: {
+              connect: {
+                id: data.tableId,
+              },
+            },
+          }),
+          ...(data.customerId && {
+            customer: {
+              connect: {
+                id: data.customerId,
+              },
+            },
+          }),
+          branch: {
             connect: {
-              id: data.customerId,
+              id: tokenPayload.branchId,
+              isPublic: true,
             },
           },
-        }),
-        branch: {
-          connect: {
-            id: tokenPayload.branchId,
-            isPublic: true,
+          createdByAccount: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
+          updatedByAccount: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
           },
         },
-        createdByAccount: {
-          connect: {
-            id: tokenPayload.accountId,
-            isPublic: true,
-          },
-        },
-        updatedByAccount: {
-          connect: {
-            id: tokenPayload.accountId,
-            isPublic: true,
-          },
-        },
-      },
-      select: CREATE_ORDER_BY_EMPLOYEE_SELECT,
+        select: CREATE_ORDER_BY_EMPLOYEE_SELECT,
+      });
+
+      // Thêm hóa đơn vào bàn
+      if (data.isTable)
+        await this.commonService.addOrderCurrentToTable(
+          { orderId: newOrder.id, tableId: data.tableId },
+          tokenPayload.branchId,
+        );
+
+      return newOrder;
     });
+
+    return order;
   }
 
   async createByCustomerWithTable(data: CreateOrderByCustomerWithTableDto) {
@@ -113,12 +110,10 @@ export class OrderService {
 
     return this.prisma.order.create({
       data: {
-        name: data.name,
-        orderType: ORDER_TYPE.BY_CUSTOMER_WITH_TABLE,
+        orderType: ORDER_TYPE.BY_CUSTOMER,
         orderStatus: ORDER_STATUS_COMMON.WAITING,
         note: data.note,
         code: generateOrderCode(),
-        orderDate: new Date(),
         orderDetails: {
           createMany: {
             data: orderDetails,
@@ -146,17 +141,27 @@ export class OrderService {
       data.branchId,
     );
 
-    return this.prisma.order.create({
-      data: {
+    const customer = await this.commonService.findOrCreateCustomer(
+      {
         name: data.name,
         phone: data.phone,
         email: data.email,
         address: data.address,
+      },
+      { phone: data.phone, branchId: data.branchId },
+    );
+
+    return this.prisma.order.create({
+      data: {
         note: data.note,
-        orderType: ORDER_TYPE.ONLINE,
+        customer: {
+          connect: {
+            id: customer.id,
+          },
+        },
+        orderType: ORDER_TYPE.BY_CUSTOMER,
         orderStatus: ORDER_STATUS_COMMON.WAITING,
         code: generateOrderCode(),
-        orderDate: new Date(),
         orderDetails: {
           createMany: {
             data: orderDetails,
@@ -171,11 +176,6 @@ export class OrderService {
       },
       select: {
         id: true,
-        name: true,
-        phone: true,
-        email: true,
-        orderDate: true,
-        address: true,
         note: true,
         orderStatus: true,
         orderDetails: {
@@ -183,7 +183,8 @@ export class OrderService {
             id: true,
             amount: true,
             note: true,
-            price: true,
+            productPrice: true,
+            toppingPrice: true,
             product: {
               select: {
                 id: true,
@@ -207,11 +208,18 @@ export class OrderService {
           branchId,
         )) as Prisma.ProductCreateInput;
 
+        const toppingExist = (await this.commonService.findByIdWithBranch(
+          product.toppingId,
+          'Product',
+          branchId,
+        )) as Prisma.ToppingCreateInput;
+
         return {
           ...(product.toppingId && {
             toppingId: product.toppingId,
           }),
-          price: productExist.price,
+          productPrice: productExist.price,
+          toppingPrice: toppingExist.price,
           productId: product.id,
           amount: product.amount,
           branchId,
@@ -221,9 +229,10 @@ export class OrderService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, customerId, from, to, orderTypes, isPaid } =
+      params;
 
-    const keySearch = ['name'];
+    const keySearch = ['code'];
 
     let where: Prisma.OrderWhereInput = {
       isPublic: true,
@@ -232,6 +241,34 @@ export class OrderService {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword, mode: 'insensitive' },
         })),
+      }),
+      ...(customerId && {
+        customerId: customerId,
+      }),
+      ...(from &&
+        to && {
+          createdAt: {
+            gte: from,
+            lte: to,
+          },
+        }),
+      ...(from &&
+        !to && {
+          createdAt: {
+            gte: from,
+          },
+        }),
+      ...(!from &&
+        to && {
+          createdAt: {
+            lte: to,
+          },
+        }),
+      ...(orderTypes?.length > 0 && {
+        orderType: { in: orderTypes },
+      }),
+      ...(isPaid && {
+        isPaid,
       }),
     };
 
@@ -245,6 +282,7 @@ export class OrderService {
         where,
         select: {
           id: true,
+          code: true,
           table: {
             select: {
               id: true,
@@ -253,6 +291,43 @@ export class OrderService {
               photoURL: true,
             },
           },
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              phone: true,
+              address: true,
+              email: true,
+            },
+          },
+          isPaid: true,
+          note: true,
+          orderDetails: {
+            select: {
+              id: true,
+              amount: true,
+              note: true,
+              productPrice: true,
+              toppingPrice: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                  code: true,
+                },
+              },
+              topping: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                },
+              },
+            },
+          },
+          createdAt: true,
         },
       }),
       this.prisma.order.count({
@@ -266,16 +341,50 @@ export class OrderService {
     };
   }
 
-  async findUniq(
-    where: Prisma.ProductWhereUniqueInput,
+  async approveOrder(
+    where: Prisma.OrderWhereUniqueInput,
+    data: approveOrderDto,
     tokenPayload: TokenPayload,
+  ) {
+    await this.commonService.addOrderCurrentToTable(
+      {
+        orderId: where.id,
+        tableId: data.tableId,
+      },
+      tokenPayload.branchId,
+    );
+
+    return this.prisma.order.update({
+      where: {
+        id: where.id,
+        branchId: tokenPayload.branchId,
+        isPublic: true,
+      },
+      data: {
+        orderStatus: ORDER_STATUS_COMMON.APPROVED,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
+
+  async createProductsToOrderByCustomer(
+    where: Prisma.OrderWhereUniqueInput,
+    data: Prisma.OrderDetailCreateInput,
+  ) {}
+
+  async createProductsToOrderByEmployee(
+    where: Prisma.OrderWhereUniqueInput,
+    data: Prisma.OrderDetailCreateInput,
   ) {}
 
   async update(
-    params: {
-      where: Prisma.ProductWhereUniqueInput;
-      data: CreateOrderByEmployeeDto;
-    },
+    where: Prisma.OrderWhereUniqueInput,
+    data: Prisma.OrderUpdateInput,
+    tokenPayload: TokenPayload,
+  ) {}
+
+  async findUniq(
+    where: Prisma.ProductWhereUniqueInput,
     tokenPayload: TokenPayload,
   ) {}
 

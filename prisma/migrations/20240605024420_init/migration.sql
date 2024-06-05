@@ -487,10 +487,9 @@ CREATE TABLE "OrderDetail" (
     "toppingId" INTEGER,
     "amount" DOUBLE PRECISION NOT NULL,
     "note" TEXT,
-    "price" DOUBLE PRECISION NOT NULL,
+    "productPrice" DOUBLE PRECISION NOT NULL,
+    "toppingPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 

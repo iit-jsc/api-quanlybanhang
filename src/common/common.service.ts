@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client';
 import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 import { PrismaService } from 'nestjs-prisma';
 import { permission } from 'process';
+import { CreateCustomerDto } from 'src/customer/dto/create-customer.dto';
 import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
@@ -190,5 +191,73 @@ export class CommonService {
         },
       },
     });
+  }
+
+  async findOrCreateCustomer(
+    data: { name: string; email: string; address: string; phone: string },
+    where: { phone: string; branchId: number },
+  ) {
+    const shop = await this.prisma.shop.findFirst({
+      where: {
+        branches: {
+          some: {
+            id: where.branchId,
+            isPublic: true,
+          },
+        },
+      },
+    });
+
+    return this.prisma.customer.upsert({
+      where: {
+        phone_shopId_isPublic: {
+          phone: where.phone,
+          shopId: shop.id,
+          isPublic: true,
+        },
+      },
+      create: {
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        address: data.email,
+        shop: {
+          connect: {
+            id: shop.id,
+          },
+        },
+      },
+      update: { name: data.name, address: data.email },
+    });
+  }
+
+  async addOrderCurrentToTable(
+    data: { orderId: number; tableId: number },
+    branchId: number,
+  ) {
+    await this.findByIdWithBranch(data.tableId, 'Table', branchId);
+
+    await this.checkTableIsReady(data.tableId);
+
+    await this.prisma.table.update({
+      where: { id: data.tableId },
+      data: { orderId: data.orderId },
+    });
+  }
+
+  async checkTableIsReady(id: number) {
+    const table = await this.prisma.table.findFirst({
+      where: {
+        id,
+        isPublic: true,
+        orderId: null,
+      },
+    });
+
+    if (!table)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#1 checkTableIsReady - Bàn này không sẵn sàng!',
+      );
   }
 }
