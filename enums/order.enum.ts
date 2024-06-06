@@ -9,3 +9,9 @@ export const ORDER_STATUS_COMMON = {
   PREPARING: 3,
   CANCELLED: 4,
 };
+
+export const DETAIL_ORDER_STATUS = {
+  WAITING: 1,
+  APPROVED: 2,
+  DONE: 3,
+};

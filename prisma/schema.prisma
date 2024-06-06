@@ -470,7 +470,6 @@ model CouponProduct {
 model Order {
   id                         Int                        @id @default(autoincrement())
   branchId                   Int
-  tableId                    Int?
   customerId                 Int?
   code                       String
   cancelReason               String?
@@ -480,14 +479,13 @@ model Order {
   orderType                  Int
   paymentMethod              Int?
   isPaid                     Boolean?                   @default(false)
+  orderStatus                Int
   isPublic                   Boolean?                   @default(true)
   createdBy                  Int?
   updatedBy                  Int?
   createdAt                  DateTime                   @default(now())
   updatedAt                  DateTime                   @updatedAt
   branch                     Branch                     @relation(fields: [branchId], references: [id])
-  orderStatus                Int
-  table                      Table?                     @relation(fields: [tableId], references: [id])
   customer                   Customer?                  @relation(fields: [customerId], references: [id])
   orderDetails               OrderDetail[]
   deals                      Deal[]
@@ -506,20 +504,23 @@ model Order {
 model OrderDetail {
   id           Int      @id @default(autoincrement())
   branchId     Int
-  orderId      Int
+  orderId      Int?
   productId    Int
   toppingId    Int?
   amount       Float
   note         String?
+  status       Int?     @default(1)
   productPrice Float
-  toppingPrice Float    @default(0)
+  toppingPrice Float?   @default(0)
   isPublic     Boolean? @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
   branch       Branch   @relation(fields: [branchId], references: [id])
   topping      Topping? @relation(fields: [toppingId], references: [id])
-  order        Order    @relation(fields: [orderId], references: [id])
+  order        Order?   @relation(fields: [orderId], references: [id])
   product      Product  @relation(fields: [productId], references: [id])
+  table        Table?   @relation(fields: [tableId], references: [id])
+  tableId      Int?
 }
 
 model OrderTransaction {
@@ -557,22 +558,21 @@ model Area {
 }
 
 model Table {
-  id          Int      @id @default(autoincrement())
-  orderId     Int?
-  branchId    Int
-  areaId      Int
-  name        String
-  code        String
-  photoURL    String?  @db.Text
-  description String?  @db.Text
-  isPublic    Boolean? @default(true)
-  createdBy   Int?
-  updatedBy   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  area        Area     @relation(fields: [areaId], references: [id])
-  orders      Order[]
+  id           Int           @id @default(autoincrement())
+  branchId     Int
+  areaId       Int
+  name         String
+  code         String
+  photoURL     String?       @db.Text
+  description  String?       @db.Text
+  orderDetails OrderDetail[]
+  isPublic     Boolean?      @default(true)
+  createdBy    Int?
+  updatedBy    Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  area         Area          @relation(fields: [areaId], references: [id])
 
   @@unique([code, branchId, isPublic])
 }

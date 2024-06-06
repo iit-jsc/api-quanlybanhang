@@ -78,14 +78,6 @@ export const CREATE_ORDER_BY_EMPLOYEE_SELECT = {
       phone: true,
     },
   },
-  table: {
-    select: {
-      id: true,
-      name: true,
-      code: true,
-      photoURL: true,
-    },
-  },
   orderDetails: {
     select: {
       id: true,
@@ -149,7 +141,6 @@ export const CREATE_ORDER_BY_CUSTOMER_SELECT = {
       photoURL: true,
     },
   },
-  name: true,
   note: true,
   orderStatus: true,
   orderDetails: {

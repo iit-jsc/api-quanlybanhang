@@ -30,11 +30,13 @@ export class CustomerService {
         address: data.address,
         birthDay: data.birthDay,
         code: data.code,
-        customerType: {
-          connect: {
-            id: data.customerTypeId,
+        ...(data.customerTypeId && {
+          customerType: {
+            connect: {
+              id: data.customerTypeId,
+            },
           },
-        },
+        }),
         description: data.description,
         discount: data.discount,
         discountType: data.discountType,

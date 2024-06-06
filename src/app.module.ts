@@ -22,9 +22,9 @@ import { CustomerTypeModule } from './customer-type/customer-type.module';
 import { CustomerModule } from './customer/customer.module';
 import { AreaModule } from './area/area.module';
 import { TableModule } from './table/table.module';
-import { OrderModule } from './order/order.module';
 import { ToppingModule } from './topping/topping.module';
 import { OrderStatusModule } from './order-status/order-status.module';
+import { OrderModule } from './order/order.module';
 
 @Module({
   imports: [
@@ -54,9 +54,9 @@ import { OrderStatusModule } from './order-status/order-status.module';
     CustomerModule,
     AreaModule,
     TableModule,
-    OrderModule,
     ToppingModule,
     OrderStatusModule,
+    OrderModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

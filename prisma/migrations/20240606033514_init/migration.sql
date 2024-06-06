@@ -315,7 +315,7 @@ CREATE TABLE "Customer" (
     "representativeName" TEXT,
     "representativePhone" TEXT,
     "birthDay" TIMESTAMP(3),
-    "endow" INTEGER NOT NULL,
+    "endow" INTEGER DEFAULT 1,
     "discount" DOUBLE PRECISION,
     "discountType" INTEGER,
     "sex" INTEGER,
@@ -453,14 +453,8 @@ CREATE TABLE "CouponProduct" (
 CREATE TABLE "Order" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
-    "tableId" INTEGER,
     "customerId" INTEGER,
     "code" TEXT NOT NULL,
-    "name" TEXT,
-    "phone" TEXT,
-    "email" TEXT,
-    "orderDate" TIMESTAMP(3) NOT NULL,
-    "address" TEXT,
     "cancelReason" TEXT,
     "cancelDate" TIMESTAMP(3),
     "transactionId" TEXT,
@@ -488,10 +482,11 @@ CREATE TABLE "OrderDetail" (
     "amount" DOUBLE PRECISION NOT NULL,
     "note" TEXT,
     "productPrice" DOUBLE PRECISION NOT NULL,
-    "toppingPrice" DOUBLE PRECISION NOT NULL DEFAULT 0,
+    "toppingPrice" DOUBLE PRECISION DEFAULT 0,
     "isPublic" BOOLEAN DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "tableId" INTEGER,
 
     CONSTRAINT "OrderDetail_pkey" PRIMARY KEY ("id")
 );
@@ -859,9 +854,6 @@ CREATE UNIQUE INDEX "Product_identifier_branchId_isPublic_key" ON "Product"("ide
 CREATE UNIQUE INDEX "Customer_code_shopId_isPublic_key" ON "Customer"("code", "shopId", "isPublic");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Customer_email_shopId_isPublic_key" ON "Customer"("email", "shopId", "isPublic");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Customer_phone_shopId_isPublic_key" ON "Customer"("phone", "shopId", "isPublic");
 
 -- CreateIndex
@@ -1033,9 +1025,6 @@ ALTER TABLE "CouponProduct" ADD CONSTRAINT "CouponProduct_productId_fkey" FOREIG
 ALTER TABLE "Order" ADD CONSTRAINT "Order_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Order" ADD CONSTRAINT "Order_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1055,6 +1044,9 @@ ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_orderId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderTransaction" ADD CONSTRAINT "OrderTransaction_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

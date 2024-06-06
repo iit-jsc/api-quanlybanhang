@@ -82,7 +82,6 @@ export class TableService {
           id: true,
           name: true,
           description: true,
-          orderId: true,
           code: true,
           photoURL: true,
           area: {
@@ -91,6 +90,11 @@ export class TableService {
               code: true,
               name: true,
               photoURL: true,
+            },
+          },
+          orderDetails: {
+            select: {
+              id: true,
             },
           },
         },
@@ -125,13 +129,39 @@ export class TableService {
         description: true,
         code: true,
         photoURL: true,
-        orderId: true,
         area: {
           select: {
             id: true,
             code: true,
             name: true,
             photoURL: true,
+          },
+        },
+        orderDetails: {
+          select: {
+            id: true,
+            amount: true,
+            note: true,
+            topping: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            product: {
+              select: {
+                id: true,
+                code: true,
+                name: true,
+                measurementUnit: {
+                  select: {
+                    id: true,
+                    code: true,
+                    name: true,
+                  },
+                },
+              },
+            },
           },
         },
       },

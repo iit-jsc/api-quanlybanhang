@@ -1,66 +1,168 @@
 import {
-  Body,
   Controller,
-  Delete,
   Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
   HttpCode,
   HttpStatus,
-  Param,
-  Patch,
-  Post,
-  Query,
-  Req,
   UseGuards,
+  Req,
+  Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { BranchGuard } from 'guards/branch.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { CreateOrderByEmployeeDto } from './dto/create-order-by-employee.dto';
-import {
-  CreateOrderByCustomerOnlineDto,
-  CreateOrderByCustomerWithTableDto,
-} from './dto/create-order-by-customer.dto';
-import { approveOrderDto } from './dto/confirm-order.dto';
+import { CreateOrderDto } from './dto/create-order.dto';
+import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
+import { CreateOrderToTableDto } from './dto/create-order-to-table.dto';
+import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto';
+import { UpdateProductInTableDto } from './dto/update-product-in-table.dto';
+import { UpdateOrderDetailDto } from './dto/update-order-detail.dto';
+import { PaymentFromTableDto } from './dto/payment-order-from-table.dto';
+import { UpdateOrderDto } from './dto/update-order.dto';
+import { CombineTableDto } from './dto/combine-table.dto';
+import { SeparateTableDto } from './dto/separate-table.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { CancelOrderDto } from './dto/cancel-order.dto';
 
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Post('by-employee')
+  @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
-  createByEmployee(
-    @Body() createOrderByEmployeeDto: CreateOrderByEmployeeDto,
+  @UseGuards(JwtAuthGuard)
+  create(@Body() createOrderDto: CreateOrderDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.create(createOrderDto, tokenPayload);
+  }
+
+  @Post('/online')
+  @HttpCode(HttpStatus.OK)
+  createOrderOnline(@Body() createOrderOnlineDto: CreateOrderOnlineDto) {
+    return this.orderService.createOrderOnline(createOrderOnlineDto);
+  }
+
+  @Post('/to-table')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  createOrderToTableByEmployee(
+    @Body() createOrderToTableDto: CreateOrderToTableDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.orderService.createByEmployee(
-      createOrderByEmployeeDto,
+    return this.orderService.createOrderToTableByEmployee(
+      createOrderToTableDto,
       tokenPayload,
     );
   }
 
-  @Post('by-customer-with-table')
+  @Post('/to-table-by-customer')
   @HttpCode(HttpStatus.OK)
-  createByCustomerWithTable(
-    @Body()
-    createOrderByCustomerWithTableDto: CreateOrderByCustomerWithTableDto,
+  @UseGuards(JwtAuthGuard)
+  createOrderToTableByCustomer(
+    @Body() createOrderToTableByCustomerDto: CreateOrderToTableByCustomerDto,
   ) {
-    return this.orderService.createByCustomerWithTable(
-      createOrderByCustomerWithTableDto,
+    return this.orderService.createOrderToTableByCustomer(
+      createOrderToTableByCustomerDto,
     );
   }
 
-  @Post('by-customer-online')
+  @Patch('/detail/:id')
   @HttpCode(HttpStatus.OK)
-  createByCustomerOnline(
-    @Body() CreateOrderByCustomerOnlineDto: CreateOrderByCustomerOnlineDto,
+  @UseGuards(JwtAuthGuard)
+  updateOrderDetail(
+    @Body() updateOrderDetailDto: UpdateOrderDetailDto,
+    @Req() req: any,
+    @Param('id') id: number,
   ) {
-    return this.orderService.createByCustomerOnline(
-      CreateOrderByCustomerOnlineDto,
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.updateOrderDetail(
+      {
+        where: {
+          id,
+        },
+        data: updateOrderDetailDto,
+      },
+      tokenPayload,
+    );
+  }
+
+  @Post('/payment-from-table')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  paymentFromTable(
+    @Body() paymentFromTableDto: PaymentFromTableDto,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.paymentFromTable(
+      paymentFromTableDto,
+      tokenPayload,
+    );
+  }
+
+  @Post('/cancel-order')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  cancelOrder(@Body() cancelOrderDto: CancelOrderDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.cancelOrder(cancelOrderDto, tokenPayload);
+  }
+
+  @Post('/combine-table')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  combineTable(@Body() combineTableDto: CombineTableDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.combineTable(combineTableDto, tokenPayload);
+  }
+
+  @Post('/separate-table')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  separateTable(@Body() separateTableDto: SeparateTableDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.separateTable(separateTableDto, tokenPayload);
+  }
+
+  @Post('/switch-table')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  switchTable(@Body() separateTableDto: SeparateTableDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.switchTable(separateTableDto, tokenPayload);
+  }
+
+  @Patch('/:id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  update(
+    @Body() updateOrderDto: UpdateOrderDto,
+    @Req() req: any,
+    @Param('id') id: number,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.update(
+      {
+        where: {
+          id,
+        },
+        data: updateOrderDto,
+      },
+      tokenPayload,
     );
   }
 
@@ -71,25 +173,6 @@ export class OrderController {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.findAll(findManyDto, tokenPayload);
-  }
-
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
-  approveOrder(
-    @Param('id') id: number,
-    @Req() req: any,
-    @Body() approveOrderDto: approveOrderDto,
-  ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.orderService.approveOrder(
-      {
-        id,
-      },
-      approveOrderDto,
-      tokenPayload,
-    );
   }
 
   @Get(':id')
@@ -108,6 +191,17 @@ export class OrderController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
-  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {}
+  @UseGuards(JwtAuthGuard)
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.removeMany(
+      {
+        id: {
+          in: deleteManyDto.ids,
+        },
+      },
+      tokenPayload,
+    );
+  }
 }

@@ -2,33 +2,23 @@ import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsBoolean,
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { PRICE_TYPE } from 'enums/product.enum';
 
-export class CreateOrderByEmployeeDto {
+export class CreateOrderDto {
   @IsOptional()
   @IsString()
   @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   code: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsBoolean()
-  isTable: number;
-
   @IsOptional()
   @IsNumber()
   customerId: number;
-
-  @IsOptional()
-  @IsNumber()
-  tableId: number;
 
   @IsOptional()
   @IsString()
@@ -42,6 +32,10 @@ export class CreateOrderByEmployeeDto {
   @IsNumber()
   paymentMethod: number;
 
+  @IsOptional()
+  @IsBoolean()
+  isPaid: Boolean = false;
+
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
   @ValidateNested({ each: true })
@@ -49,7 +43,7 @@ export class CreateOrderByEmployeeDto {
   products: ProductInOrder[];
 }
 
-class ProductInOrder {
+export class ProductInOrder {
   @IsNotEmpty({ message: 'ID sản phẩm không được để trống!' })
   @IsNumber({}, { message: 'ID sản phẩm phải là số!' })
   id: number;

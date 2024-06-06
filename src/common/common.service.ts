@@ -1,5 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
+import { DETAIL_ORDER_STATUS } from 'enums/order.enum';
 import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 import { PrismaService } from 'nestjs-prisma';
 import { permission } from 'process';
@@ -231,26 +232,16 @@ export class CommonService {
     });
   }
 
-  async addOrderCurrentToTable(
-    data: { orderId: number; tableId: number },
-    branchId: number,
-  ) {
-    await this.findByIdWithBranch(data.tableId, 'Table', branchId);
-
-    await this.checkTableIsReady(data.tableId);
-
-    await this.prisma.table.update({
-      where: { id: data.tableId },
-      data: { orderId: data.orderId },
-    });
-  }
-
   async checkTableIsReady(id: number) {
     const table = await this.prisma.table.findFirst({
       where: {
         id,
         isPublic: true,
-        orderId: null,
+        NOT: {
+          orderDetails: {
+            some: {},
+          },
+        },
       },
     });
 
