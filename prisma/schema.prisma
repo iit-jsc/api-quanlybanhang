@@ -491,8 +491,6 @@ model Order {
   deals                      Deal[]
   customerRequests           CustomerRequest[]
   orderRatings               OrderRating[]
-  fromOrderTransactions      OrderTransaction[]         @relation("FromOrder")
-  toOrderTransactions        OrderTransaction[]         @relation("ToOrder")
   createdByAccount           Account?                   @relation("createdByRelation", fields: [createdBy], references: [id])
   updatedByAccount           Account?                   @relation("updatedByRelation", fields: [updatedBy], references: [id])
   pointRedemptions           PointRedemption[]
@@ -502,48 +500,50 @@ model Order {
 }
 
 model OrderDetail {
-  id           Int      @id @default(autoincrement())
-  branchId     Int
-  orderId      Int?
-  productId    Int
-  toppingId    Int?
-  amount       Float
-  note         String?
-  status       Int?     @default(1)
-  productPrice Float
-  toppingPrice Float?   @default(0)
-  isPublic     Boolean? @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-  branch       Branch   @relation(fields: [branchId], references: [id])
-  topping      Topping? @relation(fields: [toppingId], references: [id])
-  order        Order?   @relation(fields: [orderId], references: [id])
-  product      Product  @relation(fields: [productId], references: [id])
-  table        Table?   @relation(fields: [tableId], references: [id])
-  tableId      Int?
+  id                Int                @id @default(autoincrement())
+  branchId          Int
+  orderId           Int?
+  productId         Int
+  toppingId         Int?
+  amount            Float
+  note              String?
+  status            Int?               @default(1)
+  productPrice      Float
+  toppingPrice      Float?             @default(0)
+  isPublic          Boolean?           @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  branch            Branch             @relation(fields: [branchId], references: [id])
+  topping           Topping?           @relation(fields: [toppingId], references: [id])
+  order             Order?             @relation(fields: [orderId], references: [id])
+  product           Product            @relation(fields: [productId], references: [id])
+  table             Table?             @relation(fields: [tableId], references: [id])
+  tableId           Int?
+  createdBy         Int?
+  updatedBy         Int?
+  tableTransactions TableTransaction[]
 }
 
-model OrderTransaction {
-  id          Int      @id @default(autoincrement())
-  branchId    Int
-  type        Int
-  fromOrderId Int
-  toOrderId   Int
-  isPublic    Boolean? @default(true)
-  createdBy   Int?
-  updatedBy   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  fromOrder   Order    @relation("FromOrder", fields: [fromOrderId], references: [id])
-  toOrder     Order    @relation("ToOrder", fields: [toOrderId], references: [id])
+model TableTransaction {
+  id           Int           @id @default(autoincrement())
+  branchId     Int
+  type         Int
+  tableId      Int
+  isPublic     Boolean?      @default(true)
+  createdBy    Int?
+  updatedBy    Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  table        Table         @relation(fields: [tableId], references: [id])
+  orderDetails OrderDetail[]
 }
 
 model Area {
   id          Int      @id @default(autoincrement())
   branchId    Int
   name        String
-  code        String
+  code        String?
   description String?  @db.Text
   photoURL    String?  @db.Text
   isPublic    Boolean? @default(true)
@@ -558,21 +558,22 @@ model Area {
 }
 
 model Table {
-  id           Int           @id @default(autoincrement())
-  branchId     Int
-  areaId       Int
-  name         String
-  code         String
-  photoURL     String?       @db.Text
-  description  String?       @db.Text
-  orderDetails OrderDetail[]
-  isPublic     Boolean?      @default(true)
-  createdBy    Int?
-  updatedBy    Int?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  branch       Branch        @relation(fields: [branchId], references: [id])
-  area         Area          @relation(fields: [areaId], references: [id])
+  id                Int                @id @default(autoincrement())
+  branchId          Int
+  areaId            Int
+  name              String
+  code              String?
+  photoURL          String?            @db.Text
+  description       String?            @db.Text
+  orderDetails      OrderDetail[]
+  isPublic          Boolean?           @default(true)
+  createdBy         Int?
+  updatedBy         Int?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  branch            Branch             @relation(fields: [branchId], references: [id])
+  area              Area               @relation(fields: [areaId], references: [id])
+  tableTransactions TableTransaction[]
 
   @@unique([code, branchId, isPublic])
 }
@@ -765,7 +766,7 @@ model Branch {
   employeeSchedules          EmployeeSchedule[]
   timeSheets                 TimeSheet[]
   salaries                   Salary[]
-  orderTransactions          OrderTransaction[]
+  tableTransactions          TableTransaction[]
   otherAttributePatterns     OtherAttributePattern[]
   tables                     Table[]
   permissions                Permission[]

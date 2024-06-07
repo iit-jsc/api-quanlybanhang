@@ -462,12 +462,12 @@ CREATE TABLE "Order" (
     "orderType" INTEGER NOT NULL,
     "paymentMethod" INTEGER,
     "isPaid" BOOLEAN DEFAULT false,
+    "orderStatus" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "orderStatus" INTEGER NOT NULL,
 
     CONSTRAINT "Order_pkey" PRIMARY KEY ("id")
 );
@@ -476,35 +476,38 @@ CREATE TABLE "Order" (
 CREATE TABLE "OrderDetail" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
-    "orderId" INTEGER NOT NULL,
+    "orderId" INTEGER,
     "productId" INTEGER NOT NULL,
     "toppingId" INTEGER,
     "amount" DOUBLE PRECISION NOT NULL,
     "note" TEXT,
+    "status" INTEGER DEFAULT 1,
     "productPrice" DOUBLE PRECISION NOT NULL,
     "toppingPrice" DOUBLE PRECISION DEFAULT 0,
     "isPublic" BOOLEAN DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "tableId" INTEGER,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
 
     CONSTRAINT "OrderDetail_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "OrderTransaction" (
+CREATE TABLE "TableTransaction" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
     "type" INTEGER NOT NULL,
-    "fromOrderId" INTEGER NOT NULL,
-    "toOrderId" INTEGER NOT NULL,
+    "fromTableId" INTEGER NOT NULL,
+    "tableId" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "OrderTransaction_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "TableTransaction_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -512,7 +515,7 @@ CREATE TABLE "Area" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
+    "code" TEXT,
     "description" TEXT,
     "photoURL" TEXT,
     "isPublic" BOOLEAN DEFAULT true,
@@ -530,7 +533,7 @@ CREATE TABLE "Table" (
     "branchId" INTEGER NOT NULL,
     "areaId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
-    "code" TEXT NOT NULL,
+    "code" TEXT,
     "photoURL" TEXT,
     "description" TEXT,
     "isPublic" BOOLEAN DEFAULT true,
@@ -806,6 +809,12 @@ CREATE TABLE "_DealToOrder" (
 );
 
 -- CreateTable
+CREATE TABLE "_OrderDetailToTableTransaction" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
+);
+
+-- CreateTable
 CREATE TABLE "_BranchToPrintTemplate" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
@@ -888,6 +897,12 @@ CREATE UNIQUE INDEX "_DealToOrder_AB_unique" ON "_DealToOrder"("A", "B");
 
 -- CreateIndex
 CREATE INDEX "_DealToOrder_B_index" ON "_DealToOrder"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_OrderDetailToTableTransaction_AB_unique" ON "_OrderDetailToTableTransaction"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_OrderDetailToTableTransaction_B_index" ON "_OrderDetailToTableTransaction"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_BranchToPrintTemplate_AB_unique" ON "_BranchToPrintTemplate"("A", "B");
@@ -1040,7 +1055,7 @@ ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_branchId_fkey" FOREIGN KEY
 ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_toppingId_fkey" FOREIGN KEY ("toppingId") REFERENCES "Topping"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1049,13 +1064,10 @@ ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_productId_fkey" FOREIGN KE
 ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderTransaction" ADD CONSTRAINT "OrderTransaction_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TableTransaction" ADD CONSTRAINT "TableTransaction_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderTransaction" ADD CONSTRAINT "OrderTransaction_fromOrderId_fkey" FOREIGN KEY ("fromOrderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "OrderTransaction" ADD CONSTRAINT "OrderTransaction_toOrderId_fkey" FOREIGN KEY ("toOrderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "TableTransaction" ADD CONSTRAINT "TableTransaction_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Area" ADD CONSTRAINT "Area_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1164,6 +1176,12 @@ ALTER TABLE "_DealToOrder" ADD CONSTRAINT "_DealToOrder_A_fkey" FOREIGN KEY ("A"
 
 -- AddForeignKey
 ALTER TABLE "_DealToOrder" ADD CONSTRAINT "_DealToOrder_B_fkey" FOREIGN KEY ("B") REFERENCES "Order"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_OrderDetailToTableTransaction" ADD CONSTRAINT "_OrderDetailToTableTransaction_A_fkey" FOREIGN KEY ("A") REFERENCES "OrderDetail"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_OrderDetailToTableTransaction" ADD CONSTRAINT "_OrderDetailToTableTransaction_B_fkey" FOREIGN KEY ("B") REFERENCES "TableTransaction"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_BranchToPrintTemplate" ADD CONSTRAINT "_BranchToPrintTemplate_A_fkey" FOREIGN KEY ("A") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;

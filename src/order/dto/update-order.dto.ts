@@ -1,4 +1,10 @@
-import { IsBoolean, IsNumber, IsOptional, IsString } from 'class-validator';
+import {
+  IsBoolean,
+  IsDate,
+  IsNumber,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 
 export class UpdateOrderDto {
   @IsOptional()
@@ -16,4 +22,12 @@ export class UpdateOrderDto {
   @IsOptional()
   @IsString()
   note: string;
+
+  @IsOptional()
+  @IsString()
+  cancelReason: string;
+
+  @IsOptional()
+  @IsDate()
+  cancelDate: Date;
 }

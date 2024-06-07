@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderDto, ProductInOrder } from './dto/create-order.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
@@ -19,9 +19,11 @@ import {
   DETAIL_ORDER_STATUS,
   ORDER_STATUS_COMMON,
   ORDER_TYPE,
+  TRANSACTION_TYPE,
 } from 'enums/order.enum';
 import { generateOrderCode } from 'utils/Helps';
 import { CREATE_ORDER_BY_EMPLOYEE_SELECT } from 'enums/select.enum';
+import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
 export class OrderService {
@@ -32,8 +34,8 @@ export class OrderService {
 
   async getOrderDetails(
     products: ProductInOrder[],
-    branchId: number,
     status?: number,
+    tokenPayload?: TokenPayload,
   ) {
     return await Promise.all(
       products.map(async (product) => {
@@ -41,14 +43,14 @@ export class OrderService {
         const productExist = (await this.commonService.findByIdWithBranch(
           product.id,
           'Product',
-          branchId,
+          tokenPayload.branchId,
         )) as Prisma.ProductCreateInput;
 
         if (product.toppingId)
           toppingExist = (await this.commonService.findByIdWithBranch(
             product.toppingId,
             'Product',
-            branchId,
+            tokenPayload.branchId,
           )) as Prisma.ToppingCreateInput;
 
         return {
@@ -60,7 +62,9 @@ export class OrderService {
           productId: product.id,
           amount: product.amount,
           status,
-          branchId,
+          branchId: tokenPayload.branchId,
+          createdBy: tokenPayload.accountId,
+          updatedBy: tokenPayload.accountId,
         } as Prisma.OrderDetailCreateManyInput;
       }),
     );
@@ -69,14 +73,14 @@ export class OrderService {
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
     const orderDetails = await this.getOrderDetails(
       data.products,
-      tokenPayload.branchId,
       DETAIL_ORDER_STATUS.DONE,
+      tokenPayload,
     );
 
     return await this.prisma.order.create({
       data: {
         note: data.note,
-        orderType: ORDER_TYPE.BY_EMPLOYEE,
+        orderType: ORDER_TYPE.OFFLINE,
         orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
         code: data.code || generateOrderCode(),
         paymentMethod: data.paymentMethod,
@@ -121,8 +125,8 @@ export class OrderService {
   ) {
     const orderDetails = await this.getOrderDetails(
       data.products,
-      tokenPayload.branchId,
       DETAIL_ORDER_STATUS.APPROVED,
+      tokenPayload,
     );
 
     return await this.prisma.table.update({
@@ -143,8 +147,8 @@ export class OrderService {
   async createOrderToTableByCustomer(data: CreateOrderToTableByCustomerDto) {
     const orderDetails = await this.getOrderDetails(
       data.products,
-      data.branchId,
       DETAIL_ORDER_STATUS.WAITING,
+      { branchId: data.branchId },
     );
 
     return await this.prisma.table.update({
@@ -165,8 +169,8 @@ export class OrderService {
   async createOrderOnline(data: CreateOrderOnlineDto) {
     const orderDetails = await this.getOrderDetails(
       data.products,
-      data.branchId,
       DETAIL_ORDER_STATUS.WAITING,
+      { branchId: data.branchId },
     );
 
     const customer = await this.commonService.findOrCreateCustomer(
@@ -187,7 +191,7 @@ export class OrderService {
             id: customer.id,
           },
         },
-        orderType: ORDER_TYPE.BY_CUSTOMER,
+        orderType: ORDER_TYPE.ONLINE,
         orderStatus: ORDER_STATUS_COMMON.WAITING,
         code: generateOrderCode(),
         orderDetails: {
@@ -256,6 +260,7 @@ export class OrderService {
         amount: data.amount,
         note: data.note,
         status: data.status,
+        updatedBy: tokenPayload.accountId,
       },
     });
   }
@@ -263,7 +268,86 @@ export class OrderService {
   async paymentFromTable(
     data: PaymentFromTableDto,
     tokenPayload: TokenPayload,
-  ) {}
+  ) {
+    const newOrder = await this.prisma.$transaction(async (prisma) => {
+      const order = await prisma.order.create({
+        data: {
+          code: data.code || generateOrderCode(),
+          note: data.note,
+          orderType: ORDER_TYPE.OFFLINE,
+          orderStatus: DETAIL_ORDER_STATUS.DONE,
+          paymentMethod: data.paymentMethod,
+          isPaid: true,
+          ...(data.customerId && {
+            customer: {
+              connect: {
+                id: data.customerId,
+              },
+            },
+          }),
+          createdByAccount: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
+          updatedByAccount: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
+          branch: {
+            connect: {
+              id: tokenPayload.branchId,
+              isPublic: true,
+            },
+          },
+        },
+      });
+
+      const orderDetails = await prisma.orderDetail.updateMany({
+        data: {
+          tableId: null,
+          updatedBy: tokenPayload.accountId,
+        },
+        where: {
+          isPublic: true,
+          status: {
+            not: DETAIL_ORDER_STATUS.DONE,
+          },
+          table: {
+            isPublic: true,
+            id: data.tableId,
+          },
+        },
+      });
+
+      await prisma.tableTransaction.updateMany({
+        data: {
+          isPublic: false,
+          updatedBy: tokenPayload.accountId,
+        },
+        where: {
+          isPublic: true,
+          table: {
+            isPublic: true,
+            id: data.tableId,
+          },
+        },
+      });
+
+      if (orderDetails.count === 0)
+        throw new CustomHttpException(
+          HttpStatus.NOT_FOUND,
+          '#1 paymentFromTable - Không tìm thấy sản phẩm!',
+        );
+
+      return order;
+    });
+
+    return newOrder;
+  }
 
   async update(
     params: {
@@ -286,6 +370,8 @@ export class OrderService {
         note: data.note,
         paymentMethod: data.paymentMethod,
         isPaid: data.isPaid,
+        cancelReason: data.cancelReason,
+        cancelDate: data.cancelDate,
         updatedByAccount: {
           connect: {
             id: tokenPayload.accountId,
@@ -296,11 +382,129 @@ export class OrderService {
     });
   }
 
-  async combineTable(data: CombineTableDto, tokenPayload: TokenPayload) {}
+  async mergeTable(data: CombineTableDto, tokenPayload: TokenPayload) {
+    const { fromTableId, toTableId } = data;
 
-  async separateTable(data: SeparateTableDto, tokenPayload: TokenPayload) {}
+    await this.prisma.$transaction(async (prisma) => {
+      await prisma.orderDetail.updateMany({
+        data: {
+          tableId: toTableId,
+        },
+        where: {
+          isPublic: true,
+          table: {
+            isPublic: true,
+            id: fromTableId,
+          },
+        },
+      });
 
-  async switchTable(data: SwitchTableDto, tokenPayload: TokenPayload) {}
+      await prisma.tableTransaction.create({
+        data: {
+          type: TRANSACTION_TYPE.MERGE,
+          table: {
+            connect: {
+              id: data.fromTableId,
+            },
+          },
+          branch: {
+            connect: {
+              id: tokenPayload.branchId,
+              isPublic: true,
+            },
+          },
+          createdBy: tokenPayload.accountId,
+          updatedBy: tokenPayload.accountId,
+        },
+      });
+
+      await prisma.tableTransaction.create({
+        data: {
+          type: TRANSACTION_TYPE.MERGED,
+          table: {
+            connect: {
+              id: data.toTableId,
+            },
+          },
+          branch: {
+            connect: {
+              id: tokenPayload.branchId,
+              isPublic: true,
+            },
+          },
+          createdBy: tokenPayload.accountId,
+          updatedBy: tokenPayload.accountId,
+        },
+      });
+    });
+  }
+
+  async separateTable(data: SeparateTableDto, tokenPayload: TokenPayload) {
+    const { fromTableId, toTableId, orderDetailIds } = data;
+
+    await this.prisma.$transaction(async (prisma) => {
+      await prisma.orderDetail.updateMany({
+        data: {
+          tableId: toTableId,
+          updatedBy: tokenPayload.accountId,
+        },
+        where: {
+          id: {
+            in: orderDetailIds,
+          },
+          isPublic: true,
+          table: {
+            isPublic: true,
+            id: fromTableId,
+          },
+        },
+      });
+
+      await prisma.tableTransaction.create({
+        data: {
+          type: TRANSACTION_TYPE.MOVE,
+          branch: {
+            connect: {
+              id: tokenPayload.branchId,
+              isPublic: true,
+            },
+          },
+          table: {
+            connect: {
+              id: data.fromTableId,
+            },
+          },
+          orderDetails: {
+            connect: orderDetailIds.map((id) => ({ id })),
+          },
+          createdBy: tokenPayload.accountId,
+          updatedBy: tokenPayload.accountId,
+        },
+      });
+
+      await prisma.tableTransaction.create({
+        data: {
+          type: TRANSACTION_TYPE.MOVED,
+          branch: {
+            connect: {
+              id: tokenPayload.branchId,
+              isPublic: true,
+            },
+          },
+          table: {
+            connect: {
+              id: data.toTableId,
+            },
+          },
+          orderDetails: {
+            connect: orderDetailIds.map((id) => ({ id })),
+          },
+          createdBy: tokenPayload.accountId,
+          updatedBy: tokenPayload.accountId,
+        },
+      });
+    });
+  }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {}
 
@@ -310,9 +514,4 @@ export class OrderService {
   ) {}
 
   async removeMany(where: Prisma.OrderWhereInput, tokenPayload: TokenPayload) {}
-
-  async cancelOrder(
-    cancelOrderDto: CancelOrderDto,
-    tokenPayload: TokenPayload,
-  ) {}
 }

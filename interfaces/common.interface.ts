@@ -1,5 +1,5 @@
 export interface TokenPayload {
-  accountId: number;
+  accountId?: number;
   shopId?: number;
   branchId?: number;
   type?: number;

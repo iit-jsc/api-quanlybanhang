@@ -109,22 +109,13 @@ export class OrderController {
     );
   }
 
-  @Post('/cancel-order')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  cancelOrder(@Body() cancelOrderDto: CancelOrderDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.orderService.cancelOrder(cancelOrderDto, tokenPayload);
-  }
-
   @Post('/combine-table')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  combineTable(@Body() combineTableDto: CombineTableDto, @Req() req: any) {
+  mergeTable(@Body() combineTableDto: CombineTableDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.orderService.combineTable(combineTableDto, tokenPayload);
+    return this.orderService.mergeTable(combineTableDto, tokenPayload);
   }
 
   @Post('/separate-table')
@@ -134,15 +125,6 @@ export class OrderController {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.separateTable(separateTableDto, tokenPayload);
-  }
-
-  @Post('/switch-table')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  switchTable(@Body() separateTableDto: SeparateTableDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.orderService.switchTable(separateTableDto, tokenPayload);
   }
 
   @Patch('/:id')

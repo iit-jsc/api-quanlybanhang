@@ -13,8 +13,10 @@ export class AreaService {
   async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
     return await this.prisma.area.create({
       data: {
+        ...(data.code && {
+          code: data.code,
+        }),
         name: data.name,
-        code: data.code,
         description: data.description,
         photoURL: data.photoURL,
         createdBy: tokenPayload.accountId,

@@ -123,6 +123,16 @@ export class FindManyDto {
     return Boolean(+value);
   })
   isPaid?: boolean;
+
+  /* ====== order detail filter  ====== */
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  statusOrderDetails: number[];
 }
 
 export class DeleteManyDto {

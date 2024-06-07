@@ -6,6 +6,7 @@ import { FindManyDto } from 'utils/Common.dto';
 import { Prisma } from '@prisma/client';
 import { calculatePagination } from 'utils/Helps';
 import { CommonService } from 'src/common/common.service';
+import { DETAIL_ORDER_STATUS } from 'enums/order.enum';
 
 @Injectable()
 export class TableService {
@@ -24,8 +25,10 @@ export class TableService {
 
     return await this.prisma.table.create({
       data: {
+        ...(data.code && {
+          code: data.code,
+        }),
         name: data.name,
-        code: data.code,
         description: data.description,
         photoURL: data.photoURL,
         area: {
@@ -46,7 +49,7 @@ export class TableService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, areaIds } = params;
+    const { skip, take, keyword, areaIds, statusOrderDetails } = params;
 
     const keySearch = ['name', 'code'];
 
@@ -74,9 +77,6 @@ export class TableService {
       this.prisma.table.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: 'desc',
-        },
         where,
         select: {
           id: true,
@@ -95,6 +95,17 @@ export class TableService {
           orderDetails: {
             select: {
               id: true,
+              status: true,
+              productPrice: true,
+              toppingPrice: true,
+              amount: true,
+            },
+            where: {
+              ...(statusOrderDetails?.length > 0 && {
+                status: {
+                  in: statusOrderDetails,
+                },
+              }),
             },
           },
         },
@@ -142,6 +153,7 @@ export class TableService {
             id: true,
             amount: true,
             note: true,
+            status: true,
             topping: {
               select: {
                 id: true,
@@ -158,6 +170,38 @@ export class TableService {
                     id: true,
                     code: true,
                     name: true,
+                  },
+                },
+              },
+            },
+          },
+        },
+        tableTransactions: {
+          where: { isPublic: true },
+          select: {
+            id: true,
+            type: true,
+            orderDetails: {
+              select: {
+                id: true,
+                status: true,
+                productPrice: true,
+                toppingPrice: true,
+                amount: true,
+                note: true,
+                product: {
+                  select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                    photoURLs: true,
+                  },
+                },
+                topping: {
+                  select: {
+                    id: true,
+                    name: true,
+                    photoURLs: true,
                   },
                 },
               },

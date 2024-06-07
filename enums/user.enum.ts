@@ -17,5 +17,5 @@ export enum SEX_TYPE {
 
 export enum ENDOW_TYPE {
   BY_GROUP = 1,
-  BY_CUSTOMER = 2,
+  ONLINE = 2,
 }
