@@ -1,3 +1,4 @@
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
@@ -29,5 +30,6 @@ export class UpdateOrderDto {
 
   @IsOptional()
   @IsDate()
+  @Type(() => Date)
   cancelDate: Date;
 }

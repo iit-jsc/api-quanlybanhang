@@ -1,4 +1,4 @@
-import { LoginDto } from './dto/login-dto';
+import { LoginDto } from './dto/login.dto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import * as bcrypt from 'bcrypt';
@@ -6,11 +6,12 @@ import { JwtService } from '@nestjs/jwt';
 import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
-import { AccessBranchDto } from './dto/access-branch-dto';
+import { AccessBranchDto } from './dto/access-branch.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { SHOP_SELECT, USER_SELECT } from 'enums/select.enum';
 import { CommonService } from 'src/common/common.service';
 import { Prisma } from '@prisma/client';
+import { RegisterDto } from './dto/register.dto';
 
 @Injectable()
 export class AuthService {
@@ -134,4 +135,6 @@ export class AuthService {
       ...mapResponseLogin(account),
     };
   }
+
+  async register(registerDto: RegisterDto) {}
 }

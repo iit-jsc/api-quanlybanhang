@@ -198,13 +198,6 @@ export class OrderController {
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.orderService.removeMany(
-      {
-        id: {
-          in: deleteManyDto.ids,
-        },
-      },
-      tokenPayload,
-    );
+    return this.orderService.removeMany(deleteManyDto, tokenPayload);
   }
 }

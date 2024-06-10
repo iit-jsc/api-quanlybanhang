@@ -7,9 +7,9 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { LoginDto } from './dto/login-dto';
+import { LoginDto } from './dto/login.dto';
 import { AuthService } from './auth.service';
-import { AccessBranchDto } from './dto/access-branch-dto';
+import { AccessBranchDto } from './dto/access-branch.dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 

@@ -9,7 +9,7 @@ import { PaymentFromTableDto } from './dto/payment-order-from-table.dto';
 import { UpdateOrderDetailDto } from './dto/update-order-detail.dto';
 import { CombineTableDto } from './dto/combine-table.dto';
 import { SwitchTableDto } from './dto/switch-table.dto';
-import { FindManyDto } from 'utils/Common.dto';
+import { FindManyDto, DeleteManyDto } from 'utils/Common.dto';
 import { SeparateTableDto } from './dto/separate-table.dto';
 import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto';
 import { PrismaService } from 'nestjs-prisma';
@@ -24,6 +24,8 @@ import { calculatePagination, generateOrderCode } from 'utils/Helps';
 import { CREATE_ORDER_BY_EMPLOYEE_SELECT } from 'enums/select.enum';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { SaveOrderDto } from './dto/save-order.dto';
+import { RateOrderDto } from './dto/rate-order';
+import { RateEmployeeDto } from './dto/rate-employee';
 
 @Injectable()
 export class OrderService {
@@ -357,7 +359,8 @@ export class OrderService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-    await this.prisma.order.update({
+
+    return await this.prisma.order.update({
       where: {
         id: where.id,
         branch: {
@@ -685,5 +688,18 @@ export class OrderService {
     });
   }
 
-  async removeMany(where: Prisma.OrderWhereInput, tokenPayload: TokenPayload) {}
+  async removeMany(deleteManyDto: DeleteManyDto, tokenPayload: TokenPayload) {
+    return await this.prisma.order.updateMany({
+      where: {
+        id: {
+          in: deleteManyDto.ids,
+        },
+        branch: { isPublic: true, id: tokenPayload.branchId },
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
 }

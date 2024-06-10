@@ -25,6 +25,7 @@ import { TableModule } from './table/table.module';
 import { ToppingModule } from './topping/topping.module';
 import { OrderStatusModule } from './order-status/order-status.module';
 import { OrderModule } from './order/order.module';
+import { FirebaseModule } from './firebase/firebase.module';
 
 @Module({
   imports: [
@@ -57,6 +58,7 @@ import { OrderModule } from './order/order.module';
     ToppingModule,
     OrderStatusModule,
     OrderModule,
+    FirebaseModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],
