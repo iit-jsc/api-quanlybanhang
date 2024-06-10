@@ -124,7 +124,7 @@ export class FindManyDto {
   })
   isPaid?: boolean;
 
-  /* ====== order detail filter  ====== */
+  /* ====== table  filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value

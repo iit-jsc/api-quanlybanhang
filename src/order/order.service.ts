@@ -21,7 +21,7 @@ import {
   ORDER_TYPE,
   TRANSACTION_TYPE,
 } from 'enums/order.enum';
-import { generateOrderCode } from 'utils/Helps';
+import { calculatePagination, generateOrderCode } from 'utils/Helps';
 import { CREATE_ORDER_BY_EMPLOYEE_SELECT } from 'enums/select.enum';
 import { CustomHttpException } from 'utils/ApiErrors';
 
@@ -506,12 +506,164 @@ export class OrderService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {}
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+    let { skip, take, keyword, customerId, from, to, orderTypes, isPaid } =
+      params;
+
+    const keySearch = ['code'];
+
+    let where: Prisma.OrderWhereInput = {
+      isPublic: true,
+      branchId: tokenPayload.branchId,
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword, mode: 'insensitive' },
+        })),
+      }),
+      ...(customerId && {
+        customerId: customerId,
+      }),
+      ...(from &&
+        to && {
+          createdAt: {
+            gte: from,
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          },
+        }),
+      ...(from &&
+        !to && {
+          createdAt: {
+            gte: from,
+          },
+        }),
+      ...(!from &&
+        to && {
+          createdAt: {
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          },
+        }),
+      ...(orderTypes?.length > 0 && {
+        orderType: { in: orderTypes },
+      }),
+      ...(isPaid && {
+        isPaid,
+      }),
+    };
+
+    const [data, totalRecords] = await Promise.all([
+      this.prisma.order.findMany({
+        skip,
+        take,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        where,
+        select: {
+          id: true,
+          code: true,
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+              phone: true,
+              address: true,
+              email: true,
+            },
+          },
+          isPaid: true,
+          note: true,
+          orderDetails: {
+            select: {
+              id: true,
+              amount: true,
+              note: true,
+              productPrice: true,
+              toppingPrice: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                  code: true,
+                },
+              },
+              topping: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                },
+              },
+            },
+          },
+          createdAt: true,
+        },
+      }),
+      this.prisma.order.count({
+        where,
+      }),
+    ]);
+    return {
+      list: data,
+
+      pagination: calculatePagination(totalRecords, skip, take),
+    };
+  }
 
   async findUniq(
     where: Prisma.OrderWhereUniqueInput,
     tokenPayload: TokenPayload,
-  ) {}
+  ) {
+    return this.prisma.order.findFirstOrThrow({
+      where: {
+        id: where.id,
+        branchId: tokenPayload.branchId,
+        isPublic: true,
+      },
+      select: {
+        id: true,
+        code: true,
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            phone: true,
+            address: true,
+            email: true,
+          },
+        },
+        isPaid: true,
+        note: true,
+        orderDetails: {
+          select: {
+            id: true,
+            amount: true,
+            note: true,
+            productPrice: true,
+            toppingPrice: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                photoURLs: true,
+                code: true,
+              },
+            },
+            topping: {
+              select: {
+                id: true,
+                name: true,
+                photoURLs: true,
+              },
+            },
+          },
+        },
+        createdAt: true,
+      },
+    });
+  }
 
   async removeMany(where: Prisma.OrderWhereInput, tokenPayload: TokenPayload) {}
 }
