@@ -10,7 +10,6 @@ import { UpdateOrderDetailDto } from './dto/update-order-detail.dto';
 import { CombineTableDto } from './dto/combine-table.dto';
 import { SwitchTableDto } from './dto/switch-table.dto';
 import { FindManyDto } from 'utils/Common.dto';
-import { CancelOrderDto } from './dto/cancel-order.dto';
 import { SeparateTableDto } from './dto/separate-table.dto';
 import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto';
 import { PrismaService } from 'nestjs-prisma';
@@ -24,6 +23,7 @@ import {
 import { calculatePagination, generateOrderCode } from 'utils/Helps';
 import { CREATE_ORDER_BY_EMPLOYEE_SELECT } from 'enums/select.enum';
 import { CustomHttpException } from 'utils/ApiErrors';
+import { SaveOrderDto } from './dto/save-order.dto';
 
 @Injectable()
 export class OrderService {
@@ -661,6 +661,26 @@ export class OrderService {
           },
         },
         createdAt: true,
+      },
+    });
+  }
+
+  async saveOrder(
+    params: {
+      where: Prisma.OrderWhereUniqueInput;
+      data: SaveOrderDto;
+    },
+    tokenPayload: TokenPayload,
+  ) {
+    const { where, data } = params;
+    return await this.prisma.order.update({
+      where: {
+        id: where.id,
+        branch: { isPublic: true, id: tokenPayload.branchId },
+      },
+      data: {
+        isSave: data.isSave,
+        note: data.note,
       },
     });
   }

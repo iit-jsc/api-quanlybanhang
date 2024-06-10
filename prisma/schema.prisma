@@ -479,6 +479,7 @@ model Order {
   orderType                  Int
   paymentMethod              Int?
   isPaid                     Boolean?                   @default(false)
+  isSave                     Boolean?                   @default(false)
   orderStatus                Int
   isPublic                   Boolean?                   @default(true)
   createdBy                  Int?

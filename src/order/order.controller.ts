@@ -26,7 +26,7 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { CombineTableDto } from './dto/combine-table.dto';
 import { SeparateTableDto } from './dto/separate-table.dto';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { CancelOrderDto } from './dto/cancel-order.dto';
+import { SaveOrderDto } from './dto/save-order.dto';
 
 @Controller('order')
 export class OrderController {
@@ -125,6 +125,27 @@ export class OrderController {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.separateTable(separateTableDto, tokenPayload);
+  }
+
+  @Patch('/:id/save')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  saveOrder(
+    @Body() saveOrderDto: SaveOrderDto,
+    @Req() req: any,
+    @Param('id') id: number,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.saveOrder(
+      {
+        where: {
+          id,
+        },
+        data: saveOrderDto,
+      },
+      tokenPayload,
+    );
   }
 
   @Patch('/:id')
