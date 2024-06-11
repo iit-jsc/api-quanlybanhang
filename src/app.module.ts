@@ -25,8 +25,8 @@ import { TableModule } from './table/table.module';
 import { ToppingModule } from './topping/topping.module';
 import { OrderStatusModule } from './order-status/order-status.module';
 import { OrderModule } from './order/order.module';
-import { FirebaseModule } from './firebase/firebase.module';
-
+import { TwilioModule } from 'nestjs-twilio';
+import { OrderRatingModule } from './order-rating/order-rating.module';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -40,6 +40,12 @@ import { FirebaseModule } from './firebase/firebase.module';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '48h' },
     }),
+    TwilioModule.forRoot({
+      isGlobal: true,
+      accountSid: process.env.TWILIO_ACCOUNT_SID,
+      authToken: process.env.TWILIO_AUTH_TOKEN,
+    }),
+    CommonModule,
     UserModule,
     AccountModule,
     AuthModule,
@@ -58,7 +64,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     ToppingModule,
     OrderStatusModule,
     OrderModule,
-    FirebaseModule,
+    OrderRatingModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

@@ -15,6 +15,11 @@ export class CreateShopDto {
   name: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  code: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   businessTypeId: number;
 

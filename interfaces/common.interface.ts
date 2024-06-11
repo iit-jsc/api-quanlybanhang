@@ -5,6 +5,10 @@ export interface TokenPayload {
   type?: number;
 }
 
+export interface TokenCustomer {
+  customerId: number;
+}
+
 export interface PaginationResult {
   totalRecords: number;
   totalPages: number;

@@ -1,4 +1,4 @@
-import { LoginDto } from './dto/login.dto';
+import { LoginDto, LoginWithCustomerDto } from './dto/login.dto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import * as bcrypt from 'bcrypt';
@@ -7,11 +7,11 @@ import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { AccessBranchDto } from './dto/access-branch.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { SHOP_SELECT, USER_SELECT } from 'enums/select.enum';
+import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
 import { CommonService } from 'src/common/common.service';
 import { Prisma } from '@prisma/client';
 import { RegisterDto } from './dto/register.dto';
+import { VerifyPhoneDto } from 'src/shop/dto/verify-phone.dto';
 
 @Injectable()
 export class AuthService {
@@ -83,6 +83,35 @@ export class AuthService {
     };
   }
 
+  async loginWithCustomer(data: LoginWithCustomerDto) {
+    await this.commonService.confirmOTP({
+      code: data.code,
+      phone: data.phone,
+    });
+
+    const customer = await this.prisma.customer.findFirstOrThrow({
+      where: {
+        phone: data.phone,
+        shop: {
+          id: data.shopId,
+          isPublic: true,
+        },
+      },
+    });
+
+    return {
+      accessToken: await this.jwtService.signAsync(
+        {
+          customerId: customer.id,
+        } as TokenCustomer,
+        {
+          expiresIn: '48h',
+        },
+      ),
+      customer,
+    };
+  }
+
   async accessBranch(
     accessBranchDto: AccessBranchDto,
     tokenPayload: TokenPayload,
@@ -134,6 +163,25 @@ export class AuthService {
       ),
       ...mapResponseLogin(account),
     };
+  }
+
+  async verifyPhone(data: VerifyPhoneDto) {
+    const client = require('twilio')(
+      process.env.TWILIO_ACCOUNT_SID,
+      process.env.TWILIO_AUTH_TOKEN,
+    );
+
+    const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
+
+    await this.prisma.phoneVerification.create({
+      data: { code: otp, phone: data.phone },
+    });
+
+    // return await client.messages.create({
+    //   body: 'Your verification code is: ' + otp,
+    //   from: process.env.TWILIO_ACCOUNT_PHONE,
+    //   to: '+84' + data.phone.substring(1),
+    // });
   }
 
   async register(registerDto: RegisterDto) {}

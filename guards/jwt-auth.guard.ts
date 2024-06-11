@@ -5,7 +5,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { TokenPayload } from 'interfaces/common.interface';
+import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { UserService } from 'src/user/user.service';
 import { CustomHttpException } from 'utils/ApiErrors';
@@ -41,6 +41,34 @@ export class JwtAuthGuard implements CanActivate {
     });
 
     request.tokenPayload = { ...payload, type: account.type };
+
+    return true;
+  }
+}
+
+@Injectable()
+export class JwtCustomerAuthGuard implements CanActivate {
+  constructor(private readonly jwtService: JwtService) {}
+
+  async canActivate(context: ExecutionContext): Promise<boolean> {
+    const request = context.switchToHttp().getRequest();
+    const authHeader = request.headers.authorization;
+
+    if (!authHeader) return false;
+
+    const [_, token] = authHeader.split(' ');
+
+    if (!token)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        'Không tim thấy token!',
+      );
+
+    console.log(this.jwtService);
+
+    const payload: TokenCustomer = this.jwtService.decode(token);
+
+    request.tokenPayload = payload;
 
     return true;
   }

@@ -8,7 +8,6 @@ import { UpdateOrderDto } from './dto/update-order.dto';
 import { PaymentFromTableDto } from './dto/payment-order-from-table.dto';
 import { UpdateOrderDetailDto } from './dto/update-order-detail.dto';
 import { CombineTableDto } from './dto/combine-table.dto';
-import { SwitchTableDto } from './dto/switch-table.dto';
 import { FindManyDto, DeleteManyDto } from 'utils/Common.dto';
 import { SeparateTableDto } from './dto/separate-table.dto';
 import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto';
@@ -24,8 +23,6 @@ import { calculatePagination, generateOrderCode } from 'utils/Helps';
 import { CREATE_ORDER_BY_EMPLOYEE_SELECT } from 'enums/select.enum';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { SaveOrderDto } from './dto/save-order.dto';
-import { RateOrderDto } from './dto/rate-order';
-import { RateEmployeeDto } from './dto/rate-employee';
 
 @Injectable()
 export class OrderService {

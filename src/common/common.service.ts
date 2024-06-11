@@ -5,11 +5,16 @@ import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 import { PrismaService } from 'nestjs-prisma';
 import { permission } from 'process';
 import { CreateCustomerDto } from 'src/customer/dto/create-customer.dto';
+import { ConfirmPhoneDto } from 'src/shop/dto/confirm-phone.dto';
 import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
 export class CommonService {
   constructor(private readonly prisma: PrismaService) {}
+
+  async uploadPhotoURS(data: { photoURLs: string[] }) {
+    return data.photoURLs;
+  }
 
   async findUserByAccountId(id: number) {
     return this.prisma.user.findFirst({
@@ -249,6 +254,24 @@ export class CommonService {
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
         '#1 checkTableIsReady - Bàn này không sẵn sàng!',
+      );
+  }
+
+  async confirmOTP(data: ConfirmPhoneDto) {
+    const otp = await this.prisma.phoneVerification.findFirst({
+      where: {
+        code: data.code,
+        phone: data.phone,
+        createdAt: {
+          gt: new Date(Date.now() - 60 * 1000),
+        },
+      },
+    });
+
+    if (!otp)
+      throw new CustomHttpException(
+        HttpStatus.BAD_REQUEST,
+        '#1 confirmOTP - Mã OTP không hợp lệ!',
       );
   }
 }

@@ -3,8 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateShopDto } from './dto/create-shop.dto';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
-import { UserService } from 'src/user/user.service';
-import { CreateAccountDto } from 'src/account/dto/create-account.dto';
 import { BRANCH_STATUS } from 'enums/branch.enum';
 import { CommonService } from 'src/common/common.service';
 
@@ -12,18 +10,22 @@ import { CommonService } from 'src/common/common.service';
 export class ShopService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
+    private readonly commonService: CommonService,
   ) {}
 
   async create(data: CreateShopDto) {
     const { user, branch } = data;
+
+    await this.commonService.confirmOTP({
+      code: data.code,
+      phone: data.user.phone,
+    });
 
     await this.prisma.$transaction(async (prisma) => {
       let ownerShop = await this.commonService.findUserByPhoneWithType(
         user.phone,
         ACCOUNT_TYPE.STORE_OWNER,
       );
-
       if (!ownerShop)
         ownerShop = await prisma.user.create({
           data: {
@@ -39,9 +41,7 @@ export class ShopService {
             },
           },
         });
-
       const shopCode = await this.generateShopCode();
-
       await prisma.shop.create({
         data: {
           name: data.name,
@@ -62,7 +62,6 @@ export class ShopService {
         },
       });
     });
-
     return;
   }
 

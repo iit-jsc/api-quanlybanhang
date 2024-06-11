@@ -89,7 +89,6 @@ model User {
   updatedBy         Int?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  staffRatings      StaffRating[]
   employeeSchedules EmployeeSchedule[]
   timeSheets        TimeSheet[]
   branches          Branch[]
@@ -697,32 +696,14 @@ model CustomerRequest {
 
 model OrderRating {
   id          Int      @id @default(autoincrement())
-  branchId    Int
   orderId     Int
   ratingValue Int
   comment     String
+  photoURLs   Json?
   isPublic    Boolean? @default(true)
-  createdBy   Int?
-  updatedBy   Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  branch      Branch   @relation(fields: [branchId], references: [id])
   order       Order?   @relation(fields: [orderId], references: [id])
-}
-
-model StaffRating {
-  id          Int      @id @default(autoincrement())
-  branchId    Int
-  ratingValue Int
-  userId      Int
-  comment     String
-  isPublic    Boolean? @default(true)
-  createdBy   Int?
-  updatedBy   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  user        User     @relation(fields: [userId], references: [id])
 }
 
 model Branch {
@@ -761,8 +742,6 @@ model Branch {
   pointAccumulationHistories PointAccumulationHistory[]
   orderDetails               OrderDetail[]
   customerRequests           CustomerRequest[]
-  orderRatings               OrderRating[]
-  staffRatings               StaffRating[]
   workShifts                 WorkShift[]
   employeeSchedules          EmployeeSchedule[]
   timeSheets                 TimeSheet[]
@@ -837,4 +816,11 @@ model Salary {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   branch      Branch   @relation(fields: [branchId], references: [id])
+}
+
+model PhoneVerification {
+  id        Int      @id @default(autoincrement())
+  code      String
+  phone     String
+  createdAt DateTime @default(now())
 }

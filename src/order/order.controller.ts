@@ -13,13 +13,12 @@ import {
   Query,
 } from '@nestjs/common';
 import { OrderService } from './order.service';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenPayload } from 'interfaces/common.interface';
+import { JwtAuthGuard, JwtCustomerAuthGuard } from 'guards/jwt-auth.guard';
+import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
 import { CreateOrderToTableDto } from './dto/create-order-to-table.dto';
 import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto';
-import { UpdateProductInTableDto } from './dto/update-product-in-table.dto';
 import { UpdateOrderDetailDto } from './dto/update-order-detail.dto';
 import { PaymentFromTableDto } from './dto/payment-order-from-table.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
