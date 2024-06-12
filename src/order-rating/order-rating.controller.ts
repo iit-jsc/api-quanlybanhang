@@ -18,6 +18,7 @@ import { TokenCustomer } from 'interfaces/common.interface';
 import { JwtCustomerAuthGuard } from 'guards/jwt-auth.guard';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { FindManyOrderRatings } from './dto/find-many-order-rating';
+import { UpdateOrderRatingDto } from './dto/update-order-rating.dto';
 
 @Controller('order-rating')
 export class OrderRatingController {
@@ -37,7 +38,7 @@ export class OrderRatingController {
   @UseGuards(JwtCustomerAuthGuard)
   update(
     @Param('id') id: number,
-    @Body() createOrderRatingDto: CreateOrderRatingDto,
+    @Body() updateOrderRatingDto: UpdateOrderRatingDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenCustomer;
@@ -47,7 +48,7 @@ export class OrderRatingController {
         where: {
           id,
         },
-        data: createOrderRatingDto,
+        data: updateOrderRatingDto,
       },
       tokenPayload,
     );
@@ -58,6 +59,8 @@ export class OrderRatingController {
   @UseGuards(JwtCustomerAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenCustomer;
+    console.log(deleteManyDto);
+
     return this.orderRatingService.removeMany(
       {
         id: {
@@ -70,7 +73,6 @@ export class OrderRatingController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtCustomerAuthGuard)
   findAll(@Query() findManyDto: FindManyOrderRatings, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenCustomer;
 

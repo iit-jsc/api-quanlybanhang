@@ -6,6 +6,7 @@ import { Prisma } from '@prisma/client';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 import { FindManyOrderRatings } from './dto/find-many-order-rating';
+import { UpdateOrderRatingDto } from './dto/update-order-rating.dto';
 
 @Injectable()
 export class OrderRatingService {
@@ -35,7 +36,7 @@ export class OrderRatingService {
 
   async update(
     params: {
-      data: CreateOrderRatingDto;
+      data: UpdateOrderRatingDto;
       where: Prisma.OrderRatingWhereUniqueInput;
     },
     tokenPayload: TokenCustomer,
@@ -55,11 +56,6 @@ export class OrderRatingService {
         ratingValue: data.ratingValue,
         comment: data.comment,
         photoURLs: data.photoURLs,
-        order: {
-          connect: {
-            id: data.orderId,
-          },
-        },
       },
     });
   }
@@ -68,7 +64,7 @@ export class OrderRatingService {
     where: Prisma.OrderRatingWhereInput,
     tokenPayload: TokenCustomer,
   ) {
-    await this.prisma.orderRating.updateMany({
+    return await this.prisma.orderRating.updateMany({
       where: {
         ...where,
         order: {
