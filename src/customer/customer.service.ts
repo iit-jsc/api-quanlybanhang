@@ -59,7 +59,7 @@ export class CustomerService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, customerTypeIds } = params;
+    const { skip, take, keyword, customerTypeIds, from, to } = params;
 
     const keySearch = ['name', 'code', 'email', 'phone'];
 
@@ -77,6 +77,25 @@ export class CustomerService {
           shopId: tokenPayload.shopId,
         },
       }),
+      ...(from &&
+        to && {
+          createdAt: {
+            gte: from,
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          },
+        }),
+      ...(from &&
+        !to && {
+          createdAt: {
+            gte: from,
+          },
+        }),
+      ...(!from &&
+        to && {
+          createdAt: {
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          },
+        }),
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,

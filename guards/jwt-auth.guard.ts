@@ -64,8 +64,6 @@ export class JwtCustomerAuthGuard implements CanActivate {
         'Không tim thấy token!',
       );
 
-    console.log(this.jwtService);
-
     const payload: TokenCustomer = this.jwtService.decode(token);
 
     request.tokenPayload = payload;

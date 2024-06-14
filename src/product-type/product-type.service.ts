@@ -1,11 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
+import { FindManyProductTypeDto } from './dto/find-many.dto';
 
 @Injectable()
 export class ProductTypeService {
@@ -28,7 +27,7 @@ export class ProductTypeService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyProductTypeDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
     let where: Prisma.ProductTypeWhereInput = {
       isPublic: true,
@@ -61,15 +60,11 @@ export class ProductTypeService {
     };
   }
 
-  async findUniq(
-    where: Prisma.ProductTypeWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.ProductTypeWhereUniqueInput) {
     return this.prisma.productType.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
       },
       select: {
         id: true,

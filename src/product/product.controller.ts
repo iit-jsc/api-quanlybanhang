@@ -21,6 +21,7 @@ import { DeleteManyWithIdentifierDto, FindManyDto } from 'utils/Common.dto';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CustomFilesInterceptor } from 'utils/Helps';
+import { FindManyProductDto } from './dto/find-many.dto';
 
 @Controller('product')
 export class ProductController {
@@ -46,25 +47,16 @@ export class ProductController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.productService.findAll(findManyDto, tokenPayload);
+  findAll(@Query() findManyDto: FindManyProductDto, @Req() req: any) {
+    return this.productService.findAll(findManyDto);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: number, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.productService.findUniq(
-      {
-        id,
-      },
-      tokenPayload,
-    );
+  findUniq(@Param('id') id: number) {
+    return this.productService.findUniq({
+      id,
+    });
   }
 
   @Patch(':identifier')

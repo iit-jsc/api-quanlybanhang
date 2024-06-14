@@ -6,6 +6,7 @@ import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CommonService } from 'src/common/common.service';
+import { FindManyProductDto } from './dto/find-many.dto';
 
 @Injectable()
 export class ProductService {
@@ -52,7 +53,7 @@ export class ProductService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyProductDto) {
     let {
       skip,
       take,
@@ -61,13 +62,12 @@ export class ProductService {
       measurementUnitIds,
       statuses,
       isCombo,
+      branchId,
     } = params;
-
     const keySearch = ['name', 'code', 'sku'];
-
     let where: Prisma.ProductWhereInput = {
       isPublic: true,
-      branchId: tokenPayload.branchId,
+      branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword, mode: 'insensitive' },
@@ -77,7 +77,7 @@ export class ProductService {
         productType: {
           id: { in: productTypeIds },
           isPublic: true,
-          branchId: tokenPayload.branchId,
+          branchId,
         },
       }),
       ...(measurementUnitIds?.length > 0 && {
@@ -86,7 +86,7 @@ export class ProductService {
           isPublic: true,
           branches: {
             some: {
-              id: tokenPayload.branchId,
+              id: branchId,
             },
           },
         },
@@ -95,7 +95,6 @@ export class ProductService {
       ...(isCombo && { isCombo }),
       status: { in: statuses },
     };
-
     const [data, totalRecords] = await Promise.all([
       this.prisma.product.findMany({
         skip,
@@ -144,15 +143,11 @@ export class ProductService {
     };
   }
 
-  async findUniq(
-    where: Prisma.ProductWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.ProductWhereUniqueInput) {
     return this.prisma.product.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
       },
       select: {
         id: true,

@@ -15,9 +15,10 @@ import {
 import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyWithIdentifierDto, FindManyDto } from 'utils/Common.dto';
+import { DeleteManyWithIdentifierDto } from 'utils/Common.dto';
 import { ProductTypeService } from './product-type.service';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
+import { FindManyProductTypeDto } from './dto/find-many.dto';
 
 @Controller('product-type')
 export class ProductTypeController {
@@ -35,7 +36,7 @@ export class ProductTypeController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() findManyDto: FindManyProductTypeDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.productTypeService.findAll(findManyDto, tokenPayload);
@@ -43,16 +44,10 @@ export class ProductTypeController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: number, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.productTypeService.findUniq(
-      {
-        id,
-      },
-      tokenPayload,
-    );
+  findUniq(@Param('id') id: number) {
+    return this.productTypeService.findUniq({
+      id,
+    });
   }
 
   @Patch(':identifier')
