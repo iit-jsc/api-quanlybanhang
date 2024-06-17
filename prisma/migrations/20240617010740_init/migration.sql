@@ -237,6 +237,7 @@ CREATE TABLE "Product" (
     "productTypeId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "sku" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "code" TEXT,
     "price" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "description" TEXT,
@@ -462,6 +463,7 @@ CREATE TABLE "Order" (
     "orderType" INTEGER NOT NULL,
     "paymentMethod" INTEGER,
     "isPaid" BOOLEAN DEFAULT false,
+    "isSave" BOOLEAN DEFAULT false,
     "orderStatus" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
@@ -499,7 +501,6 @@ CREATE TABLE "TableTransaction" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
     "type" INTEGER NOT NULL,
-    "fromTableId" INTEGER NOT NULL,
     "tableId" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
@@ -671,33 +672,15 @@ CREATE TABLE "CustomerRequest" (
 -- CreateTable
 CREATE TABLE "OrderRating" (
     "id" SERIAL NOT NULL,
-    "branchId" INTEGER NOT NULL,
     "orderId" INTEGER NOT NULL,
     "ratingValue" INTEGER NOT NULL,
     "comment" TEXT NOT NULL,
+    "photoURLs" JSONB,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "OrderRating_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "StaffRating" (
-    "id" SERIAL NOT NULL,
-    "branchId" INTEGER NOT NULL,
-    "ratingValue" INTEGER NOT NULL,
-    "userId" INTEGER NOT NULL,
-    "comment" TEXT NOT NULL,
-    "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
-    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" TIMESTAMP(3) NOT NULL,
-
-    CONSTRAINT "StaffRating_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -782,6 +765,16 @@ CREATE TABLE "Salary" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Salary_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "PhoneVerification" (
+    "id" SERIAL NOT NULL,
+    "code" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+    CONSTRAINT "PhoneVerification_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -1118,16 +1111,7 @@ ALTER TABLE "CustomerRequest" ADD CONSTRAINT "CustomerRequest_branchId_fkey" FOR
 ALTER TABLE "CustomerRequest" ADD CONSTRAINT "CustomerRequest_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "OrderRating" ADD CONSTRAINT "OrderRating_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "OrderRating" ADD CONSTRAINT "OrderRating_orderId_fkey" FOREIGN KEY ("orderId") REFERENCES "Order"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "StaffRating" ADD CONSTRAINT "StaffRating_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "StaffRating" ADD CONSTRAINT "StaffRating_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Branch" ADD CONSTRAINT "Branch_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

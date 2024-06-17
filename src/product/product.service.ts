@@ -2,12 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CommonService } from 'src/common/common.service';
 import { FindManyProductDto } from './dto/find-many.dto';
-
+import * as slug from 'slug';
 @Injectable()
 export class ProductService {
   constructor(
@@ -30,8 +29,9 @@ export class ProductService {
       tokenPayload.branchId,
     );
 
-    const products = data.branchIds.map((id) => ({
+    const products = data.branchIds.map((id, index) => ({
       identifier,
+      slug: slug(`${data.name}-${Math.floor(Date.now() / 1000)}${index}`),
       name: data.name,
       description: data.description,
       branchId: id,
@@ -118,6 +118,7 @@ export class ProductService {
           isCombo: true,
           status: true,
           isInitialStock: true,
+          slug: true,
           measurementUnit: {
             select: {
               id: true,
@@ -143,8 +144,8 @@ export class ProductService {
     };
   }
 
-  async findUniq(where: Prisma.ProductWhereUniqueInput) {
-    return this.prisma.product.findUniqueOrThrow({
+  async findUniq(where: Prisma.ProductWhereInput) {
+    return this.prisma.product.findFirst({
       where: {
         ...where,
         isPublic: true,
@@ -164,6 +165,7 @@ export class ProductService {
         isCombo: true,
         status: true,
         isInitialStock: true,
+        slug: true,
         measurementUnit: {
           select: {
             id: true,

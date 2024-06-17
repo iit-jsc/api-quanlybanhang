@@ -243,6 +243,7 @@ model Product {
   productTypeId           Int
   name                    String
   sku                     String
+  slug                    String                   @unique
   code                    String?
   price                   Float                    @default(0)
   description             String?                  @db.Text
