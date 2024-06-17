@@ -38,7 +38,22 @@ export class JwtAuthGuard implements CanActivate {
         isPublic: true,
         id: payload.accountId,
       },
+      select: {
+        type: true,
+        permissions: {
+          select: {
+            id: true,
+            roles: {
+              select: {
+                code: true,
+              },
+            },
+          },
+        },
+      },
     });
+
+    console.log(account);
 
     request.tokenPayload = { ...payload, type: account.type };
 

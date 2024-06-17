@@ -1,9 +1,11 @@
 -- CreateTable
 CREATE TABLE "GroupRole" (
+    "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT NOT NULL,
+    "type" INTEGER NOT NULL,
 
-    CONSTRAINT "GroupRole_pkey" PRIMARY KEY ("code")
+    CONSTRAINT "GroupRole_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -696,6 +698,7 @@ CREATE TABLE "Branch" (
     "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "accountId" INTEGER,
 
     CONSTRAINT "Branch_pkey" PRIMARY KEY ("id")
 );
@@ -838,10 +841,19 @@ CREATE TABLE "_BranchToUser" (
 );
 
 -- CreateIndex
+CREATE UNIQUE INDEX "GroupRole_code_key" ON "GroupRole"("code");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Role_code_key" ON "Role"("code");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Shop_code_key" ON "Shop"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProductType_identifier_branchId_isPublic_key" ON "ProductType"("identifier", "branchId", "isPublic");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_sku_branchId_isPublic_key" ON "Product"("sku", "branchId", "isPublic");
@@ -1115,6 +1127,9 @@ ALTER TABLE "OrderRating" ADD CONSTRAINT "OrderRating_orderId_fkey" FOREIGN KEY 
 
 -- AddForeignKey
 ALTER TABLE "Branch" ADD CONSTRAINT "Branch_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Branch" ADD CONSTRAINT "Branch_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "WorkShift" ADD CONSTRAINT "WorkShift_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

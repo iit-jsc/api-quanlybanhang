@@ -1,5 +1,13 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer';
-import { ArrayNotEmpty, IsDate, IsNotEmpty, IsOptional } from 'class-validator';
+import {
+  ArrayNotEmpty,
+  IsDate,
+  IsNotEmpty,
+  IsOptional,
+  ValidationArguments,
+  ValidationOptions,
+  registerDecorator,
+} from 'class-validator';
 
 export class FindManyDto {
   @Type(() => Number)
@@ -20,6 +28,16 @@ export class FindManyDto {
       .filter((id: number) => !isNaN(id));
   })
   branchIds: number[];
+
+  /* ====== group role filter  ====== */
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value
+      ?.split(',')
+      .map((id: string) => parseInt(id.trim()))
+      .filter((id: number) => !isNaN(id));
+  })
+  types: number[];
 
   /* ====== employee filter  ====== */
 

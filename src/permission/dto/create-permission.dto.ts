@@ -14,4 +14,8 @@ export class CreatePermissionDto {
   @IsArray()
   @IsOptional()
   branchIds: number[];
+
+  @IsArray()
+  @IsOptional()
+  roleIds: number[];
 }

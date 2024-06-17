@@ -8,15 +8,17 @@ datasource db {
 }
 
 model GroupRole {
+  id    Int    @id @default(autoincrement())
   name  String
-  code  String @id
+  code  String @unique
+  type  Int
   roles Role[]
 }
 
 model Role {
   id          Int          @id @default(autoincrement())
   name        String
-  code        String
+  code        String       @unique
   groupCode   String
   groupRole   GroupRole    @relation(fields: [groupCode], references: [code])
   permissions Permission[]
@@ -55,6 +57,7 @@ model Account {
   userId       Int
   user         User          @relation(fields: [userId], references: [id])
   isPublic     Boolean?      @default(true)
+  branches     Branch[]
   createdBy    Int?
   updatedBy    Int?
   createdAt    DateTime      @default(now())
@@ -754,6 +757,8 @@ model Branch {
   employeeGroups             EmployeeGroup[]
   users                      User[]
   toppings                   Topping[]
+  account                    Account?                   @relation(fields: [accountId], references: [id])
+  accountId                  Int?
 }
 
 model WorkShift {

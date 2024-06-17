@@ -1,13 +1,26 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { AccountService } from './account.service';
 import { CreateAccountDto } from './dto/create-account.dto';
+import { JwtAuthGuard } from 'guards/jwt-auth.guard';
+import { TokenPayload } from 'interfaces/common.interface';
 
 @Controller('account')
 export class AccountController {
   constructor(private readonly accountService: AccountService) {}
 
-  @Post()
-  create(@Body() CreateAccountDto: CreateAccountDto) {
-    // return this.accountService.create(CreateAccountDto);
+  @Post('')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  create(@Body() createAccountDto: CreateAccountDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+    return this.accountService.create(createAccountDto, tokenPayload);
   }
 }

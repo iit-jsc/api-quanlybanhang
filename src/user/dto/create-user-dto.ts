@@ -8,10 +8,18 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
+  MinLength,
   ValidateNested,
 } from 'class-validator';
-import { CreateAccountDto } from 'src/account/dto/create-account.dto';
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
+
+class CreateAccountDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 kí tự.' })
+  password: string;
+}
 
 export class CreateUserDto {
   @IsNotEmpty({ message: 'Không được để trống!' })

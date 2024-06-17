@@ -20,6 +20,8 @@ import { CustomFileInterceptor } from 'utils/Helps';
 import { CreateAreaDto } from './dto/create-area.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
 
 @Controller('area')
 export class AreaController {
@@ -27,8 +29,9 @@ export class AreaController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @UseInterceptors(CustomFileInterceptor('photoURL'))
+  @Roles('AREA_CREATE')
   create(
     @Body() createAreaDto: CreateAreaDto,
     @UploadedFile() file: Express.Multer.File,

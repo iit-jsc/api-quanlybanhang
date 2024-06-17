@@ -1,4 +1,4 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { CreatePermissionDto } from './dto/create-permission.dto';
@@ -6,7 +6,6 @@ import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindManyDto } from 'utils/Common.dto';
 import { PERMISSION_SELECT } from 'enums/select.enum';
-import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
 export class PermissionService {
@@ -23,8 +22,16 @@ export class PermissionService {
             shop: { isPublic: true, id: tokenPayload.shopId },
           })),
         },
+        roles: {
+          connect: data.roleIds.map((id) => ({
+            id,
+          })),
+        },
         createdBy: tokenPayload.accountId,
         updatedBy: tokenPayload.accountId,
+      },
+      include: {
+        roles: true,
       },
     });
   }
@@ -56,7 +63,28 @@ export class PermissionService {
           createdAt: 'desc',
         },
         where,
-        select: PERMISSION_SELECT,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          branches: {
+            select: {
+              id: true,
+              photoURL: true,
+              name: true,
+              address: true,
+              createdAt: true,
+            },
+            where: { isPublic: true },
+          },
+          roles: {
+            select: {
+              id: true,
+              name: true,
+              code: true,
+            },
+          },
+        },
       }),
       this.prisma.permission.count({
         where,
