@@ -1,4 +1,3 @@
-import { ToppingModule } from './topping.module';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
@@ -16,18 +15,31 @@ export class ToppingService {
 
     const toppings = data.branchIds.map((id) => ({
       identifier,
+      branchApplies: {
+        connect: data.branchIds.map((branchId) => ({ id: branchId })),
+      },
+      branch: {
+        connect: {
+          id: id,
+        },
+      },
       name: data.name,
       description: data.description,
       price: data.price,
       photoURLs: data.photoURLs,
-      branchId: id,
       createdBy: tokenPayload.accountId,
       updatedBy: tokenPayload.accountId,
-    })) as Prisma.ToppingCreateManyInput[];
+    })) as Prisma.ToppingCreateInput[];
 
-    return await this.prisma.topping.createMany({
-      data: toppings,
+    const createToppingPromises = toppings.map((topping) => {
+      return this.prisma.topping.create({
+        data: topping,
+      });
     });
+
+    const results = await this.prisma.$transaction(createToppingPromises);
+
+    return results;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -55,12 +67,21 @@ export class ToppingService {
         where,
         select: {
           id: true,
+          identifier: true,
           name: true,
           description: true,
           price: true,
           photoURLs: true,
-          branchId: true,
-          identifier: true,
+          branchApplies: {
+            select: {
+              id: true,
+              name: true,
+              photoURL: true,
+            },
+            where: {
+              isPublic: true,
+            },
+          },
         },
       }),
       this.prisma.topping.count({
@@ -85,12 +106,22 @@ export class ToppingService {
       },
       select: {
         id: true,
+        identifier: true,
         name: true,
         description: true,
         price: true,
         photoURLs: true,
         branchId: true,
-        identifier: true,
+        branchApplies: {
+          select: {
+            id: true,
+            name: true,
+            photoURL: true,
+          },
+          where: {
+            isPublic: true,
+          },
+        },
       },
     });
   }

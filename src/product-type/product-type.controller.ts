@@ -37,9 +37,7 @@ export class ProductTypeController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   findAll(@Query() findManyDto: FindManyProductTypeDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.productTypeService.findAll(findManyDto, tokenPayload);
+    return this.productTypeService.findAll(findManyDto);
   }
 
   @Get(':id')

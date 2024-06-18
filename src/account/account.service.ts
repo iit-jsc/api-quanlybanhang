@@ -1,3 +1,4 @@
+import { permission } from 'process';
 import { TokenPayload } from './../../interfaces/common.interface';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
@@ -13,9 +14,9 @@ export class AccountService {
   async create(data: CreateAccountDto, tokenPayload: TokenPayload) {
     return this.prisma.account.create({
       data: {
+        username: data.username,
         password: bcrypt.hashSync(data.password, 10),
         status: data.status || ACCOUNT_STATUS.ACTIVE,
-        type: data.type,
         branches: {
           connect: {
             id: tokenPayload.branchId,
@@ -37,7 +38,6 @@ export class AccountService {
       select: {
         id: true,
         status: true,
-        type: true,
         username: true,
         user: {
           select: {
@@ -49,6 +49,62 @@ export class AccountService {
             photoURL: true,
           },
         },
+        permissions: true,
+      },
+    });
+  }
+
+  async update(
+    params: {
+      where: Prisma.AccountWhereUniqueInput;
+      data: CreateAccountDto;
+    },
+    tokenPayload: TokenPayload,
+  ) {
+    const { where, data } = params;
+
+    return this.prisma.account.update({
+      where: {
+        id: where.id,
+        isPublic: true,
+        branches: {
+          some: {
+            id: tokenPayload.branchId,
+          },
+        },
+      },
+      data: {
+        password: data.password ? bcrypt.hashSync(data.password, 10) : null,
+        status: data.status,
+        user: {
+          connect: {
+            id: data.userId,
+          },
+        },
+        permissions: {
+          set: [],
+          connect: data.permissionIds.map((id) => ({
+            id,
+          })),
+        },
+        createdBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId,
+      },
+      select: {
+        id: true,
+        status: true,
+        username: true,
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            phone: true,
+            address: true,
+            photoURL: true,
+          },
+        },
+        permissions: true,
       },
     });
   }

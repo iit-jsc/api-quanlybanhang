@@ -5,6 +5,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
 import { FindManyProductTypeDto } from './dto/find-many.dto';
+import * as slug from 'slug';
 
 @Injectable()
 export class ProductTypeService {
@@ -13,25 +14,39 @@ export class ProductTypeService {
   async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
     const identifier = generateUniqueId();
 
-    const productTypes = data.branchIds.map((id) => ({
+    const productTypes = data.branchIds.map((id, index) => ({
       identifier,
+      branchApplies: {
+        connect: data.branchIds.map((branchId) => ({ id: branchId })),
+      },
+      branch: {
+        connect: {
+          id,
+        },
+      },
       name: data.name,
+      slug: slug(`${data.name}-${Math.floor(Date.now() / 1000)}${index}`),
       description: data.description,
-      branchId: id,
       createdBy: tokenPayload.accountId,
       updatedBy: tokenPayload.accountId,
-    })) as Prisma.ProductTypeCreateManyInput[];
+    })) as Prisma.ProductTypeCreateInput[];
 
-    return await this.prisma.productType.createMany({
-      data: productTypes,
+    const createProductTypePromises = productTypes.map((productType) => {
+      return this.prisma.productType.create({
+        data: productType,
+      });
     });
+
+    const results = await this.prisma.$transaction(createProductTypePromises);
+
+    return results;
   }
 
-  async findAll(params: FindManyProductTypeDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+  async findAll(params: FindManyProductTypeDto) {
+    let { skip, take, keyword, branchId } = params;
     let where: Prisma.ProductTypeWhereInput = {
       isPublic: true,
-      branchId: tokenPayload.branchId,
+      branchId: branchId,
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
     };
     const [data, totalRecords] = await Promise.all([
@@ -45,9 +60,20 @@ export class ProductTypeService {
         select: {
           id: true,
           identifier: true,
+          slug: true,
           branchId: true,
           name: true,
           description: true,
+          branchApplies: {
+            select: {
+              id: true,
+              name: true,
+              photoURL: true,
+            },
+            where: {
+              isPublic: true,
+            },
+          },
         },
       }),
       this.prisma.productType.count({
@@ -69,9 +95,20 @@ export class ProductTypeService {
       select: {
         id: true,
         identifier: true,
+        slug: true,
         branchId: true,
         name: true,
         description: true,
+        branchApplies: {
+          select: {
+            id: true,
+            name: true,
+            photoURL: true,
+          },
+          where: {
+            isPublic: true,
+          },
+        },
       },
     });
   }

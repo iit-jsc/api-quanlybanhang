@@ -51,8 +51,7 @@ model Permission {
 model Account {
   id           Int           @id @default(autoincrement())
   status       Int           @default(1)
-  type         Int
-  username     String?
+  username     String
   password     String
   userId       Int
   user         User          @relation(fields: [userId], references: [id])
@@ -68,6 +67,8 @@ model Account {
   updatedUsers User[]        @relation("updatedByRelation")
   createOrders Order[]       @relation("createdByRelation")
   updateOrders Order[]       @relation("updatedByRelation")
+
+  @@unique([username, isPublic])
 }
 
 model User {
@@ -193,16 +194,19 @@ model ProductType {
   branchId               Int
   branch                 Branch                  @relation(fields: [branchId], references: [id])
   name                   String
+  slug                   String
   description            String                  @db.Text
   isPublic               Boolean?                @default(true)
   createdBy              Int?
   updatedBy              Int?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
-  products               Product[]
   otherAttributePatterns OtherAttributePattern[]
+  branchApplies          Branch[]                @relation("BranchApplies")
+  ProductToProductType   ProductToProductType[]
 
   @@unique([identifier, branchId, isPublic])
+  @@unique([slug, branchId, isPublic])
 }
 
 model OtherAttributePattern {
@@ -222,20 +226,21 @@ model OtherAttributePattern {
 }
 
 model Topping {
-  id           Int           @id @default(autoincrement())
-  identifier   String
-  name         String
-  description  String?
-  photoURLs    Json?
-  price        Float         @default(0)
-  branchId     Int
-  branch       Branch        @relation(fields: [branchId], references: [id])
-  isPublic     Boolean?      @default(true)
-  createdBy    Int?
-  updatedBy    Int?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  orderDetails OrderDetail[]
+  id            Int           @id @default(autoincrement())
+  identifier    String
+  name          String
+  description   String?
+  photoURLs     Json?
+  price         Float         @default(0)
+  branchId      Int
+  branch        Branch        @relation(fields: [branchId], references: [id])
+  branchApplies Branch[]      @relation("BranchApplies")
+  isPublic      Boolean?      @default(true)
+  createdBy     Int?
+  updatedBy     Int?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  orderDetails  OrderDetail[]
 }
 
 model Product {
@@ -243,7 +248,6 @@ model Product {
   identifier              String
   branchId                Int
   unitId                  Int
-  productTypeId           Int
   name                    String
   sku                     String
   slug                    String                   @unique
@@ -262,17 +266,27 @@ model Product {
   updatedAt               DateTime                 @updatedAt
   branch                  Branch                   @relation(fields: [branchId], references: [id])
   measurementUnit         MeasurementUnit          @relation(fields: [unitId], references: [id])
-  productType             ProductType              @relation(fields: [productTypeId], references: [id])
   comboProductItems       ComboProductItem[]
   stocks                  Stock[]
   deals                   Deal[]
   couponConditionProducts CouponConditionProduct[]
   couponProducts          CouponProduct[]
   orderDetails            OrderDetail[]
+  productToProductTypes   ProductToProductType[]
 
   @@unique([sku, branchId, isPublic])
   @@unique([code, branchId, isPublic])
   @@unique([identifier, branchId, isPublic])
+}
+
+model ProductToProductType {
+  productId             Int
+  productTypeId         Int
+  productTypeIdentifier String
+  product               Product     @relation(fields: [productId], references: [id])
+  productType           ProductType @relation(fields: [productTypeId], references: [id])
+
+  @@id([productId, productTypeId])
 }
 
 model ComboProductItem {
@@ -757,8 +771,9 @@ model Branch {
   employeeGroups             EmployeeGroup[]
   users                      User[]
   toppings                   Topping[]
-  account                    Account?                   @relation(fields: [accountId], references: [id])
-  accountId                  Int?
+  accounts                   Account[]
+  toppingApplies             Topping[]                  @relation("BranchApplies")
+  productTypeApplies         ProductType[]              @relation("BranchApplies")
 }
 
 model WorkShift {
@@ -828,5 +843,6 @@ model PhoneVerification {
   id        Int      @id @default(autoincrement())
   code      String
   phone     String
+  isUsed    Boolean  @default(false)
   createdAt DateTime @default(now())
 }

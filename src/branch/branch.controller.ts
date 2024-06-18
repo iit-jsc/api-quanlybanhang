@@ -28,21 +28,10 @@ export class BranchController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
-  create(
-    @Body() createBranchDto: CreateBranchDto,
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: any,
-  ) {
+  create(@Body() createBranchDto: CreateBranchDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.branchService.create(
-      {
-        ...createBranchDto,
-        photoURL: file?.path,
-      },
-      tokenPayload,
-    );
+    return this.branchService.create(createBranchDto, tokenPayload);
   }
 
   @Get('')
@@ -99,28 +88,6 @@ export class BranchController {
         id: {
           in: deleteManyDto.ids,
         },
-      },
-      tokenPayload,
-    );
-  }
-
-  @Patch(':id/update-photo')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
-  updatePhotoURL(
-    @Param('id') id: number,
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: any,
-  ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.branchService.updatePhotoURL(
-      {
-        where: {
-          id,
-        },
-        data: { photoURL: file?.path },
       },
       tokenPayload,
     );

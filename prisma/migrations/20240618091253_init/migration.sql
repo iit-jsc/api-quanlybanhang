@@ -48,8 +48,7 @@ CREATE TABLE "Permission" (
 CREATE TABLE "Account" (
     "id" SERIAL NOT NULL,
     "status" INTEGER NOT NULL DEFAULT 1,
-    "type" INTEGER NOT NULL,
-    "username" TEXT,
+    "username" TEXT NOT NULL,
     "password" TEXT NOT NULL,
     "userId" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
@@ -185,6 +184,7 @@ CREATE TABLE "ProductType" (
     "identifier" TEXT NOT NULL,
     "branchId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
+    "slug" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
@@ -236,7 +236,6 @@ CREATE TABLE "Product" (
     "identifier" TEXT NOT NULL,
     "branchId" INTEGER NOT NULL,
     "unitId" INTEGER NOT NULL,
-    "productTypeId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "sku" TEXT NOT NULL,
     "slug" TEXT NOT NULL,
@@ -255,6 +254,15 @@ CREATE TABLE "Product" (
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
     CONSTRAINT "Product_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "ProductToProductType" (
+    "productId" INTEGER NOT NULL,
+    "productTypeId" INTEGER NOT NULL,
+    "productTypeIdentifier" TEXT NOT NULL,
+
+    CONSTRAINT "ProductToProductType_pkey" PRIMARY KEY ("productId","productTypeId")
 );
 
 -- CreateTable
@@ -698,7 +706,6 @@ CREATE TABLE "Branch" (
     "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
-    "accountId" INTEGER,
 
     CONSTRAINT "Branch_pkey" PRIMARY KEY ("id")
 );
@@ -775,6 +782,7 @@ CREATE TABLE "PhoneVerification" (
     "id" SERIAL NOT NULL,
     "code" TEXT NOT NULL,
     "phone" TEXT NOT NULL,
+    "isUsed" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "PhoneVerification_pkey" PRIMARY KEY ("id")
@@ -782,6 +790,12 @@ CREATE TABLE "PhoneVerification" (
 
 -- CreateTable
 CREATE TABLE "_PermissionToRole" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
+);
+
+-- CreateTable
+CREATE TABLE "_AccountToBranch" (
     "A" INTEGER NOT NULL,
     "B" INTEGER NOT NULL
 );
@@ -840,6 +854,12 @@ CREATE TABLE "_BranchToUser" (
     "B" INTEGER NOT NULL
 );
 
+-- CreateTable
+CREATE TABLE "_BranchApplies" (
+    "A" INTEGER NOT NULL,
+    "B" INTEGER NOT NULL
+);
+
 -- CreateIndex
 CREATE UNIQUE INDEX "GroupRole_code_key" ON "GroupRole"("code");
 
@@ -847,10 +867,16 @@ CREATE UNIQUE INDEX "GroupRole_code_key" ON "GroupRole"("code");
 CREATE UNIQUE INDEX "Role_code_key" ON "Role"("code");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "Account_username_isPublic_key" ON "Account"("username", "isPublic");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "Shop_code_key" ON "Shop"("code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "ProductType_identifier_branchId_isPublic_key" ON "ProductType"("identifier", "branchId", "isPublic");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProductType_slug_branchId_isPublic_key" ON "ProductType"("slug", "branchId", "isPublic");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
@@ -884,6 +910,12 @@ CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B
 
 -- CreateIndex
 CREATE INDEX "_PermissionToRole_B_index" ON "_PermissionToRole"("B");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "_AccountToBranch_AB_unique" ON "_AccountToBranch"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_AccountToBranch_B_index" ON "_AccountToBranch"("B");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_AccountToPermission_AB_unique" ON "_AccountToPermission"("A", "B");
@@ -939,6 +971,12 @@ CREATE UNIQUE INDEX "_BranchToUser_AB_unique" ON "_BranchToUser"("A", "B");
 -- CreateIndex
 CREATE INDEX "_BranchToUser_B_index" ON "_BranchToUser"("B");
 
+-- CreateIndex
+CREATE UNIQUE INDEX "_BranchApplies_AB_unique" ON "_BranchApplies"("A", "B");
+
+-- CreateIndex
+CREATE INDEX "_BranchApplies_B_index" ON "_BranchApplies"("B");
+
 -- AddForeignKey
 ALTER TABLE "Role" ADD CONSTRAINT "Role_groupCode_fkey" FOREIGN KEY ("groupCode") REFERENCES "GroupRole"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
 
@@ -985,7 +1023,10 @@ ALTER TABLE "Product" ADD CONSTRAINT "Product_branchId_fkey" FOREIGN KEY ("branc
 ALTER TABLE "Product" ADD CONSTRAINT "Product_unitId_fkey" FOREIGN KEY ("unitId") REFERENCES "MeasurementUnit"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Product" ADD CONSTRAINT "Product_productTypeId_fkey" FOREIGN KEY ("productTypeId") REFERENCES "ProductType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductToProductType" ADD CONSTRAINT "ProductToProductType_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "ProductToProductType" ADD CONSTRAINT "ProductToProductType_productTypeId_fkey" FOREIGN KEY ("productTypeId") REFERENCES "ProductType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ComboProductItem" ADD CONSTRAINT "ComboProductItem_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1129,9 +1170,6 @@ ALTER TABLE "OrderRating" ADD CONSTRAINT "OrderRating_orderId_fkey" FOREIGN KEY 
 ALTER TABLE "Branch" ADD CONSTRAINT "Branch_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Branch" ADD CONSTRAINT "Branch_accountId_fkey" FOREIGN KEY ("accountId") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "WorkShift" ADD CONSTRAINT "WorkShift_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1157,6 +1195,12 @@ ALTER TABLE "_PermissionToRole" ADD CONSTRAINT "_PermissionToRole_A_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "_PermissionToRole" ADD CONSTRAINT "_PermissionToRole_B_fkey" FOREIGN KEY ("B") REFERENCES "Role"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_AccountToBranch" ADD CONSTRAINT "_AccountToBranch_A_fkey" FOREIGN KEY ("A") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_AccountToBranch" ADD CONSTRAINT "_AccountToBranch_B_fkey" FOREIGN KEY ("B") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_AccountToPermission" ADD CONSTRAINT "_AccountToPermission_A_fkey" FOREIGN KEY ("A") REFERENCES "Account"("id") ON DELETE CASCADE ON UPDATE CASCADE;
@@ -1211,3 +1255,9 @@ ALTER TABLE "_BranchToUser" ADD CONSTRAINT "_BranchToUser_A_fkey" FOREIGN KEY ("
 
 -- AddForeignKey
 ALTER TABLE "_BranchToUser" ADD CONSTRAINT "_BranchToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_BranchApplies" ADD CONSTRAINT "_BranchApplies_A_fkey" FOREIGN KEY ("A") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "_BranchApplies" ADD CONSTRAINT "_BranchApplies_B_fkey" FOREIGN KEY ("B") REFERENCES "ProductType"("id") ON DELETE CASCADE ON UPDATE CASCADE;

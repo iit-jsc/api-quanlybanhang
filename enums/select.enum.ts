@@ -7,13 +7,6 @@ export const BRANCH_SELECT = {
   createdAt: true,
 };
 
-export const MEASUREMENT_UNIT_SELECT = {
-  id: true,
-  name: true,
-  code: true,
-  branches: { select: BRANCH_SELECT },
-};
-
 export const SHOP_SELECT = {
   id: true,
   photoURL: true,

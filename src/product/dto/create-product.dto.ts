@@ -22,22 +22,14 @@ export class CreateProductDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
-  @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
-  })
   branchIds: number[];
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  @Type(() => Number)
   unitId: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  @Type(() => Number)
   productTypeId: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -53,22 +45,14 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsNumber()
-  @Type(() => Number)
   price: number;
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => parseInt(id.trim()));
-  })
   photoURLs: string[];
 
   @IsOptional()
   @IsObject()
-  @Transform(({ value }: TransformFnParams) => {
-    return JSON.parse(value);
-  })
-  @Type(() => Object)
   otherAttributes: object;
 
   @IsOptional()
@@ -78,7 +62,6 @@ export class CreateProductDto {
   isCombo: boolean;
 
   @IsOptional()
-  @Type(() => Number)
   status: number;
 
   @IsOptional()

@@ -83,14 +83,14 @@ export class CommonService {
     });
   }
 
-  async findManyShopByUserId(id: number) {
+  async findManyShopByAccountId(id: number) {
     return await this.prisma.shop.findMany({
       where: {
         isPublic: true,
         branches: {
           some: {
             isPublic: true,
-            users: {
+            accounts: {
               some: {
                 id,
                 isPublic: true,
@@ -139,16 +139,11 @@ export class CommonService {
     });
   }
 
-  async findUserByPhoneWithType(phone: string, type: number) {
+  async findUserByPhone(phone: string, type: number) {
     return this.prisma.user.findFirst({
       where: {
         isPublic: true,
         phone,
-        accounts: {
-          some: {
-            type,
-          },
-        },
       },
     });
   }
@@ -262,6 +257,7 @@ export class CommonService {
       where: {
         code: data.code,
         phone: data.phone,
+        isUsed: false,
         createdAt: {
           gt: new Date(Date.now() - 60 * 1000),
         },
@@ -273,5 +269,10 @@ export class CommonService {
         HttpStatus.BAD_REQUEST,
         '#1 confirmOTP - Mã OTP không hợp lệ!',
       );
+
+    await this.prisma.phoneVerification.update({
+      where: { id: otp.id },
+      data: { isUsed: true },
+    });
   }
 }

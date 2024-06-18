@@ -29,19 +29,10 @@ export class ToppingController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
-  create(
-    @Body() createToppingDto: CreateToppingDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-    @Req() req: any,
-  ) {
+  create(@Body() createToppingDto: CreateToppingDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    const photoURLs = files.map((file) => file.path);
 
-    return this.toppingService.create(
-      { ...createToppingDto, photoURLs },
-      tokenPayload,
-    );
+    return this.toppingService.create(createToppingDto, tokenPayload);
   }
 
   @Get('')
@@ -70,22 +61,19 @@ export class ToppingController {
   @Patch(':identifier')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
   update(
     @Param('identifier') identifier: string,
     @Body() createToppingDto: CreateToppingDto,
     @Req() req: any,
-    @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    const photoURLs = files.map((file) => file.path);
 
     return this.toppingService.update(
       {
         where: {
           identifier: identifier,
         },
-        data: { ...createToppingDto, photoURLs },
+        data: createToppingDto,
       },
       tokenPayload,
     );

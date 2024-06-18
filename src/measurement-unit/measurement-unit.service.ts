@@ -2,10 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateMeasurementUnitDto } from './dto/create-measurement-unit.dto';
 import { TokenPayload } from 'interfaces/common.interface';
-import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
+import { calculatePagination } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindManyDto } from 'utils/Common.dto';
-import { MEASUREMENT_UNIT_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class MeasurementUnitService {
@@ -34,14 +33,23 @@ export class MeasurementUnitService {
     let where: Prisma.MeasurementUnitWhereInput = {
       isPublic: true,
       branches: {
-        some: roleBasedBranchFilter(tokenPayload),
+        some: {
+          shop: {
+            id: tokenPayload.shopId,
+            isPublic: true,
+          },
+        },
       },
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
       ...(branchIds?.length > 0 && {
         branches: {
           some: {
+            isPublic: true,
             id: { in: branchIds },
-            ...roleBasedBranchFilter(tokenPayload),
+            shop: {
+              id: tokenPayload.shopId,
+              isPublic: true,
+            },
           },
         },
       }),
@@ -55,7 +63,67 @@ export class MeasurementUnitService {
           createdAt: 'desc',
         },
         where,
-        select: MEASUREMENT_UNIT_SELECT,
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          branches: {
+            select: {
+              id: true,
+              photoURL: true,
+              name: true,
+              address: true,
+              createdAt: true,
+            },
+          },
+        },
+      }),
+      this.prisma.measurementUnit.count({
+        where,
+      }),
+    ]);
+
+    return {
+      list: data,
+      pagination: calculatePagination(totalRecords, skip, take),
+    };
+  }
+
+  async findAllForBranch(params: FindManyDto, tokenPayload: TokenPayload) {
+    let { skip, take, keyword } = params;
+
+    let where: Prisma.MeasurementUnitWhereInput = {
+      isPublic: true,
+      branches: {
+        some: {
+          id: tokenPayload.branchId,
+        },
+      },
+      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+    };
+
+    const [data, totalRecords] = await Promise.all([
+      this.prisma.measurementUnit.findMany({
+        skip,
+        take,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        where,
+        select: {
+          id: true,
+          name: true,
+          code: true,
+          branches: {
+            select: {
+              id: true,
+              photoURL: true,
+              name: true,
+              address: true,
+              createdAt: true,
+            },
+          },
+        },
       }),
       this.prisma.measurementUnit.count({
         where,
@@ -77,10 +145,26 @@ export class MeasurementUnitService {
         ...where,
         isPublic: true,
         branches: {
-          some: roleBasedBranchFilter(tokenPayload),
+          some: {
+            id: tokenPayload.branchId,
+            isPublic: true,
+          },
         },
       },
-      select: MEASUREMENT_UNIT_SELECT,
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        branches: {
+          select: {
+            id: true,
+            photoURL: true,
+            name: true,
+            address: true,
+            createdAt: true,
+          },
+        },
+      },
     });
   }
 
@@ -109,7 +193,10 @@ export class MeasurementUnitService {
         ...where,
         isPublic: true,
         branches: {
-          some: roleBasedBranchFilter(tokenPayload),
+          some: {
+            id: tokenPayload.branchId,
+            isPublic: true,
+          },
         },
       },
     });

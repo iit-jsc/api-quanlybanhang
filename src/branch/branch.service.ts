@@ -116,6 +116,7 @@ export class BranchService {
       data: {
         name: data.name,
         address: data.address,
+        photoURL: data.photoURL,
         status: data.status,
         updatedBy: tokenPayload.accountId,
       },
@@ -153,36 +154,6 @@ export class BranchService {
       data: {
         isPublic: false,
         updatedBy: tokenPayload.accountId,
-      },
-    });
-  }
-
-  async updatePhotoURL(
-    params: {
-      where: Prisma.BranchWhereUniqueInput;
-      data: Prisma.BranchUpdateInput;
-    },
-    tokenPayload: TokenPayload,
-  ) {
-    const { where, data } = params;
-
-    return this.prisma.branch.update({
-      data: {
-        photoURL: data.photoURL,
-        updatedBy: tokenPayload.accountId,
-      },
-      where: {
-        ...where,
-        isPublic: true,
-        shop: {
-          id: tokenPayload.shopId,
-          isPublic: true,
-        },
-        users: {
-          some: {
-            isPublic: true,
-          },
-        },
       },
     });
   }

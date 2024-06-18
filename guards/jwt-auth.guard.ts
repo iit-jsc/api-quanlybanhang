@@ -33,29 +33,26 @@ export class JwtAuthGuard implements CanActivate {
 
     const payload: TokenPayload = this.jwtService.decode(token);
 
-    const account = await this.prisma.account.findFirst({
-      where: {
-        isPublic: true,
-        id: payload.accountId,
-      },
-      select: {
-        type: true,
-        permissions: {
-          select: {
-            id: true,
-            roles: {
-              select: {
-                code: true,
-              },
-            },
-          },
-        },
-      },
-    });
+    // const account = await this.prisma.account.findFirst({
+    //   where: {
+    //     isPublic: true,
+    //     id: payload.accountId,
+    //   },
+    //   select: {
+    //     permissions: {
+    //       select: {
+    //         id: true,
+    //         roles: {
+    //           select: {
+    //             code: true,
+    //           },
+    //         },
+    //       },
+    //     },
+    //   },
+    // });
 
-    console.log(account);
-
-    request.tokenPayload = { ...payload, type: account.type };
+    request.tokenPayload = { ...payload };
 
     return true;
   }

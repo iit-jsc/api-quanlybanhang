@@ -50,6 +50,18 @@ export class MeasurementUnitController {
     return this.measurementUnitService.findAll(findManyDto, tokenPayload);
   }
 
+  @Get('/for-branch')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  findAllForBranch(@Query() findManyDto: FindManyDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.measurementUnitService.findAllForBranch(
+      findManyDto,
+      tokenPayload,
+    );
+  }
+
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)

@@ -8,7 +8,6 @@ import { CommonService } from 'src/common/common.service';
 import { Prisma } from '@prisma/client';
 import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
-import { ACCOUNT_TYPE } from 'enums/user.enum';
 
 @Injectable()
 export class UserService {
@@ -20,7 +19,7 @@ export class UserService {
   async create(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
     await this.checkUserExisted(data, tokenPayload);
 
-    await this.prisma.user.create({
+    return await this.prisma.user.create({
       data: {
         name: data.name,
         code: data.code,

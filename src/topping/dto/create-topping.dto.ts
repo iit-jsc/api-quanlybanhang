@@ -20,9 +20,6 @@ export class CreateToppingDto {
 
   @IsOptional()
   @IsArray()
-  @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => parseInt(id.trim()));
-  })
   photoURLs: string[];
 
   @IsOptional()
@@ -32,11 +29,5 @@ export class CreateToppingDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
-  @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
-  })
   branchIds: number[];
 }

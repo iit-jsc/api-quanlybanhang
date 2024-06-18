@@ -8,8 +8,13 @@ import {
   MinLength,
 } from 'class-validator';
 import { ACCOUNT_STATUS } from 'enums/user.enum';
+import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
 export class CreateAccountDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsVietnamesePhoneNumber()
+  username: string;
+
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()

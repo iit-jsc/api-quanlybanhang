@@ -25,22 +25,8 @@ export class AuthService {
     const account = await this.prisma.account.findFirst({
       where: {
         isPublic: true,
-        user: {
-          isPublic: true,
-          OR: [{ phone: loginDto.username }, { email: loginDto.username }],
-          ...(loginDto.shopCode && {
-            shops: {
-              some: {
-                isPublic: true,
-                code: loginDto.shopCode,
-              },
-            },
-          }),
-          accounts: {
-            some: {
-              ...(loginDto.shopCode && { type: ACCOUNT_TYPE.STORE_OWNER }),
-            },
-          },
+        username: {
+          contains: loginDto.username,
         },
       },
       include: {
@@ -69,9 +55,7 @@ export class AuthService {
       );
     }
 
-    const shops = await this.commonService.findManyShopByUserId(
-      account.user.id,
-    );
+    const shops = await this.commonService.findManyShopByAccountId(account.id);
 
     const payload = { accountId: account.id };
 

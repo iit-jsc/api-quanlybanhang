@@ -30,19 +30,10 @@ export class ProductController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
-  create(
-    @Body() createProductDto: CreateProductDto,
-    @UploadedFiles() files: Array<Express.Multer.File>,
-    @Req() req: any,
-  ) {
+  create(@Body() createProductDto: CreateProductDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    const photoURLs = files.map((file) => file.path);
 
-    return this.productService.create(
-      { ...createProductDto, photoURLs },
-      tokenPayload,
-    );
+    return this.productService.create(createProductDto, tokenPayload);
   }
 
   @Get('')

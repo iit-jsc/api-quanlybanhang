@@ -3,6 +3,8 @@ import {
   Controller,
   HttpCode,
   HttpStatus,
+  Param,
+  Patch,
   Post,
   Req,
   UseGuards,
@@ -22,5 +24,26 @@ export class AccountController {
   create(@Body() createAccountDto: CreateAccountDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.accountService.create(createAccountDto, tokenPayload);
+  }
+
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  update(
+    @Param('id') id: number,
+    @Body() createAccountDto: CreateAccountDto,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.accountService.update(
+      {
+        where: {
+          id,
+        },
+        data: createAccountDto,
+      },
+      tokenPayload,
+    );
   }
 }

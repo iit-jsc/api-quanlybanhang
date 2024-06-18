@@ -23,125 +23,123 @@ export class ProductService {
       tokenPayload.branchId,
     );
 
-    await this.commonService.findByIdWithBranch(
-      data.productTypeId,
-      'ProductType',
-      tokenPayload.branchId,
-    );
-
     const products = data.branchIds.map((id, index) => ({
       identifier,
       slug: slug(`${data.name}-${Math.floor(Date.now() / 1000)}${index}`),
       name: data.name,
-      description: data.description,
-      branchId: id,
-      unitId: data.unitId,
-      productTypeId: data.productTypeId,
       sku: data.sku,
       code: data.code,
       price: data.price,
-      photoURLs: data.photoURLs,
+      description: data.description,
       otherAttributes: data.otherAttributes,
       isCombo: data.isCombo,
       status: data.status,
       isInitialStock: data.isInitialStock,
+      photoURLs: data.photoURLs,
+      branch: {
+        connect: {
+          id: id,
+        },
+      },
+      measurementUnit: {
+        connect: {
+          id: data.unitId,
+        },
+      },
       createdBy: tokenPayload.accountId,
       updatedBy: tokenPayload.accountId,
-    })) as Prisma.ProductCreateManyInput[];
-    return await this.prisma.product.createMany({
-      data: products,
-    });
+    })) as Prisma.ProductCreateInput[];
   }
 
   async findAll(params: FindManyProductDto) {
-    let {
-      skip,
-      take,
-      keyword,
-      productTypeIds,
-      measurementUnitIds,
-      statuses,
-      isCombo,
-      branchId,
-    } = params;
-    const keySearch = ['name', 'code', 'sku'];
-    let where: Prisma.ProductWhereInput = {
-      isPublic: true,
-      branchId,
-      ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
-        })),
-      }),
-      ...(productTypeIds?.length > 0 && {
-        productType: {
-          id: { in: productTypeIds },
-          isPublic: true,
-          branchId,
-        },
-      }),
-      ...(measurementUnitIds?.length > 0 && {
-        measurementUnit: {
-          id: { in: measurementUnitIds },
-          isPublic: true,
-          branches: {
-            some: {
-              id: branchId,
-            },
-          },
-        },
-      }),
-      ...(statuses && { status: { in: statuses } }),
-      ...(isCombo && { isCombo }),
-      status: { in: statuses },
-    };
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.product.findMany({
-        skip,
-        take,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        where,
-        select: {
-          id: true,
-          identifier: true,
-          branchId: true,
-          unitId: true,
-          name: true,
-          sku: true,
-          code: true,
-          price: true,
-          description: true,
-          photoURLs: true,
-          otherAttributes: true,
-          isCombo: true,
-          status: true,
-          isInitialStock: true,
-          slug: true,
-          measurementUnit: {
-            select: {
-              id: true,
-              name: true,
-              code: true,
-            },
-          },
-          productType: {
-            select: {
-              id: true,
-              name: true,
-            },
-          },
-        },
-      }),
-      this.prisma.product.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+    // let {
+    //   skip,
+    //   take,
+    //   keyword,
+    //   productTypeIds,
+    //   measurementUnitIds,
+    //   statuses,
+    //   isCombo,
+    //   branchId,
+    // } = params;
+    // const keySearch = ['name', 'code', 'sku'];
+    // let where: Prisma.ProductWhereInput = {
+    //   isPublic: true,
+    //   branchId,
+    //   ...(keyword && {
+    //     OR: keySearch.map((key) => ({
+    //       [key]: { contains: keyword, mode: 'insensitive' },
+    //     })),
+    //   }),
+    //   ...(productTypeIds?.length > 0 && {
+    //     productType: {
+    //       id: { in: productTypeIds },
+    //       isPublic: true,
+    //       branchId,
+    //     },
+    //   }),
+    //   ...(measurementUnitIds?.length > 0 && {
+    //     measurementUnit: {
+    //       id: { in: measurementUnitIds },
+    //       isPublic: true,
+    //       branches: {
+    //         some: {
+    //           id: branchId,
+    //         },
+    //       },
+    //     },
+    //   }),
+    //   ...(statuses && { status: { in: statuses } }),
+    //   ...(isCombo && { isCombo }),
+    //   status: { in: statuses },
+    // };
+    // const [data, totalRecords] = await Promise.all([
+    //   this.prisma.product.findMany({
+    //     skip,
+    //     take,
+    //     orderBy: {
+    //       createdAt: 'desc',
+    //     },
+    //     where,
+    //     select: {
+    //       id: true,
+    //       identifier: true,
+    //       branchId: true,
+    //       unitId: true,
+    //       name: true,
+    //       sku: true,
+    //       code: true,
+    //       price: true,
+    //       description: true,
+    //       photoURLs: true,
+    //       otherAttributes: true,
+    //       isCombo: true,
+    //       status: true,
+    //       isInitialStock: true,
+    //       slug: true,
+    //       measurementUnit: {
+    //         select: {
+    //           id: true,
+    //           name: true,
+    //           code: true,
+    //         },
+    //       },
+    //       productType: {
+    //         select: {
+    //           id: true,
+    //           name: true,
+    //         },
+    //       },
+    //     },
+    //   }),
+    //   this.prisma.product.count({
+    //     where,
+    //   }),
+    // ]);
+    // return {
+    //   list: data,
+    //   pagination: calculatePagination(totalRecords, skip, take),
+    // };
   }
 
   async findUniq(where: Prisma.ProductWhereInput) {
@@ -173,12 +171,6 @@ export class ProductService {
             code: true,
           },
         },
-        productType: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
       },
     });
   }
@@ -190,33 +182,33 @@ export class ProductService {
     },
     tokenPayload: TokenPayload,
   ) {
-    const { where, data } = params;
-    return this.prisma.product.updateMany({
-      where: {
-        ...where,
-        isPublic: true,
-        branch: {
-          id: {
-            in: data.branchIds,
-          },
-        },
-      },
-      data: {
-        name: data.name,
-        description: data.description,
-        unitId: data.unitId,
-        productTypeId: data.productTypeId,
-        sku: data.sku,
-        code: data.code,
-        price: data.price,
-        photoURLs: data.photoURLs,
-        otherAttributes: data.otherAttributes,
-        isCombo: data.isCombo,
-        status: data.status,
-        isInitialStock: data.isInitialStock,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+    // const { where, data } = params;
+    // return this.prisma.product.updateMany({
+    //   where: {
+    //     ...where,
+    //     isPublic: true,
+    //     branch: {
+    //       id: {
+    //         in: data.branchIds,
+    //       },
+    //     },
+    //   },
+    //   data: {
+    //     name: data.name,
+    //     description: data.description,
+    //     unitId: data.unitId,
+    //     productTypeId: data.productTypeId,
+    //     sku: data.sku,
+    //     code: data.code,
+    //     price: data.price,
+    //     photoURLs: data.photoURLs,
+    //     otherAttributes: data.otherAttributes,
+    //     isCombo: data.isCombo,
+    //     status: data.status,
+    //     isInitialStock: data.isInitialStock,
+    //     updatedBy: tokenPayload.accountId,
+    //   },
+    // });
   }
 
   async removeMany(

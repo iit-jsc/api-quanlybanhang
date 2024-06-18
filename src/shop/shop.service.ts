@@ -21,8 +21,8 @@ export class ShopService {
       phone: data.user.phone,
     });
 
-    await this.prisma.$transaction(async (prisma) => {
-      let ownerShop = await this.commonService.findUserByPhoneWithType(
+    return await this.prisma.$transaction(async (prisma) => {
+      let ownerShop = await this.commonService.findUserByPhone(
         user.phone,
         ACCOUNT_TYPE.STORE_OWNER,
       );
@@ -34,15 +34,15 @@ export class ShopService {
             email: user.email,
             accounts: {
               create: {
+                username: user.phone,
                 password: bcrypt.hashSync(user.account.password, 10),
                 status: ACCOUNT_STATUS.ACTIVE,
-                type: ACCOUNT_TYPE.STORE_OWNER,
               },
             },
           },
         });
       const shopCode = await this.generateShopCode();
-      await prisma.shop.create({
+      return await prisma.shop.create({
         data: {
           name: data.name,
           code: shopCode,
@@ -57,12 +57,16 @@ export class ShopService {
                   id: ownerShop.id,
                 },
               },
+              accounts: {
+                connect: {
+                  id: ownerShop.id,
+                },
+              },
             },
           },
         },
       });
     });
-    return;
   }
 
   async generateShopCode() {
