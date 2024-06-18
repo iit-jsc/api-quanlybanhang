@@ -259,10 +259,7 @@ CREATE TABLE "Product" (
 -- CreateTable
 CREATE TABLE "ProductToProductType" (
     "productId" INTEGER NOT NULL,
-    "productTypeId" INTEGER NOT NULL,
-    "productTypeIdentifier" TEXT NOT NULL,
-
-    CONSTRAINT "ProductToProductType_pkey" PRIMARY KEY ("productId","productTypeId")
+    "productTypeIdentifier" TEXT NOT NULL
 );
 
 -- CreateTable
@@ -873,6 +870,9 @@ CREATE UNIQUE INDEX "Account_username_isPublic_key" ON "Account"("username", "is
 CREATE UNIQUE INDEX "Shop_code_key" ON "Shop"("code");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "ProductType_identifier_key" ON "ProductType"("identifier");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "ProductType_identifier_branchId_isPublic_key" ON "ProductType"("identifier", "branchId", "isPublic");
 
 -- CreateIndex
@@ -889,6 +889,9 @@ CREATE UNIQUE INDEX "Product_code_branchId_isPublic_key" ON "Product"("code", "b
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Product_identifier_branchId_isPublic_key" ON "Product"("identifier", "branchId", "isPublic");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "ProductToProductType_productId_productTypeIdentifier_key" ON "ProductToProductType"("productId", "productTypeIdentifier");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Customer_code_shopId_isPublic_key" ON "Customer"("code", "shopId", "isPublic");
@@ -1026,7 +1029,7 @@ ALTER TABLE "Product" ADD CONSTRAINT "Product_unitId_fkey" FOREIGN KEY ("unitId"
 ALTER TABLE "ProductToProductType" ADD CONSTRAINT "ProductToProductType_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "ProductToProductType" ADD CONSTRAINT "ProductToProductType_productTypeId_fkey" FOREIGN KEY ("productTypeId") REFERENCES "ProductType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "ProductToProductType" ADD CONSTRAINT "ProductToProductType_productTypeIdentifier_fkey" FOREIGN KEY ("productTypeIdentifier") REFERENCES "ProductType"("identifier") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "ComboProductItem" ADD CONSTRAINT "ComboProductItem_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

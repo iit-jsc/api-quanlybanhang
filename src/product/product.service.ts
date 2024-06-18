@@ -46,6 +46,14 @@ export class ProductService {
           id: data.unitId,
         },
       },
+      productToProductTypes: {
+        createMany: {
+          data: data.productTypeIds.map((id) => ({
+            productTypeIdentifier: '123123',
+            productTypeId: 1,
+          })),
+        },
+      },
       createdBy: tokenPayload.accountId,
       updatedBy: tokenPayload.accountId,
     })) as Prisma.ProductCreateInput[];

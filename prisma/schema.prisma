@@ -190,7 +190,7 @@ model ActivityLog {
 
 model ProductType {
   id                     Int                     @id @default(autoincrement())
-  identifier             String
+  identifier             String                  @unique
   branchId               Int
   branch                 Branch                  @relation(fields: [branchId], references: [id])
   name                   String
@@ -281,12 +281,11 @@ model Product {
 
 model ProductToProductType {
   productId             Int
-  productTypeId         Int
   productTypeIdentifier String
-  product               Product     @relation(fields: [productId], references: [id])
-  productType           ProductType @relation(fields: [productTypeId], references: [id])
+  product               Product      @relation(fields: [productId], references: [id])
+  productType           ProductType? @relation(fields: [productTypeIdentifier], references: [identifier])
 
-  @@id([productId, productTypeId])
+  @@unique([productId, productTypeIdentifier])
 }
 
 model ComboProductItem {
