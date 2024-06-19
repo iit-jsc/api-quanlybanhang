@@ -195,7 +195,7 @@ model ProductType {
   branch                 Branch                  @relation(fields: [branchId], references: [id])
   name                   String
   slug                   String
-  description            String                  @db.Text
+  description            String?                 @db.Text
   isPublic               Boolean?                @default(true)
   createdBy              Int?
   updatedBy              Int?
@@ -203,7 +203,7 @@ model ProductType {
   updatedAt              DateTime                @updatedAt
   otherAttributePatterns OtherAttributePattern[]
   branchApplies          Branch[]                @relation("BranchApplies")
-  ProductToProductType   ProductToProductType[]
+  products               Product[]
 
   @@unique([identifier, branchId, isPublic])
   @@unique([slug, branchId, isPublic])
@@ -272,20 +272,11 @@ model Product {
   couponConditionProducts CouponConditionProduct[]
   couponProducts          CouponProduct[]
   orderDetails            OrderDetail[]
-  productToProductTypes   ProductToProductType[]
+  productTypes            ProductType[]
 
   @@unique([sku, branchId, isPublic])
   @@unique([code, branchId, isPublic])
   @@unique([identifier, branchId, isPublic])
-}
-
-model ProductToProductType {
-  productId             Int
-  productTypeIdentifier String
-  product               Product      @relation(fields: [productId], references: [id])
-  productType           ProductType? @relation(fields: [productTypeIdentifier], references: [identifier])
-
-  @@unique([productId, productTypeIdentifier])
 }
 
 model ComboProductItem {

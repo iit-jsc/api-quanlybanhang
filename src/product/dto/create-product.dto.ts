@@ -31,7 +31,7 @@ export class CreateProductDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsArray()
   @ArrayNotEmpty()
-  productTypeIds: string[];
+  productTypeIdentifiers: string[];
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
