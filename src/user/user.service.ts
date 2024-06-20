@@ -131,12 +131,12 @@ export class UserService {
         employeeGroup: {
           id: { in: employeeGroupIds },
           isPublic: true,
-          branches: {
-            some: {
-              id: tokenPayload.branchId,
-              isPublic: true,
-            },
-          },
+          // branches: {
+          // some: {
+          //   id: tokenPayload.branchId,
+          //   isPublic: true,
+          // },
+          // },
         },
       }),
     };
@@ -169,12 +169,12 @@ export class UserService {
               name: true,
             },
             where: {
-              branches: {
-                some: {
-                  id: tokenPayload.branchId,
-                  isPublic: true,
-                },
-              },
+              // branches: {
+              // some: {
+              //   id: tokenPayload.branchId,
+              //   isPublic: true,
+              // },
+              // },
             },
           },
         },
@@ -225,12 +225,12 @@ export class UserService {
             name: true,
           },
           where: {
-            branches: {
-              some: {
-                id: tokenPayload.branchId,
-                isPublic: true,
-              },
-            },
+            // branches: {
+            //   some: {
+            //     id: tokenPayload.branchId,
+            //     isPublic: true,
+            //   },
+            // },
           },
         },
       },

@@ -37,6 +37,7 @@ export class CreateUserDto {
       message: 'Email không đúng định dạng.',
     },
   )
+  @IsOptional()
   email?: string;
 
   @IsNotEmpty({ message: 'Phải cung cấp thông tin người dùng!' })

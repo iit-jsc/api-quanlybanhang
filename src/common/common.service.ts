@@ -34,11 +34,11 @@ export class CommonService {
       where: {
         id: +id,
         isPublic: true,
-        branches: {
-          some: {
-            id: branchId,
-          },
-        },
+        // branches: {
+        // some: {
+        //   id: branchId,
+        // },
+        // },
       },
       select: EMPLOYEE_GROUP_SELECT,
     });
@@ -57,11 +57,11 @@ export class CommonService {
       where: {
         id: +id,
         isPublic: true,
-        branches: {
-          some: {
-            id: branchId,
-          },
-        },
+        // branches: {
+        //   some: {
+        //     id: branchId,
+        //   },
+        // },
       },
     });
 

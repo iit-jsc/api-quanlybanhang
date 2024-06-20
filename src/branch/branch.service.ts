@@ -27,8 +27,11 @@ export class BranchService {
         address: createBranchDto.address,
         photoURL: createBranchDto.photoURL,
         status: createBranchDto.status,
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
         shop: {
           connect: {
             id: tokenPayload.shopId,
@@ -68,7 +71,13 @@ export class BranchService {
           createdAt: 'desc',
         },
         where,
-        select: BRANCH_SELECT,
+        select: {
+          id: true,
+          photoURL: true,
+          name: true,
+          address: true,
+          createdAt: true,
+        },
       }),
       this.prisma.branch.count({
         where,
@@ -99,7 +108,13 @@ export class BranchService {
           },
         },
       },
-      select: BRANCH_SELECT,
+      select: {
+        id: true,
+        photoURL: true,
+        name: true,
+        address: true,
+        createdAt: true,
+      },
     });
   }
 
@@ -118,7 +133,11 @@ export class BranchService {
         address: data.address,
         photoURL: data.photoURL,
         status: data.status,
-        updatedBy: tokenPayload.accountId,
+        updater: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
       },
       where: {
         ...where,

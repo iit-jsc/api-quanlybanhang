@@ -8,9 +8,9 @@ export class CreateBranchDto {
   @IsString()
   name: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
+  @IsOptional()
   address?: string;
 
   @IsOptional()

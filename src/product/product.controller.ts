@@ -71,7 +71,7 @@ export class ProductController {
     return this.productService.update(
       {
         where: {
-          identifier: identifier,
+          // identifier: identifier,
         },
         data: { ...createProductDto, photoURLs },
       },
@@ -90,9 +90,6 @@ export class ProductController {
 
     return this.productService.removeMany(
       {
-        identifier: {
-          in: deleteManyDto.identifiers,
-        },
         branch: {
           id: {
             in: deleteManyDto.branchIds,

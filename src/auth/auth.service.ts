@@ -161,11 +161,11 @@ export class AuthService {
       data: { code: otp, phone: data.phone },
     });
 
-    return await client.messages.create({
-      body: 'Your verification code is: ' + otp,
-      from: process.env.TWILIO_ACCOUNT_PHONE,
-      to: '+84' + data.phone.substring(1),
-    });
+    // return await client.messages.create({
+    //   body: 'Your verification code is: ' + otp,
+    //   from: process.env.TWILIO_ACCOUNT_PHONE,
+    //   to: '+84' + data.phone.substring(1),
+    // });
   }
 
   async register(registerDto: RegisterDto) {}

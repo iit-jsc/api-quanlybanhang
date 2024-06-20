@@ -11,8 +11,4 @@ export class CreateMeasurementUnitDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   code?: string;
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
-  branchIds: number[];
 }

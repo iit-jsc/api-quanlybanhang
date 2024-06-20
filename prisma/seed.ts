@@ -12,6 +12,7 @@ async function main() {
         code: 'COF',
         description: 'Quán cà phê phục vụ đồ uống và đồ ăn nhẹ.',
         isPublic: true,
+        type: 1,
       },
       {
         name: 'Kinh doanh quần áo',
@@ -19,6 +20,7 @@ async function main() {
         code: 'CLS',
         description: 'Kinh doanh quần áo thời trang.',
         isPublic: true,
+        type: 1,
       },
       {
         name: 'Nhà hàng',
@@ -26,6 +28,7 @@ async function main() {
         code: 'RST',
         description: 'Nhà hàng cung cấp dịch vụ ăn uống.',
         isPublic: true,
+        type: 2,
       },
       {
         name: 'Cửa hàng tiện lợi',
@@ -33,6 +36,7 @@ async function main() {
         code: 'CVS',
         description: 'Cửa hàng bán các loại thực phẩm và hàng hóa thông dụng.',
         isPublic: true,
+        type: 2,
       },
       {
         name: 'Dịch vụ du lịch',
@@ -41,6 +45,7 @@ async function main() {
         description:
           'Dịch vụ cung cấp các tour du lịch, khách sạn, và các dịch vụ khác liên quan đến du lịch.',
         isPublic: true,
+        type: 1,
       },
     ],
   });

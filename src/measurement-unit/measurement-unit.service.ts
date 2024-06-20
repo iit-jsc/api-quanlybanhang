@@ -15,90 +15,26 @@ export class MeasurementUnitService {
       data: {
         name: data.name,
         code: data.code,
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
-        branches: {
-          connect: data.branchIds.map((id) => ({
-            id,
-            shop: { isPublic: true, id: tokenPayload.shopId },
-          })),
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
+          },
         },
       },
     });
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, branchIds } = params;
-
-    let where: Prisma.MeasurementUnitWhereInput = {
-      isPublic: true,
-      branches: {
-        some: {
-          shop: {
-            id: tokenPayload.shopId,
-            isPublic: true,
-          },
-        },
-      },
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
-      ...(branchIds?.length > 0 && {
-        branches: {
-          some: {
-            isPublic: true,
-            id: { in: branchIds },
-            shop: {
-              id: tokenPayload.shopId,
-              isPublic: true,
-            },
-          },
-        },
-      }),
-    };
-
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.measurementUnit.findMany({
-        skip,
-        take,
-        orderBy: {
-          createdAt: 'desc',
-        },
-        where,
-        select: {
-          id: true,
-          name: true,
-          code: true,
-          branches: {
-            select: {
-              id: true,
-              photoURL: true,
-              name: true,
-              address: true,
-              createdAt: true,
-            },
-          },
-        },
-      }),
-      this.prisma.measurementUnit.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
-  }
-
-  async findAllForBranch(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
 
     let where: Prisma.MeasurementUnitWhereInput = {
       isPublic: true,
-      branches: {
-        some: {
-          id: tokenPayload.branchId,
-        },
-      },
+      branchId: tokenPayload.branchId,
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
     };
 
@@ -114,15 +50,6 @@ export class MeasurementUnitService {
           id: true,
           name: true,
           code: true,
-          branches: {
-            select: {
-              id: true,
-              photoURL: true,
-              name: true,
-              address: true,
-              createdAt: true,
-            },
-          },
         },
       }),
       this.prisma.measurementUnit.count({
@@ -144,26 +71,12 @@ export class MeasurementUnitService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: {
-            id: tokenPayload.branchId,
-            isPublic: true,
-          },
-        },
+        branchId: tokenPayload.branchId,
       },
       select: {
         id: true,
         name: true,
         code: true,
-        branches: {
-          select: {
-            id: true,
-            photoURL: true,
-            name: true,
-            address: true,
-            createdAt: true,
-          },
-        },
       },
     });
   }
@@ -171,7 +84,7 @@ export class MeasurementUnitService {
   async update(
     params: {
       where: Prisma.MeasurementUnitWhereUniqueInput;
-      data: Prisma.MeasurementUnitUpdateInput & { branchIds: number[] };
+      data: Prisma.MeasurementUnitUpdateInput;
     },
     tokenPayload: TokenPayload,
   ) {
@@ -181,23 +94,16 @@ export class MeasurementUnitService {
       data: {
         name: data.name,
         code: data.code,
-        branches: {
-          set: [],
-          connect: data.branchIds.map((id) => ({
-            id,
-          })),
+        updater: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
         },
-        updatedBy: tokenPayload.accountId,
       },
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: {
-            id: tokenPayload.branchId,
-            isPublic: true,
-          },
-        },
+        branchId: tokenPayload.branchId,
       },
     });
   }
@@ -210,6 +116,7 @@ export class MeasurementUnitService {
       where: {
         ...where,
         isPublic: true,
+        branchId: tokenPayload.branchId,
       },
       data: {
         isPublic: false,

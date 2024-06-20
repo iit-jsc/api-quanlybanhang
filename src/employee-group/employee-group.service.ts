@@ -17,11 +17,11 @@ export class EmployeeGroupService {
       data: {
         name: data.name,
         description: data.description,
-        branches: {
-          connect: data.branchIds.map((id) => ({
-            id,
-          })),
-        },
+        // branches: {
+        //   connect: data.branchIds.map((id) => ({
+        //     id,
+        //   })),
+        // },
         createdBy: tokenPayload.accountId,
         updatedBy: tokenPayload.accountId,
       },
@@ -33,12 +33,12 @@ export class EmployeeGroupService {
 
     let where: Prisma.EmployeeGroupWhereInput = {
       isPublic: true,
-      branches: {
-        some: {
-          isPublic: true,
-          id: tokenPayload.branchId,
-        },
-      },
+      // branches: {
+      // some: {
+      //   isPublic: true,
+      //   id: tokenPayload.branchId,
+      // },
+      // },
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
     };
 
@@ -71,12 +71,12 @@ export class EmployeeGroupService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: {
-            isPublic: true,
-            id: tokenPayload.branchId,
-          },
-        },
+        // branches: {
+        // some: {
+        //   isPublic: true,
+        //   id: tokenPayload.branchId,
+        // },
+        // },
       },
       select: EMPLOYEE_GROUP_SELECT,
     });
@@ -95,22 +95,22 @@ export class EmployeeGroupService {
       data: {
         name: data.name,
         description: data.description,
-        branches: {
-          set: [],
-          connect: data.branchIds.map((id) => ({
-            id,
-          })),
-        },
+        // branches: {
+        // set: [],
+        // connect: data.branchIds.map((id) => ({
+        //   id,
+        // })),
+        // },
         updatedBy: tokenPayload.accountId,
       },
       where: {
         ...where,
-        branches: {
-          some: {
-            isPublic: true,
-            id: tokenPayload.branchId,
-          },
-        },
+        // branches: {
+        // some: {
+        //   isPublic: true,
+        //   id: tokenPayload.branchId,
+        // },
+        // },
       },
     });
   }
@@ -123,12 +123,12 @@ export class EmployeeGroupService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: {
-            isPublic: true,
-            id: tokenPayload.branchId,
-          },
-        },
+        // branches: {
+        // some: {
+        //   isPublic: true,
+        //   id: tokenPayload.branchId,
+        // },
+        // },
       },
       data: {
         isPublic: false,

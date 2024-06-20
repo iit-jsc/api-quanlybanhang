@@ -29,6 +29,7 @@ model BusinessType {
   name        String
   icon        String?
   code        String
+  type        Int
   description String?  @db.Text
   isPublic    Boolean? @default(true)
   shops       Shop[]
@@ -39,7 +40,8 @@ model Permission {
   name        String
   description String?   @db.Text
   roles       Role[]
-  branches    Branch[]
+  branch      Branch?   @relation(fields: [branchId], references: [id])
+  branchId    Int?
   accounts    Account[]
   isPublic    Boolean?  @default(true)
   createdBy   Int?
@@ -49,24 +51,28 @@ model Permission {
 }
 
 model Account {
-  id           Int           @id @default(autoincrement())
-  status       Int           @default(1)
-  username     String
-  password     String
-  userId       Int
-  user         User          @relation(fields: [userId], references: [id])
-  isPublic     Boolean?      @default(true)
-  branches     Branch[]
-  createdBy    Int?
-  updatedBy    Int?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  activityLogs ActivityLog[]
-  permissions  Permission[]
-  createdUsers User[]        @relation("createdByRelation")
-  updatedUsers User[]        @relation("updatedByRelation")
-  createOrders Order[]       @relation("createdByRelation")
-  updateOrders Order[]       @relation("updatedByRelation")
+  id                      Int               @id @default(autoincrement())
+  status                  Int               @default(1)
+  username                String
+  password                String
+  userId                  Int
+  user                    User              @relation(fields: [userId], references: [id])
+  isPublic                Boolean?          @default(true)
+  branches                Branch[]
+  createdBy               Int?
+  updatedBy               Int?
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  activityLogs            ActivityLog[]
+  permissions             Permission[]
+  createdUsers            User[]            @relation("createdByRelation")
+  updatedUsers            User[]            @relation("updatedByRelation")
+  createOrders            Order[]           @relation("createdByRelation")
+  updateOrders            Order[]           @relation("updatedByRelation")
+  creatorBranches         Branch[]          @relation("creator")
+  updaterBranches         Branch[]          @relation("updater")
+  creatorMeasurementUnits MeasurementUnit[] @relation("creator")
+  updaterMeasurementUnits MeasurementUnit[] @relation("updater")
 
   @@unique([username, isPublic])
 }
@@ -105,7 +111,8 @@ model EmployeeGroup {
   name        String
   description String?  @db.Text
   users       User[]
-  branches    Branch[]
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+  branchId    Int?
   isPublic    Boolean? @default(true)
   createdBy   Int?
   updatedBy   Int?
@@ -114,22 +121,24 @@ model EmployeeGroup {
 }
 
 model Shop {
-  id             Int            @id @default(autoincrement())
-  code           String         @unique
-  businessTypeId Int
-  businessType   BusinessType?  @relation(fields: [businessTypeId], references: [id])
-  name           String
-  photoURL       String?        @db.Text
-  domain         String?
-  isPublic       Boolean?       @default(true)
-  createdBy      Int?
-  updatedBy      Int?
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  branches       Branch[]
-  pointSettings  PointSetting[]
-  customerTypes  CustomerType[]
-  customers      Customer[]
+  id                Int                 @id @default(autoincrement())
+  code              String              @unique
+  businessTypeId    Int
+  businessType      BusinessType?       @relation(fields: [businessTypeId], references: [id])
+  name              String
+  photoURL          String?             @db.Text
+  domain            String?
+  isPublic          Boolean?            @default(true)
+  createdBy         Int?
+  updatedBy         Int?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  branches          Branch[]
+  pointSettings     PointSetting[]
+  customerTypes     CustomerType[]
+  customers         Customer[]
+  PointAccumulation PointAccumulation[]
+  PointRedemption   PointRedemption[]
 }
 
 model PrintTemplate {
@@ -144,7 +153,8 @@ model PrintTemplate {
   updatedBy      Int?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  branches       Branch[]
+  branch         Branch?  @relation(fields: [branchId], references: [id])
+  branchId       Int?
 }
 
 model CurrencyUnit {
@@ -153,7 +163,7 @@ model CurrencyUnit {
   name       String
   code       String
   isUsed     Boolean  @default(false)
-  branches   Branch?  @relation(fields: [branchId], references: [id])
+  branch     Branch?  @relation(fields: [branchId], references: [id])
   branchId   Int?
   isPublic   Boolean? @default(true)
   createdBy  Int?
@@ -166,10 +176,13 @@ model MeasurementUnit {
   id        Int       @id @default(autoincrement())
   name      String
   code      String
-  branches  Branch[]
+  branch    Branch?   @relation(fields: [branchId], references: [id])
+  branchId  Int?
   isPublic  Boolean?  @default(true)
   createdBy Int?
   updatedBy Int?
+  creator   Account?  @relation("creator", fields: [createdBy], references: [id])
+  updater   Account?  @relation("updater", fields: [updatedBy], references: [id])
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]
@@ -190,7 +203,7 @@ model ActivityLog {
 
 model ProductType {
   id                     Int                     @id @default(autoincrement())
-  identifier             String                  @unique
+  identifier             String
   branchId               Int
   branch                 Branch                  @relation(fields: [branchId], references: [id])
   name                   String
@@ -202,7 +215,6 @@ model ProductType {
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   otherAttributePatterns OtherAttributePattern[]
-  branchApplies          Branch[]                @relation("BranchApplies")
   products               Product[]
 
   @@unique([identifier, branchId, isPublic])
@@ -226,26 +238,24 @@ model OtherAttributePattern {
 }
 
 model Topping {
-  id            Int           @id @default(autoincrement())
-  identifier    String
-  name          String
-  description   String?
-  photoURLs     Json?
-  price         Float         @default(0)
-  branchId      Int
-  branch        Branch        @relation(fields: [branchId], references: [id])
-  branchApplies Branch[]      @relation("BranchApplies")
-  isPublic      Boolean?      @default(true)
-  createdBy     Int?
-  updatedBy     Int?
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  orderDetails  OrderDetail[]
+  id           Int           @id @default(autoincrement())
+  identifier   String
+  name         String
+  description  String?
+  photoURLs    Json?
+  price        Float         @default(0)
+  branchId     Int
+  branch       Branch        @relation(fields: [branchId], references: [id])
+  isPublic     Boolean?      @default(true)
+  createdBy    Int?
+  updatedBy    Int?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  orderDetails OrderDetail[]
 }
 
 model Product {
   id                      Int                      @id @default(autoincrement())
-  identifier              String
   branchId                Int
   unitId                  Int
   name                    String
@@ -272,11 +282,11 @@ model Product {
   couponConditionProducts CouponConditionProduct[]
   couponProducts          CouponProduct[]
   orderDetails            OrderDetail[]
-  productTypes            ProductType[]
+  productTypeId           Int
+  productType             ProductType              @relation(fields: [productTypeId], references: [id])
 
   @@unique([sku, branchId, isPublic])
   @@unique([code, branchId, isPublic])
-  @@unique([identifier, branchId, isPublic])
 }
 
 model ComboProductItem {
@@ -644,7 +654,6 @@ model PointSetting {
 
 model PointAccumulation {
   id         Int      @id @default(autoincrement())
-  branchId   Int
   customerId Int
   point      Float
   isPublic   Boolean? @default(true)
@@ -652,13 +661,13 @@ model PointAccumulation {
   updatedBy  Int?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  branch     Branch   @relation(fields: [branchId], references: [id])
   customer   Customer @relation(fields: [customerId], references: [id])
+  shop       Shop     @relation(fields: [shopId], references: [id])
+  shopId     Int
 }
 
 model PointRedemption {
   id             Int      @id @default(autoincrement())
-  branchId       Int
   customerId     Int
   orderId        Int
   pointToRedeem  Float
@@ -668,9 +677,10 @@ model PointRedemption {
   updatedBy      Int?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
-  branch         Branch   @relation(fields: [branchId], references: [id])
   customer       Customer @relation(fields: [customerId], references: [id])
   order          Order    @relation(fields: [orderId], references: [id])
+  shop           Shop     @relation(fields: [shopId], references: [id])
+  shopId         Int
 }
 
 model PointAccumulationHistory {
@@ -725,6 +735,8 @@ model Branch {
   isPublic                   Boolean?                   @default(true)
   createdBy                  Int?
   updatedBy                  Int?
+  creator                    Account?                   @relation("creator", fields: [createdBy], references: [id])
+  updater                    Account?                   @relation("updater", fields: [updatedBy], references: [id])
   createdAt                  DateTime                   @default(now())
   updatedAt                  DateTime                   @updatedAt
   printTemplates             PrintTemplate[]
@@ -745,8 +757,6 @@ model Branch {
   areas                      Area[]
   discountIssues             DiscountIssue[]
   discountCodes              DiscountCode[]
-  pointAccumulations         PointAccumulation[]
-  pointRedemptions           PointRedemption[]
   pointAccumulationHistories PointAccumulationHistory[]
   orderDetails               OrderDetail[]
   customerRequests           CustomerRequest[]
@@ -762,8 +772,6 @@ model Branch {
   users                      User[]
   toppings                   Topping[]
   accounts                   Account[]
-  toppingApplies             Topping[]                  @relation("BranchApplies")
-  productTypeApplies         ProductType[]              @relation("BranchApplies")
 }
 
 model WorkShift {

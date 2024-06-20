@@ -64,16 +64,6 @@ export class ProductTypeService {
           branchId: true,
           name: true,
           description: true,
-          branchApplies: {
-            select: {
-              id: true,
-              name: true,
-              photoURL: true,
-            },
-            where: {
-              isPublic: true,
-            },
-          },
         },
       }),
       this.prisma.productType.count({
@@ -99,16 +89,6 @@ export class ProductTypeService {
         branchId: true,
         name: true,
         description: true,
-        branchApplies: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-          },
-          where: {
-            isPublic: true,
-          },
-        },
       },
     });
   }

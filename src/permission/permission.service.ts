@@ -16,12 +16,12 @@ export class PermissionService {
       data: {
         name: data.name,
         description: data.description,
-        branches: {
-          connect: data.branchIds.map((id) => ({
-            id,
-            shop: { isPublic: true, id: tokenPayload.shopId },
-          })),
-        },
+        // branches: {
+        // connect: data.branchIds.map((id) => ({
+        //   id,
+        //   shop: { isPublic: true, id: tokenPayload.shopId },
+        // })),
+        // },
         roles: {
           connect: data.roleIds.map((id) => ({
             id,
@@ -41,16 +41,16 @@ export class PermissionService {
 
     const where: Prisma.PermissionWhereInput = {
       isPublic: true,
-      branches: {
-        some: roleBasedBranchFilter(tokenPayload),
-      },
+      // branches: {
+      //   some: roleBasedBranchFilter(tokenPayload),
+      // },
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
       ...(branchIds?.length > 0 && {
         branches: {
-          some: {
-            id: { in: branchIds },
-            ...roleBasedBranchFilter(tokenPayload),
-          },
+          // some: {
+          //   id: { in: branchIds },
+          //   ...roleBasedBranchFilter(tokenPayload),
+          // },
         },
       }),
     };
@@ -67,16 +67,16 @@ export class PermissionService {
           id: true,
           name: true,
           description: true,
-          branches: {
-            select: {
-              id: true,
-              photoURL: true,
-              name: true,
-              address: true,
-              createdAt: true,
-            },
-            where: { isPublic: true },
-          },
+          // branches: {
+          //   select: {
+          //     id: true,
+          //     photoURL: true,
+          //     name: true,
+          //     address: true,
+          //     createdAt: true,
+          //   },
+          //   where: { isPublic: true },
+          // },
           roles: {
             select: {
               id: true,
@@ -110,19 +110,19 @@ export class PermissionService {
       data: {
         name: data.name,
         description: data.description,
-        branches: {
-          set: [],
-          connect: data.branchIds.map((id) => ({
-            id,
-          })),
-        },
+        // branches: {
+        //   set: [],
+        //   connect: data.branchIds.map((id) => ({
+        //     id,
+        //   })),
+        // },
         updatedBy: tokenPayload.accountId,
       },
       where: {
         ...where,
-        branches: {
-          some: roleBasedBranchFilter(tokenPayload),
-        },
+        // branches: {
+        //   some: roleBasedBranchFilter(tokenPayload),
+        // },
       },
     });
   }
@@ -135,9 +135,9 @@ export class PermissionService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: roleBasedBranchFilter(tokenPayload),
-        },
+        // branches: {
+        //   some: roleBasedBranchFilter(tokenPayload),
+        // },
       },
       select: PERMISSION_SELECT,
     });
@@ -151,9 +151,9 @@ export class PermissionService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: roleBasedBranchFilter(tokenPayload),
-        },
+        // branches: {
+        //   some: roleBasedBranchFilter(tokenPayload),
+        // },
       },
       data: {
         isPublic: false,

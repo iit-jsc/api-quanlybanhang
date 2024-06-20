@@ -7,7 +7,6 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { CommonService } from 'src/common/common.service';
 import { FindManyProductDto } from './dto/find-many.dto';
 import * as slug from 'slug';
-import { CustomHttpException } from 'utils/ApiErrors';
 @Injectable()
 export class ProductService {
   constructor(
@@ -15,99 +14,41 @@ export class ProductService {
     private commonService: CommonService,
   ) {}
 
-  async getProductTypeOtherBranch(identifiers: string[], branchId: number) {
-    const productTypes = await Promise.all(
-      identifiers.map(async (identifier) => {
-        const existingProductType = await this.prisma.productType.findFirst({
-          where: {
-            identifier,
-            isPublic: true,
+  async create(data: CreateProductDto, tokenPayload: TokenPayload) {
+    // : Promise<Prisma.ProductCreateInput>
+
+    return this.prisma.product.create({
+      data: {
+        slug: slug(`${data.name}-${Math.floor(Date.now() / 1000)}`),
+        name: data.name,
+        sku: data.sku,
+        code: data.code,
+        price: data.price,
+        description: data.description,
+        otherAttributes: data.otherAttributes,
+        isCombo: data.isCombo,
+        status: data.status,
+        isInitialStock: data.isInitialStock,
+        photoURLs: data.photoURLs,
+        productType: {
+          connect: {
+            id: data.productTypeId,
           },
-        });
-
-        if (!existingProductType)
-          throw new CustomHttpException(
-            HttpStatus.FORBIDDEN,
-            '#1 login - Tài khoản đã bị khóa!',
-          );
-
-        const productTypeInBranch = await this.prisma.productType.findFirst({
-          where: { identifier, isPublic: true, branchId },
-          select: { id: true },
-        });
-
-        if (!productTypeInBranch) {
-          return await this.prisma.productType.create({
-            data: {
-              identifier,
-              name: existingProductType.name,
-              branch: {
-                connect: { id: branchId },
-              },
-              slug: existingProductType.slug,
-              description: existingProductType.description,
-            },
-            select: { id: true },
-          });
-        }
-
-        return productTypeInBranch;
-      }),
-    );
-
-    return productTypes;
-  }
-
-  async create(
-    data: CreateProductDto,
-    tokenPayload: TokenPayload,
-  ): Promise<Prisma.ProductCreateInput[]> {
-    const identifier = generateUniqueId();
-
-    await this.commonService.findByIdWithBranches(
-      data.unitId,
-      'MeasurementUnit',
-      tokenPayload.branchId,
-    );
-
-    return await Promise.all(
-      data.branchIds.map(async (branchId, index) => {
-        const productTypes = await this.getProductTypeOtherBranch(
-          data.productTypeIdentifiers,
-          branchId,
-        );
-
-        return {
-          identifier,
-          slug: slug(`${data.name}-${Math.floor(Date.now() / 1000)}${index}`),
-          name: data.name,
-          sku: data.sku,
-          code: data.code,
-          price: data.price,
-          description: data.description,
-          otherAttributes: data.otherAttributes,
-          isCombo: data.isCombo,
-          status: data.status,
-          isInitialStock: data.isInitialStock,
-          photoURLs: data.photoURLs,
-          // productTypes: {
-          //   connect: [{ id: 1 }],
-          // },
-          branch: {
-            connect: {
-              id: branchId,
-            },
+        },
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
           },
-          measurementUnit: {
-            connect: {
-              id: data.unitId,
-            },
+        },
+        measurementUnit: {
+          connect: {
+            id: data.unitId,
           },
-          createdBy: tokenPayload.accountId,
-          updatedBy: tokenPayload.accountId,
-        };
-      }),
-    );
+        },
+        createdBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
   }
 
   async findAll(params: FindManyProductDto) {
@@ -209,7 +150,6 @@ export class ProductService {
       },
       select: {
         id: true,
-        identifier: true,
         branchId: true,
         unitId: true,
         name: true,

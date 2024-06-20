@@ -72,16 +72,6 @@ export class ToppingService {
           description: true,
           price: true,
           photoURLs: true,
-          branchApplies: {
-            select: {
-              id: true,
-              name: true,
-              photoURL: true,
-            },
-            where: {
-              isPublic: true,
-            },
-          },
         },
       }),
       this.prisma.topping.count({
@@ -111,17 +101,6 @@ export class ToppingService {
         description: true,
         price: true,
         photoURLs: true,
-        branchId: true,
-        branchApplies: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true,
-          },
-          where: {
-            isPublic: true,
-          },
-        },
       },
     });
   }
