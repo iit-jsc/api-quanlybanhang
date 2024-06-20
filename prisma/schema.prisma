@@ -75,6 +75,8 @@ model Account {
   updaterMeasurementUnits MeasurementUnit[] @relation("updater")
   creatorToppings         Topping[]         @relation("creator")
   updaterToppings         Topping[]         @relation("updater")
+  creatorProductTypes     ProductType[]     @relation("creator")
+  updaterProductTypes     ProductType[]     @relation("updater")
 
   @@unique([username, isPublic])
 }
@@ -205,21 +207,21 @@ model ActivityLog {
 
 model ProductType {
   id                     Int                     @id @default(autoincrement())
-  identifier             String
   branchId               Int
   branch                 Branch                  @relation(fields: [branchId], references: [id])
   name                   String
   slug                   String
   description            String?                 @db.Text
   isPublic               Boolean?                @default(true)
-  createdBy              Int?
-  updatedBy              Int?
   createdAt              DateTime                @default(now())
   updatedAt              DateTime                @updatedAt
   otherAttributePatterns OtherAttributePattern[]
   products               Product[]
+  createdBy              Int?
+  updatedBy              Int?
+  creator                Account?                @relation("creator", fields: [createdBy], references: [id])
+  updater                Account?                @relation("updater", fields: [updatedBy], references: [id])
 
-  @@unique([identifier, branchId, isPublic])
   @@unique([slug, branchId, isPublic])
 }
 

@@ -15,7 +15,7 @@ import {
 import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyWithIdentifierDto } from 'utils/Common.dto';
+import { DeleteManyDto } from 'utils/Common.dto';
 import { ProductTypeService } from './product-type.service';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
 import { FindManyProductTypeDto } from './dto/find-many.dto';
@@ -48,11 +48,11 @@ export class ProductTypeController {
     });
   }
 
-  @Patch(':identifier')
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
   update(
-    @Param('identifier') identifier: string,
+    @Param('id') id: number,
     @Body() createProductTypeDto: CreateProductTypeDto,
     @Req() req: any,
   ) {
@@ -61,7 +61,7 @@ export class ProductTypeController {
     return this.productTypeService.update(
       {
         where: {
-          identifier: identifier,
+          id,
         },
         data: createProductTypeDto,
       },
@@ -72,21 +72,13 @@ export class ProductTypeController {
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, BranchGuard)
-  deleteMany(
-    @Body() deleteManyDto: DeleteManyWithIdentifierDto,
-    @Req() req: any,
-  ) {
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.productTypeService.removeMany(
       {
-        identifier: {
-          in: deleteManyDto.identifiers,
-        },
-        branch: {
-          id: {
-            in: deleteManyDto.branchIds,
-          },
+        id: {
+          in: deleteManyDto.ids,
         },
       },
       tokenPayload,

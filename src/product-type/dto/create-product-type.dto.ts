@@ -12,11 +12,12 @@ export class CreateProductTypeDto {
   @IsString()
   name: string;
 
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  slug: string;
+
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
-  branchIds: number[];
 }
