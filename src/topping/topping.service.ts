@@ -11,35 +11,24 @@ export class ToppingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateToppingDto, tokenPayload: TokenPayload) {
-    const identifier = generateUniqueId();
-
-    const toppings = data.branchIds.map((id) => ({
-      identifier,
-      branchApplies: {
-        connect: data.branchIds.map((branchId) => ({ id: branchId })),
-      },
-      branch: {
-        connect: {
-          id: id,
+    return this.prisma.topping.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        price: data.price,
+        photoURLs: data.photoURLs,
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
+          },
         },
       },
-      name: data.name,
-      description: data.description,
-      price: data.price,
-      photoURLs: data.photoURLs,
-      createdBy: tokenPayload.accountId,
-      updatedBy: tokenPayload.accountId,
-    })) as Prisma.ToppingCreateInput[];
-
-    const createToppingPromises = toppings.map((topping) => {
-      return this.prisma.topping.create({
-        data: topping,
-      });
     });
-
-    const results = await this.prisma.$transaction(createToppingPromises);
-
-    return results;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -67,7 +56,6 @@ export class ToppingService {
         where,
         select: {
           id: true,
-          identifier: true,
           name: true,
           description: true,
           price: true,
@@ -96,7 +84,6 @@ export class ToppingService {
       },
       select: {
         id: true,
-        identifier: true,
         name: true,
         description: true,
         price: true,
@@ -107,28 +94,28 @@ export class ToppingService {
 
   async update(
     params: {
-      where: Prisma.ToppingWhereInput;
+      where: Prisma.ToppingWhereUniqueInput;
       data: CreateToppingDto;
     },
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-    return this.prisma.topping.updateMany({
+    return this.prisma.topping.update({
       where: {
-        ...where,
+        id: where.id,
         isPublic: true,
-        branch: {
-          id: {
-            in: data.branchIds,
-          },
-        },
+        branchId: tokenPayload.branchId,
       },
       data: {
         name: data.name,
         description: data.description,
         price: data.price,
         photoURLs: data.photoURLs,
-        updatedBy: tokenPayload.accountId,
+        updater: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
       },
     });
   }
@@ -139,8 +126,9 @@ export class ToppingService {
   ) {
     return this.prisma.topping.updateMany({
       where: {
-        ...where,
+        id: where.id,
         isPublic: true,
+        branchId: tokenPayload.branchId,
       },
       data: {
         isPublic: false,

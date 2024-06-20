@@ -10,17 +10,17 @@ import {
   Post,
   Query,
   Req,
-  UploadedFiles,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
 import { ToppingService } from './topping.service';
 import { TokenPayload } from 'interfaces/common.interface';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { BranchGuard } from 'guards/branch.guard';
-import { CustomFilesInterceptor } from 'utils/Helps';
 import { CreateToppingDto } from './dto/create-topping.dto';
-import { DeleteManyWithIdentifierDto, FindManyDto } from 'utils/Common.dto';
+import {
+  DeleteManyDto,
+  DeleteManyWithIdentifierDto,
+  FindManyDto,
+} from 'utils/Common.dto';
 
 @Controller('topping')
 export class ToppingController {
@@ -28,7 +28,7 @@ export class ToppingController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   create(@Body() createToppingDto: CreateToppingDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -58,11 +58,11 @@ export class ToppingController {
     );
   }
 
-  @Patch(':identifier')
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   update(
-    @Param('identifier') identifier: string,
+    @Param('id') id: number,
     @Body() createToppingDto: CreateToppingDto,
     @Req() req: any,
   ) {
@@ -71,7 +71,7 @@ export class ToppingController {
     return this.toppingService.update(
       {
         where: {
-          identifier: identifier,
+          id,
         },
         data: createToppingDto,
       },
@@ -81,22 +81,14 @@ export class ToppingController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
-  deleteMany(
-    @Body() deleteManyDto: DeleteManyWithIdentifierDto,
-    @Req() req: any,
-  ) {
+  @UseGuards(JwtAuthGuard)
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.toppingService.removeMany(
       {
-        identifier: {
-          in: deleteManyDto.identifiers,
-        },
-        branch: {
-          id: {
-            in: deleteManyDto.branchIds,
-          },
+        id: {
+          in: deleteManyDto.ids,
         },
       },
       tokenPayload,

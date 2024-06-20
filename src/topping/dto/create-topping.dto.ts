@@ -26,8 +26,4 @@ export class CreateToppingDto {
   @IsNumber()
   @Type(() => Number)
   price: number;
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
-  branchIds: number[];
 }

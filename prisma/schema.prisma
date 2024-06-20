@@ -73,6 +73,8 @@ model Account {
   updaterBranches         Branch[]          @relation("updater")
   creatorMeasurementUnits MeasurementUnit[] @relation("creator")
   updaterMeasurementUnits MeasurementUnit[] @relation("updater")
+  creatorToppings         Topping[]         @relation("creator")
+  updaterToppings         Topping[]         @relation("updater")
 
   @@unique([username, isPublic])
 }
@@ -239,7 +241,6 @@ model OtherAttributePattern {
 
 model Topping {
   id           Int           @id @default(autoincrement())
-  identifier   String
   name         String
   description  String?
   photoURLs    Json?
@@ -249,6 +250,8 @@ model Topping {
   isPublic     Boolean?      @default(true)
   createdBy    Int?
   updatedBy    Int?
+  creator      Account?      @relation("creator", fields: [createdBy], references: [id])
+  updater      Account?      @relation("updater", fields: [updatedBy], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   orderDetails OrderDetail[]

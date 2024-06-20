@@ -120,6 +120,8 @@ export class FindManyDto {
 }
 
 export class DeleteManyDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách ids!' })
   ids: number[];
 }
 
