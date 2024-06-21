@@ -19,11 +19,14 @@ export class AreaService {
         name: data.name,
         description: data.description,
         photoURL: data.photoURL,
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
         branch: {
           connect: {
             id: tokenPayload.branchId,
+          },
+        },
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
           },
         },
       },
@@ -64,7 +67,6 @@ export class AreaService {
           photoURL: true,
           tables: {
             where: {
-              branchId: tokenPayload.branchId,
               isPublic: true,
             },
             select: {

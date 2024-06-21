@@ -30,33 +30,20 @@ export class AreaController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
   @Roles('AREA_CREATE')
-  create(
-    @Body() createAreaDto: CreateAreaDto,
-    @UploadedFile() file: Express.Multer.File,
-    @Req() req: any,
-  ) {
+  create(@Body() createAreaDto: CreateAreaDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.areaService.create(
-      {
-        ...createAreaDto,
-        photoURL: file?.path,
-      },
-      tokenPayload,
-    );
+    return this.areaService.create(createAreaDto, tokenPayload);
   }
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
   update(
     @Param('id') id: number,
     @Body() createAreaDto: CreateAreaDto,
     @Req() req: any,
-    @UploadedFile() file: Express.Multer.File,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -65,10 +52,7 @@ export class AreaController {
         where: {
           id,
         },
-        data: {
-          ...createAreaDto,
-          photoURL: file?.path,
-        },
+        data: createAreaDto,
       },
       tokenPayload,
     );
