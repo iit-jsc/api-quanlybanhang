@@ -28,32 +28,23 @@ export class TableController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
   create(
     @Body() createTableDto: CreateTableDto,
-    @UploadedFile() file: Express.Multer.File,
+
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.tableService.create(
-      {
-        ...createTableDto,
-        photoURL: file?.path,
-      },
-      tokenPayload,
-    );
+    return this.tableService.create(createTableDto, tokenPayload);
   }
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
   update(
     @Param('id') id: number,
     @Body() createTableDto: CreateTableDto,
     @Req() req: any,
-    @UploadedFile() file: Express.Multer.File,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -62,10 +53,7 @@ export class TableController {
         where: {
           id,
         },
-        data: {
-          ...createTableDto,
-          photoURL: file?.path,
-        },
+        data: createTableDto,
       },
       tokenPayload,
     );

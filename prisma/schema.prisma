@@ -89,6 +89,8 @@ model Account {
   updaterCustomerTypes    CustomerType[]    @relation("updater")
   creatorAreas            Area[]            @relation("creator")
   updaterAreas            Area[]            @relation("updater")
+  creatorTables           Table[]           @relation("creator")
+  updaterTables           Table[]           @relation("updater")
 
   @@unique([username, isPublic])
 }
@@ -609,13 +611,15 @@ model Table {
   description       String?            @db.Text
   orderDetails      OrderDetail[]
   isPublic          Boolean?           @default(true)
-  createdBy         Int?
-  updatedBy         Int?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   branch            Branch             @relation(fields: [branchId], references: [id])
   area              Area               @relation(fields: [areaId], references: [id])
   tableTransactions TableTransaction[]
+  createdBy         Int?
+  updatedBy         Int?
+  creator           Account?           @relation("creator", fields: [createdBy], references: [id])
+  updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([code, branchId, isPublic])
 }

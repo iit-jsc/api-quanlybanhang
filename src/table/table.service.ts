@@ -6,7 +6,6 @@ import { FindManyDto } from 'utils/Common.dto';
 import { Prisma } from '@prisma/client';
 import { calculatePagination } from 'utils/Helps';
 import { CommonService } from 'src/common/common.service';
-import { DETAIL_ORDER_STATUS } from 'enums/order.enum';
 
 @Injectable()
 export class TableService {
@@ -16,12 +15,11 @@ export class TableService {
   ) {}
 
   async create(data: CreateTableDto, tokenPayload: TokenPayload) {
-    if (data.areaId)
-      await this.commonService.findByIdWithBranch(
-        data.areaId,
-        'Area',
-        tokenPayload.branchId,
-      );
+    await this.commonService.findByIdWithBranch(
+      data.areaId,
+      'Area',
+      tokenPayload.branchId,
+    );
 
     return await this.prisma.table.create({
       data: {
@@ -63,8 +61,6 @@ export class TableService {
       ...(areaIds?.length > 0 && {
         area: {
           id: { in: areaIds },
-          isPublic: true,
-          branchId: tokenPayload.branchId,
         },
       }),
       branch: {
@@ -106,6 +102,7 @@ export class TableService {
                   in: statusOrderDetails,
                 },
               }),
+              isPublic: true,
             },
           },
         },
@@ -149,6 +146,7 @@ export class TableService {
           },
         },
         orderDetails: {
+          where: { isPublic: true },
           select: {
             id: true,
             amount: true,
@@ -182,6 +180,11 @@ export class TableService {
             id: true,
             type: true,
             orderDetails: {
+              where: {
+                isPublic: true,
+                product: { isPublic: true },
+                topping: { isPublic: true },
+              },
               select: {
                 id: true,
                 status: true,
@@ -232,10 +235,7 @@ export class TableService {
       where: {
         id: where.id,
         isPublic: true,
-        branch: {
-          id: tokenPayload.branchId,
-          isPublic: true,
-        },
+        branchId: tokenPayload.branchId,
       },
       data: {
         name: data.name,
