@@ -43,9 +43,7 @@ export class PermissionService {
 
     const where: Prisma.PermissionWhereInput = {
       isPublic: true,
-      branch: {
-        id: tokenPayload.branchId,
-      },
+      branchId: tokenPayload.branchId,
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
     };
 

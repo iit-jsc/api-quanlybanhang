@@ -17,11 +17,14 @@ export class CustomerTypeService {
         description: data.description,
         discountType: data.discountType,
         discount: data.discount,
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
         shop: {
           connect: {
             id: tokenPayload.shopId,
+          },
+        },
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
           },
         },
       },

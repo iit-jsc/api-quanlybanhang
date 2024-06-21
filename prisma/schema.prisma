@@ -83,6 +83,10 @@ model Account {
   updaterProducts         Product[]         @relation("updater")
   creatorPermissions      Permission[]      @relation("creator")
   updaterPermissions      Permission[]      @relation("updater")
+  creatorEmployeeGroups   EmployeeGroup[]   @relation("creator")
+  updaterEmployeeGroups   EmployeeGroup[]   @relation("updater")
+  creatorCustomerTypes    CustomerType[]    @relation("creator")
+  updaterCustomerTypes    CustomerType[]    @relation("updater")
 
   @@unique([username, isPublic])
 }
@@ -126,6 +130,8 @@ model EmployeeGroup {
   isPublic    Boolean? @default(true)
   createdBy   Int?
   updatedBy   Int?
+  creator     Account? @relation("creator", fields: [createdBy], references: [id])
+  updater     Account? @relation("updater", fields: [updatedBy], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 }
@@ -337,13 +343,15 @@ model CustomerType {
   discount     Float?
   discountType Int?
   isPublic     Boolean?   @default(true)
-  createdBy    Int?
-  updatedBy    Int?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   shopId       Int
   shop         Shop       @relation(fields: [shopId], references: [id])
   customers    Customer[]
+  createdBy    Int?
+  updatedBy    Int?
+  creator      Account?   @relation("creator", fields: [createdBy], references: [id])
+  updater      Account?   @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model Customer {

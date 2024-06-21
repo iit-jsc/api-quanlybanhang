@@ -1,10 +1,5 @@
 import { Transform, TransformFnParams } from 'class-transformer';
-import {
-  ArrayNotEmpty,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateEmployeeGroupDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -15,8 +10,4 @@ export class CreateEmployeeGroupDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
-  branchIds: number[];
 }

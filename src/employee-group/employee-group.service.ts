@@ -1,12 +1,10 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateEmployeeGroupDto } from './dto/create-employee-group.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
-import { calculatePagination, onlyBranchFilter } from 'utils/Helps';
+import { calculatePagination } from 'utils/Helps';
 import { FindManyDto } from 'utils/Common.dto';
-import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
-import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
 export class EmployeeGroupService {
@@ -17,13 +15,16 @@ export class EmployeeGroupService {
       data: {
         name: data.name,
         description: data.description,
-        // branches: {
-        //   connect: data.branchIds.map((id) => ({
-        //     id,
-        //   })),
-        // },
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
+          },
+        },
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
       },
     });
   }
@@ -33,12 +34,7 @@ export class EmployeeGroupService {
 
     let where: Prisma.EmployeeGroupWhereInput = {
       isPublic: true,
-      // branches: {
-      // some: {
-      //   isPublic: true,
-      //   id: tokenPayload.branchId,
-      // },
-      // },
+      branchId: tokenPayload.branchId,
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
     };
 
@@ -50,7 +46,11 @@ export class EmployeeGroupService {
           createdAt: 'desc',
         },
         where,
-        select: EMPLOYEE_GROUP_SELECT,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+        },
       }),
       this.prisma.employeeGroup.count({
         where,
@@ -71,21 +71,20 @@ export class EmployeeGroupService {
       where: {
         ...where,
         isPublic: true,
-        // branches: {
-        // some: {
-        //   isPublic: true,
-        //   id: tokenPayload.branchId,
-        // },
-        // },
+        branchId: tokenPayload.branchId,
       },
-      select: EMPLOYEE_GROUP_SELECT,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+      },
     });
   }
 
   async update(
     params: {
       where: Prisma.EmployeeGroupWhereUniqueInput;
-      data: Prisma.EmployeeGroupUpdateInput & { branchIds: number[] };
+      data: Prisma.EmployeeGroupUpdateInput;
     },
     tokenPayload: TokenPayload,
   ) {
@@ -95,22 +94,11 @@ export class EmployeeGroupService {
       data: {
         name: data.name,
         description: data.description,
-        // branches: {
-        // set: [],
-        // connect: data.branchIds.map((id) => ({
-        //   id,
-        // })),
-        // },
         updatedBy: tokenPayload.accountId,
       },
       where: {
         ...where,
-        // branches: {
-        // some: {
-        //   isPublic: true,
-        //   id: tokenPayload.branchId,
-        // },
-        // },
+        branchId: tokenPayload.branchId,
       },
     });
   }
@@ -123,12 +111,7 @@ export class EmployeeGroupService {
       where: {
         ...where,
         isPublic: true,
-        // branches: {
-        // some: {
-        //   isPublic: true,
-        //   id: tokenPayload.branchId,
-        // },
-        // },
+        branchId: tokenPayload.branchId,
       },
       data: {
         isPublic: false,
