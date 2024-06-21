@@ -70,8 +70,6 @@ export class ProductTypeService {
   }
 
   async findUniq(where: Prisma.ProductTypeWhereInput) {
-    console.log(where);
-
     return this.prisma.productType.findFirst({
       where: {
         ...where,

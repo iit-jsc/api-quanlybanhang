@@ -12,7 +12,6 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
-import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto } from 'utils/Common.dto';
@@ -26,7 +25,7 @@ export class ProductTypeController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   create(@Body() createProductTypeDto: CreateProductTypeDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -43,19 +42,18 @@ export class ProductTypeController {
   @Get(':keyword')
   @HttpCode(HttpStatus.OK)
   findUniq(@Param('keyword') keyword: string) {
-    if (keyword) {
-      const id = isNaN(+keyword) ? null : +keyword;
-      const slug = keyword;
-
-      return this.productTypeService.findUniq({
-        OR: [id && { id: id }, slug && { slug: slug }].filter(Boolean),
-      });
-    }
+    const idKeyword = Number(keyword);
+    const searchConditions = !isNaN(idKeyword)
+      ? [{ id: idKeyword }, { slug: { contains: keyword } }]
+      : [{ slug: { contains: keyword } }];
+    return this.productTypeService.findUniq({
+      OR: searchConditions,
+    });
   }
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: number,
     @Body() createProductTypeDto: CreateProductTypeDto,
@@ -76,7 +74,7 @@ export class ProductTypeController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

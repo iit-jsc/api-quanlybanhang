@@ -77,6 +77,8 @@ model Account {
   updaterToppings         Topping[]         @relation("updater")
   creatorProductTypes     ProductType[]     @relation("creator")
   updaterProductTypes     ProductType[]     @relation("updater")
+  creatorProducts         Product[]         @relation("creator")
+  updaterProducts         Product[]         @relation("updater")
 
   @@unique([username, isPublic])
 }
@@ -264,7 +266,6 @@ model Product {
   branchId                Int
   unitId                  Int
   name                    String
-  sku                     String
   slug                    String                   @unique
   code                    String?
   price                   Float                    @default(0)
@@ -275,8 +276,6 @@ model Product {
   status                  Int?                     @default(1)
   isInitialStock          Boolean                  @default(false)
   isPublic                Boolean?                 @default(true)
-  createdBy               Int?
-  updatedBy               Int?
   createdAt               DateTime                 @default(now())
   updatedAt               DateTime                 @updatedAt
   branch                  Branch                   @relation(fields: [branchId], references: [id])
@@ -289,8 +288,12 @@ model Product {
   orderDetails            OrderDetail[]
   productTypeId           Int
   productType             ProductType              @relation(fields: [productTypeId], references: [id])
+  createdBy               Int?
+  updatedBy               Int?
+  creator                 Account?                 @relation("creator", fields: [createdBy], references: [id])
+  updater                 Account?                 @relation("updater", fields: [updatedBy], references: [id])
 
-  @@unique([sku, branchId, isPublic])
+  @@unique([slug, branchId, isPublic])
   @@unique([code, branchId, isPublic])
 }
 

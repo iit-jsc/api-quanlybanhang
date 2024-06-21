@@ -14,10 +14,13 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { BranchGuard } from 'guards/branch.guard';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyWithIdentifierDto, FindManyDto } from 'utils/Common.dto';
+import {
+  DeleteManyDto,
+  DeleteManyWithIdentifierDto,
+  FindManyDto,
+} from 'utils/Common.dto';
 import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CustomFilesInterceptor } from 'utils/Helps';
@@ -29,7 +32,7 @@ export class ProductController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   create(@Body() createProductDto: CreateProductDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -55,25 +58,22 @@ export class ProductController {
     });
   }
 
-  @Patch(':identifier')
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
-  @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
+  @UseGuards(JwtAuthGuard)
   update(
-    @Param('identifier') identifier: string,
+    @Param('id') id: number,
     @Body() createProductDto: CreateProductDto,
     @Req() req: any,
-    @UploadedFiles() files: Array<Express.Multer.File>,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    const photoURLs = files.map((file) => file.path);
 
     return this.productService.update(
       {
         where: {
-          // identifier: identifier,
+          id,
         },
-        data: { ...createProductDto, photoURLs },
+        data: createProductDto,
       },
       tokenPayload,
     );
@@ -81,19 +81,14 @@ export class ProductController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
-  deleteMany(
-    @Body() deleteManyDto: DeleteManyWithIdentifierDto,
-    @Req() req: any,
-  ) {
+  @UseGuards(JwtAuthGuard)
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.productService.removeMany(
       {
-        branch: {
-          id: {
-            in: deleteManyDto.branchIds,
-          },
+        id: {
+          in: deleteManyDto.ids,
         },
       },
       tokenPayload,

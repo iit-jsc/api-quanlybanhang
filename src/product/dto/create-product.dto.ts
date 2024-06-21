@@ -21,10 +21,6 @@ export class CreateProductDto {
   description?: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
-  branchIds: number[];
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   unitId: number;
 
@@ -34,7 +30,7 @@ export class CreateProductDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  sku: string;
+  slug: string;
 
   @IsOptional()
   @IsString()
