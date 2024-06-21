@@ -69,8 +69,10 @@ export class ProductTypeService {
     };
   }
 
-  async findUniq(where: Prisma.ProductTypeWhereUniqueInput) {
-    return this.prisma.productType.findUniqueOrThrow({
+  async findUniq(where: Prisma.ProductTypeWhereInput) {
+    console.log(where);
+
+    return this.prisma.productType.findFirst({
       where: {
         ...where,
         isPublic: true,

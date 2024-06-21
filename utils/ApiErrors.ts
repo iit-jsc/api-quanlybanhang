@@ -2,6 +2,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 import { ValidationError } from '@nestjs/common';
 
 import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
+import { error } from 'console';
 import { Response } from 'express';
 interface ErrorResponse {
   statusCode: number;
@@ -108,6 +109,7 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     return response.status(HttpStatus.BAD_REQUEST).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
       message: 'UNKNOWN ERROR',
+      error: exception,
     });
   }
 }

@@ -40,12 +40,17 @@ export class ProductTypeController {
     return this.productTypeService.findAll(findManyDto);
   }
 
-  @Get(':id')
+  @Get(':keyword')
   @HttpCode(HttpStatus.OK)
-  findUniq(@Param('id') id: number) {
-    return this.productTypeService.findUniq({
-      id,
-    });
+  findUniq(@Param('keyword') keyword: string) {
+    if (keyword) {
+      const id = isNaN(+keyword) ? null : +keyword;
+      const slug = keyword;
+
+      return this.productTypeService.findUniq({
+        OR: [id && { id: id }, slug && { slug: slug }].filter(Boolean),
+      });
+    }
   }
 
   @Patch(':id')
