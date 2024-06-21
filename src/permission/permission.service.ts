@@ -16,19 +16,21 @@ export class PermissionService {
       data: {
         name: data.name,
         description: data.description,
-        // branches: {
-        // connect: data.branchIds.map((id) => ({
-        //   id,
-        //   shop: { isPublic: true, id: tokenPayload.shopId },
-        // })),
-        // },
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
+          },
+        },
         roles: {
           connect: data.roleIds.map((id) => ({
             id,
           })),
         },
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
       },
       include: {
         roles: true,
@@ -37,22 +39,14 @@ export class PermissionService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, branchIds, keyword } = params;
+    let { skip, take, keyword } = params;
 
     const where: Prisma.PermissionWhereInput = {
       isPublic: true,
-      // branches: {
-      //   some: roleBasedBranchFilter(tokenPayload),
-      // },
+      branch: {
+        id: tokenPayload.branchId,
+      },
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
-      ...(branchIds?.length > 0 && {
-        branches: {
-          // some: {
-          //   id: { in: branchIds },
-          //   ...roleBasedBranchFilter(tokenPayload),
-          // },
-        },
-      }),
     };
 
     const [data, totalRecords] = await Promise.all([
@@ -67,16 +61,16 @@ export class PermissionService {
           id: true,
           name: true,
           description: true,
-          // branches: {
-          //   select: {
-          //     id: true,
-          //     photoURL: true,
-          //     name: true,
-          //     address: true,
-          //     createdAt: true,
-          //   },
-          //   where: { isPublic: true },
-          // },
+          branch: {
+            select: {
+              id: true,
+              photoURL: true,
+              name: true,
+              address: true,
+              createdAt: true,
+            },
+            where: { isPublic: true },
+          },
           roles: {
             select: {
               id: true,
@@ -100,7 +94,7 @@ export class PermissionService {
   async update(
     params: {
       where: Prisma.PermissionWhereUniqueInput;
-      data: Prisma.PermissionUpdateInput & { branchIds: number[] };
+      data: Prisma.PermissionUpdateInput;
     },
     tokenPayload: TokenPayload,
   ) {
@@ -110,19 +104,12 @@ export class PermissionService {
       data: {
         name: data.name,
         description: data.description,
-        // branches: {
-        //   set: [],
-        //   connect: data.branchIds.map((id) => ({
-        //     id,
-        //   })),
-        // },
         updatedBy: tokenPayload.accountId,
       },
       where: {
         ...where,
-        // branches: {
-        //   some: roleBasedBranchFilter(tokenPayload),
-        // },
+        isPublic: true,
+        branchId: tokenPayload.branchId,
       },
     });
   }
@@ -135,11 +122,30 @@ export class PermissionService {
       where: {
         ...where,
         isPublic: true,
-        // branches: {
-        //   some: roleBasedBranchFilter(tokenPayload),
-        // },
+        branchId: tokenPayload.branchId,
       },
-      select: PERMISSION_SELECT,
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        branch: {
+          select: {
+            id: true,
+            photoURL: true,
+            name: true,
+            address: true,
+            createdAt: true,
+          },
+          where: { isPublic: true },
+        },
+        roles: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+      },
     });
   }
 
@@ -151,9 +157,7 @@ export class PermissionService {
       where: {
         ...where,
         isPublic: true,
-        // branches: {
-        //   some: roleBasedBranchFilter(tokenPayload),
-        // },
+        branchId: tokenPayload.branchId,
       },
       data: {
         isPublic: false,

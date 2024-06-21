@@ -46,6 +46,8 @@ model Permission {
   isPublic    Boolean?  @default(true)
   createdBy   Int?
   updatedBy   Int?
+  creator     Account?  @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?  @relation("updater", fields: [updatedBy], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 }
@@ -79,6 +81,8 @@ model Account {
   updaterProductTypes     ProductType[]     @relation("updater")
   creatorProducts         Product[]         @relation("creator")
   updaterProducts         Product[]         @relation("updater")
+  creatorPermissions      Permission[]      @relation("creator")
+  updaterPermissions      Permission[]      @relation("updater")
 
   @@unique([username, isPublic])
 }
