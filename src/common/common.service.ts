@@ -2,6 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { DETAIL_ORDER_STATUS } from 'enums/order.enum';
 import { EMPLOYEE_GROUP_SELECT } from 'enums/select.enum';
+import { AnyObject } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { permission } from 'process';
 import { CreateCustomerDto } from 'src/customer/dto/create-customer.dto';
@@ -12,7 +13,7 @@ import { CustomHttpException } from 'utils/ApiErrors';
 export class CommonService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async uploadPhotoURS(data: { photoURLs: string[] }) {
+  async uploadPhotoURLs(data: { photoURLs: string[] }) {
     return data.photoURLs;
   }
 
@@ -25,60 +26,6 @@ export class CommonService {
             id,
           },
         },
-      },
-    });
-  }
-
-  async findEmployeeByIdWithBranch(id: number, branchId: number) {
-    const employeeGroup = await this.prisma.employeeGroup.findUnique({
-      where: {
-        id: +id,
-        isPublic: true,
-        // branches: {
-        // some: {
-        //   id: branchId,
-        // },
-        // },
-      },
-      select: EMPLOYEE_GROUP_SELECT,
-    });
-
-    if (!employeeGroup)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        '#1 findEmployeeByIdWithBranch - Nhóm nhân viên không tồn tại!',
-      );
-
-    return employeeGroup;
-  }
-
-  async findPermissionByIdWithBranch(id: number, branchId: number) {
-    const permission = await this.prisma.permission.findUnique({
-      where: {
-        id: +id,
-        isPublic: true,
-        // branches: {
-        //   some: {
-        //     id: branchId,
-        //   },
-        // },
-      },
-    });
-
-    if (!permission)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        '#1 findPermissionByIdWithBranch - Nhóm quyền không tồn tại!',
-      );
-
-    return permission;
-  }
-
-  async findUserByCondition(where: any) {
-    return await this.prisma.user.findFirst({
-      where: {
-        isPublic: true,
-        ...where,
       },
     });
   }
@@ -148,25 +95,6 @@ export class CommonService {
     });
   }
 
-  async findByIdWithBranches(
-    id: number,
-    model: Prisma.ModelName,
-    branchId: number,
-  ) {
-    return this.prisma[model].findFirstOrThrow({
-      where: {
-        isPublic: true,
-        id,
-        branches: {
-          some: {
-            isPublic: true,
-            id: branchId,
-          },
-        },
-      },
-    });
-  }
-
   async findByIdWithBranch(
     id: number,
     model: Prisma.ModelName,
@@ -209,27 +137,27 @@ export class CommonService {
       },
     });
 
-    return this.prisma.customer.upsert({
-      where: {
-        phone_shopId_isPublic: {
-          phone: where.phone,
-          shopId: shop.id,
-          isPublic: true,
-        },
-      },
-      create: {
-        name: data.name,
-        phone: data.phone,
-        email: data.email,
-        address: data.email,
-        shop: {
-          connect: {
-            id: shop.id,
-          },
-        },
-      },
-      update: { name: data.name, address: data.email },
-    });
+    // return this.prisma.customer.upsert({
+    //   where: {
+    //     phone_shopId_isPublic: {
+    //       phone: where.phone,
+    //       shopId: shop.id,
+    //       isPublic: true,
+    //     },
+    //   },
+    //   create: {
+    //     name: data.name,
+    //     phone: data.phone,
+    //     email: data.email,
+    //     address: data.email,
+    //     shop: {
+    //       connect: {
+    //         id: shop.id,
+    //       },
+    //     },
+    //   },
+    //   update: { name: data.name, address: data.email },
+    // });
   }
 
   async checkTableIsReady(id: number) {
@@ -274,5 +202,47 @@ export class CommonService {
       where: { id: otp.id },
       data: { isUsed: true },
     });
+  }
+
+  async checkDataExistingInBranch<T extends AnyObject>(
+    data: T[],
+    model: string,
+    branchId: number,
+    id?: number,
+  ) {
+    let conflictingKeys: string[] = [];
+
+    const result = await this.prisma[model].findFirst({
+      where: {
+        isPublic: true,
+        branchId: branchId,
+        OR: data.map((item) => {
+          const key = Object.keys(item)[0];
+          const value = Object.values(item)[0];
+          return {
+            [key]: { equals: value, mode: 'insensitive' },
+          };
+        }),
+      },
+    });
+
+    if (result && result.id !== id) {
+      conflictingKeys = data.reduce((keys: string[], item) => {
+        const key = Object.keys(item)[0];
+        const value = Object.values(item)[0];
+        if (result[key] === value) {
+          keys.push(key);
+        }
+        return keys;
+      }, []);
+
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        `#1 checkDataExistingInBranch - Dữ liệu đã tồn tại!`,
+        conflictingKeys.map((item) => ({
+          [item]: 'Dữ liệu đã được sử dụng!',
+        })),
+      );
+    }
   }
 }

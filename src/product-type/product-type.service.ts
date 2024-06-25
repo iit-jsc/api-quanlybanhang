@@ -1,3 +1,4 @@
+import { CommonService } from 'src/common/common.service';
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
@@ -5,13 +6,21 @@ import { PrismaService } from 'nestjs-prisma';
 import { calculatePagination } from 'utils/Helps';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
 import { FindManyProductTypeDto } from './dto/find-many.dto';
-import * as slug from 'slug';
 
 @Injectable()
 export class ProductTypeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
+    await this.commonService.checkDataExistingInBranch(
+      [{ slug: data.slug }],
+      'ProductType',
+      tokenPayload.branchId,
+    );
+
     return this.prisma.productType.create({
       data: {
         branch: {
@@ -98,6 +107,14 @@ export class ProductTypeService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    await this.commonService.checkDataExistingInBranch(
+      [{ slug: data.slug }],
+      'ProductType',
+      tokenPayload.branchId,
+      where.id,
+    );
+
     return this.prisma.productType.update({
       where: {
         ...where,

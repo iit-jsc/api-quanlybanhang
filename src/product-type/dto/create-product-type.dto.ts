@@ -1,10 +1,5 @@
 import { Transform, TransformFnParams } from 'class-transformer';
-import {
-  ArrayNotEmpty,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductTypeDto {
   @IsNotEmpty({ message: 'Không được để trống!' })

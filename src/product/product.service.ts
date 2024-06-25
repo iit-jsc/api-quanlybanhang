@@ -9,9 +9,18 @@ import { FindManyProductDto } from './dto/find-many.dto';
 import * as slug from 'slug';
 @Injectable()
 export class ProductService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateProductDto, tokenPayload: TokenPayload) {
+    await this.commonService.checkDataExistingInBranch(
+      [{ slug: data.slug }, { code: data.code }],
+      'Product',
+      tokenPayload.branchId,
+    );
+
     return this.prisma.product.create({
       data: {
         slug: data.slug,
@@ -162,6 +171,14 @@ export class ProductService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    await this.commonService.checkDataExistingInBranch(
+      [{ slug: data.slug }, { code: data.code }],
+      'Product',
+      tokenPayload.branchId,
+      where.id,
+    );
+
     return this.prisma.product.update({
       where: {
         ...where,
@@ -173,6 +190,7 @@ export class ProductService {
       data: {
         name: data.name,
         description: data.description,
+        slug: data.slug,
         unitId: data.unitId,
         productTypeId: data.productTypeId,
         code: data.code,

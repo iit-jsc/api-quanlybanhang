@@ -61,7 +61,7 @@ export class AuthService {
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: '5m',
+        expiresIn: '1h',
       }),
       shops,
     };
@@ -106,12 +106,12 @@ export class AuthService {
         id: tokenPayload.accountId,
         user: {
           isPublic: true,
-          branches: {
-            some: {
-              id: accessBranchDto.branchId,
-              isPublic: true,
-            },
-          },
+          // branches: {
+          //   some: {
+          //     id: accessBranchDto.branchId,
+          //     isPublic: true,
+          //   },
+          // },
         },
       },
       include: {
@@ -138,6 +138,7 @@ export class AuthService {
       accessToken: await this.jwtService.signAsync(
         {
           accountId: tokenPayload.accountId,
+
           branchId: accessBranchDto.branchId,
           shopId: shop.id,
         } as TokenPayload,
@@ -157,15 +158,15 @@ export class AuthService {
 
     const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
 
-    await this.prisma.phoneVerification.create({
+    return await this.prisma.phoneVerification.create({
       data: { code: otp, phone: data.phone },
     });
 
-    return await client.messages.create({
-      body: 'Your verification code is: ' + otp,
-      from: process.env.TWILIO_ACCOUNT_PHONE,
-      to: '+84' + data.phone.substring(1),
-    });
+    // return await client.messages.create({
+    //   body: 'Your verification code is: ' + otp,
+    //   from: process.env.TWILIO_ACCOUNT_PHONE,
+    //   to: '+84' + data.phone.substring(1),
+    // });
   }
 
   async register(registerDto: RegisterDto) {}

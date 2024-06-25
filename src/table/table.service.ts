@@ -35,11 +35,14 @@ export class TableService {
             isPublic: true,
           },
         },
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
         branch: {
           connect: {
             id: tokenPayload.branchId,
+          },
+        },
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
           },
         },
       },
@@ -242,13 +245,17 @@ export class TableService {
         code: data.code,
         photoURL: data.photoURL,
         description: data.description,
+        updater: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
         area: {
           connect: {
             id: data.areaId,
             isPublic: true,
           },
         },
-        updatedBy: tokenPayload.accountId,
       },
     });
   }

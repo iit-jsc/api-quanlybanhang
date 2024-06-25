@@ -29,3 +29,7 @@ export interface Condition {
   };
   [key: string]: any;
 }
+
+export interface AnyObject {
+  [key: string]: any;
+}

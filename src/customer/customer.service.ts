@@ -15,14 +15,20 @@ export class CustomerService {
   ) {}
 
   async create(data: CreateCustomerDto, tokenPayload: TokenPayload) {
+    await this.commonService.checkDataExistingInBranch(
+      [{ code: data.code, phone: data.phone }],
+      'Customer',
+      tokenPayload.branchId,
+    );
+
     if (data.customerTypeId)
       await this.commonService.findByIdWithShop(
         data.customerTypeId,
-        'CustomerType',
+        'Customer',
         tokenPayload.shopId,
       );
 
-    await this.prisma.customer.create({
+    return await this.prisma.customer.create({
       data: {
         name: data.name,
         endow: data.endow,
@@ -52,8 +58,11 @@ export class CustomerService {
             isPublic: true,
           },
         },
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
       },
     });
   }
@@ -201,6 +210,13 @@ export class CustomerService {
   ) {
     const { where, data } = params;
 
+    await this.commonService.checkDataExistingInBranch(
+      [{ code: data.code, phone: data.phone }],
+      'Customer',
+      tokenPayload.branchId,
+      where.id,
+    );
+
     if (data.customerTypeId)
       await this.commonService.findByIdWithShop(
         data.customerTypeId,
@@ -238,7 +254,11 @@ export class CustomerService {
         sex: data.sex,
         representativeName: data.representativeName,
         representativePhone: data.representativePhone,
-        updatedBy: tokenPayload.accountId,
+        updater: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
       },
     });
   }

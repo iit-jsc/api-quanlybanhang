@@ -1,6 +1,7 @@
 import { Optional } from '@nestjs/common';
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
+  IsArray,
   IsDate,
   IsEmail,
   IsEnum,
@@ -9,17 +10,11 @@ import {
   IsOptional,
   IsString,
   MaxDate,
-  MinLength,
 } from 'class-validator';
-import { ACCOUNT_STATUS, SEX_TYPE } from 'enums/user.enum';
+import { SEX_TYPE } from 'enums/user.enum';
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
 export class CreateEmployeeDto {
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  id: number;
-
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
@@ -71,12 +66,7 @@ export class CreateEmployeeDto {
   employeeGroupId: number;
 
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
-  })
+  @IsArray()
   permissionIds: number[];
 
   @IsOptional()
@@ -98,6 +88,5 @@ export class CreateEmployeeDto {
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
   code: string;
 }

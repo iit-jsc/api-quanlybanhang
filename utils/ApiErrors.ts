@@ -4,28 +4,20 @@ import { ValidationError } from '@nestjs/common';
 import { ExceptionFilter, Catch, ArgumentsHost } from '@nestjs/common';
 import { error } from 'console';
 import { Response } from 'express';
+import { AnyObject } from 'interfaces/common.interface';
 interface ErrorResponse {
   statusCode: number;
   message: string;
-  errors?: ErrorItem[];
+  errors?: AnyObject[];
 }
-interface ErrorItem {
-  property: string;
-  message: string;
-}
+
 export class CustomHttpException extends HttpException {
-  constructor(statusCode: number, message: string, errors: ErrorItem[] = []) {
+  constructor(statusCode: number, message: string, errors: AnyObject[] = []) {
     const response: ErrorResponse = {
       statusCode: statusCode,
       message,
+      errors,
     };
-
-    if (errors.length > 0) {
-      response.errors = errors.map((error) => ({
-        property: error.property,
-        message: error.message,
-      }));
-    }
 
     super(response, statusCode);
   }

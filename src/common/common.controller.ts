@@ -25,6 +25,6 @@ export class CommonController {
   create(@UploadedFiles() files: Array<Express.Multer.File>, @Req() req: any) {
     const photoURLs = files.map((file) => file.path);
 
-    return this.commonService.uploadPhotoURS({ photoURLs });
+    return this.commonService.uploadPhotoURLs({ photoURLs });
   }
 }

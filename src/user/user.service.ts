@@ -16,7 +16,7 @@ export class UserService {
     private commonService: CommonService,
   ) {}
 
-  async create(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
+  async createEmployee(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
     await this.checkUserExisted(data, tokenPayload);
 
     return await this.prisma.user.create({
@@ -36,77 +36,75 @@ export class UserService {
         cardAddress: data.cardAddress,
         createdBy: tokenPayload.accountId,
         updatedBy: tokenPayload.accountId,
-        branches: {
-          connect: {
-            id: tokenPayload.branchId,
-          },
-        },
+        // branches: {
+        //   connect: {
+        //     id: tokenPayload.branchId,
+        //   },
+        // },
       },
     });
   }
 
   async checkUserExisted(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
-    const user = await this.commonService.findUserByCondition({
-      OR: [
-        { phone: data.phone },
-        { email: data.email },
-        {
-          AND: [
-            {
-              code: {
-                equals: data.code,
-                mode: 'insensitive',
-              },
-            },
-            {
-              code: {
-                not: '',
-              },
-            },
-          ],
-        },
-      ],
-      branches: {
-        some: {
-          id: tokenPayload.branchId,
-        },
-      },
-    } as Prisma.UserWhereInput);
-
-    if (user && user.id !== data.id) {
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        '#1 checkUserExisted - Nhân viên đã tồn tại trong cửa hàng!',
-        [
-          ...(user.phone === data.phone
-            ? [
-                {
-                  message: 'Số điện thoại đã được sử dụng!',
-                  property: 'phone',
-                },
-              ]
-            : []),
-          ...(user.email === data.email
-            ? [
-                {
-                  message: 'Email đã được sử dụng!',
-                  property: 'email',
-                },
-              ]
-            : []),
-          ...(user.code?.toLocaleLowerCase() == data.code?.toLocaleLowerCase()
-            ? [
-                {
-                  message: 'Mã nhân viên đã được sử dụng!',
-                  property: 'code',
-                },
-              ]
-            : []),
-        ],
-      );
-    }
-
-    return true;
+    // const user = await this.commonService.findUserByCondition({
+    //   OR: [
+    //     { phone: data.phone },
+    //     { email: data.email },
+    //     {
+    //       AND: [
+    //         {
+    //           code: {
+    //             equals: data.code,
+    //             mode: 'insensitive',
+    //           },
+    //         },
+    //         {
+    //           code: {
+    //             not: '',
+    //           },
+    //         },
+    //       ],
+    //     },
+    //   ],
+    //   branches: {
+    //     some: {
+    //       id: tokenPayload.branchId,
+    //     },
+    //   },
+    // } as Prisma.UserWhereInput);
+    // if (user && user.id !== data.id) {
+    //   throw new CustomHttpException(
+    //     HttpStatus.CONFLICT,
+    //     '#1 checkUserExisted - Nhân viên đã tồn tại trong cửa hàng!',
+    //     [
+    //       ...(user.phone === data.phone
+    //         ? [
+    //             {
+    //               message: 'Số điện thoại đã được sử dụng!',
+    //               property: 'phone',
+    //             },
+    //           ]
+    //         : []),
+    //       ...(user.email === data.email
+    //         ? [
+    //             {
+    //               message: 'Email đã được sử dụng!',
+    //               property: 'email',
+    //             },
+    //           ]
+    //         : []),
+    //       ...(user.code?.toLocaleLowerCase() == data.code?.toLocaleLowerCase()
+    //         ? [
+    //             {
+    //               message: 'Mã nhân viên đã được sử dụng!',
+    //               property: 'code',
+    //             },
+    //           ]
+    //         : []),
+    //     ],
+    //   );
+    // }
+    // return true;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -116,12 +114,12 @@ export class UserService {
 
     const where: Prisma.UserWhereInput = {
       isPublic: true,
-      branches: {
-        some: {
-          isPublic: true,
-          id: tokenPayload.branchId,
-        },
-      },
+      // branches: {
+      //   some: {
+      //     isPublic: true,
+      //     id: tokenPayload.branchId,
+      //   },
+      // },
       ...(keyword && {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword, mode: 'insensitive' },
@@ -198,12 +196,12 @@ export class UserService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: {
-            id: tokenPayload.branchId,
-            isPublic: true,
-          },
-        },
+        // branches: {
+        //   some: {
+        //     id: tokenPayload.branchId,
+        //     isPublic: true,
+        //   },
+        // },
       },
       select: {
         id: true,
@@ -271,12 +269,12 @@ export class UserService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: {
-            id: tokenPayload.branchId,
-            isPublic: true,
-          },
-        },
+        // branches: {
+        //   some: {
+        //     id: tokenPayload.branchId,
+        //     isPublic: true,
+        //   },
+        // },
       },
     });
   }
@@ -286,12 +284,12 @@ export class UserService {
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: {
-            isPublic: true,
-            id: tokenPayload.branchId,
-          },
-        },
+        // branches: {
+        //   some: {
+        //     isPublic: true,
+        //     id: tokenPayload.branchId,
+        //   },
+        // },
       },
       data: {
         isPublic: false,

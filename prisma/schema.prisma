@@ -67,8 +67,6 @@ model Account {
   updatedAt               DateTime          @updatedAt
   activityLogs            ActivityLog[]
   permissions             Permission[]
-  createdUsers            User[]            @relation("createdByRelation")
-  updatedUsers            User[]            @relation("updatedByRelation")
   createOrders            Order[]           @relation("createdByRelation")
   updateOrders            Order[]           @relation("updatedByRelation")
   creatorBranches         Branch[]          @relation("creator")
@@ -91,6 +89,10 @@ model Account {
   updaterAreas            Area[]            @relation("updater")
   creatorTables           Table[]           @relation("creator")
   updaterTables           Table[]           @relation("updater")
+  creatorCustomers        Customer[]        @relation("creator")
+  updaterCustomers        Customer[]        @relation("updater")
+  creatorUsers            User[]            @relation("creator")
+  updaterUsers            User[]            @relation("updater")
 
   @@unique([username, isPublic])
 }
@@ -113,15 +115,18 @@ model User {
   employeeGroupId   Int?
   employeeGroup     EmployeeGroup?     @relation(fields: [employeeGroupId], references: [id])
   isPublic          Boolean?           @default(true)
-  createdBy         Int?
-  updatedBy         Int?
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   employeeSchedules EmployeeSchedule[]
   timeSheets        TimeSheet[]
-  branches          Branch[]
-  createdByAccount  Account?           @relation("createdByRelation", fields: [createdBy], references: [id])
-  updatedByAccount  Account?           @relation("updatedByRelation", fields: [updatedBy], references: [id])
+  branchId          Int?
+  branch            Branch?            @relation(fields: [branchId], references: [id])
+  createdBy         Int?
+  updatedBy         Int?
+  creator           Account?           @relation("creator", fields: [createdBy], references: [id])
+  updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([code, branchId, isPublic])
 }
 
 model EmployeeGroup {
@@ -237,8 +242,6 @@ model ProductType {
   updatedBy              Int?
   creator                Account?                @relation("creator", fields: [createdBy], references: [id])
   updater                Account?                @relation("updater", fields: [updatedBy], references: [id])
-
-  @@unique([slug, branchId, isPublic])
 }
 
 model OtherAttributePattern {
@@ -306,9 +309,6 @@ model Product {
   updatedBy               Int?
   creator                 Account?                 @relation("creator", fields: [createdBy], references: [id])
   updater                 Account?                 @relation("updater", fields: [updatedBy], references: [id])
-
-  @@unique([slug, branchId, isPublic])
-  @@unique([code, branchId, isPublic])
 }
 
 model ComboProductItem {
@@ -377,19 +377,21 @@ model Customer {
   fax                 String?
   tax                 String?
   isPublic            Boolean?            @default(true)
-  createdBy           Int?
-  updatedBy           Int?
   createdAt           DateTime            @default(now())
   updatedAt           DateTime            @updatedAt
   shopId              Int
+  createdBy           Int?
+  updatedBy           Int?
   shop                Shop                @relation(fields: [shopId], references: [id])
   customerType        CustomerType?       @relation(fields: [customerTypeId], references: [id])
   orders              Order[]
   pointAccumulations  PointAccumulation[]
   pointRedemptions    PointRedemption[]
+  creator             Account?            @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
 
-  @@unique([code, shopId, isPublic])
-  @@unique([phone, shopId, isPublic])
+  // @@unique([code, shopId, isPublic])
+  // @@unique([phone, shopId, isPublic])
 }
 
 model SupplierType {
@@ -538,7 +540,7 @@ model Order {
   pointRedemptions           PointRedemption[]
   pointAccumulationHistories PointAccumulationHistory[]
 
-  @@unique([code, branchId])
+  // @@unique([code, branchId])
 }
 
 model OrderDetail {
@@ -598,7 +600,7 @@ model Area {
   creator     Account? @relation("creator", fields: [createdBy], references: [id])
   updater     Account? @relation("updater", fields: [updatedBy], references: [id])
 
-  @@unique([code, branchId, isPublic])
+  // @@unique([code, branchId, isPublic])
 }
 
 model Table {
@@ -621,7 +623,7 @@ model Table {
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
   updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
 
-  @@unique([code, branchId, isPublic])
+  // @@unique([code, branchId, isPublic])
 }
 
 model DiscountIssue {

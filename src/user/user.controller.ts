@@ -29,20 +29,12 @@ export class UserController {
   @Post('/employee')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
-  create(
+  createEmployee(
     @Body() createEmployeeDto: CreateEmployeeDto,
-    @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.userService.create(
-      {
-        ...createEmployeeDto,
-        photoURL: file?.path,
-      },
-      tokenPayload,
-    );
+    return this.userService.createEmployee(createEmployeeDto, tokenPayload);
   }
 
   @Get('/employee')
@@ -71,11 +63,9 @@ export class UserController {
   @Patch('/employee/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  @UseInterceptors(CustomFileInterceptor('photoURL'))
   update(
     @Param('id') id: number,
     @Body() createEmployeeDto: CreateEmployeeDto,
-    @UploadedFile() file: Express.Multer.File,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
@@ -85,7 +75,7 @@ export class UserController {
         where: {
           id,
         },
-        data: { ...createEmployeeDto, photoURL: file?.path },
+        data: createEmployeeDto,
       },
       tokenPayload,
     );
