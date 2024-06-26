@@ -55,8 +55,9 @@ model Permission {
 model Account {
   id                      Int               @id @default(autoincrement())
   status                  Int               @default(1)
+  type                    Int?              @default(3)
   username                String
-  password                String
+  password                String?
   userId                  Int
   user                    User              @relation(fields: [userId], references: [id])
   isPublic                Boolean?          @default(true)
@@ -67,8 +68,8 @@ model Account {
   updatedAt               DateTime          @updatedAt
   activityLogs            ActivityLog[]
   permissions             Permission[]
-  createOrders            Order[]           @relation("createdByRelation")
-  updateOrders            Order[]           @relation("updatedByRelation")
+  createOrders            Order[]           @relation("creator")
+  updateOrders            Order[]           @relation("updater")
   creatorBranches         Branch[]          @relation("creator")
   updaterBranches         Branch[]          @relation("updater")
   creatorMeasurementUnits MeasurementUnit[] @relation("creator")
@@ -93,8 +94,6 @@ model Account {
   updaterCustomers        Customer[]        @relation("updater")
   creatorUsers            User[]            @relation("creator")
   updaterUsers            User[]            @relation("updater")
-
-  @@unique([username, isPublic])
 }
 
 model User {
@@ -120,13 +119,10 @@ model User {
   employeeSchedules EmployeeSchedule[]
   timeSheets        TimeSheet[]
   branchId          Int?
-  branch            Branch?            @relation(fields: [branchId], references: [id])
   createdBy         Int?
   updatedBy         Int?
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
   updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
-
-  @@unique([code, branchId, isPublic])
 }
 
 model EmployeeGroup {
@@ -146,24 +142,24 @@ model EmployeeGroup {
 }
 
 model Shop {
-  id                Int                 @id @default(autoincrement())
-  code              String              @unique
-  businessTypeId    Int
-  businessType      BusinessType?       @relation(fields: [businessTypeId], references: [id])
-  name              String
-  photoURL          String?             @db.Text
-  domain            String?
-  isPublic          Boolean?            @default(true)
-  createdBy         Int?
-  updatedBy         Int?
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  branches          Branch[]
-  pointSettings     PointSetting[]
-  customerTypes     CustomerType[]
-  customers         Customer[]
-  PointAccumulation PointAccumulation[]
-  PointRedemption   PointRedemption[]
+  id                 Int                 @id @default(autoincrement())
+  code               String              @unique
+  businessTypeId     Int
+  businessType       BusinessType?       @relation(fields: [businessTypeId], references: [id])
+  name               String
+  photoURL           String?             @db.Text
+  domain             String?
+  isPublic           Boolean?            @default(true)
+  createdBy          Int?
+  updatedBy          Int?
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  branches           Branch[]
+  pointSettings      PointSetting[]
+  customerTypes      CustomerType[]
+  customers          Customer[]
+  pointAccumulations PointAccumulation[]
+  pointRedemptions   PointRedemption[]
 }
 
 model PrintTemplate {
@@ -389,9 +385,6 @@ model Customer {
   pointRedemptions    PointRedemption[]
   creator             Account?            @relation("creator", fields: [createdBy], references: [id])
   updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
-
-  // @@unique([code, shopId, isPublic])
-  // @@unique([phone, shopId, isPublic])
 }
 
 model SupplierType {
@@ -535,12 +528,10 @@ model Order {
   deals                      Deal[]
   customerRequests           CustomerRequest[]
   orderRatings               OrderRating[]
-  createdByAccount           Account?                   @relation("createdByRelation", fields: [createdBy], references: [id])
-  updatedByAccount           Account?                   @relation("updatedByRelation", fields: [updatedBy], references: [id])
+  creator                    Account?                   @relation("creator", fields: [createdBy], references: [id])
+  updater                    Account?                   @relation("updater", fields: [updatedBy], references: [id])
   pointRedemptions           PointRedemption[]
   pointAccumulationHistories PointAccumulationHistory[]
-
-  // @@unique([code, branchId])
 }
 
 model OrderDetail {
@@ -599,8 +590,6 @@ model Area {
   updatedBy   Int?
   creator     Account? @relation("creator", fields: [createdBy], references: [id])
   updater     Account? @relation("updater", fields: [updatedBy], references: [id])
-
-  // @@unique([code, branchId, isPublic])
 }
 
 model Table {
@@ -622,8 +611,6 @@ model Table {
   updatedBy         Int?
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
   updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
-
-  // @@unique([code, branchId, isPublic])
 }
 
 model DiscountIssue {
@@ -799,9 +786,9 @@ model Branch {
   tables                     Table[]
   permissions                Permission[]
   employeeGroups             EmployeeGroup[]
-  users                      User[]
-  toppings                   Topping[]
-  accounts                   Account[]
+
+  toppings Topping[]
+  accounts Account[]
 }
 
 model WorkShift {

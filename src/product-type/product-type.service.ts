@@ -16,7 +16,7 @@ export class ProductTypeService {
 
   async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
     await this.commonService.checkDataExistingInBranch(
-      [{ slug: data.slug }],
+      { slug: data.slug },
       'ProductType',
       tokenPayload.branchId,
     );
@@ -109,7 +109,7 @@ export class ProductTypeService {
     const { where, data } = params;
 
     await this.commonService.checkDataExistingInBranch(
-      [{ slug: data.slug }],
+      { slug: data.slug },
       'ProductType',
       tokenPayload.branchId,
       where.id,

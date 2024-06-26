@@ -16,7 +16,6 @@ import { MeasurementUnitService } from './measurement-unit.service';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { CreateMeasurementUnitDto } from './dto/create-measurement-unit.dto';
-import { BranchGuard } from 'guards/branch.guard';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Controller('measurement-unit')

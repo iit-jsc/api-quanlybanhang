@@ -16,7 +16,6 @@ import { PermissionService } from './permission.service';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { BranchGuard } from 'guards/branch.guard';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Controller('permission')
@@ -25,7 +24,7 @@ export class PermissionController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   create(@Body() createPermissionDto: CreatePermissionDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -43,7 +42,7 @@ export class PermissionController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: number,
     @Body() createPermissionDto: CreatePermissionDto,
@@ -78,7 +77,7 @@ export class PermissionController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

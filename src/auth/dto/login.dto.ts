@@ -24,7 +24,18 @@ export class LoginDto {
   shopCode?: string;
 }
 
-export class LoginWithCustomerDto {
+export class LoginForManagerDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsVietnamesePhoneNumber()
+  phone: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  otp: string;
+}
+
+export class LoginForCustomerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
   code: string;
@@ -38,4 +49,20 @@ export class LoginWithCustomerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   shopId: number;
+}
+
+export class LoginForStaffDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  username: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  password: string;
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  branchCode?: string;
 }

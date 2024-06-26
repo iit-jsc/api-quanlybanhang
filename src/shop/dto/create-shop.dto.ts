@@ -17,7 +17,7 @@ export class CreateShopDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  code: string;
+  otp: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()

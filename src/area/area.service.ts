@@ -5,12 +5,22 @@ import { PrismaService } from 'nestjs-prisma';
 import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 import { CreateAreaDto } from './dto/create-area.dto';
+import { CommonService } from 'src/common/common.service';
 
 @Injectable()
 export class AreaService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
+    await this.commonService.checkDataExistingInBranch(
+      { code: data.code },
+      'Area',
+      tokenPayload.branchId,
+    );
+
     return await this.prisma.area.create({
       data: {
         ...(data.code && {
@@ -134,6 +144,14 @@ export class AreaService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    await this.commonService.checkDataExistingInBranch(
+      { code: data.code },
+      'Area',
+      tokenPayload.branchId,
+      where.id,
+    );
+
     return this.prisma.area.update({
       where: {
         id: where.id,

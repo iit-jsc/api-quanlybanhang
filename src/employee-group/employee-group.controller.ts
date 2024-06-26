@@ -16,7 +16,6 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { EmployeeGroupService } from './employee-group.service';
 import { CreateEmployeeGroupDto } from './dto/create-employee-group.dto';
 import { TokenPayload } from 'interfaces/common.interface';
-import { BranchGuard } from 'guards/branch.guard';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Controller('employee-group')
@@ -25,7 +24,7 @@ export class EmployeeGroupController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   create(
     @Body() createEmployeeGroupDto: CreateEmployeeGroupDto,
     @Req() req: any,
@@ -63,7 +62,7 @@ export class EmployeeGroupController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: number,
     @Body() createEmployeeGroupDto: CreateEmployeeGroupDto,
@@ -84,7 +83,7 @@ export class EmployeeGroupController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, BranchGuard)
+  @UseGuards(JwtAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

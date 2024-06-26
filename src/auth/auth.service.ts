@@ -1,4 +1,9 @@
-import { LoginDto, LoginWithCustomerDto } from './dto/login.dto';
+import {
+  LoginDto,
+  LoginForCustomerDto,
+  LoginForManagerDto,
+  LoginForStaffDto,
+} from './dto/login.dto';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import * as bcrypt from 'bcrypt';
@@ -21,13 +26,16 @@ export class AuthService {
     private commonService: CommonService,
   ) {}
 
-  async login(loginDto: LoginDto) {
+  async loginForStaff(data: LoginForStaffDto) {
     const account = await this.prisma.account.findFirst({
       where: {
         isPublic: true,
         username: {
-          contains: loginDto.username,
+          contains: data.username,
         },
+        // branches: {
+        //   some: {},
+        // },
       },
       include: {
         user: {
@@ -38,20 +46,17 @@ export class AuthService {
       },
     });
 
-    if (
-      !account ||
-      !(await bcrypt.compare(loginDto.password, account.password))
-    ) {
+    if (!account || !(await bcrypt.compare(data.password, account.password))) {
       throw new CustomHttpException(
         HttpStatus.UNAUTHORIZED,
-        '#1 login - Tài khoản hoặc mật khẩu không chính xác!',
+        '#1 loginForStaff - Tài khoản hoặc mật khẩu không chính xác!',
       );
     }
 
     if (account.status == ACCOUNT_STATUS.INACTIVE) {
       throw new CustomHttpException(
         HttpStatus.FORBIDDEN,
-        '#2 login - Tài khoản đã bị khóa!',
+        '#2 loginForStaff - Tài khoản đã bị khóa!',
       );
     }
 
@@ -61,13 +66,47 @@ export class AuthService {
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: '1h',
+        expiresIn: '24h',
       }),
       shops,
     };
   }
 
-  async loginWithCustomer(data: LoginWithCustomerDto) {
+  async loginForManager(data: LoginForManagerDto) {
+    await this.commonService.confirmOTP({
+      code: data.otp,
+      phone: data.phone,
+    });
+
+    const account = await this.prisma.account.findFirst({
+      where: {
+        isPublic: true,
+        username: {
+          equals: data.phone,
+        },
+        status: ACCOUNT_STATUS.ACTIVE,
+      },
+    });
+
+    if (!account)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        '#1 loginForManager - Tài khoản không tồn tại hoặc đã bị khóa!',
+      );
+
+    const shops = await this.commonService.findManyShopByAccountId(account.id);
+
+    const payload = { accountId: account.id };
+
+    return {
+      accountToken: await this.jwtService.signAsync(payload, {
+        expiresIn: '24h',
+      }),
+      shops,
+    };
+  }
+
+  async loginForCustomer(data: LoginForCustomerDto) {
     await this.commonService.confirmOTP({
       code: data.code,
       phone: data.phone,
@@ -76,6 +115,7 @@ export class AuthService {
     const customer = await this.prisma.customer.findFirstOrThrow({
       where: {
         phone: data.phone,
+        isPublic: true,
         shop: {
           id: data.shopId,
           isPublic: true,
@@ -102,16 +142,14 @@ export class AuthService {
   ) {
     const account = await this.prisma.account.findUnique({
       where: {
-        isPublic: true,
         id: tokenPayload.accountId,
-        user: {
-          isPublic: true,
-          // branches: {
-          //   some: {
-          //     id: accessBranchDto.branchId,
-          //     isPublic: true,
-          //   },
-          // },
+        isPublic: true,
+        status: ACCOUNT_STATUS.ACTIVE,
+        branches: {
+          some: {
+            id: accessBranchDto.branchId,
+            isPublic: true,
+          },
         },
       },
       include: {
@@ -126,13 +164,17 @@ export class AuthService {
       );
     }
 
-    const shop = await this.commonService.findShopByCondition({
-      branches: {
-        some: {
-          id: accessBranchDto.branchId,
+    const shop = await this.prisma.shop.findFirst({
+      where: {
+        isPublic: true,
+        branches: {
+          some: {
+            id: accessBranchDto.branchId,
+            isPublic: true,
+          },
         },
       },
-    } as Prisma.ShopWhereInput);
+    });
 
     return {
       accessToken: await this.jwtService.signAsync(

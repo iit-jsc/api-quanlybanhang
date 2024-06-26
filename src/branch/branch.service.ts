@@ -37,7 +37,7 @@ export class BranchService {
             id: tokenPayload.shopId,
           },
         },
-        users: {
+        accounts: {
           connect: {
             id: user.id,
           },
@@ -54,11 +54,6 @@ export class BranchService {
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,
-      },
-      users: {
-        some: {
-          isPublic: true,
-        },
       },
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
     };
@@ -102,11 +97,6 @@ export class BranchService {
           id: tokenPayload.shopId,
           isPublic: true,
         },
-        users: {
-          some: {
-            isPublic: true,
-          },
-        },
       },
       select: {
         id: true,
@@ -146,7 +136,7 @@ export class BranchService {
           id: tokenPayload.shopId,
           isPublic: true,
         },
-        users: {
+        accounts: {
           some: {
             isPublic: true,
           },
@@ -164,7 +154,7 @@ export class BranchService {
           id: tokenPayload.shopId,
           isPublic: true,
         },
-        users: {
+        accounts: {
           some: {
             isPublic: true,
           },

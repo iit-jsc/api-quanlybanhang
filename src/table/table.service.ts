@@ -15,6 +15,12 @@ export class TableService {
   ) {}
 
   async create(data: CreateTableDto, tokenPayload: TokenPayload) {
+    await this.commonService.checkDataExistingInBranch(
+      { code: data.code },
+      'Table',
+      tokenPayload.branchId,
+    );
+
     await this.commonService.findByIdWithBranch(
       data.areaId,
       'Area',
@@ -226,6 +232,13 @@ export class TableService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    await this.commonService.checkDataExistingInBranch(
+      { code: data.code },
+      'Table',
+      tokenPayload.branchId,
+      where.id,
+    );
 
     if (data.areaId)
       await this.commonService.findByIdWithBranch(

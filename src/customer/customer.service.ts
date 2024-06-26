@@ -15,16 +15,16 @@ export class CustomerService {
   ) {}
 
   async create(data: CreateCustomerDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch(
-      [{ code: data.code, phone: data.phone }],
+    await this.commonService.checkDataExistingInShop(
+      { code: data.code, phone: data.phone },
       'Customer',
-      tokenPayload.branchId,
+      tokenPayload.shopId,
     );
 
     if (data.customerTypeId)
       await this.commonService.findByIdWithShop(
         data.customerTypeId,
-        'Customer',
+        'CustomerType',
         tokenPayload.shopId,
       );
 
@@ -210,10 +210,10 @@ export class CustomerService {
   ) {
     const { where, data } = params;
 
-    await this.commonService.checkDataExistingInBranch(
-      [{ code: data.code, phone: data.phone }],
+    await this.commonService.checkDataExistingInShop(
+      { code: data.code, phone: data.phone },
       'Customer',
-      tokenPayload.branchId,
+      tokenPayload.shopId,
       where.id,
     );
 

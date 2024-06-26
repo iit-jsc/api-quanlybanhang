@@ -60,12 +60,6 @@ export class CommonService {
           },
           where: {
             isPublic: true,
-            users: {
-              some: {
-                id,
-                isPublic: true,
-              },
-            },
           },
         },
         businessType: {
@@ -77,23 +71,14 @@ export class CommonService {
     });
   }
 
-  async findShopByCondition(where: Prisma.ShopWhereInput) {
-    return await this.prisma.shop.findFirst({
-      where: {
-        isPublic: true,
-        ...where,
-      },
-    });
-  }
-
-  async findUserByPhone(phone: string, type: number) {
-    return this.prisma.user.findFirst({
-      where: {
-        isPublic: true,
-        phone,
-      },
-    });
-  }
+  // async findShopByCondition(where: Prisma.ShopWhereInput) {
+  //   return await this.prisma.shop.findFirst({
+  //     where: {
+  //       isPublic: true,
+  //       ...where,
+  //     },
+  //   });
+  // }
 
   async findByIdWithBranch(
     id: number,
@@ -205,7 +190,7 @@ export class CommonService {
   }
 
   async checkDataExistingInBranch<T extends AnyObject>(
-    data: T[],
+    data: T,
     model: string,
     branchId: number,
     id?: number,
@@ -216,33 +201,68 @@ export class CommonService {
       where: {
         isPublic: true,
         branchId: branchId,
-        OR: data.map((item) => {
-          const key = Object.keys(item)[0];
-          const value = Object.values(item)[0];
-          return {
-            [key]: { equals: value, mode: 'insensitive' },
-          };
-        }),
+        OR: Object.keys(data).map((key) => ({
+          [key]: { equals: data[key], mode: 'insensitive' },
+        })),
       },
     });
 
     if (result && result.id !== id) {
-      conflictingKeys = data.reduce((keys: string[], item) => {
-        const key = Object.keys(item)[0];
-        const value = Object.values(item)[0];
-        if (result[key] === value) {
-          keys.push(key);
-        }
-        return keys;
-      }, []);
+      conflictingKeys = Object.keys(data).filter(
+        (key) => result[key] === data[key],
+      );
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        `#1 checkDataExistingInBranch - Dữ liệu đã tồn tại!`,
-        conflictingKeys.map((item) => ({
-          [item]: 'Dữ liệu đã được sử dụng!',
-        })),
+        '#1 checkDataExistingInBranch - Dữ liệu đã tồn tại!',
+        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
       );
     }
+  }
+
+  async checkDataExistingInShop<T extends AnyObject>(
+    data: T,
+    model: string,
+    shopId: number,
+    id?: number,
+  ) {
+    let conflictingKeys: string[] = [];
+
+    const result = await this.prisma[model].findFirst({
+      where: {
+        isPublic: true,
+        shopId: shopId,
+        OR: Object.keys(data).map((key) => ({
+          [key]: { equals: data[key], mode: 'insensitive' },
+        })),
+      },
+    });
+
+    if (result && result.id !== id) {
+      conflictingKeys = Object.keys(data).filter(
+        (key) => result[key] === data[key],
+      );
+
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#1 checkDataExistingInShop - Dữ liệu đã tồn tại!',
+        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+      );
+    }
+  }
+
+  async generateBranchCode() {
+    // const shop = await this.prisma.branch.findFirst({
+    //   orderBy: {
+    //     code: 'desc',
+    //   },
+    //   select: {
+    //     code: true,
+    //   },
+    // });
+    // if (!shop) return 'IIT0001';
+    // const numberPart = +shop.code.slice(3);
+    // const nextNumber = (numberPart + 1).toString().padStart(4, '0');
+    // return `IIT${nextNumber}`;
   }
 }

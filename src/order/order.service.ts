@@ -20,7 +20,6 @@ import {
   TRANSACTION_TYPE,
 } from 'enums/order.enum';
 import { calculatePagination, generateOrderCode } from 'utils/Helps';
-import { CREATE_ORDER_BY_EMPLOYEE_SELECT } from 'enums/select.enum';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { SaveOrderDto } from './dto/save-order.dto';
 
@@ -76,6 +75,12 @@ export class OrderService {
       tokenPayload,
     );
 
+    await this.commonService.checkDataExistingInBranch(
+      { code: data.code },
+      'Order',
+      tokenPayload.branchId,
+    );
+
     return await this.prisma.order.create({
       data: {
         note: data.note,
@@ -101,20 +106,81 @@ export class OrderService {
             isPublic: true,
           },
         },
-        createdByAccount: {
-          connect: {
-            id: tokenPayload.accountId,
-            isPublic: true,
-          },
-        },
-        updatedByAccount: {
+        creator: {
           connect: {
             id: tokenPayload.accountId,
             isPublic: true,
           },
         },
       },
-      select: CREATE_ORDER_BY_EMPLOYEE_SELECT,
+      select: {
+        id: true,
+        code: true,
+        orderType: true,
+        note: true,
+        paymentMethod: true,
+        orderStatus: true,
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            phone: true,
+          },
+        },
+        orderDetails: {
+          select: {
+            id: true,
+            amount: true,
+            note: true,
+            productPrice: true,
+            toppingPrice: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                photoURLs: true,
+                code: true,
+              },
+            },
+            topping: {
+              select: {
+                id: true,
+                name: true,
+                photoURLs: true,
+              },
+            },
+          },
+        },
+        creator: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                photoURL: true,
+              },
+            },
+          },
+        },
+        updater: {
+          select: {
+            id: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                phone: true,
+                photoURL: true,
+              },
+            },
+          },
+        },
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
@@ -284,13 +350,13 @@ export class OrderService {
               },
             },
           }),
-          createdByAccount: {
+          creator: {
             connect: {
               id: tokenPayload.accountId,
               isPublic: true,
             },
           },
-          updatedByAccount: {
+          updater: {
             connect: {
               id: tokenPayload.accountId,
               isPublic: true,
@@ -372,7 +438,7 @@ export class OrderService {
         isPaid: data.isPaid,
         cancelReason: data.cancelReason,
         cancelDate: data.cancelDate,
-        updatedByAccount: {
+        updater: {
           connect: {
             id: tokenPayload.accountId,
             isPublic: true,
