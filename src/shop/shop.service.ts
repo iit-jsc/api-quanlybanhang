@@ -57,6 +57,10 @@ export class ShopService {
             },
           },
         },
+        select: {
+          id: true,
+          accounts: true,
+        },
       });
 
       const shopCode = await this.generateShopCode();
@@ -73,7 +77,7 @@ export class ShopService {
               status: BRANCH_STATUS.ACTIVE,
               accounts: {
                 connect: {
-                  id: ownerShop.id,
+                  id: ownerShop.accounts[0].id,
                 },
               },
             },

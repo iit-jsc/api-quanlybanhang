@@ -33,9 +33,14 @@ export class AuthService {
         username: {
           contains: data.username,
         },
-        // branches: {
-        //   some: {},
-        // },
+        branches: {
+          some: {
+            shop: {
+              code: data.shopCode,
+              isPublic: true,
+            },
+          },
+        },
       },
       include: {
         user: {
@@ -193,10 +198,10 @@ export class AuthService {
   }
 
   async verifyPhone(data: VerifyPhoneDto) {
-    const client = require('twilio')(
-      process.env.TWILIO_ACCOUNT_SID,
-      process.env.TWILIO_AUTH_TOKEN,
-    );
+    // const client = require('twilio')(
+    //   process.env.TWILIO_ACCOUNT_SID,
+    //   process.env.TWILIO_AUTH_TOKEN,
+    // );
 
     const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
 

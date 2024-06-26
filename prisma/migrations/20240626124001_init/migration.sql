@@ -50,8 +50,9 @@ CREATE TABLE "Permission" (
 CREATE TABLE "Account" (
     "id" SERIAL NOT NULL,
     "status" INTEGER NOT NULL DEFAULT 1,
+    "type" INTEGER DEFAULT 3,
     "username" TEXT NOT NULL,
-    "password" TEXT NOT NULL,
+    "password" TEXT,
     "userId" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
@@ -79,10 +80,11 @@ CREATE TABLE "User" (
     "startDate" TIMESTAMP(3),
     "employeeGroupId" INTEGER,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "branchId" INTEGER,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
 
     CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
@@ -326,11 +328,11 @@ CREATE TABLE "Customer" (
     "fax" TEXT,
     "tax" TEXT,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "shopId" INTEGER NOT NULL,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
 
     CONSTRAINT "Customer_pkey" PRIMARY KEY ("id")
 );
@@ -541,10 +543,10 @@ CREATE TABLE "Table" (
     "photoURL" TEXT,
     "description" TEXT,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
 
     CONSTRAINT "Table_pkey" PRIMARY KEY ("id")
 );
@@ -817,12 +819,6 @@ CREATE TABLE "_OrderDetailToTableTransaction" (
     "B" INTEGER NOT NULL
 );
 
--- CreateTable
-CREATE TABLE "_BranchToUser" (
-    "A" INTEGER NOT NULL,
-    "B" INTEGER NOT NULL
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "GroupRole_code_key" ON "GroupRole"("code");
 
@@ -830,37 +826,10 @@ CREATE UNIQUE INDEX "GroupRole_code_key" ON "GroupRole"("code");
 CREATE UNIQUE INDEX "Role_code_key" ON "Role"("code");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Account_username_isPublic_key" ON "Account"("username", "isPublic");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Shop_code_key" ON "Shop"("code");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "ProductType_slug_branchId_isPublic_key" ON "ProductType"("slug", "branchId", "isPublic");
-
--- CreateIndex
 CREATE UNIQUE INDEX "Product_slug_key" ON "Product"("slug");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Product_slug_branchId_isPublic_key" ON "Product"("slug", "branchId", "isPublic");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Product_code_branchId_isPublic_key" ON "Product"("code", "branchId", "isPublic");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Customer_code_shopId_isPublic_key" ON "Customer"("code", "shopId", "isPublic");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Customer_phone_shopId_isPublic_key" ON "Customer"("phone", "shopId", "isPublic");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Order_code_branchId_key" ON "Order"("code", "branchId");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Area_code_branchId_isPublic_key" ON "Area"("code", "branchId", "isPublic");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Table_code_branchId_isPublic_key" ON "Table"("code", "branchId", "isPublic");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "_PermissionToRole_AB_unique" ON "_PermissionToRole"("A", "B");
@@ -897,12 +866,6 @@ CREATE UNIQUE INDEX "_OrderDetailToTableTransaction_AB_unique" ON "_OrderDetailT
 
 -- CreateIndex
 CREATE INDEX "_OrderDetailToTableTransaction_B_index" ON "_OrderDetailToTableTransaction"("B");
-
--- CreateIndex
-CREATE UNIQUE INDEX "_BranchToUser_AB_unique" ON "_BranchToUser"("A", "B");
-
--- CreateIndex
-CREATE INDEX "_BranchToUser_B_index" ON "_BranchToUser"("B");
 
 -- AddForeignKey
 ALTER TABLE "Role" ADD CONSTRAINT "Role_groupCode_fkey" FOREIGN KEY ("groupCode") REFERENCES "GroupRole"("code") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1028,6 +991,12 @@ ALTER TABLE "Customer" ADD CONSTRAINT "Customer_shopId_fkey" FOREIGN KEY ("shopI
 ALTER TABLE "Customer" ADD CONSTRAINT "Customer_customerTypeId_fkey" FOREIGN KEY ("customerTypeId") REFERENCES "CustomerType"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "Customer" ADD CONSTRAINT "Customer_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Customer" ADD CONSTRAINT "Customer_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "SupplierType" ADD CONSTRAINT "SupplierType_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1107,6 +1076,12 @@ ALTER TABLE "Table" ADD CONSTRAINT "Table_branchId_fkey" FOREIGN KEY ("branchId"
 
 -- AddForeignKey
 ALTER TABLE "Table" ADD CONSTRAINT "Table_areaId_fkey" FOREIGN KEY ("areaId") REFERENCES "Area"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Table" ADD CONSTRAINT "Table_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Table" ADD CONSTRAINT "Table_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DiscountIssue" ADD CONSTRAINT "DiscountIssue_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1215,9 +1190,3 @@ ALTER TABLE "_OrderDetailToTableTransaction" ADD CONSTRAINT "_OrderDetailToTable
 
 -- AddForeignKey
 ALTER TABLE "_OrderDetailToTableTransaction" ADD CONSTRAINT "_OrderDetailToTableTransaction_B_fkey" FOREIGN KEY ("B") REFERENCES "TableTransaction"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_BranchToUser" ADD CONSTRAINT "_BranchToUser_A_fkey" FOREIGN KEY ("A") REFERENCES "Branch"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_BranchToUser" ADD CONSTRAINT "_BranchToUser_B_fkey" FOREIGN KEY ("B") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE;

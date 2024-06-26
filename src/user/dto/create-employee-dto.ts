@@ -10,6 +10,7 @@ import {
   IsOptional,
   IsString,
   MaxDate,
+  MinLength,
 } from 'class-validator';
 import { SEX_TYPE } from 'enums/user.enum';
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
@@ -89,4 +90,15 @@ export class CreateEmployeeDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
   code: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  username: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 kí tự.' })
+  password: string;
 }

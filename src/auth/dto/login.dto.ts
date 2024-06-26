@@ -64,5 +64,5 @@ export class LoginForStaffDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  branchCode?: string;
+  shopCode?: string;
 }

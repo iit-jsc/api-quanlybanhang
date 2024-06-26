@@ -2,12 +2,13 @@ import * as bcrypt from 'bcrypt';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateEmployeeDto } from './dto/create-employee-dto';
-import { TokenPayload } from 'interfaces/common.interface';
+import { AnyObject, TokenPayload } from 'interfaces/common.interface';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { CommonService } from 'src/common/common.service';
 import { Prisma } from '@prisma/client';
 import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 
 @Injectable()
 export class UserService {
@@ -16,95 +17,130 @@ export class UserService {
     private commonService: CommonService,
   ) {}
 
-  async createEmployee(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
-    await this.checkUserExisted(data, tokenPayload);
+  async checkUserExisting<T extends AnyObject>(
+    data: T,
+    shopId: number,
+    id?: number,
+  ) {
+    let conflictingKeys: string[] = [];
 
-    return await this.prisma.user.create({
-      data: {
-        name: data.name,
-        code: data.code,
-        phone: data.phone,
-        email: data.email,
-        sex: data.sex,
-        birthday: data.birthday,
-        cardDate: data.cardDate,
-        startDate: data.startDate,
-        employeeGroupId: data.employeeGroupId,
-        photoURL: data.photoURL,
-        address: data.address,
-        cardId: data.cardId,
-        cardAddress: data.cardAddress,
-        createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
-        // branches: {
-        //   connect: {
-        //     id: tokenPayload.branchId,
-        //   },
-        // },
+    const result = await this.prisma.user.findFirst({
+      where: {
+        isPublic: true,
+        OR: Object.keys(data).map((key) => ({
+          [key]: { equals: data[key], mode: 'insensitive' },
+        })),
+        accounts: {
+          some: {
+            branches: {
+              some: {
+                shopId: shopId,
+              },
+            },
+          },
+        },
       },
     });
+
+    if (result && result.id !== id) {
+      conflictingKeys = Object.keys(data).filter(
+        (key) => result[key] === data[key],
+      );
+
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#1 checkUserExisting - Dữ liệu đã tồn tại!',
+        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+      );
+    }
   }
 
-  async checkUserExisted(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
-    // const user = await this.commonService.findUserByCondition({
-    //   OR: [
-    //     { phone: data.phone },
-    //     { email: data.email },
-    //     {
-    //       AND: [
-    //         {
-    //           code: {
-    //             equals: data.code,
-    //             mode: 'insensitive',
-    //           },
-    //         },
-    //         {
-    //           code: {
-    //             not: '',
-    //           },
-    //         },
-    //       ],
-    //     },
-    //   ],
-    //   branches: {
-    //     some: {
-    //       id: tokenPayload.branchId,
-    //     },
-    //   },
-    // } as Prisma.UserWhereInput);
-    // if (user && user.id !== data.id) {
-    //   throw new CustomHttpException(
-    //     HttpStatus.CONFLICT,
-    //     '#1 checkUserExisted - Nhân viên đã tồn tại trong cửa hàng!',
-    //     [
-    //       ...(user.phone === data.phone
-    //         ? [
-    //             {
-    //               message: 'Số điện thoại đã được sử dụng!',
-    //               property: 'phone',
-    //             },
-    //           ]
-    //         : []),
-    //       ...(user.email === data.email
-    //         ? [
-    //             {
-    //               message: 'Email đã được sử dụng!',
-    //               property: 'email',
-    //             },
-    //           ]
-    //         : []),
-    //       ...(user.code?.toLocaleLowerCase() == data.code?.toLocaleLowerCase()
-    //         ? [
-    //             {
-    //               message: 'Mã nhân viên đã được sử dụng!',
-    //               property: 'code',
-    //             },
-    //           ]
-    //         : []),
-    //     ],
-    //   );
-    // }
-    // return true;
+  async checkAccountExisting<T extends AnyObject>(
+    data: T,
+    shopId: number,
+    id?: number,
+  ) {
+    let conflictingKeys: string[] = [];
+
+    const result = await this.prisma.account.findFirst({
+      where: {
+        isPublic: true,
+        OR: Object.keys(data).map((key) => ({
+          [key]: { equals: data[key], mode: 'insensitive' },
+        })),
+        branches: {
+          some: {
+            shopId: shopId,
+          },
+        },
+      },
+    });
+
+    if (result && result.id !== id) {
+      conflictingKeys = Object.keys(data).filter(
+        (key) => result[key] === data[key],
+      );
+
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#1 checkAccountExisting - Dữ liệu đã tồn tại!',
+        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+      );
+    }
+  }
+
+  async createEmployee(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
+    await this.checkUserExisting(
+      { phone: data.phone, email: data.email },
+      tokenPayload.shopId,
+    );
+
+    await this.checkAccountExisting(
+      { username: data.username },
+      tokenPayload.shopId,
+    );
+
+    await this.checkUserExisting({ phone: data.username }, tokenPayload.shopId);
+
+    return await this.prisma.$transaction(async (prisma) => {
+      const user = await prisma.user.create({
+        data: {
+          name: data.name,
+          code: data.code,
+          phone: data.phone,
+          email: data.email,
+          sex: data.sex,
+          birthday: data.birthday,
+          cardDate: data.cardDate,
+          startDate: data.startDate,
+          employeeGroupId: data.employeeGroupId,
+          photoURL: data.photoURL,
+          address: data.address,
+          cardId: data.cardId,
+          cardAddress: data.cardAddress,
+          createdBy: tokenPayload.accountId,
+        },
+      });
+
+      await prisma.account.create({
+        data: {
+          username: data.username,
+          password: bcrypt.hashSync(data.password, 10),
+          status: ACCOUNT_STATUS.ACTIVE,
+          type: ACCOUNT_TYPE.STAFF,
+          user: {
+            connect: {
+              id: user.id,
+            },
+          },
+          branches: {
+            connect: {
+              id: tokenPayload.branchId,
+            },
+          },
+        },
+      });
+    });
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -243,11 +279,6 @@ export class UserService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-
-    await this.checkUserExisted(
-      { ...data, id: where.id } as CreateEmployeeDto,
-      tokenPayload,
-    );
 
     return this.prisma.user.update({
       data: {

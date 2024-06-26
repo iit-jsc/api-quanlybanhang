@@ -60,6 +60,12 @@ export class CommonService {
           },
           where: {
             isPublic: true,
+            accounts: {
+              some: {
+                id,
+                isPublic: true,
+              },
+            },
           },
         },
         businessType: {
@@ -177,16 +183,16 @@ export class CommonService {
       },
     });
 
-    if (!otp)
-      throw new CustomHttpException(
-        HttpStatus.BAD_REQUEST,
-        '#1 confirmOTP - Mã OTP không hợp lệ!',
-      );
+    // if (!otp)
+    //   throw new CustomHttpException(
+    //     HttpStatus.BAD_REQUEST,
+    //     '#1 confirmOTP - Mã OTP không hợp lệ!',
+    //   );
 
-    await this.prisma.phoneVerification.update({
-      where: { id: otp.id },
-      data: { isUsed: true },
-    });
+    // await this.prisma.phoneVerification.update({
+    //   where: { id: otp.id },
+    //   data: { isUsed: true },
+    // });
   }
 
   async checkDataExistingInBranch<T extends AnyObject>(

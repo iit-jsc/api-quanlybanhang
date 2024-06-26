@@ -42,11 +42,11 @@ import { GroupRoleModule } from './group-role/group-role.module';
       secret: jwtConstants.secret,
       signOptions: { expiresIn: '48h' },
     }),
-    TwilioModule.forRoot({
-      isGlobal: true,
-      accountSid: process.env.TWILIO_ACCOUNT_SID,
-      authToken: process.env.TWILIO_AUTH_TOKEN,
-    }),
+    // TwilioModule.forRoot({
+    //   isGlobal: true,
+    //   accountSid: process.env.TWILIO_ACCOUNT_SID,
+    //   authToken: process.env.TWILIO_AUTH_TOKEN,
+    // }),
     CommonModule,
     UserModule,
     AccountModule,

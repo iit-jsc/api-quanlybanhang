@@ -118,7 +118,6 @@ model User {
   updatedAt         DateTime           @updatedAt
   employeeSchedules EmployeeSchedule[]
   timeSheets        TimeSheet[]
-  branchId          Int?
   createdBy         Int?
   updatedBy         Int?
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
