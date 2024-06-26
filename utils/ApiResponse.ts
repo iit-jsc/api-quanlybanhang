@@ -6,9 +6,6 @@ import {
   ExecutionContext,
   CallHandler,
 } from '@nestjs/common';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
-import { FileInterceptor } from '@nestjs/platform-express';
 
 export interface Response<T> {
   statusCode: number;

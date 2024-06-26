@@ -62,7 +62,7 @@ export class LoginForStaffDto {
   @IsString()
   password: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  shopCode?: string;
+  shopCode: string;
 }

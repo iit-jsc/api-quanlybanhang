@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Headers,
   HttpCode,
   HttpStatus,
   Post,
@@ -19,6 +20,7 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { ConfirmPhoneDto } from 'src/shop/dto/confirm-phone.dto';
 import { VerifyPhoneDto } from 'src/shop/dto/verify-phone.dto';
+import { CustomHttpException } from 'utils/ApiErrors';
 
 @Controller('auth')
 export class AuthController {
@@ -55,5 +57,27 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   verifyPhone(@Body() verifyPhoneDto: VerifyPhoneDto) {
     return this.authService.verifyPhone(verifyPhoneDto);
+  }
+
+  @Post('/get-me')
+  @HttpCode(HttpStatus.OK)
+  getMe(@Headers('authorization') authHeader: string) {
+    if (!authHeader) {
+      throw new CustomHttpException(
+        HttpStatus.UNAUTHORIZED,
+        'Không tìm thấy auth header!',
+      );
+    }
+
+    const [bearer, token] = authHeader.split(' ');
+
+    if (!token) {
+      throw new CustomHttpException(
+        HttpStatus.UNAUTHORIZED,
+        'Không tìm thấy token!',
+      );
+    }
+
+    return this.authService.getMe(token);
   }
 }

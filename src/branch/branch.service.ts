@@ -17,10 +17,6 @@ export class BranchService {
   ) {}
 
   async create(createBranchDto: CreateBranchDto, tokenPayload: TokenPayload) {
-    const user = await this.commonService.findUserByAccountId(
-      tokenPayload.accountId,
-    );
-
     return this.prisma.branch.create({
       data: {
         name: createBranchDto.name,
@@ -39,7 +35,7 @@ export class BranchService {
         },
         accounts: {
           connect: {
-            id: user.id,
+            id: tokenPayload.accountId,
           },
         },
       },

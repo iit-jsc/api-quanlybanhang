@@ -10,11 +10,10 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
+import { ACCOUNT_STATUS } from 'enums/user.enum';
 import { AccessBranchDto } from './dto/access-branch.dto';
 import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
 import { CommonService } from 'src/common/common.service';
-import { Prisma } from '@prisma/client';
 import { RegisterDto } from './dto/register.dto';
 import { VerifyPhoneDto } from 'src/shop/dto/verify-phone.dto';
 
@@ -48,6 +47,7 @@ export class AuthService {
             id: true,
           },
         },
+        branches: true,
       },
     });
 
@@ -159,6 +159,7 @@ export class AuthService {
       },
       include: {
         user: true,
+        branches: true,
       },
     });
 
@@ -217,4 +218,50 @@ export class AuthService {
   }
 
   async register(registerDto: RegisterDto) {}
+
+  async getMe(token: string) {
+    if (!token)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        'Không tim thấy token!',
+      );
+
+    try {
+      const payload = (await this.jwtService.verifyAsync(token, {
+        secret: process.env.SECRET_KEY,
+      })) as TokenPayload;
+
+      const shops = await this.commonService.findManyShopByAccountId(
+        payload.accountId,
+      );
+
+      const account = await this.prisma.account.findUnique({
+        where: {
+          id: payload.accountId,
+          isPublic: true,
+          status: ACCOUNT_STATUS.ACTIVE,
+        },
+        include: {
+          user: true,
+          ...(payload.branchId && {
+            branches: {
+              where: {
+                id: payload.branchId,
+              },
+            },
+          }),
+        },
+      });
+
+      if (!account) {
+        throw new CustomHttpException(
+          HttpStatus.NOT_FOUND,
+          '#1 getMe - Không tìm thấy tài nguyên!',
+        );
+      }
+      return { ...mapResponseLogin(account), shops };
+    } catch (error) {
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, error);
+    }
+  }
 }

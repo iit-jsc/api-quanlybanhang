@@ -31,7 +31,6 @@ export function errorFormatter(
   const message = errMessage || {};
   let errorField = '';
   let validationsList = [];
-  console.log(errors);
 
   errors.forEach((error) => {
     errorField = parentField

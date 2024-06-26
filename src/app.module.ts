@@ -39,7 +39,7 @@ import { GroupRoleModule } from './group-role/group-role.module';
     }),
     JwtModule.register({
       global: true,
-      secret: jwtConstants.secret,
+      secret: process.env.SECRET_KEY,
       signOptions: { expiresIn: '48h' },
     }),
     // TwilioModule.forRoot({

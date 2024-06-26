@@ -28,31 +28,21 @@ export class JwtAuthGuard implements CanActivate {
     if (!token)
       throw new CustomHttpException(
         HttpStatus.NOT_FOUND,
-        'Không tim thấy token!',
+        '#1 canActivate - Không tim thấy token!',
       );
 
-    const payload: TokenPayload = this.jwtService.decode(token);
+    try {
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.SECRET_KEY,
+      });
 
-    // const account = await this.prisma.account.findFirst({
-    //   where: {
-    //     isPublic: true,
-    //     id: payload.accountId,
-    //   },
-    //   select: {
-    //     permissions: {
-    //       select: {
-    //         id: true,
-    //         roles: {
-    //           select: {
-    //             code: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    // });
-
-    request.tokenPayload = { ...payload };
+      request.tokenPayload = { ...payload };
+    } catch (error) {
+      throw new CustomHttpException(
+        HttpStatus.UNAUTHORIZED,
+        '#2 canActivate - Token hết hạn!',
+      );
+    }
 
     return true;
   }
@@ -73,7 +63,7 @@ export class JwtCustomerAuthGuard implements CanActivate {
     if (!token)
       throw new CustomHttpException(
         HttpStatus.NOT_FOUND,
-        'Không tim thấy token!',
+        '#1 canActivate - Không tìm thấy token!',
       );
 
     const payload: TokenCustomer = this.jwtService.decode(token);

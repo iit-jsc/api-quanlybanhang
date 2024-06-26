@@ -5,7 +5,6 @@ export function mapResponseLogin(data: any) {
     phone: data.user?.phone,
     email: data.user?.email,
     photoURL: data.user?.photoURL,
-    branches: data.user?.branches,
-    shops: data.user?.shops,
+    branch: data.branches?.[0],
   };
 }

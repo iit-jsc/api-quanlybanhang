@@ -17,17 +17,6 @@ export class CommonService {
     return data.photoURLs;
   }
 
-  async findUserByAccountId(id: number) {
-    return this.prisma.user.findFirst({
-      where: {
-        isPublic: true,
-        account: {
-          id,
-        },
-      },
-    });
-  }
-
   async findManyShopByAccountId(id: number) {
     return await this.prisma.shop.findMany({
       where: {
