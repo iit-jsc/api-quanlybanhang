@@ -49,7 +49,7 @@ export class ShopService {
           name: user.name,
           phone: user.phone,
           email: user.email,
-          accounts: {
+          account: {
             create: {
               username: user.phone,
               status: ACCOUNT_STATUS.ACTIVE,
@@ -59,7 +59,7 @@ export class ShopService {
         },
         select: {
           id: true,
-          accounts: true,
+          account: true,
         },
       });
 
@@ -77,7 +77,7 @@ export class ShopService {
               status: BRANCH_STATUS.ACTIVE,
               accounts: {
                 connect: {
-                  id: ownerShop.accounts[0].id,
+                  id: ownerShop.account.id,
                 },
               },
             },

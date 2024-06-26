@@ -9,6 +9,7 @@ import { Prisma } from '@prisma/client';
 import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
+import { UpdateEmployeeDto } from './dto/update-employee-dto';
 
 @Injectable()
 export class UserService {
@@ -30,12 +31,10 @@ export class UserService {
         OR: Object.keys(data).map((key) => ({
           [key]: { equals: data[key], mode: 'insensitive' },
         })),
-        accounts: {
-          some: {
-            branches: {
-              some: {
-                shopId: shopId,
-              },
+        account: {
+          branches: {
+            some: {
+              shopId: shopId,
             },
           },
         },
@@ -119,6 +118,7 @@ export class UserService {
           cardId: data.cardId,
           cardAddress: data.cardAddress,
           createdBy: tokenPayload.accountId,
+          branchId: tokenPayload.branchId,
         },
       });
 
@@ -143,19 +143,14 @@ export class UserService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+  async findAllEmployee(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword, employeeGroupIds } = params;
 
     const keySearch = ['name', 'code', 'email', 'phone'];
 
     const where: Prisma.UserWhereInput = {
       isPublic: true,
-      // branches: {
-      //   some: {
-      //     isPublic: true,
-      //     id: tokenPayload.branchId,
-      //   },
-      // },
+      branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword, mode: 'insensitive' },
@@ -165,12 +160,6 @@ export class UserService {
         employeeGroup: {
           id: { in: employeeGroupIds },
           isPublic: true,
-          // branches: {
-          // some: {
-          //   id: tokenPayload.branchId,
-          //   isPublic: true,
-          // },
-          // },
         },
       }),
     };
@@ -203,12 +192,7 @@ export class UserService {
               name: true,
             },
             where: {
-              // branches: {
-              // some: {
-              //   id: tokenPayload.branchId,
-              //   isPublic: true,
-              // },
-              // },
+              isPublic: true,
             },
           },
         },
@@ -224,7 +208,7 @@ export class UserService {
     };
   }
 
-  async findUniq(
+  async findUniqEmployee(
     where: Prisma.UserWhereUniqueInput,
     tokenPayload: TokenPayload,
   ) {
@@ -232,12 +216,7 @@ export class UserService {
       where: {
         ...where,
         isPublic: true,
-        // branches: {
-        //   some: {
-        //     id: tokenPayload.branchId,
-        //     isPublic: true,
-        //   },
-        // },
+        branchId: tokenPayload.branchId,
       },
       select: {
         id: true,
@@ -259,26 +238,27 @@ export class UserService {
             name: true,
           },
           where: {
-            // branches: {
-            //   some: {
-            //     id: tokenPayload.branchId,
-            //     isPublic: true,
-            //   },
-            // },
+            isPublic: true,
           },
         },
       },
     });
   }
 
-  async update(
+  async updateEmployee(
     params: {
       where: Prisma.UserWhereUniqueInput;
-      data: CreateEmployeeDto;
+      data: UpdateEmployeeDto;
     },
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    await this.checkUserExisting(
+      { phone: data.phone, email: data.email },
+      tokenPayload.shopId,
+      where.id,
+    );
 
     return this.prisma.user.update({
       data: {
@@ -296,31 +276,41 @@ export class UserService {
         cardId: data.cardId,
         cardAddress: data.cardAddress,
         updatedBy: tokenPayload.accountId,
+        account: {
+          update: {
+            password: bcrypt.hashSync(data.newPassword, 10),
+            status: data.accountStatus,
+          },
+        },
       },
       where: {
         ...where,
         isPublic: true,
-        // branches: {
-        //   some: {
-        //     id: tokenPayload.branchId,
-        //     isPublic: true,
-        //   },
-        // },
+        branchId: tokenPayload.branchId,
       },
     });
   }
 
-  async removeMany(where: Prisma.UserWhereInput, tokenPayload: TokenPayload) {
+  async removeManyEmployee(
+    where: Prisma.UserWhereInput,
+    tokenPayload: TokenPayload,
+  ) {
+    await this.prisma.account.updateMany({
+      where: {
+        isPublic: true,
+        user: where,
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+
     return this.prisma.user.updateMany({
       where: {
         ...where,
         isPublic: true,
-        // branches: {
-        //   some: {
-        //     isPublic: true,
-        //     id: tokenPayload.branchId,
-        //   },
-        // },
+        branchId: tokenPayload.branchId,
       },
       data: {
         isPublic: false,

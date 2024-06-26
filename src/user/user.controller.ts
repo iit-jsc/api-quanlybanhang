@@ -21,6 +21,7 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
 import { CustomFileInterceptor } from 'utils/Helps';
+import { UpdateEmployeeDto } from './dto/update-employee-dto';
 
 @Controller('user')
 export class UserController {
@@ -44,16 +45,16 @@ export class UserController {
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.userService.findAll(findManyDto, tokenPayload);
+    return this.userService.findAllEmployee(findManyDto, tokenPayload);
   }
 
   @Get('/employee/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniqEmployee(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.userService.findUniq(
+    return this.userService.findUniqEmployee(
       {
         id,
       },
@@ -64,19 +65,19 @@ export class UserController {
   @Patch('/employee/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  update(
+  updateEmployee(
     @Param('id') id: number,
-    @Body() createEmployeeDto: CreateEmployeeDto,
+    @Body() updateEmployeeDto: UpdateEmployeeDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.userService.update(
+    return this.userService.updateEmployee(
       {
         where: {
           id,
         },
-        data: createEmployeeDto,
+        data: updateEmployeeDto,
       },
       tokenPayload,
     );
@@ -87,7 +88,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard)
   removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.userService.removeMany(
+    return this.userService.removeManyEmployee(
       {
         id: {
           in: deleteManyDto.ids,

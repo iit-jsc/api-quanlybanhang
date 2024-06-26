@@ -21,10 +21,8 @@ export class CommonService {
     return this.prisma.user.findFirst({
       where: {
         isPublic: true,
-        accounts: {
-          some: {
-            id,
-          },
+        account: {
+          id,
         },
       },
     });
