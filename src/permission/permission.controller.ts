@@ -17,6 +17,9 @@ import { CreatePermissionDto } from './dto/create-permission.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('permission')
 export class PermissionController {
@@ -24,7 +27,8 @@ export class PermissionController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_PERMISSION', SPECIAL_ROLE.MANAGER)
   create(@Body() createPermissionDto: CreatePermissionDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -33,7 +37,14 @@ export class PermissionController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_PERMISSION',
+    'UPDATE_PERMISSION',
+    'DELETE_PERMISSION',
+    'VIEW_PERMISSION',
+    SPECIAL_ROLE.MANAGER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -42,7 +53,8 @@ export class PermissionController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_PERMISSION', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
     @Body() createPermissionDto: CreatePermissionDto,
@@ -63,7 +75,14 @@ export class PermissionController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_PERMISSION',
+    'UPDATE_PERMISSION',
+    'DELETE_PERMISSION',
+    'VIEW_PERMISSION',
+    SPECIAL_ROLE.MANAGER,
+  )
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -77,7 +96,8 @@ export class PermissionController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_PERMISSION', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

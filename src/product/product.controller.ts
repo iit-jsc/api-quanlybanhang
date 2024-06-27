@@ -25,6 +25,9 @@ import { ProductService } from './product.service';
 import { CreateProductDto } from './dto/create-product.dto';
 import { CustomFilesInterceptor } from 'utils/Helps';
 import { FindManyProductDto } from './dto/find-many.dto';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('product')
 export class ProductController {
@@ -32,7 +35,8 @@ export class ProductController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_PRODUCT', SPECIAL_ROLE.MANAGER)
   create(@Body() createProductDto: CreateProductDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -60,7 +64,8 @@ export class ProductController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_PRODUCT', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
     @Body() createProductDto: CreateProductDto,
@@ -81,7 +86,8 @@ export class ProductController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_PRODUCT', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

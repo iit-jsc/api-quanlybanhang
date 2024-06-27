@@ -1,18 +1,53 @@
 import { Injectable, CanActivate, ExecutionContext } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import { SPECIAL_ROLE } from 'enums/common.enum';
+import { ACCOUNT_TYPE } from 'enums/user.enum';
+import { TokenPayload } from 'interfaces/common.interface';
+import { PrismaService } from 'nestjs-prisma';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
-  constructor(private reflector: Reflector) {}
+  constructor(
+    private reflector: Reflector,
+    private prisma: PrismaService,
+  ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext) {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
 
     const request = context.switchToHttp().getRequest();
 
-    // const user = request.user;
+    const tokenPayload = request.tokenPayload as TokenPayload;
 
-    // return roles.some((role) => user.roles?.includes(role));
-    return true;
+    if (roles.some((role) => role === SPECIAL_ROLE.STORE_OWNER)) {
+      return tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER;
+    }
+
+    if (roles.some((role) => role === SPECIAL_ROLE.MANAGER)) {
+      return (
+        tokenPayload.type === ACCOUNT_TYPE.MANAGER ||
+        tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER
+      );
+    }
+
+    const accountRoles = await this.prisma.role.findMany({
+      where: {
+        permissions: {
+          some: {
+            accounts: {
+              some: {
+                id: tokenPayload.accountId,
+                isPublic: true,
+              },
+            },
+            isPublic: true,
+          },
+        },
+      },
+    });
+
+    return roles.some((role) =>
+      accountRoles.some((accountRole) => accountRole.code === role),
+    );
   }
 }

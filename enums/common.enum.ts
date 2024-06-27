@@ -1,5 +1,3 @@
-export const SECRET_KEY = 'anhemiit@123';
-
 export const DEFAULT_OPTION_FIND = {
   DEFAULT_PAGE: 1,
   DEFAULT_LIMIT: 20,
@@ -18,4 +16,9 @@ export const PAYMENT_STATUS = {
 export const PAYMENT_METHOD = {
   CASH: 1,
   CARD: 2,
+};
+
+export const SPECIAL_ROLE = {
+  STORE_OWNER: 'STORE_OWNER',
+  MANAGER: 'MANAGER',
 };

@@ -10,7 +10,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtService } from '@nestjs/jwt';
 import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
-import { ACCOUNT_STATUS } from 'enums/user.enum';
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { AccessBranchDto } from './dto/access-branch.dto';
 import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
 import { CommonService } from 'src/common/common.service';
@@ -40,6 +40,7 @@ export class AuthService {
             },
           },
         },
+        type: ACCOUNT_TYPE.STAFF,
       },
       include: {
         user: {
@@ -90,6 +91,14 @@ export class AuthService {
           equals: data.phone,
         },
         status: ACCOUNT_STATUS.ACTIVE,
+        OR: [
+          {
+            type: ACCOUNT_TYPE.MANAGER,
+          },
+          {
+            type: ACCOUNT_TYPE.STORE_OWNER,
+          },
+        ],
       },
     });
 
@@ -145,23 +154,10 @@ export class AuthService {
     accessBranchDto: AccessBranchDto,
     tokenPayload: TokenPayload,
   ) {
-    const account = await this.prisma.account.findUnique({
-      where: {
-        id: tokenPayload.accountId,
-        isPublic: true,
-        status: ACCOUNT_STATUS.ACTIVE,
-        branches: {
-          some: {
-            id: accessBranchDto.branchId,
-            isPublic: true,
-          },
-        },
-      },
-      include: {
-        user: true,
-        branches: true,
-      },
-    });
+    const account = await this.getAccountAccess(
+      tokenPayload.accountId,
+      accessBranchDto.branchId,
+    );
 
     if (!account) {
       throw new CustomHttpException(
@@ -170,31 +166,24 @@ export class AuthService {
       );
     }
 
-    const shop = await this.prisma.shop.findFirst({
-      where: {
-        isPublic: true,
-        branches: {
-          some: {
-            id: accessBranchDto.branchId,
-            isPublic: true,
-          },
-        },
-      },
-    });
+    const currentShop = await this.getCurrentShop(accessBranchDto.branchId);
+
+    const shops = await this.commonService.findManyShopByAccountId(account.id);
 
     return {
       accessToken: await this.jwtService.signAsync(
         {
           accountId: tokenPayload.accountId,
-
           branchId: accessBranchDto.branchId,
-          shopId: shop.id,
+          shopId: currentShop.id,
         } as TokenPayload,
         {
           expiresIn: '48h',
         },
       ),
       ...mapResponseLogin(account),
+      shops,
+      currentShop,
     };
   }
 
@@ -217,8 +206,6 @@ export class AuthService {
     // });
   }
 
-  async register(registerDto: RegisterDto) {}
-
   async getMe(token: string) {
     if (!token)
       throw new CustomHttpException(
@@ -235,23 +222,12 @@ export class AuthService {
         payload.accountId,
       );
 
-      const account = await this.prisma.account.findUnique({
-        where: {
-          id: payload.accountId,
-          isPublic: true,
-          status: ACCOUNT_STATUS.ACTIVE,
-        },
-        include: {
-          user: true,
-          ...(payload.branchId && {
-            branches: {
-              where: {
-                id: payload.branchId,
-              },
-            },
-          }),
-        },
-      });
+      const account = await this.getAccountAccess(
+        payload.accountId,
+        payload.branchId,
+      );
+
+      const currentShop = await this.getCurrentShop(payload.branchId);
 
       if (!account) {
         throw new CustomHttpException(
@@ -259,9 +235,79 @@ export class AuthService {
           '#1 getMe - Không tìm thấy tài nguyên!',
         );
       }
-      return { ...mapResponseLogin(account), shops };
+      return { ...mapResponseLogin(account), shops, currentShop };
     } catch (error) {
       throw new CustomHttpException(HttpStatus.UNAUTHORIZED, error);
     }
+  }
+
+  async getCurrentShop(branchId: number) {
+    if (!branchId) return undefined;
+
+    return await this.prisma.shop.findFirst({
+      where: {
+        isPublic: true,
+        branches: {
+          some: { id: branchId, isPublic: true },
+        },
+      },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        photoURL: true,
+        branches: {
+          select: {
+            id: true,
+            name: true,
+            address: true,
+            photoURL: true,
+          },
+          where: {
+            isPublic: true,
+            id: branchId,
+          },
+        },
+        businessType: {
+          where: {
+            isPublic: true,
+          },
+        },
+      },
+    });
+  }
+
+  async getAccountAccess(accountId: number, branchId: number) {
+    return await this.prisma.account.findUnique({
+      where: {
+        id: accountId,
+        isPublic: true,
+        status: ACCOUNT_STATUS.ACTIVE,
+        branches: {
+          some: {
+            id: branchId,
+            isPublic: true,
+          },
+        },
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            photoURL: true,
+            phone: true,
+            email: true,
+          },
+        },
+        permissions: {
+          where: { isPublic: true },
+          include: {
+            roles: true,
+          },
+        },
+      },
+    });
   }
 }

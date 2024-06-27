@@ -32,11 +32,15 @@ export class JwtAuthGuard implements CanActivate {
       );
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload = (await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY,
+      })) as TokenPayload;
+
+      const account = await this.prisma.account.findUniqueOrThrow({
+        where: { id: payload.accountId, isPublic: true },
       });
 
-      request.tokenPayload = { ...payload };
+      request.tokenPayload = { ...payload, type: account.type };
     } catch (error) {
       throw new CustomHttpException(
         HttpStatus.UNAUTHORIZED,

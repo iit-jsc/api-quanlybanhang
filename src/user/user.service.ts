@@ -138,8 +138,13 @@ export class UserService {
               id: tokenPayload.branchId,
             },
           },
+          permissions: {
+            connect: data.permissionIds?.map((id) => ({ id })),
+          },
         },
       });
+
+      return user;
     });
   }
 
@@ -280,6 +285,10 @@ export class UserService {
           update: {
             password: bcrypt.hashSync(data.newPassword, 10),
             status: data.accountStatus,
+            permissions: {
+              set: [],
+              connect: data.permissionIds?.map((id) => ({ id })),
+            },
           },
         },
       },

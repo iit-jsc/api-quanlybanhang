@@ -1,10 +1,17 @@
+import { Prisma } from '@prisma/client';
+
 export function mapResponseLogin(data: any) {
+  const allRoles = data.permissions.flatMap((permission) => permission.roles);
+
+  const uniqueRoles = Array.from(
+    new Set(allRoles.map((role: Prisma.RoleCreateInput) => role.code)),
+  ).map((code) =>
+    allRoles.find((role: Prisma.RoleCreateInput) => role.code === code),
+  );
+
   return {
     type: data.type,
-    name: data.user?.name,
-    phone: data.user?.phone,
-    email: data.user?.email,
-    photoURL: data.user?.photoURL,
-    branch: data.branches?.[0],
+    user: data.user,
+    permissions: uniqueRoles,
   };
 }

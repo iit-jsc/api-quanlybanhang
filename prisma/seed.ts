@@ -129,9 +129,9 @@ async function main() {
       },
 
       {
-        name: 'Quản lý người dùng',
+        name: 'Quản lý nhân viên',
         type: 1,
-        code: 'USER',
+        code: 'EMPLOYEE',
       },
       {
         name: 'Quản lý tài khoản',
@@ -359,11 +359,6 @@ async function main() {
         groupCode: 'PRODUCT_TYPE',
       },
       {
-        name: 'Xem danh sách loại sản phẩm',
-        code: 'VIEW_PRODUCT_TYPE',
-        groupCode: 'PRODUCT_TYPE',
-      },
-      {
         name: 'Tạo bàn',
         code: 'CREATE_TABLE',
         groupCode: 'TABLE',
@@ -404,24 +399,24 @@ async function main() {
         groupCode: 'TOPPING',
       },
       {
-        name: 'Tạo người dùng',
-        code: 'CREATE_USER',
-        groupCode: 'USER',
+        name: 'Tạo nhân viên',
+        code: 'CREATE_EMPLOYEE',
+        groupCode: 'EMPLOYEE',
       },
       {
-        name: 'Cập nhật người dùng',
-        code: 'UPDATE_USER',
-        groupCode: 'USER',
+        name: 'Cập nhật nhân viên',
+        code: 'UPDATE_EMPLOYEE',
+        groupCode: 'EMPLOYEE',
       },
       {
-        name: 'Xóa người dùng',
-        code: 'DELETE_USER',
-        groupCode: 'USER',
+        name: 'Xóa nhân viên',
+        code: 'DELETE_EMPLOYEE',
+        groupCode: 'EMPLOYEE',
       },
       {
-        name: 'Xem danh sách người dùng',
-        code: 'VIEW_USER',
-        groupCode: 'USER',
+        name: 'Xem danh sách nhân viên',
+        code: 'VIEW_EMPLOYEE',
+        groupCode: 'EMPLOYEE',
       },
       {
         name: 'Tạo tài khoản',

@@ -22,6 +22,9 @@ import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
 import { CustomFileInterceptor } from 'utils/Helps';
 import { UpdateEmployeeDto } from './dto/update-employee-dto';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('user')
 export class UserController {
@@ -29,7 +32,8 @@ export class UserController {
 
   @Post('/employee')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
   createEmployee(
     @Body() createEmployeeDto: CreateEmployeeDto,
     @Req() req: any,
@@ -41,7 +45,14 @@ export class UserController {
 
   @Get('/employee')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_EMPLOYEE',
+    'UPDATE_EMPLOYEE',
+    'DELETE_EMPLOYEE',
+    'VIEW_EMPLOYEE',
+    SPECIAL_ROLE.MANAGER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -50,7 +61,14 @@ export class UserController {
 
   @Get('/employee/:id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_EMPLOYEE',
+    'UPDATE_EMPLOYEE',
+    'DELETE_EMPLOYEE',
+    'VIEW_EMPLOYEE',
+    SPECIAL_ROLE.MANAGER,
+  )
   findUniqEmployee(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -64,7 +82,8 @@ export class UserController {
 
   @Patch('/employee/:id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
   updateEmployee(
     @Param('id') id: number,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
@@ -85,7 +104,8 @@ export class UserController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
   removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.userService.removeManyEmployee(

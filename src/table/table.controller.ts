@@ -20,6 +20,9 @@ import { CustomFileInterceptor } from 'utils/Helps';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CreateTableDto } from './dto/create-table.dto';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
+import { RolesGuard } from 'guards/roles.guard';
 
 @Controller('table')
 export class TableController {
@@ -27,7 +30,8 @@ export class TableController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_TABLE', SPECIAL_ROLE.MANAGER)
   create(
     @Body() createTableDto: CreateTableDto,
 
@@ -40,7 +44,8 @@ export class TableController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_TABLE', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
     @Body() createTableDto: CreateTableDto,
@@ -61,7 +66,14 @@ export class TableController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_TABLE',
+    'UPDATE_TABLE',
+    'DELETE_TABLE',
+    'VIEW_TABLE',
+    SPECIAL_ROLE.MANAGER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -70,7 +82,14 @@ export class TableController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_TABLE',
+    'UPDATE_TABLE',
+    'DELETE_TABLE',
+    'VIEW_TABLE',
+    SPECIAL_ROLE.MANAGER,
+  )
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -84,7 +103,8 @@ export class TableController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_TABLE', SPECIAL_ROLE.MANAGER)
   removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.tableService.removeMany(

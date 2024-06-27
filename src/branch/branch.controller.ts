@@ -20,6 +20,9 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CustomFileInterceptor } from 'utils/Helps';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('branch')
 export class BranchController {
@@ -27,7 +30,8 @@ export class BranchController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_BRANCH', SPECIAL_ROLE.STORE_OWNER)
   create(@Body() createBranchDto: CreateBranchDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -36,7 +40,14 @@ export class BranchController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_BRANCH',
+    'UPDATE_BRANCH',
+    'DELETE_BRANCH',
+    'VIEW_BRANCH',
+    SPECIAL_ROLE.STORE_OWNER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -45,7 +56,14 @@ export class BranchController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_BRANCH',
+    'UPDATE_BRANCH',
+    'DELETE_BRANCH',
+    'VIEW_BRANCH',
+    SPECIAL_ROLE.STORE_OWNER,
+  )
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -59,7 +77,8 @@ export class BranchController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_BRANCH', SPECIAL_ROLE.STORE_OWNER)
   update(
     @Param('id') id: number,
     @Body() createBranchDto: CreateBranchDto,
@@ -80,7 +99,8 @@ export class BranchController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_BRANCH', SPECIAL_ROLE.STORE_OWNER)
   removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.branchService.removeMany(

@@ -18,6 +18,9 @@ import { DeleteManyDto } from 'utils/Common.dto';
 import { ProductTypeService } from './product-type.service';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
 import { FindManyProductTypeDto } from './dto/find-many.dto';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('product-type')
 export class ProductTypeController {
@@ -25,7 +28,8 @@ export class ProductTypeController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_PRODUCT_TYPE', SPECIAL_ROLE.MANAGER)
   create(@Body() createProductTypeDto: CreateProductTypeDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -34,7 +38,6 @@ export class ProductTypeController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   findAll(@Query() findManyDto: FindManyProductTypeDto, @Req() req: any) {
     return this.productTypeService.findAll(findManyDto);
   }
@@ -53,7 +56,8 @@ export class ProductTypeController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_PRODUCT_TYPE', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
     @Body() createProductTypeDto: CreateProductTypeDto,
@@ -74,7 +78,8 @@ export class ProductTypeController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_PRODUCT_TYPE', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

@@ -22,6 +22,8 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { RolesGuard } from 'guards/roles.guard';
 import { Roles } from 'guards/roles.decorator';
+import { ACCOUNT_TYPE } from 'enums/user.enum';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('area')
 export class AreaController {
@@ -30,7 +32,7 @@ export class AreaController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('AREA_CREATE')
+  @Roles('CREATE_AREA', SPECIAL_ROLE.MANAGER)
   create(@Body() createAreaDto: CreateAreaDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -39,7 +41,8 @@ export class AreaController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_AREA', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
     @Body() createAreaDto: CreateAreaDto,
@@ -61,6 +64,14 @@ export class AreaController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_AREA',
+    'UPDATE_AREA',
+    'DELETE_AREA',
+    'VIEW_AREA',
+    SPECIAL_ROLE.MANAGER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -69,7 +80,14 @@ export class AreaController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_AREA',
+    'UPDATE_AREA',
+    'DELETE_AREA',
+    'VIEW_AREA',
+    SPECIAL_ROLE.MANAGER,
+  )
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -83,7 +101,8 @@ export class AreaController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_AREA', SPECIAL_ROLE.MANAGER)
   removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.areaService.removeMany(

@@ -21,6 +21,9 @@ import {
   DeleteManyWithIdentifierDto,
   FindManyDto,
 } from 'utils/Common.dto';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('topping')
 export class ToppingController {
@@ -28,7 +31,8 @@ export class ToppingController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_TOPPING', SPECIAL_ROLE.MANAGER)
   create(@Body() createToppingDto: CreateToppingDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -37,7 +41,14 @@ export class ToppingController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_TOPPING',
+    'UPDATE_TOPPING',
+    'DELETE_TOPPING',
+    'VIEW_TOPPING',
+    SPECIAL_ROLE.MANAGER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -46,7 +57,14 @@ export class ToppingController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_TOPPING',
+    'UPDATE_TOPPING',
+    'DELETE_TOPPING',
+    'VIEW_TOPPING',
+    SPECIAL_ROLE.MANAGER,
+  )
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -60,7 +78,8 @@ export class ToppingController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_TOPPING', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
     @Body() createToppingDto: CreateToppingDto,
@@ -81,7 +100,8 @@ export class ToppingController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_TOPPING', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

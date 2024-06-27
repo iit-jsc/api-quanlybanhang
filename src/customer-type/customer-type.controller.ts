@@ -17,6 +17,9 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CustomerTypeService } from './customer-type.service';
 import { CreateCustomerTypeDto } from './dto/create-customer-type';
+import { Roles } from 'guards/roles.decorator';
+import { RolesGuard } from 'guards/roles.guard';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('customer-type')
 export class CustomerTypeController {
@@ -24,7 +27,8 @@ export class CustomerTypeController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
   create(
     @Body() createCustomerTypeDto: CreateCustomerTypeDto,
     @Req() req: any,
@@ -36,7 +40,14 @@ export class CustomerTypeController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_CUSTOMER_TYPE',
+    'UPDATE_CUSTOMER_TYPE',
+    'DELETE_CUSTOMER_TYPE',
+    'VIEW_CUSTOMER_TYPE',
+    SPECIAL_ROLE.MANAGER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -45,7 +56,14 @@ export class CustomerTypeController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_CUSTOMER_TYPE',
+    'UPDATE_CUSTOMER_TYPE',
+    'DELETE_CUSTOMER_TYPE',
+    'VIEW_CUSTOMER_TYPE',
+    SPECIAL_ROLE.MANAGER,
+  )
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -59,7 +77,8 @@ export class CustomerTypeController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
     @Body() createCustomerTypeDto: CreateCustomerTypeDto,
@@ -79,7 +98,8 @@ export class CustomerTypeController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.customerTypeService.removeMany(
