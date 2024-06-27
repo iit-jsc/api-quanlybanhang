@@ -5,7 +5,7 @@ export interface TokenPayload {
   type?: number;
 }
 
-export interface TokenCustomer {
+export interface TokenCustomerPayload {
   customerId: number;
 }
 

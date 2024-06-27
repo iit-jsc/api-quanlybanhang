@@ -1,6 +1,9 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderDto, ProductInOrder } from './dto/create-order.dto';
-import { TokenPayload } from 'interfaces/common.interface';
+import {
+  TokenCustomerPayload,
+  TokenPayload,
+} from 'interfaces/common.interface';
 import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
 import { CreateOrderToTableDto } from './dto/create-order-to-table.dto';
 import { Prisma } from '@prisma/client';
@@ -616,12 +619,12 @@ export class OrderService {
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.order.findMany({
+        where,
         skip,
         take,
         orderBy: {
           createdAt: 'desc',
         },
-        where,
         select: {
           id: true,
           code: true,
@@ -753,6 +756,151 @@ export class OrderService {
       data: {
         isPublic: false,
         updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
+
+  async findAllByCustomer(
+    params: FindManyDto,
+    tokenCustomerPayload: TokenCustomerPayload,
+  ) {
+    let { skip, take, keyword, from, to } = params;
+
+    const keySearch = ['code'];
+
+    let where: Prisma.OrderWhereInput = {
+      isPublic: true,
+      customerId: tokenCustomerPayload.customerId,
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword, mode: 'insensitive' },
+        })),
+      }),
+      ...(from &&
+        to && {
+          createdAt: {
+            gte: from,
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          },
+        }),
+      ...(from &&
+        !to && {
+          createdAt: {
+            gte: from,
+          },
+        }),
+      ...(!from &&
+        to && {
+          createdAt: {
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          },
+        }),
+    };
+
+    const [data, totalRecords] = await Promise.all([
+      this.prisma.order.findMany({
+        where,
+        skip,
+        take,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        select: {
+          id: true,
+          code: true,
+          isPaid: true,
+          orderStatus: true,
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              address: true,
+              email: true,
+            },
+          },
+          orderDetails: {
+            select: {
+              id: true,
+              amount: true,
+              note: true,
+              productPrice: true,
+              toppingPrice: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                  code: true,
+                },
+              },
+              topping: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                },
+              },
+            },
+          },
+          createdAt: true,
+        },
+      }),
+      this.prisma.order.count({
+        where,
+      }),
+    ]);
+    return {
+      list: data,
+
+      pagination: calculatePagination(totalRecords, skip, take),
+    };
+  }
+
+  async findUniqByCustomer(
+    where: Prisma.OrderWhereUniqueInput,
+    tokenCustomerPayload: TokenCustomerPayload,
+  ) {
+    return this.prisma.order.findFirstOrThrow({
+      where: {
+        id: where.id,
+        isPublic: true,
+        customerId: tokenCustomerPayload.customerId,
+      },
+      include: {
+        customer: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            address: true,
+            email: true,
+          },
+        },
+        orderDetails: {
+          select: {
+            id: true,
+            amount: true,
+            note: true,
+            productPrice: true,
+            toppingPrice: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                photoURLs: true,
+                code: true,
+              },
+            },
+            topping: {
+              select: {
+                id: true,
+                name: true,
+                photoURLs: true,
+              },
+            },
+          },
+        },
       },
     });
   }

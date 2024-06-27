@@ -1,12 +1,15 @@
 import * as bcrypt from 'bcrypt';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateShopDto } from './dto/create-shop.dto';
+import { CreateShopDto, RegisterShopDto } from './dto/create-shop.dto';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { BRANCH_STATUS } from 'enums/branch.enum';
 import { CommonService } from 'src/common/common.service';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { AuthService } from 'src/auth/auth.service';
+import { TokenPayload } from 'interfaces/common.interface';
+import { Prisma } from '@prisma/client';
+import { FindManyDto } from 'utils/Common.dto';
 
 @Injectable()
 export class ShopService {
@@ -16,7 +19,7 @@ export class ShopService {
     private readonly authService: AuthService,
   ) {}
 
-  async create(data: CreateShopDto) {
+  async registerShop(data: RegisterShopDto) {
     const { user, branch } = data;
 
     await this.commonService.confirmOTP({
@@ -27,7 +30,6 @@ export class ShopService {
     const { newShop, accountId } = await this.prisma.$transaction(
       async (prisma) => {
         // Kiểm tra tài khoản tồn tại chưa
-
         let ownerShopAccount = await this.prisma.account.findFirst({
           where: {
             isPublic: true,
@@ -101,6 +103,36 @@ export class ShopService {
       { accountId },
     );
   }
+
+  async createShop(data: CreateShopDto, tokenPayload: TokenPayload) {}
+
+  async updateShop(
+    params: {
+      where: Prisma.ShopWhereUniqueInput;
+      data: CreateShopDto;
+    },
+    tokenPayload: TokenPayload,
+  ) {}
+
+  async removeMany(where: Prisma.ShopWhereInput, tokenPayload: TokenPayload) {
+    // return this.prisma.shop.updateMany({
+    //   where: {
+    //     id: where.id,
+    //     isPublic: true,
+    //   },
+    //   data: {
+    //     isPublic: false,
+    //     updatedBy: tokenPayload.accountId,
+    //   },
+    // });
+  }
+
+  async findUniq(
+    where: Prisma.ShopWhereUniqueInput,
+    tokenPayload: TokenPayload,
+  ) {}
+
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {}
 
   async generateShopCode() {
     const shop = await this.prisma.shop.findFirst({

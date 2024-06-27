@@ -14,7 +14,10 @@ import {
 } from '@nestjs/common';
 import { OrderService } from './order.service';
 import { JwtAuthGuard, JwtCustomerAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
+import {
+  TokenCustomerPayload,
+  TokenPayload,
+} from 'interfaces/common.interface';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
 import { CreateOrderToTableDto } from './dto/create-order-to-table.dto';
@@ -175,6 +178,34 @@ export class OrderController {
         data: updateOrderDto,
       },
       tokenPayload,
+    );
+  }
+
+  @Get('/me')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtCustomerAuthGuard)
+  findAllByCustomer(@Query() findManyDto: FindManyDto, @Req() req: any) {
+    const tokenCustomerPayload =
+      req.tokenCustomerPayload as TokenCustomerPayload;
+
+    return this.orderService.findAllByCustomer(
+      findManyDto,
+      tokenCustomerPayload,
+    );
+  }
+
+  @Get('/me/:id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtCustomerAuthGuard)
+  findUniqByCustomer(@Param('id') id: number, @Req() req: any) {
+    const tokenCustomerPayload =
+      req.tokenCustomerPayload as TokenCustomerPayload;
+
+    return this.orderService.findUniqByCustomer(
+      {
+        id,
+      },
+      tokenCustomerPayload,
     );
   }
 

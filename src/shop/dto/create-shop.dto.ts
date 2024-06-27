@@ -8,7 +8,7 @@ import {
 import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
 import { CreateUserDto } from 'src/user/dto/create-user-dto';
 
-export class CreateShopDto {
+export class RegisterShopDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
@@ -32,4 +32,20 @@ export class CreateShopDto {
   @ValidateNested()
   @Type(() => CreateUserDto)
   user: CreateUserDto;
+}
+
+export class CreateShopDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  name: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNumber()
+  businessTypeId: number;
+
+  @IsNotEmpty({ message: 'Phải cung cấp thông tin chi nhánh!' })
+  @ValidateNested()
+  @Type(() => CreateBranchDto)
+  branch: CreateBranchDto;
 }

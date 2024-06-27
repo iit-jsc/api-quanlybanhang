@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateOrderRatingDto } from './dto/create-order-rating.dto';
-import { TokenCustomer } from 'interfaces/common.interface';
+import { TokenCustomerPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
@@ -12,7 +12,7 @@ import { UpdateOrderRatingDto } from './dto/update-order-rating.dto';
 export class OrderRatingService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(data: CreateOrderRatingDto, tokenPayload: TokenCustomer) {
+  async create(data: CreateOrderRatingDto, tokenPayload: TokenCustomerPayload) {
     await this.prisma.order.findFirstOrThrow({
       where: {
         id: data.orderId,
@@ -39,7 +39,7 @@ export class OrderRatingService {
       data: UpdateOrderRatingDto;
       where: Prisma.OrderRatingWhereUniqueInput;
     },
-    tokenPayload: TokenCustomer,
+    tokenPayload: TokenCustomerPayload,
   ) {
     const { data, where } = params;
 
@@ -62,7 +62,7 @@ export class OrderRatingService {
 
   async removeMany(
     where: Prisma.OrderRatingWhereInput,
-    tokenPayload: TokenCustomer,
+    tokenPayload: TokenCustomerPayload,
   ) {
     return await this.prisma.orderRating.updateMany({
       where: {
@@ -80,7 +80,10 @@ export class OrderRatingService {
     });
   }
 
-  async findAll(params: FindManyOrderRatings, tokenPayload: TokenCustomer) {
+  async findAll(
+    params: FindManyOrderRatings,
+    tokenPayload: TokenCustomerPayload,
+  ) {
     const { skip, take, orderId } = params;
 
     const where: Prisma.OrderRatingWhereInput = {

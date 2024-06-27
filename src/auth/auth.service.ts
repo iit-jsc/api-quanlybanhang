@@ -12,7 +12,10 @@ import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { AccessBranchDto } from './dto/access-branch.dto';
-import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
+import {
+  TokenCustomerPayload,
+  TokenPayload,
+} from 'interfaces/common.interface';
 import { CommonService } from 'src/common/common.service';
 import { VerifyPhoneDto } from 'src/shop/dto/verify-phone.dto';
 
@@ -140,7 +143,7 @@ export class AuthService {
       accessToken: await this.jwtService.signAsync(
         {
           customerId: customer.id,
-        } as TokenCustomer,
+        } as TokenCustomerPayload,
         {
           expiresIn: '48h',
         },

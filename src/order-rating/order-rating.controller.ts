@@ -14,7 +14,7 @@ import {
 } from '@nestjs/common';
 import { OrderRatingService } from './order-rating.service';
 import { CreateOrderRatingDto } from './dto/create-order-rating.dto';
-import { TokenCustomer } from 'interfaces/common.interface';
+import { TokenCustomerPayload } from 'interfaces/common.interface';
 import { JwtCustomerAuthGuard } from 'guards/jwt-auth.guard';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { FindManyOrderRatings } from './dto/find-many-order-rating';
@@ -28,7 +28,7 @@ export class OrderRatingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtCustomerAuthGuard)
   create(@Body() createOrderRatingDto: CreateOrderRatingDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenCustomer;
+    const tokenPayload = req.tokenPayload as TokenCustomerPayload;
 
     return this.orderRatingService.create(createOrderRatingDto, tokenPayload);
   }
@@ -41,7 +41,7 @@ export class OrderRatingController {
     @Body() updateOrderRatingDto: UpdateOrderRatingDto,
     @Req() req: any,
   ) {
-    const tokenPayload = req.tokenPayload as TokenCustomer;
+    const tokenPayload = req.tokenPayload as TokenCustomerPayload;
 
     return this.orderRatingService.update(
       {
@@ -58,7 +58,7 @@ export class OrderRatingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtCustomerAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenCustomer;
+    const tokenPayload = req.tokenPayload as TokenCustomerPayload;
     console.log(deleteManyDto);
 
     return this.orderRatingService.removeMany(
@@ -74,7 +74,7 @@ export class OrderRatingController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   findAll(@Query() findManyDto: FindManyOrderRatings, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenCustomer;
+    const tokenPayload = req.tokenPayload as TokenCustomerPayload;
 
     return this.orderRatingService.findAll(findManyDto, tokenPayload);
   }

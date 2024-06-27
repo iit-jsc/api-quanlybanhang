@@ -5,7 +5,10 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
+import {
+  TokenCustomerPayload,
+  TokenPayload,
+} from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { UserService } from 'src/user/user.service';
 import { CustomHttpException } from 'utils/ApiErrors';
@@ -70,9 +73,9 @@ export class JwtCustomerAuthGuard implements CanActivate {
         '#1 canActivate - Không tìm thấy token!',
       );
 
-    const payload: TokenCustomer = this.jwtService.decode(token);
+    const payload: TokenCustomerPayload = this.jwtService.decode(token);
 
-    request.tokenPayload = payload;
+    request.tokenCustomerPayload = payload;
 
     return true;
   }
