@@ -112,30 +112,40 @@ export class CommonService {
             isPublic: true,
           },
         },
+        isPublic: true,
       },
     });
 
-    // return this.prisma.customer.upsert({
-    //   where: {
-    //     phone_shopId_isPublic: {
-    //       phone: where.phone,
-    //       shopId: shop.id,
-    //       isPublic: true,
-    //     },
-    //   },
-    //   create: {
-    //     name: data.name,
-    //     phone: data.phone,
-    //     email: data.email,
-    //     address: data.email,
-    //     shop: {
-    //       connect: {
-    //         id: shop.id,
-    //       },
-    //     },
-    //   },
-    //   update: { name: data.name, address: data.email },
-    // });
+    const existingCustomer = await this.prisma.customer.findFirst({
+      where: {
+        isPublic: true,
+        phone: where.phone,
+        shop: {
+          branches: {
+            some: {
+              id: where.branchId,
+              isPublic: true,
+            },
+          },
+          isPublic: true,
+        },
+      },
+    });
+
+    return existingCustomer
+      ? this.prisma.customer.update({
+          where: { id: existingCustomer.id },
+          data,
+        })
+      : this.prisma.customer.create({
+          data: {
+            ...data,
+            isPublic: true,
+            shop: {
+              connect: { id: shop.id },
+            },
+          },
+        });
   }
 
   async checkTableIsReady(id: number) {

@@ -59,7 +59,7 @@ export class AuthController {
     return this.authService.verifyPhone(verifyPhoneDto);
   }
 
-  @Post('/get-me')
+  @Post('/me')
   @HttpCode(HttpStatus.OK)
   getMe(@Headers('authorization') authHeader: string) {
     if (!authHeader) {

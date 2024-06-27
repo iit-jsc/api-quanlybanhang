@@ -124,7 +124,6 @@ export class OrderService {
           select: {
             id: true,
             name: true,
-            code: true,
             phone: true,
           },
         },
@@ -238,69 +237,68 @@ export class OrderService {
       { branchId: data.branchId },
     );
 
-    // const customer = await this.commonService.findOrCreateCustomer(
-    //   {
-    //     name: data.name,
-    //     phone: data.phone,
-    //     email: data.email,
-    //     address: data.address,
-    //   },
-    //   { phone: data.phone, branchId: data.branchId },
-    // );
+    const customer = await this.commonService.findOrCreateCustomer(
+      {
+        name: data.name,
+        phone: data.phone,
+        email: data.email,
+        address: data.address,
+      },
+      { phone: data.phone, branchId: data.branchId },
+    );
 
-    // return this.prisma.order.create({
-    //   data: {
-    //     note: data.note,
-    //     customer: {
-    //       connect: {
-    //         id: customer.id,
-    //       },
-    //     },
-    //     orderType: ORDER_TYPE.ONLINE,
-    //     orderStatus: ORDER_STATUS_COMMON.WAITING,
-    //     code: generateOrderCode(),
-    //     orderDetails: {
-    //       createMany: {
-    //         data: orderDetails,
-    //       },
-    //     },
-    //     branch: {
-    //       connect: {
-    //         id: data.branchId,
-    //         isPublic: true,
-    //       },
-    //     },
-    //   },
-    //   select: {
-    //     id: true,
-    //     note: true,
-    //     orderStatus: true,
-    //     customer: {
-    //       select: {
-    //         id: true,
-    //         name: true,
-    //         code: true,
-    //       },
-    //     },
-    //     orderDetails: {
-    //       select: {
-    //         id: true,
-    //         amount: true,
-    //         note: true,
-    //         productPrice: true,
-    //         toppingPrice: true,
-    //         product: {
-    //           select: {
-    //             id: true,
-    //             name: true,
-    //             photoURLs: true,
-    //             code: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //   },
-    // });
+    return this.prisma.order.create({
+      data: {
+        note: data.note,
+        customer: {
+          connect: {
+            id: customer.id,
+          },
+        },
+        orderType: ORDER_TYPE.ONLINE,
+        orderStatus: ORDER_STATUS_COMMON.WAITING,
+        code: generateOrderCode(),
+        orderDetails: {
+          createMany: {
+            data: orderDetails,
+          },
+        },
+        branch: {
+          connect: {
+            id: data.branchId,
+            isPublic: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        note: true,
+        orderStatus: true,
+        customer: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        orderDetails: {
+          select: {
+            id: true,
+            amount: true,
+            note: true,
+            productPrice: true,
+            toppingPrice: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                photoURLs: true,
+                code: true,
+              },
+            },
+          },
+        },
+      },
+    });
   }
 
   async updateOrderDetail(
@@ -627,18 +625,17 @@ export class OrderService {
         select: {
           id: true,
           code: true,
+          isPaid: true,
+          orderStatus: true,
           customer: {
             select: {
               id: true,
               name: true,
-              code: true,
               phone: true,
               address: true,
               email: true,
             },
           },
-          isPaid: true,
-          note: true,
           orderDetails: {
             select: {
               id: true,
@@ -687,21 +684,16 @@ export class OrderService {
         branchId: tokenPayload.branchId,
         isPublic: true,
       },
-      select: {
-        id: true,
-        code: true,
+      include: {
         customer: {
           select: {
             id: true,
             name: true,
-            code: true,
             phone: true,
             address: true,
             email: true,
           },
         },
-        isPaid: true,
-        note: true,
         orderDetails: {
           select: {
             id: true,
@@ -726,7 +718,6 @@ export class OrderService {
             },
           },
         },
-        createdAt: true,
       },
     });
   }

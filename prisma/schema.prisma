@@ -359,7 +359,6 @@ model Customer {
   id                  Int                 @id @default(autoincrement())
   name                String
   customerTypeId      Int?
-  code                String?
   email               String?
   phone               String
   address             String?             @db.Text

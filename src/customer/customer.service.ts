@@ -35,7 +35,6 @@ export class CustomerService {
         phone: data.phone,
         address: data.address,
         birthDay: data.birthDay,
-        code: data.code,
         ...(data.customerTypeId && {
           customerType: {
             connect: {
@@ -125,7 +124,6 @@ export class CustomerService {
           phone: true,
           address: true,
           birthDay: true,
-          code: true,
           customerType: {
             select: {
               id: true,
@@ -177,7 +175,6 @@ export class CustomerService {
         phone: true,
         address: true,
         birthDay: true,
-        code: true,
         customerType: {
           select: {
             id: true,
@@ -239,7 +236,6 @@ export class CustomerService {
         phone: data.phone,
         address: data.address,
         birthDay: data.birthDay,
-        code: data.code,
         customerType: {
           connect: {
             id: data.customerTypeId,
