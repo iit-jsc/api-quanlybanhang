@@ -14,7 +14,6 @@ import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { AccessBranchDto } from './dto/access-branch.dto';
 import { TokenCustomer, TokenPayload } from 'interfaces/common.interface';
 import { CommonService } from 'src/common/common.service';
-import { RegisterDto } from './dto/register.dto';
 import { VerifyPhoneDto } from 'src/shop/dto/verify-phone.dto';
 
 @Injectable()

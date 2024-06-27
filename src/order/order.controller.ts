@@ -26,6 +26,9 @@ import { CombineTableDto } from './dto/combine-table.dto';
 import { SeparateTableDto } from './dto/separate-table.dto';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { SaveOrderDto } from './dto/save-order.dto';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
 @Controller('order')
 export class OrderController {
@@ -33,7 +36,8 @@ export class OrderController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_ORDER', SPECIAL_ROLE.MANAGER)
   create(@Body() createOrderDto: CreateOrderDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -48,7 +52,8 @@ export class OrderController {
 
   @Post('/to-table')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_ORDER', SPECIAL_ROLE.MANAGER)
   createOrderToTableByEmployee(
     @Body() createOrderToTableDto: CreateOrderToTableDto,
     @Req() req: any,
@@ -63,7 +68,6 @@ export class OrderController {
 
   @Post('/to-table-by-customer')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   createOrderToTableByCustomer(
     @Body() createOrderToTableByCustomerDto: CreateOrderToTableByCustomerDto,
   ) {
@@ -74,7 +78,8 @@ export class OrderController {
 
   @Patch('/detail/:id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   updateOrderDetail(
     @Body() updateOrderDetailDto: UpdateOrderDetailDto,
     @Req() req: any,
@@ -95,7 +100,8 @@ export class OrderController {
 
   @Post('/payment-from-table')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   paymentFromTable(
     @Body() paymentFromTableDto: PaymentFromTableDto,
     @Req() req: any,
@@ -110,7 +116,8 @@ export class OrderController {
 
   @Post('/combine-table')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   mergeTable(@Body() combineTableDto: CombineTableDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -119,7 +126,8 @@ export class OrderController {
 
   @Post('/separate-table')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   separateTable(@Body() separateTableDto: SeparateTableDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -128,7 +136,8 @@ export class OrderController {
 
   @Patch('/:id/save')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   saveOrder(
     @Body() saveOrderDto: SaveOrderDto,
     @Req() req: any,
@@ -149,7 +158,8 @@ export class OrderController {
 
   @Patch('/:id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   update(
     @Body() updateOrderDto: UpdateOrderDto,
     @Req() req: any,
@@ -170,7 +180,8 @@ export class OrderController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('VIEW_ORDER', SPECIAL_ROLE.MANAGER)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -179,7 +190,8 @@ export class OrderController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('VIEW_ORDER', SPECIAL_ROLE.MANAGER)
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -193,7 +205,8 @@ export class OrderController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_ORDER', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
