@@ -94,6 +94,8 @@ model Account {
   updaterCustomers        Customer[]        @relation("updater")
   creatorUsers            User[]            @relation("creator")
   updaterUsers            User[]            @relation("updater")
+  creatorShops            Shop[]            @relation("creator")
+  updaterShops            Shop[]            @relation("updater")
 }
 
 model User {
@@ -146,13 +148,12 @@ model Shop {
   id                 Int                 @id @default(autoincrement())
   code               String              @unique
   businessTypeId     Int
+  status             Int                 @default(1)
   businessType       BusinessType?       @relation(fields: [businessTypeId], references: [id])
   name               String
   photoURL           String?             @db.Text
   domain             String?
   isPublic           Boolean?            @default(true)
-  createdBy          Int?
-  updatedBy          Int?
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
   branches           Branch[]
@@ -161,6 +162,10 @@ model Shop {
   customers          Customer[]
   pointAccumulations PointAccumulation[]
   pointRedemptions   PointRedemption[]
+  createdBy          Int?
+  updatedBy          Int?
+  creator            Account?            @relation("creator", fields: [createdBy], references: [id])
+  updater            Account?            @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model PrintTemplate {

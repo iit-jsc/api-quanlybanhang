@@ -60,10 +60,6 @@ export class UpdateEmployeeDto {
 
   @IsOptional()
   @IsNumber()
-  type: number;
-
-  @IsOptional()
-  @IsNumber()
   @Type(() => Number)
   employeeGroupId: number;
 
@@ -92,7 +88,7 @@ export class UpdateEmployeeDto {
   @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
   code: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 kí tự.' })

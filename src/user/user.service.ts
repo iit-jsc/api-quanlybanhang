@@ -18,88 +18,16 @@ export class UserService {
     private commonService: CommonService,
   ) {}
 
-  async checkUserExisting<T extends AnyObject>(
-    data: T,
-    shopId: number,
-    id?: number,
-  ) {
-    let conflictingKeys: string[] = [];
-
-    const result = await this.prisma.user.findFirst({
-      where: {
-        isPublic: true,
-        OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: 'insensitive' },
-        })),
-        account: {
-          branches: {
-            some: {
-              shopId: shopId,
-            },
-          },
-        },
-      },
-    });
-
-    if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        (key) => result[key] === data[key],
-      );
-
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        '#1 checkUserExisting - Dữ liệu đã tồn tại!',
-        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
-      );
-    }
-  }
-
-  async checkAccountExisting<T extends AnyObject>(
-    data: T,
-    shopId: number,
-    id?: number,
-  ) {
-    let conflictingKeys: string[] = [];
-
-    const result = await this.prisma.account.findFirst({
-      where: {
-        isPublic: true,
-        OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: 'insensitive' },
-        })),
-        branches: {
-          some: {
-            shopId: shopId,
-          },
-        },
-      },
-    });
-
-    if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        (key) => result[key] === data[key],
-      );
-
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        '#1 checkAccountExisting - Dữ liệu đã tồn tại!',
-        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
-      );
-    }
-  }
-
   async createEmployee(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
-    await this.checkUserExisting(
+    await this.commonService.checkUserExisting(
       { phone: data.phone, email: data.email },
       tokenPayload.shopId,
     );
 
-    await this.checkAccountExisting(
+    await this.commonService.checkAccountExisting(
       { username: data.username },
       tokenPayload.shopId,
     );
-
-    await this.checkUserExisting({ phone: data.username }, tokenPayload.shopId);
 
     return await this.prisma.$transaction(async (prisma) => {
       const user = await prisma.user.create({
@@ -167,6 +95,9 @@ export class UserService {
           isPublic: true,
         },
       }),
+      account: {
+        type: ACCOUNT_TYPE.STAFF,
+      },
     };
 
     const [data, totalRecords] = await Promise.all([
@@ -200,6 +131,13 @@ export class UserService {
               isPublic: true,
             },
           },
+          account: {
+            select: {
+              type: true,
+              username: true,
+              status: true,
+            },
+          },
         },
       }),
       this.prisma.user.count({
@@ -222,6 +160,9 @@ export class UserService {
         ...where,
         isPublic: true,
         branchId: tokenPayload.branchId,
+        account: {
+          type: ACCOUNT_TYPE.STAFF,
+        },
       },
       select: {
         id: true,
@@ -246,6 +187,13 @@ export class UserService {
             isPublic: true,
           },
         },
+        account: {
+          select: {
+            type: true,
+            username: true,
+            status: true,
+          },
+        },
       },
     });
   }
@@ -259,7 +207,7 @@ export class UserService {
   ) {
     const { where, data } = params;
 
-    await this.checkUserExisting(
+    await this.commonService.checkUserExisting(
       { phone: data.phone, email: data.email },
       tokenPayload.shopId,
       where.id,
@@ -283,11 +231,12 @@ export class UserService {
         updatedBy: tokenPayload.accountId,
         account: {
           update: {
-            password: bcrypt.hashSync(data.newPassword, 10),
+            password: data.newPassword
+              ? bcrypt.hashSync(data.newPassword, 10)
+              : undefined,
             status: data.accountStatus,
             permissions: {
-              set: [],
-              connect: data.permissionIds?.map((id) => ({ id })),
+              set: data.permissionIds?.map((id) => ({ id })),
             },
           },
         },
@@ -296,6 +245,16 @@ export class UserService {
         ...where,
         isPublic: true,
         branchId: tokenPayload.branchId,
+      },
+      select: {
+        account: {
+          select: {
+            type: true,
+            username: true,
+            status: true,
+            permissions: true,
+          },
+        },
       },
     });
   }
@@ -307,7 +266,11 @@ export class UserService {
     await this.prisma.account.updateMany({
       where: {
         isPublic: true,
-        user: where,
+        user: {
+          ...where,
+          isPublic: true,
+          branchId: tokenPayload.branchId,
+        },
       },
       data: {
         isPublic: false,

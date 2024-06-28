@@ -109,14 +109,15 @@ CREATE TABLE "Shop" (
     "id" SERIAL NOT NULL,
     "code" TEXT NOT NULL,
     "businessTypeId" INTEGER NOT NULL,
+    "status" INTEGER NOT NULL DEFAULT 1,
     "name" TEXT NOT NULL,
     "photoURL" TEXT,
     "domain" TEXT,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
 
     CONSTRAINT "Shop_pkey" PRIMARY KEY ("id")
 );
@@ -313,7 +314,6 @@ CREATE TABLE "Customer" (
     "id" SERIAL NOT NULL,
     "name" TEXT NOT NULL,
     "customerTypeId" INTEGER,
-    "code" TEXT,
     "email" TEXT,
     "phone" TEXT NOT NULL,
     "address" TEXT,
@@ -908,6 +908,12 @@ ALTER TABLE "EmployeeGroup" ADD CONSTRAINT "EmployeeGroup_updatedBy_fkey" FOREIG
 
 -- AddForeignKey
 ALTER TABLE "Shop" ADD CONSTRAINT "Shop_businessTypeId_fkey" FOREIGN KEY ("businessTypeId") REFERENCES "BusinessType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Shop" ADD CONSTRAINT "Shop_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Shop" ADD CONSTRAINT "Shop_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "PrintTemplate" ADD CONSTRAINT "PrintTemplate_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;

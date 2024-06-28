@@ -82,8 +82,7 @@ export class AccountService {
           },
         },
         permissions: {
-          set: [],
-          connect: data.permissionIds.map((id) => ({
+          set: data.permissionIds.map((id) => ({
             id,
           })),
         },

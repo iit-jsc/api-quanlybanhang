@@ -1,6 +1,6 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { BRANCH_STATUS } from 'enums/branch.enum';
+import { BRANCH_STATUS } from 'enums/shop.enum';
 
 export class CreateBranchDto {
   @IsNotEmpty({ message: 'Không được để trống!' })

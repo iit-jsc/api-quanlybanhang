@@ -1,10 +1,13 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
+  IsEnum,
   IsNotEmpty,
   IsNumber,
+  IsOptional,
   IsString,
   ValidateNested,
 } from 'class-validator';
+import { SHOP_STATUS } from 'enums/shop.enum';
 import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
 import { CreateUserDto } from 'src/user/dto/create-user-dto';
 
@@ -44,8 +47,18 @@ export class CreateShopDto {
   @IsNumber()
   businessTypeId: number;
 
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  photoURL: string;
+
   @IsNotEmpty({ message: 'Phải cung cấp thông tin chi nhánh!' })
   @ValidateNested()
   @Type(() => CreateBranchDto)
   branch: CreateBranchDto;
+
+  @IsOptional()
+  @IsNumber()
+  @IsEnum(SHOP_STATUS, { message: 'Trạng thái không hợp lệ!' })
+  status: number;
 }

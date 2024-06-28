@@ -1,4 +1,3 @@
-import { Optional } from '@nestjs/common';
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   IsArray,
@@ -15,7 +14,7 @@ import {
 import { SEX_TYPE } from 'enums/user.enum';
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
-export class CreateEmployeeDto {
+export class CreateManagerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
@@ -52,29 +51,6 @@ export class CreateEmployeeDto {
   cardDate: Date;
 
   @IsOptional()
-  @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MaxDate(new Date(), { message: 'Ngày tháng phải nhỏ hơn ngày hiện tại!' })
-  startDate: Date;
-
-  @IsOptional()
-  @IsNumber()
-  @Type(() => Number)
-  employeeGroupId: number;
-
-  @IsOptional()
-  @IsArray()
-  permissionIds: number[];
-
-  @IsOptional()
-  @IsString()
-  photoURL: string;
-
-  @IsOptional()
-  @IsString()
-  address: string;
-
-  @IsOptional()
   @IsString()
   cardId: string;
 
@@ -83,9 +59,18 @@ export class CreateEmployeeDto {
   cardAddress: string;
 
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
-  code: string;
+  @Transform(({ value }) => value && new Date(value))
+  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
+  @MaxDate(new Date(), { message: 'Ngày tháng phải nhỏ hơn ngày hiện tại!' })
+  startDate: Date;
+
+  @IsOptional()
+  @IsString()
+  photoURL: string;
+
+  @IsOptional()
+  @IsString()
+  address: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
@@ -97,4 +82,8 @@ export class CreateEmployeeDto {
   @IsString()
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 kí tự.' })
   password: string;
+
+  @IsOptional()
+  @IsArray()
+  branchIds: number[];
 }

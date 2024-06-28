@@ -3,11 +3,9 @@ import {
   Controller,
   Post,
   UseGuards,
-  UseInterceptors,
   HttpCode,
   HttpStatus,
   Req,
-  UploadedFile,
   Param,
   Patch,
   Delete,
@@ -19,8 +17,6 @@ import { CreateEmployeeDto } from './dto/create-employee-dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
-import { CustomFileInterceptor } from 'utils/Helps';
 import { UpdateEmployeeDto } from './dto/update-employee-dto';
 import { RolesGuard } from 'guards/roles.guard';
 import { Roles } from 'guards/roles.decorator';
@@ -53,7 +49,7 @@ export class UserController {
     'VIEW_EMPLOYEE',
     SPECIAL_ROLE.MANAGER,
   )
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAllEmployee(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.userService.findAllEmployee(findManyDto, tokenPayload);
@@ -106,7 +102,7 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DELETE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
-  removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
+  removeManyEmployee(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.userService.removeManyEmployee(
       {

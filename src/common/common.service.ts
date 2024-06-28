@@ -64,15 +64,6 @@ export class CommonService {
     });
   }
 
-  // async findShopByCondition(where: Prisma.ShopWhereInput) {
-  //   return await this.prisma.shop.findFirst({
-  //     where: {
-  //       isPublic: true,
-  //       ...where,
-  //     },
-  //   });
-  // }
-
   async findByIdWithBranch(
     id: number,
     model: Prisma.ModelName,
@@ -267,5 +258,75 @@ export class CommonService {
     // const numberPart = +shop.code.slice(3);
     // const nextNumber = (numberPart + 1).toString().padStart(4, '0');
     // return `IIT${nextNumber}`;
+  }
+
+  async checkAccountExisting<T extends AnyObject>(
+    data: T,
+    shopId: number,
+    id?: number,
+  ) {
+    let conflictingKeys: string[] = [];
+
+    const result = await this.prisma.account.findFirst({
+      where: {
+        isPublic: true,
+        OR: Object.keys(data).map((key) => ({
+          [key]: { equals: data[key], mode: 'insensitive' },
+        })),
+        branches: {
+          some: {
+            shopId: shopId,
+          },
+        },
+      },
+    });
+
+    if (result && result.id !== id) {
+      conflictingKeys = Object.keys(data).filter(
+        (key) => result[key] === data[key],
+      );
+
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#1 checkAccountExisting - Dữ liệu đã tồn tại!',
+        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+      );
+    }
+  }
+
+  async checkUserExisting<T extends AnyObject>(
+    data: T,
+    shopId: number,
+    id?: number,
+  ) {
+    let conflictingKeys: string[] = [];
+
+    const result = await this.prisma.user.findFirst({
+      where: {
+        isPublic: true,
+        OR: Object.keys(data).map((key) => ({
+          [key]: { equals: data[key], mode: 'insensitive' },
+        })),
+        account: {
+          branches: {
+            some: {
+              shopId: shopId,
+            },
+          },
+        },
+      },
+    });
+
+    if (result && result.id !== id) {
+      conflictingKeys = Object.keys(data).filter(
+        (key) => result[key] === data[key],
+      );
+
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#1 checkUserExisting - Dữ liệu đã tồn tại!',
+        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+      );
+    }
   }
 }

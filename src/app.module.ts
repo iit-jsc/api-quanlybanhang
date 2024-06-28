@@ -29,6 +29,8 @@ import { TwilioModule } from 'nestjs-twilio';
 import { OrderRatingModule } from './order-rating/order-rating.module';
 import { ReportModule } from './report/report.module';
 import { GroupRoleModule } from './group-role/group-role.module';
+import { ManagerModule } from './manager/manager.module';
+import { BusinessTypeModule } from './business-type/business-type.module';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -69,6 +71,8 @@ import { GroupRoleModule } from './group-role/group-role.module';
     OrderRatingModule,
     ReportModule,
     GroupRoleModule,
+    ManagerModule,
+    BusinessTypeModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],
