@@ -84,11 +84,7 @@ export class ManagerController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  remove(
-    @Body() deleteManyDto: DeleteManyDto,
-    @Req() req: any,
-    @Param('id') id: number,
-  ) {
+  remove(@Req() req: any, @Param('id') id: number) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.managerService.remove(
       {

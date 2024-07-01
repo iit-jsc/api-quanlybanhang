@@ -1,5 +1,5 @@
 import * as bcrypt from 'bcrypt';
-import { Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateManagerDto } from './dto/create-manager.dto';
 import { UpdateManagerDto } from './dto/update-manager.dto';
 import { TokenPayload } from 'interfaces/common.interface';
@@ -9,6 +9,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { CommonService } from 'src/common/common.service';
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
 import { calculatePagination } from 'utils/Helps';
+import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
 export class ManagerService {
@@ -17,16 +18,57 @@ export class ManagerService {
     private commonService: CommonService,
   ) {}
 
-  async create(data: CreateManagerDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkUserExisting(
-      { phone: data.phone, email: data.email },
-      tokenPayload.shopId,
-    );
+  async checkManagerExisting(username: string, id?: number) {
+    let ownerShopAccount = await this.prisma.account.findFirst({
+      where: {
+        isPublic: true,
+        OR: [
+          { type: ACCOUNT_TYPE.MANAGER },
+          { type: ACCOUNT_TYPE.STORE_OWNER },
+        ],
+        username: {
+          equals: username?.trim(),
+        },
+        user: {
+          id: {
+            not: id,
+          },
+        },
+      },
+    });
 
-    await this.commonService.checkAccountExisting(
-      { username: data.username },
-      tokenPayload.shopId,
-    );
+    if (ownerShopAccount)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#1 checkManagerExisting - Tài khoản đã tồn tại!',
+      );
+  }
+
+  async checkBranchesInShop(branchIds: number[], shopId: number) {
+    const invalidBranch = await this.prisma.branch.findFirst({
+      where: {
+        id: {
+          in: branchIds,
+        },
+        shopId: {
+          not: shopId,
+        },
+        isPublic: true,
+      },
+    });
+
+    if (invalidBranch)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        '#1 checkBranchesInShop - Chi nhánh không tồn tại!',
+      );
+  }
+
+  async create(data: CreateManagerDto, tokenPayload: TokenPayload) {
+    await this.checkManagerExisting(data.phone);
+
+    // Kiểm tra chi nhánh thuộc shop không
+    await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
 
     return await this.prisma.$transaction(async (prisma) => {
       const user = await prisma.user.create({
@@ -48,7 +90,7 @@ export class ManagerService {
 
       await prisma.account.create({
         data: {
-          username: data.username,
+          username: data.phone,
           password: bcrypt.hashSync(data.password, 10),
           status: ACCOUNT_STATUS.ACTIVE,
           type: ACCOUNT_TYPE.MANAGER,
@@ -74,11 +116,10 @@ export class ManagerService {
   ) {
     const { where, data } = params;
 
-    await this.commonService.checkUserExisting(
-      { phone: data.phone, email: data.email },
-      tokenPayload.shopId,
-      where.id,
-    );
+    await this.checkManagerExisting(data.phone, where.id);
+
+    // Kiểm tra chi nhánh thuộc shop không
+    await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
 
     return this.prisma.user.update({
       data: {
@@ -125,7 +166,6 @@ export class ManagerService {
             },
           },
           isPublic: true,
-          branchId: tokenPayload.branchId,
         },
         data: {
           isPublic: false,
@@ -138,7 +178,7 @@ export class ManagerService {
 
       await prisma.account.update({
         where: {
-          id: user.account.id,
+          userId: where.id,
           isPublic: true,
         },
         data: {

@@ -81,33 +81,68 @@ export class AuthService {
   }
 
   async loginForManager(data: LoginForManagerDto) {
-    await this.commonService.confirmOTP({
-      code: data.otp,
-      phone: data.phone,
-    });
+    let account = null;
 
-    const account = await this.prisma.account.findFirst({
-      where: {
-        isPublic: true,
-        username: {
-          equals: data.phone,
+    if (data.password) {
+      account = await this.prisma.account.findFirst({
+        where: {
+          isPublic: true,
+          username: {
+            equals: data.phone,
+          },
+          status: ACCOUNT_STATUS.ACTIVE,
+          OR: [
+            {
+              type: ACCOUNT_TYPE.MANAGER,
+            },
+            {
+              type: ACCOUNT_TYPE.STORE_OWNER,
+            },
+          ],
         },
-        status: ACCOUNT_STATUS.ACTIVE,
-        OR: [
-          {
-            type: ACCOUNT_TYPE.MANAGER,
+      });
+
+      if (
+        !account ||
+        !account.password ||
+        !(await bcrypt.compare(data.password, account.password))
+      ) {
+        throw new CustomHttpException(
+          HttpStatus.UNAUTHORIZED,
+          '#1 loginForManager - Tài khoản hoặc mật khẩu không chính xác!',
+        );
+      }
+    }
+
+    if (!data.password) {
+      await this.commonService.confirmOTP({
+        code: data.otp,
+        phone: data.phone,
+      });
+
+      account = await this.prisma.account.findFirst({
+        where: {
+          isPublic: true,
+          username: {
+            equals: data.phone,
           },
-          {
-            type: ACCOUNT_TYPE.STORE_OWNER,
-          },
-        ],
-      },
-    });
+          status: ACCOUNT_STATUS.ACTIVE,
+          OR: [
+            {
+              type: ACCOUNT_TYPE.MANAGER,
+            },
+            {
+              type: ACCOUNT_TYPE.STORE_OWNER,
+            },
+          ],
+        },
+      });
+    }
 
     if (!account)
       throw new CustomHttpException(
         HttpStatus.NOT_FOUND,
-        '#1 loginForManager - Tài khoản không tồn tại hoặc đã bị khóa!',
+        '#2 loginForManager - Tài khoản không tồn tại hoặc đã bị khóa!',
       );
 
     const shops = await this.commonService.findManyShopByAccountId(account.id);

@@ -75,15 +75,10 @@ export class CreateManagerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  username: string;
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 kí tự.' })
   password: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsArray()
   branchIds: number[];
 }

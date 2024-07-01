@@ -69,7 +69,7 @@ export class AuthController {
       );
     }
 
-    const [bearer, token] = authHeader.split(' ');
+    const [_, token] = authHeader.split(' ');
 
     if (!token) {
       throw new CustomHttpException(

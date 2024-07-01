@@ -29,7 +29,12 @@ export class LoginForManagerDto {
   @IsVietnamesePhoneNumber()
   phone: string;
 
+  @IsOptional()
   @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  password: string;
+
+  @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   otp: string;
