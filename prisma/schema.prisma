@@ -285,36 +285,36 @@ model Topping {
 }
 
 model Product {
-  id                      Int                      @id @default(autoincrement())
-  branchId                Int
-  unitId                  Int
-  name                    String
-  slug                    String                   @unique
-  code                    String?
-  price                   Float                    @default(0)
-  description             String?                  @db.Text
-  photoURLs               Json?
-  otherAttributes         Json?
-  isCombo                 Boolean                  @default(false)
-  status                  Int?                     @default(1)
-  isInitialStock          Boolean                  @default(false)
-  isPublic                Boolean?                 @default(true)
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  branch                  Branch                   @relation(fields: [branchId], references: [id])
-  measurementUnit         MeasurementUnit          @relation(fields: [unitId], references: [id])
-  comboProductItems       ComboProductItem[]
-  stocks                  Stock[]
-  deals                   Deal[]
-  couponConditionProducts CouponConditionProduct[]
-  couponProducts          CouponProduct[]
-  orderDetails            OrderDetail[]
-  productTypeId           Int
-  productType             ProductType              @relation(fields: [productTypeId], references: [id])
-  createdBy               Int?
-  updatedBy               Int?
-  creator                 Account?                 @relation("creator", fields: [createdBy], references: [id])
-  updater                 Account?                 @relation("updater", fields: [updatedBy], references: [id])
+  id                         Int                  @id @default(autoincrement())
+  branchId                   Int
+  unitId                     Int
+  name                       String
+  slug                       String               @unique
+  code                       String?
+  price                      Float                @default(0)
+  description                String?              @db.Text
+  photoURLs                  Json?
+  otherAttributes            Json?
+  isCombo                    Boolean              @default(false)
+  status                     Int?                 @default(1)
+  isInitialStock             Boolean              @default(false)
+  isPublic                   Boolean?             @default(true)
+  createdAt                  DateTime             @default(now())
+  updatedAt                  DateTime             @updatedAt
+  branch                     Branch               @relation(fields: [branchId], references: [id])
+  measurementUnit            MeasurementUnit      @relation(fields: [unitId], references: [id])
+  comboProductItems          ComboProductItem[]
+  stocks                     Stock[]
+  deals                      Deal[]
+  promotionConditionProducts PromotionCondition[]
+  promotionProducts          PromotionProduct[]
+  orderDetails               OrderDetail[]
+  productTypeId              Int
+  productType                ProductType          @relation(fields: [productTypeId], references: [id])
+  createdBy                  Int?
+  updatedBy                  Int?
+  creator                    Account?             @relation("creator", fields: [createdBy], references: [id])
+  updater                    Account?             @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model ComboProductItem {
@@ -456,65 +456,63 @@ model Deal {
   orders             Order[]
 }
 
-model Coupon {
-  id                      Int                      @id @default(autoincrement())
-  branchId                Int
-  identifier              String
-  name                    String
-  code                    String?
-  startDate               DateTime
-  endDate                 DateTime?
-  limitPerCoupon          Int
-  limitPerCustomer        Int?
-  nolimitPerCoupon        Boolean
-  noEndDate               Boolean?
-  description             String?                  @db.Text
-  value                   Float
-  typeCouponValue         Int
-  typeCoupon              Int
-  applyAllBranch          Boolean
-  isPublic                Boolean?                 @default(true)
-  createdBy               Int?
-  updatedBy               Int?
-  createdAt               DateTime                 @default(now())
-  updatedAt               DateTime                 @updatedAt
-  branch                  Branch                   @relation(fields: [branchId], references: [id])
-  couponConditionProducts CouponConditionProduct[]
-  couponProducts          CouponProduct[]
+model Promotion {
+  id                  Int                  @id @default(autoincrement())
+  branchId            Int
+  name                String
+  code                String?
+  startDate           DateTime
+  endDate             DateTime?
+  noEndDate           Boolean?
+  limitPerPromotion   Int
+  limitPerCustomer    Int?
+  nolimitPerPromotion Boolean
+  description         String?              @db.Text
+  value               Float
+  typePromotionValue  Int
+  type                Int
+  isPublic            Boolean?             @default(true)
+  createdBy           Int?
+  updatedBy           Int?
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  branch              Branch               @relation(fields: [branchId], references: [id])
+  promotionConditions PromotionCondition[]
+  promotionProducts   PromotionProduct[]
 }
 
-model CouponConditionProduct {
-  id        Int      @id @default(autoincrement())
-  branchId  Int
-  couponId  Int
-  productId Int
-  amount    Int
-  isPublic  Boolean? @default(true)
-  createdBy Int?
-  updatedBy Int?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  branch    Branch   @relation(fields: [branchId], references: [id])
-  coupon    Coupon   @relation(fields: [couponId], references: [id])
-  product   Product  @relation(fields: [productId], references: [id])
-}
-
-model CouponProduct {
-  id          Int      @id @default(autoincrement())
+model PromotionCondition {
+  id          Int       @id @default(autoincrement())
   branchId    Int
-  couponId    Int
+  promotionId Int
+  productId   Int
+  amount      Int
+  isPublic    Boolean?  @default(true)
+  createdBy   Int?
+  updatedBy   Int?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  promotion   Promotion @relation(fields: [promotionId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+}
+
+model PromotionProduct {
+  id          Int       @id @default(autoincrement())
+  branchId    Int
+  promotionId Int
   productId   Int?
   amount      Int
   productName String?
-  photoURL    String?  @db.Text
-  isPublic    Boolean? @default(true)
+  photoURL    String?   @db.Text
+  isPublic    Boolean?  @default(true)
   createdBy   Int?
   updatedBy   Int?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  coupon      Coupon   @relation(fields: [couponId], references: [id])
-  product     Product? @relation(fields: [productId], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  promotion   Promotion @relation(fields: [promotionId], references: [id])
+  product     Product?  @relation(fields: [productId], references: [id])
 }
 
 model Order {
@@ -781,9 +779,9 @@ model Branch {
   supplierTypes              SupplierType[]
   suppliers                  Supplier[]
   deals                      Deal[]
-  coupons                    Coupon[]
-  couponConditionProducts    CouponConditionProduct[]
-  couponProducts             CouponProduct[]
+  promotions                 Promotion[]
+  promotionConditionProducts PromotionCondition[]
+  promotionProducts          PromotionProduct[]
   orders                     Order[]
   areas                      Area[]
   discountIssues             DiscountIssue[]
