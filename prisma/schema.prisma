@@ -413,25 +413,25 @@ model SupplierType {
 }
 
 model Supplier {
-  id                  Int          @id @default(autoincrement())
+  id                  Int           @id @default(autoincrement())
   branchId            Int
   name                String
   email               String?
   phone               String
-  address             String?      @db.Text
-  note                String?      @db.Text
+  address             String?       @db.Text
+  note                String?       @db.Text
   representativeName  String?
   representativePhone String?
-  supplierTypeId      Int
-  isPublic            Boolean?     @default(true)
+  supplierTypeId      Int?
+  isPublic            Boolean?      @default(true)
   createdBy           Int?
   updatedBy           Int?
-  createdAt           DateTime     @default(now())
-  updatedAt           DateTime     @updatedAt
-  branch              Branch       @relation(fields: [branchId], references: [id])
-  supplierType        SupplierType @relation(fields: [supplierTypeId], references: [id])
-  creator             Account?     @relation("creator", fields: [createdBy], references: [id])
-  updater             Account?     @relation("updater", fields: [updatedBy], references: [id])
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  branch              Branch        @relation(fields: [branchId], references: [id])
+  supplierType        SupplierType? @relation(fields: [supplierTypeId], references: [id])
+  creator             Account?      @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?      @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model Deal {

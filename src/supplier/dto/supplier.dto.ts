@@ -37,7 +37,7 @@ export class CreateSupplierDto {
   @IsVietnamesePhoneNumber()
   representativePhone: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsOptional()
   @IsNumber()
   supplierTypeId: number;
 }
