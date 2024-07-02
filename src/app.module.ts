@@ -9,7 +9,6 @@ import { AuthModule } from './auth/auth.module';
 import { BranchModule } from './branch/branch.module';
 import { ShopModule } from './shop/shop.module';
 import { JwtModule } from '@nestjs/jwt';
-import { jwtConstants } from 'utils/Constants';
 import { TransformInterceptor } from 'utils/ApiResponse';
 import { MeasurementUnitModule } from './measurement-unit/measurement-unit.module';
 import { LoggerMiddleware } from 'middlewares/check-branch.middleware';
@@ -25,12 +24,12 @@ import { TableModule } from './table/table.module';
 import { ToppingModule } from './topping/topping.module';
 import { OrderStatusModule } from './order-status/order-status.module';
 import { OrderModule } from './order/order.module';
-import { TwilioModule } from 'nestjs-twilio';
 import { OrderRatingModule } from './order-rating/order-rating.module';
 import { ReportModule } from './report/report.module';
 import { GroupRoleModule } from './group-role/group-role.module';
 import { ManagerModule } from './manager/manager.module';
 import { BusinessTypeModule } from './business-type/business-type.module';
+import { FirebaseModule } from './firebase/firebase.module';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -38,6 +37,7 @@ import { BusinessTypeModule } from './business-type/business-type.module';
     }),
     ConfigModule.forRoot({
       isGlobal: true,
+      cache: true,
     }),
     JwtModule.register({
       global: true,
@@ -73,6 +73,7 @@ import { BusinessTypeModule } from './business-type/business-type.module';
     GroupRoleModule,
     ManagerModule,
     BusinessTypeModule,
+    FirebaseModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

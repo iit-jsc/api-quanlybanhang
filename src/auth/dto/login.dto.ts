@@ -35,9 +35,8 @@ export class LoginForManagerDto {
   password: string;
 
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  otp: string;
+  accessToken: string;
 }
 
 export class LoginForCustomerDto {

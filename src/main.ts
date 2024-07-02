@@ -10,6 +10,7 @@ import {
 import { PrismaExceptionFilter, errorFormatter } from 'utils/ApiErrors';
 import { ValidationError } from 'class-validator';
 import { TransformInterceptor } from 'utils/ApiResponse';
+import * as admin from 'firebase-admin';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const cfgService = app.get(ConfigService);

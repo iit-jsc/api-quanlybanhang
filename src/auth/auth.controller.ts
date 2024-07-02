@@ -4,12 +4,12 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Patch,
   Post,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import {
-  LoginDto,
   LoginForCustomerDto,
   LoginForManagerDto,
   LoginForStaffDto,
@@ -21,6 +21,8 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { ConfirmPhoneDto } from 'src/shop/dto/confirm-phone.dto';
 import { VerifyPhoneDto } from 'src/shop/dto/verify-phone.dto';
 import { CustomHttpException } from 'utils/ApiErrors';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ChangeAvatarDto } from './dto/change-information.dto';
 
 @Controller('auth')
 export class AuthController {
@@ -57,6 +59,31 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   verifyPhone(@Body() verifyPhoneDto: VerifyPhoneDto) {
     return this.authService.verifyPhone(verifyPhoneDto);
+  }
+
+  @Patch('/change-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+    return this.authService.changePassword(changePasswordDto, tokenPayload);
+  }
+
+  @Patch('/change-information')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  changeInformation(
+    @Body() changeInformationDto: ChangeAvatarDto,
+    @Req() req: any,
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+    return this.authService.changeInformation(
+      changeInformationDto,
+      tokenPayload,
+    );
   }
 
   @Post('/me')

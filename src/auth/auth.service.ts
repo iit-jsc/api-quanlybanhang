@@ -1,3 +1,4 @@
+import { FirebaseService } from './../firebase/firebase.service';
 import {
   LoginDto,
   LoginForCustomerDto,
@@ -7,6 +8,7 @@ import {
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import * as bcrypt from 'bcrypt';
+import * as admin from 'firebase-admin';
 import { JwtService } from '@nestjs/jwt';
 import { mapResponseLogin } from 'map-responses/account.map-response';
 import { CustomHttpException } from 'utils/ApiErrors';
@@ -18,6 +20,10 @@ import {
 } from 'interfaces/common.interface';
 import { CommonService } from 'src/common/common.service';
 import { VerifyPhoneDto } from 'src/shop/dto/verify-phone.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
+import { ChangeAvatarDto } from './dto/change-information.dto';
+const https = require('https');
+const Buffer = require('buffer').Buffer;
 
 @Injectable()
 export class AuthService {
@@ -25,6 +31,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private jwtService: JwtService,
     private commonService: CommonService,
+    private firebaseService: FirebaseService,
   ) {}
 
   async loginForStaff(data: LoginForStaffDto) {
@@ -115,10 +122,7 @@ export class AuthService {
     }
 
     if (!data.password) {
-      await this.commonService.confirmOTP({
-        code: data.otp,
-        phone: data.phone,
-      });
+      await this.firebaseService.verifyIdToken(data.accessToken);
 
       account = await this.prisma.account.findFirst({
         where: {
@@ -344,6 +348,36 @@ export class AuthService {
             roles: true,
           },
         },
+      },
+    });
+  }
+
+  async changePassword(data: ChangePasswordDto, tokenPayload: TokenPayload) {
+    return await this.prisma.account.update({
+      where: {
+        id: tokenPayload.accountId,
+      },
+      data: {
+        password: bcrypt.hashSync(data.newPassword, 10),
+      },
+    });
+  }
+
+  async changeInformation(data: ChangeAvatarDto, tokenPayload: TokenPayload) {
+    const user = await this.prisma.user.findFirst({
+      where: {
+        isPublic: true,
+        account: {
+          id: tokenPayload.accountId,
+        },
+      },
+    });
+
+    return this.prisma.user.update({
+      data: { photoURL: data.photoURL },
+      where: {
+        id: user.id,
+        isPublic: true,
       },
     });
   }
