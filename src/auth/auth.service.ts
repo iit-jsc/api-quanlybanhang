@@ -222,30 +222,28 @@ export class AuthService {
           expiresIn: '48h',
         },
       ),
-      ...mapResponseLogin(account),
-      shops,
-      currentShop,
+      ...mapResponseLogin({ account, shops, currentShop }),
     };
   }
 
-  async verifyPhone(data: VerifyPhoneDto) {
-    // const client = require('twilio')(
-    //   process.env.TWILIO_ACCOUNT_SID,
-    //   process.env.TWILIO_AUTH_TOKEN,
-    // );
+  // async verifyPhone(data: VerifyPhoneDto) {
+  //   // const client = require('twilio')(
+  //   //   process.env.TWILIO_ACCOUNT_SID,
+  //   //   process.env.TWILIO_AUTH_TOKEN,
+  //   // );
 
-    const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
+  //   const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
 
-    return await this.prisma.phoneVerification.create({
-      data: { code: otp, phone: data.phone },
-    });
+  //   return await this.prisma.phoneVerification.create({
+  //     data: { code: otp, phone: data.phone },
+  //   });
 
-    // return await client.messages.create({
-    //   body: 'Your verification code is: ' + otp,
-    //   from: process.env.TWILIO_ACCOUNT_PHONE,
-    //   to: '+84' + data.phone.substring(1),
-    // });
-  }
+  //   // return await client.messages.create({
+  //   //   body: 'Your verification code is: ' + otp,
+  //   //   from: process.env.TWILIO_ACCOUNT_PHONE,
+  //   //   to: '+84' + data.phone.substring(1),
+  //   // });
+  // }
 
   async getMe(token: string) {
     if (!token)
@@ -276,7 +274,7 @@ export class AuthService {
           '#1 getMe - Không tìm thấy tài nguyên!',
         );
       }
-      return { ...mapResponseLogin(account), shops, currentShop };
+      return { ...mapResponseLogin({ account, shops, currentShop }) };
     } catch (error) {
       throw new CustomHttpException(HttpStatus.UNAUTHORIZED, error);
     }

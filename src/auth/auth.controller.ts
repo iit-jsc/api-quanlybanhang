@@ -58,7 +58,7 @@ export class AuthController {
   @Post('/verify-phone')
   @HttpCode(HttpStatus.OK)
   verifyPhone(@Body() verifyPhoneDto: VerifyPhoneDto) {
-    return this.authService.verifyPhone(verifyPhoneDto);
+    // return this.authService.verifyPhone(verifyPhoneDto);
   }
 
   @Patch('/change-password')

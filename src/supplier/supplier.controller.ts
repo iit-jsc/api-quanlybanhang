@@ -6,70 +6,64 @@ import {
   Patch,
   Param,
   Delete,
-  Req,
-  UseGuards,
   HttpStatus,
   HttpCode,
+  UseGuards,
+  Req,
   Query,
 } from '@nestjs/common';
-import {
-  CreateSupplierTypeDto,
-  UpdateSupplierTypeDto,
-} from './dto/supplier-type.dto';
-import { SupplierTypeService } from './supplier-type.service';
-import { TokenPayload } from 'interfaces/common.interface';
+import { SupplierService } from './supplier.service';
+import { CreateSupplierDto, UpdateSupplierDto } from './dto/supplier.dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { SPECIAL_ROLE } from 'enums/common.enum';
-import { Roles } from 'guards/roles.decorator';
-import { RolesGuard } from 'guards/roles.guard';
+import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { RolesGuard } from 'guards/roles.guard';
+import { Roles } from 'guards/roles.decorator';
+import { SPECIAL_ROLE } from 'enums/common.enum';
 
-@Controller('supplier-type')
-export class SupplierTypeController {
-  constructor(private readonly supplierTypeService: SupplierTypeService) {}
+@Controller('supplier')
+export class SupplierController {
+  constructor(private readonly supplierService: SupplierService) {}
 
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_SUPPLIER_TYPE', SPECIAL_ROLE.MANAGER)
   @Post('')
-  create(
-    @Body() createSupplierTypeDto: CreateSupplierTypeDto,
-    @Req() req: any,
-  ) {
+  @Roles('CREATE_SUPPLIER', SPECIAL_ROLE.MANAGER)
+  create(@Body() createSupplierDto: CreateSupplierDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.supplierTypeService.create(createSupplierTypeDto, tokenPayload);
+    return this.supplierService.create(createSupplierDto, tokenPayload);
   }
 
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    'CREATE_SUPPLIER_TYPE',
-    'UPDATE_SUPPLIER_TYPE',
-    'DELETE_SUPPLIER_TYPE',
-    'VIEW_SUPPLIER_TYPE',
+    'CREATE_SUPPLIER',
+    'UPDATE_SUPPLIER',
+    'DELETE_SUPPLIER',
+    'VIEW_SUPPLIER',
     SPECIAL_ROLE.MANAGER,
   )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.supplierTypeService.findAll(findManyDto, tokenPayload);
+    return this.supplierService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    'CREATE_SUPPLIER_TYPE',
-    'UPDATE_SUPPLIER_TYPE',
-    'DELETE_SUPPLIER_TYPE',
-    'VIEW_SUPPLIER_TYPE',
+    'CREATE_SUPPLIER',
+    'UPDATE_SUPPLIER',
+    'DELETE_SUPPLIER',
+    'VIEW_SUPPLIER',
     SPECIAL_ROLE.MANAGER,
   )
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.supplierTypeService.findUniq(
+    return this.supplierService.findUniq(
       {
         id,
       },
@@ -80,20 +74,20 @@ export class SupplierTypeController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_SUPPLIER_TYPE', SPECIAL_ROLE.MANAGER)
+  @Roles('UPDATE_SUPPLIER', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
-    @Body() updateSupplierTypeDto: UpdateSupplierTypeDto,
+    @Body() updateSupplierDto: UpdateSupplierDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.supplierTypeService.update(
+    return this.supplierService.update(
       {
         where: {
           id,
         },
-        data: updateSupplierTypeDto,
+        data: updateSupplierDto,
       },
       tokenPayload,
     );
@@ -102,10 +96,10 @@ export class SupplierTypeController {
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('DELETE_SUPPLIER_TYPE', SPECIAL_ROLE.MANAGER)
+  @Roles('DELETE_SUPPLIER', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.supplierTypeService.deleteMany(
+    return this.supplierService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

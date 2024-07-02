@@ -98,6 +98,8 @@ model Account {
   updaterShops            Shop[]            @relation("updater")
   creatorSupplierTypes    SupplierType[]    @relation("creator")
   updaterSupplierTypes    SupplierType[]    @relation("updater")
+  creatorSupplier         Supplier[]        @relation("creator")
+  updaterSupplier         Supplier[]        @relation("updater")
 }
 
 model User {
@@ -413,10 +415,11 @@ model SupplierType {
 model Supplier {
   id                  Int          @id @default(autoincrement())
   branchId            Int
-  supplierName        String
+  name                String
   email               String?
   phone               String
   address             String?      @db.Text
+  note                String?      @db.Text
   representativeName  String?
   representativePhone String?
   supplierTypeId      Int
@@ -427,6 +430,8 @@ model Supplier {
   updatedAt           DateTime     @updatedAt
   branch              Branch       @relation(fields: [branchId], references: [id])
   supplierType        SupplierType @relation(fields: [supplierTypeId], references: [id])
+  creator             Account?     @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?     @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model Deal {

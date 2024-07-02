@@ -1,7 +1,11 @@
-import { Prisma } from '@prisma/client';
+import { Permission, Prisma } from '@prisma/client';
+import { AnyObject } from 'interfaces/common.interface';
 
-export function mapResponseLogin(data: any) {
-  const allRoles = data.permissions.flatMap((permission) => permission.roles);
+export function mapResponseLogin(data: AnyObject) {
+  const { account, shops, currentShop } = data;
+  const allRoles = account.permissions.flatMap(
+    (permission: Prisma.PermissionCreateInput) => permission.roles,
+  );
 
   const uniqueRoles = Array.from(
     new Set(allRoles.map((role: Prisma.RoleCreateInput) => role.code)),
@@ -10,8 +14,10 @@ export function mapResponseLogin(data: any) {
   );
 
   return {
-    type: data.type,
-    user: data.user,
-    permissions: uniqueRoles,
+    type: account.type,
+    user: currentShop ? account.user : undefined,
+    permissions: currentShop ? uniqueRoles : undefined,
+    currentShop: currentShop,
+    shops: shops,
   };
 }

@@ -31,6 +31,7 @@ import { ManagerModule } from './manager/manager.module';
 import { BusinessTypeModule } from './business-type/business-type.module';
 import { FirebaseModule } from './firebase/firebase.module';
 import { SupplierTypeModule } from './supplier-type/supplier-type.module';
+import { SupplierModule } from './supplier/supplier.module';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -76,6 +77,7 @@ import { SupplierTypeModule } from './supplier-type/supplier-type.module';
     BusinessTypeModule,
     FirebaseModule,
     SupplierTypeModule,
+    SupplierModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

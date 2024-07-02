@@ -463,6 +463,31 @@ async function main() {
         code: 'VIEW_SUPPLIER_TYPE',
         groupCode: 'SUPPLIER_TYPE',
       },
+      {
+        name: 'Xem danh sách nhà cung cấp',
+        code: 'VIEW_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Tạo nhà cung cấp',
+        code: 'CREATE_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Cập nhật nhà cung cấp',
+        code: 'UPDATE_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Xóa nhà cung cấp',
+        code: 'DELETE_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Xem danh sách nhà cung cấp',
+        code: 'VIEW_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
     ],
   });
 }
