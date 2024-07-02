@@ -5,7 +5,6 @@ import { CreatePermissionDto } from './dto/create-permission.dto';
 import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { FindManyDto } from 'utils/Common.dto';
-import { PERMISSION_SELECT } from 'enums/select.enum';
 
 @Injectable()
 export class PermissionService {

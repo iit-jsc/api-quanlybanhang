@@ -138,6 +138,11 @@ async function main() {
         type: 1,
         code: 'ACCOUNT',
       },
+      {
+        name: 'Quản lý loại nhà cung cấp',
+        type: 1,
+        code: 'SUPPLIER_TYPE',
+      },
     ],
   });
 
@@ -434,9 +439,29 @@ async function main() {
         groupCode: 'ACCOUNT',
       },
       {
-        name: 'Xem danh sách tài khoản',
-        code: 'VIEW_ACCOUNT',
-        groupCode: 'ACCOUNT',
+        name: 'Xem danh sách loại nhà cung cấp',
+        code: 'VIEW_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
+      },
+      {
+        name: 'Tạo loại nhà cung cấp',
+        code: 'CREATE_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
+      },
+      {
+        name: 'Cập nhật loại nhà cung cấp',
+        code: 'UPDATE_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
+      },
+      {
+        name: 'Xóa loại nhà cung cấp',
+        code: 'DELETE_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
+      },
+      {
+        name: 'Xem danh sách loại nhà cung cấp',
+        code: 'VIEW_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
       },
     ],
   });

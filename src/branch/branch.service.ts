@@ -6,7 +6,6 @@ import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { FindManyDto } from 'utils/Common.dto';
-import { BRANCH_SELECT } from 'enums/select.enum';
 import { CommonService } from 'src/common/common.service';
 
 @Injectable()

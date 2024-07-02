@@ -30,6 +30,7 @@ import { GroupRoleModule } from './group-role/group-role.module';
 import { ManagerModule } from './manager/manager.module';
 import { BusinessTypeModule } from './business-type/business-type.module';
 import { FirebaseModule } from './firebase/firebase.module';
+import { SupplierTypeModule } from './supplier-type/supplier-type.module';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -74,6 +75,7 @@ import { FirebaseModule } from './firebase/firebase.module';
     ManagerModule,
     BusinessTypeModule,
     FirebaseModule,
+    SupplierTypeModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

@@ -126,7 +126,7 @@ export class ToppingService {
   ) {
     return this.prisma.topping.updateMany({
       where: {
-        id: where.id,
+        ...where,
         isPublic: true,
         branchId: tokenPayload.branchId,
       },

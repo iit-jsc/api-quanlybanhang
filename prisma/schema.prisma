@@ -96,6 +96,8 @@ model Account {
   updaterUsers            User[]            @relation("updater")
   creatorShops            Shop[]            @relation("creator")
   updaterShops            Shop[]            @relation("updater")
+  creatorSupplierTypes    SupplierType[]    @relation("creator")
+  updaterSupplierTypes    SupplierType[]    @relation("updater")
 }
 
 model User {
@@ -404,6 +406,8 @@ model SupplierType {
   updatedAt   DateTime   @updatedAt
   branch      Branch     @relation(fields: [branchId], references: [id])
   suppliers   Supplier[]
+  creator     Account?   @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?   @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model Supplier {
