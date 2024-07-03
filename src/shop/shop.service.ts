@@ -165,7 +165,7 @@ export class ShopService {
     });
   }
 
-  async removeMany(where: Prisma.ShopWhereInput, tokenPayload: TokenPayload) {
+  async deleteMany(where: Prisma.ShopWhereInput, tokenPayload: TokenPayload) {
     return this.prisma.shop.updateMany({
       where: {
         id: where.id,

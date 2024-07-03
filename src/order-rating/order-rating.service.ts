@@ -60,7 +60,7 @@ export class OrderRatingService {
     });
   }
 
-  async removeMany(
+  async deleteMany(
     where: Prisma.OrderRatingWhereInput,
     tokenPayload: TokenCustomerPayload,
   ) {

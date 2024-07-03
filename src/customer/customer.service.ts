@@ -259,7 +259,7 @@ export class CustomerService {
     });
   }
 
-  async removeMany(
+  async deleteMany(
     where: Prisma.CustomerWhereInput,
     tokenPayload: TokenPayload,
   ) {

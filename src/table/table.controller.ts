@@ -105,9 +105,9 @@ export class TableController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DELETE_TABLE', SPECIAL_ROLE.MANAGER)
-  removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.tableService.removeMany(
+    return this.tableService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

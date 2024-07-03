@@ -94,7 +94,7 @@ export class OrderStatusService {
   //     },
   //   });
   // }
-  // async removeMany(
+  // async deleteMany(
   //   where: Prisma.OrderStatusWhereInput,
   //   tokenPayload: TokenPayload,
   // ) {

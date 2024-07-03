@@ -120,7 +120,7 @@ export class ToppingService {
     });
   }
 
-  async removeMany(
+  async deleteMany(
     where: Prisma.ToppingWhereInput,
     tokenPayload: TokenPayload,
   ) {

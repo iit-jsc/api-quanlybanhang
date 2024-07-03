@@ -91,7 +91,7 @@ export class ProductController {
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.productService.removeMany(
+    return this.productService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

@@ -106,6 +106,10 @@ model Account {
   updaterOrderDetail      OrderDetail[]      @relation("updater")
   creatorTableTransaction TableTransaction[] @relation("creator")
   updaterTableTransaction TableTransaction[] @relation("updater")
+  creatorDiscountIssue    DiscountIssue[]    @relation("creator")
+  updaterDiscountIssue    DiscountIssue[]    @relation("updater")
+  creatorDiscountCode     DiscountCode[]     @relation("creator")
+  updaterDiscountCode     DiscountCode[]     @relation("updater")
 }
 
 model User {
@@ -469,7 +473,7 @@ model Promotion {
   code                String?
   startDate           DateTime
   endDate             DateTime?
-  isHasEndDate        Boolean?             @default(false)
+  isNoEndDate         Boolean?             @default(true)
   amount              Int
   isLimit             Boolean              @default(false)
   amountCustomer      Int?
@@ -636,30 +640,31 @@ model Table {
 
 model DiscountIssue {
   id                   Int            @id @default(autoincrement())
-  identifier           String
   branchId             Int
   name                 String
   code                 String?
-  discountType         Int
-  discountValue        Float
+  type                 Int
+  value                Float
   startDay             DateTime
   endDay               DateTime?
-  noEndDay             Boolean?
+  isNoEndDate          Boolean?       @default(true)
   description          String?        @db.Text
-  limitPerCode         Int
-  limitPerCustomer     Int
-  noLimitPerCode       Boolean
-  noLimitCustomer      Boolean
-  applyAllBranch       Boolean
+  amount               Int
+  isLimit              Boolean
+  amountCustomer       Int
+  isLimitCustomer      Boolean
   otherDiscountApplied Boolean
   minTotalOrder        Float?
+  maxValue             Float?
   isPublic             Boolean?       @default(true)
-  createdBy            Int?
-  updatedBy            Int?
   createdAt            DateTime       @default(now())
   updatedAt            DateTime       @updatedAt
   branch               Branch         @relation(fields: [branchId], references: [id])
   discountCodes        DiscountCode[]
+  createdBy            Int?
+  updatedBy            Int?
+  creator              Account?       @relation("creator", fields: [createdBy], references: [id])
+  updater              Account?       @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model DiscountCode {
@@ -675,6 +680,8 @@ model DiscountCode {
   updatedAt       DateTime      @updatedAt
   branch          Branch        @relation(fields: [branchId], references: [id])
   discountIssue   DiscountIssue @relation(fields: [discountIssueId], references: [id])
+  creator         Account?      @relation("creator", fields: [createdBy], references: [id])
+  updater         Account?      @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model PointSetting {

@@ -761,7 +761,7 @@ export class OrderService {
     });
   }
 
-  async removeMany(deleteManyDto: DeleteManyDto, tokenPayload: TokenPayload) {
+  async deleteMany(deleteManyDto: DeleteManyDto, tokenPayload: TokenPayload) {
     return await this.prisma.order.updateMany({
       where: {
         id: {

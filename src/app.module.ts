@@ -33,6 +33,7 @@ import { FirebaseModule } from './firebase/firebase.module';
 import { SupplierTypeModule } from './supplier-type/supplier-type.module';
 import { SupplierModule } from './supplier/supplier.module';
 import { PromotionModule } from './promotion/promotion.module';
+import { DiscountIssueModule } from './discount-issue/discount-issue.module';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -80,6 +81,7 @@ import { PromotionModule } from './promotion/promotion.module';
     SupplierTypeModule,
     SupplierModule,
     PromotionModule,
+    DiscountIssueModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

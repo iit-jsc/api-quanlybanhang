@@ -1,15 +1,10 @@
-export enum PRODUCT_STATUS {
-  SELL_ALLOW = 1,
-  NOT_SELL_ALLOW = 2,
-}
+export const PRODUCT_STATUS = {
+  SELL_ALLOW: 1,
+  NOT_SELL_ALLOW: 2,
+};
 
-export enum PRICE_TYPE {
-  RETAIL_PRICE = 1,
-  WHOLE_SALE_PRICE = 2,
-  IMPORT_PRICE = 3,
-}
-
-export enum PROMOTION_TYPE {
-  PERCENTAGE = 1,
-  FIXED_AMOUNT = 2,
-}
+export const PRICE_TYPE = {
+  RETAIL_PRICE: 1,
+  WHOLE_SALE_PRICE: 2,
+  IMPORT_PRICE: 3,
+};

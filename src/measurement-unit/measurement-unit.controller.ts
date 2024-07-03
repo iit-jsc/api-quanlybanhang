@@ -109,7 +109,7 @@ export class MeasurementUnitController {
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.measurementUnitService.removeMany(
+    return this.measurementUnitService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

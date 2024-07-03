@@ -71,7 +71,7 @@ export class OrderStatusController {
   // @UseGuards(JwtAuthGuard)
   // deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
   //   const tokenPayload = req.tokenPayload as TokenPayload;
-  //   return this.orderStatusService.removeMany(
+  //   return this.orderStatusService.deleteMany(
   //     {
   //       id: {
   //         in: deleteManyDto.ids,

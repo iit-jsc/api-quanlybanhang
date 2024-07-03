@@ -146,7 +146,7 @@ export class PermissionService {
     });
   }
 
-  async removeMany(
+  async deleteMany(
     where: Prisma.PermissionWhereInput,
     tokenPayload: TokenPayload,
   ) {

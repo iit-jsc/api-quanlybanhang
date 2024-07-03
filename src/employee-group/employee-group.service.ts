@@ -103,7 +103,7 @@ export class EmployeeGroupService {
     });
   }
 
-  async removeMany(
+  async deleteMany(
     where: Prisma.EmployeeGroupWhereInput,
     tokenPayload: TokenPayload,
   ) {

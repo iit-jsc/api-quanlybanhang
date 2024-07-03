@@ -22,3 +22,8 @@ export const SPECIAL_ROLE = {
   STORE_OWNER: 'STORE_OWNER',
   MANAGER: 'MANAGER',
 };
+
+export const PROMOTION_TYPE = {
+  PERCENT: 1,
+  VALUE: 2,
+};

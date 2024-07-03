@@ -92,7 +92,7 @@
 //   @UseGuards(JwtAuthGuard)
 //   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
 //     const tokenPayload = req.tokenPayload as TokenPayload;
-//     return this.paymentMethodService.removeMany(
+//     return this.paymentMethodService.deleteMany(
 //       {
 //         id: {
 //           in: deleteManyDto.ids,

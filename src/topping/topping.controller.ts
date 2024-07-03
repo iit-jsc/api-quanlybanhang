@@ -105,7 +105,7 @@ export class ToppingController {
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.toppingService.removeMany(
+    return this.toppingService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

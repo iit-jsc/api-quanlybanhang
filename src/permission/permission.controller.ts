@@ -101,7 +101,7 @@ export class PermissionController {
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.permissionService.removeMany(
+    return this.permissionService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

@@ -107,7 +107,7 @@ export class EmployeeGroupController {
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.employeeGroupService.removeMany(
+    return this.employeeGroupService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

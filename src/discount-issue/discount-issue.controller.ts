@@ -12,62 +12,49 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { DiscountIssueService } from './discount-issue.service';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
+import { CreateDiscountIssueDto } from './dto/discount-issue.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { CustomerTypeService } from './customer-type.service';
-import { CreateCustomerTypeDto } from './dto/create-customer-type';
+import { UpdatePromotionDto } from 'src/promotion/dto/promotion.dto';
 import { Roles } from 'guards/roles.decorator';
-import { RolesGuard } from 'guards/roles.guard';
 import { SPECIAL_ROLE } from 'enums/common.enum';
 
-@Controller('customer-type')
-export class CustomerTypeController {
-  constructor(private readonly customerTypeService: CustomerTypeService) {}
+@Controller('discount-issue')
+export class DiscountIssueController {
+  constructor(private readonly discountIssueService: DiscountIssueService) {}
 
-  @Post('')
+  @Post()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard)
   create(
-    @Body() createCustomerTypeDto: CreateCustomerTypeDto,
+    @Body() createDiscountIssueDto: CreateDiscountIssueDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.customerTypeService.create(createCustomerTypeDto, tokenPayload);
+    return this.discountIssueService.create(
+      createDiscountIssueDto,
+      tokenPayload,
+    );
   }
 
-  @Get('')
+  @Get()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_CUSTOMER_TYPE',
-    'UPDATE_CUSTOMER_TYPE',
-    'DELETE_CUSTOMER_TYPE',
-    'VIEW_CUSTOMER_TYPE',
-    SPECIAL_ROLE.MANAGER,
-  )
+  @UseGuards(JwtAuthGuard)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.customerTypeService.findAll(findManyDto, tokenPayload);
+    return this.discountIssueService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_CUSTOMER_TYPE',
-    'UPDATE_CUSTOMER_TYPE',
-    'DELETE_CUSTOMER_TYPE',
-    'VIEW_CUSTOMER_TYPE',
-    SPECIAL_ROLE.MANAGER,
-  )
+  @UseGuards(JwtAuthGuard)
   findUniq(@Param('id') id: number, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.customerTypeService.findUniq(
+    return this.discountIssueService.findUniq(
       {
         id,
       },
@@ -77,20 +64,20 @@ export class CustomerTypeController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard)
   update(
     @Param('id') id: number,
-    @Body() createCustomerTypeDto: CreateCustomerTypeDto,
+    @Body() updatePromotionDto: UpdatePromotionDto,
     @Req() req: any,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.customerTypeService.update(
+
+    return this.discountIssueService.update(
       {
         where: {
           id,
         },
-        data: createCustomerTypeDto,
+        data: updatePromotionDto,
       },
       tokenPayload,
     );
@@ -98,11 +85,11 @@ export class CustomerTypeController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('DELETE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.customerTypeService.deleteMany(
+
+    return this.discountIssueService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

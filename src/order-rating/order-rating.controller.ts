@@ -61,7 +61,7 @@ export class OrderRatingController {
     const tokenPayload = req.tokenPayload as TokenCustomerPayload;
     console.log(deleteManyDto);
 
-    return this.orderRatingService.removeMany(
+    return this.orderRatingService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

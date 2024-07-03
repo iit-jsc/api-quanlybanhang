@@ -117,7 +117,7 @@ export class CustomerTypeService {
     });
   }
 
-  async removeMany(
+  async deleteMany(
     where: Prisma.CustomerTypeWhereInput,
     tokenPayload: TokenPayload,
   ) {

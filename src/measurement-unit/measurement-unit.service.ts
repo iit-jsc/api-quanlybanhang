@@ -108,7 +108,7 @@ export class MeasurementUnitService {
     });
   }
 
-  async removeMany(
+  async deleteMany(
     where: Prisma.MeasurementUnitWhereInput,
     tokenPayload: TokenPayload,
   ) {

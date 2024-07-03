@@ -69,7 +69,7 @@ export class ShopController {
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.shopService.removeMany(
+    return this.shopService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

@@ -273,7 +273,7 @@ export class TableService {
     });
   }
 
-  async removeMany(where: Prisma.TableWhereInput, tokenPayload: TokenPayload) {
+  async deleteMany(where: Prisma.TableWhereInput, tokenPayload: TokenPayload) {
     return this.prisma.table.updateMany({
       where: {
         ...where,

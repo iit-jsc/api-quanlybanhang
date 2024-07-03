@@ -98,7 +98,7 @@ export class CustomerController {
   @Roles('DELETE_CUSTOMER', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.customerService.removeMany(
+    return this.customerService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

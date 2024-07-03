@@ -171,7 +171,7 @@ export class AreaService {
     });
   }
 
-  async removeMany(where: Prisma.AreaWhereInput, tokenPayload: TokenPayload) {
+  async deleteMany(where: Prisma.AreaWhereInput, tokenPayload: TokenPayload) {
     return this.prisma.area.updateMany({
       where: {
         ...where,

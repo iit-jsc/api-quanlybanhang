@@ -102,9 +102,9 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DELETE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
-  removeManyEmployee(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
+  deleteManyEmployee(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.userService.removeManyEmployee(
+    return this.userService.deleteManyEmployee(
       {
         id: {
           in: deleteManyDto.ids,

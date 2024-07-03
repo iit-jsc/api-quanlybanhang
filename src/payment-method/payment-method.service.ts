@@ -116,7 +116,7 @@
 //     });
 //   }
 
-//   async removeMany(
+//   async deleteMany(
 //     where: Prisma.PaymentMethodWhereInput,
 //     tokenPayload: TokenPayload,
 //   ) {

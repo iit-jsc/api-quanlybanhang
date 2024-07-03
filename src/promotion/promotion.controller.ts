@@ -65,7 +65,7 @@ export class PromotionController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
     'CREATE_PROMOTION',
     'UPDATE_PROMOTION',
@@ -85,7 +85,7 @@ export class PromotionController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_PROMOTION', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: number,
@@ -107,7 +107,7 @@ export class PromotionController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DELETE_PROMOTION', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;

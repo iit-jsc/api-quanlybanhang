@@ -140,7 +140,7 @@ export class BranchService {
     });
   }
 
-  async removeMany(where: Prisma.BranchWhereInput, tokenPayload: TokenPayload) {
+  async deleteMany(where: Prisma.BranchWhereInput, tokenPayload: TokenPayload) {
     return this.prisma.branch.updateMany({
       where: {
         ...where,

@@ -259,7 +259,7 @@ export class UserService {
     });
   }
 
-  async removeManyEmployee(
+  async deleteManyEmployee(
     where: Prisma.UserWhereInput,
     tokenPayload: TokenPayload,
   ) {

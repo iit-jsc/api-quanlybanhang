@@ -12,7 +12,7 @@ import {
   MinDate,
   ValidateNested,
 } from 'class-validator';
-import { PROMOTION_TYPE } from 'enums/product.enum';
+import { PROMOTION_TYPE } from 'enums/common.enum';
 
 export class CreatePromotionDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -30,7 +30,7 @@ export class CreatePromotionDto {
   @MinDate(new Date(), { message: 'Ngày tháng phải lớn hơn ngày hiện tại!' })
   startDate: Date;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsOptional()
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: 'Ngày tháng không hợp lệ!' })
   @MinDate(new Date(), { message: 'Ngày tháng phải lớn hơn ngày hiện tại!' })
@@ -42,7 +42,7 @@ export class CreatePromotionDto {
 
   @IsOptional()
   @IsBoolean()
-  isHasEndDate: boolean;
+  isNoEndDate: boolean;
 
   @IsOptional()
   @IsBoolean()

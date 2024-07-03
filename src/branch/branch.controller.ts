@@ -101,9 +101,9 @@ export class BranchController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DELETE_BRANCH', SPECIAL_ROLE.STORE_OWNER)
-  removeMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
+  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.branchService.removeMany(
+    return this.branchService.deleteMany(
       {
         id: {
           in: deleteManyDto.ids,

@@ -134,7 +134,7 @@ export class ProductTypeService {
     });
   }
 
-  async removeMany(
+  async deleteMany(
     where: Prisma.ProductTypeWhereInput,
     tokenPayload: TokenPayload,
   ) {
