@@ -29,6 +29,11 @@ export class FindManyDto {
   })
   branchIds: number[];
 
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isSort?: boolean;
+
   /* ====== group role filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {

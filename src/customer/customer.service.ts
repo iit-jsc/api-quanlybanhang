@@ -16,7 +16,7 @@ export class CustomerService {
 
   async create(data: CreateCustomerDto, tokenPayload: TokenPayload) {
     await this.commonService.checkDataExistingInShop(
-      { code: data.code, phone: data.phone },
+      { phone: data.phone },
       'Customer',
       tokenPayload.shopId,
     );
@@ -208,7 +208,7 @@ export class CustomerService {
     const { where, data } = params;
 
     await this.commonService.checkDataExistingInShop(
-      { code: data.code, phone: data.phone },
+      { phone: data.phone },
       'Customer',
       tokenPayload.shopId,
       where.id,

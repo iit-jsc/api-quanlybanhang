@@ -143,6 +143,11 @@ async function main() {
         type: 1,
         code: 'SUPPLIER_TYPE',
       },
+      {
+        name: 'Quản lý khuyến mãi',
+        type: 1,
+        code: 'PROMOTION',
+      },
     ],
   });
 
@@ -484,9 +489,24 @@ async function main() {
         groupCode: 'SUPPLIER',
       },
       {
-        name: 'Xem danh sách nhà cung cấp',
+        name: 'Xem danh sách khuyến mãi',
         code: 'VIEW_SUPPLIER',
         groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Tạo khuyến mãi',
+        code: 'CREATE_PROMOTION',
+        groupCode: 'PROMOTION',
+      },
+      {
+        name: 'Cập nhật khuyến mãi',
+        code: 'UPDATE_PROMOTION',
+        groupCode: 'PROMOTION',
+      },
+      {
+        name: 'Xóa khuyến mãi',
+        code: 'DELETE_PROMOTION',
+        groupCode: 'PROMOTION',
       },
     ],
   });

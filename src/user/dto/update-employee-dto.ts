@@ -1,8 +1,6 @@
-import { Optional } from '@nestjs/common';
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   IsArray,
-  IsBoolean,
   IsDate,
   IsEmail,
   IsEnum,

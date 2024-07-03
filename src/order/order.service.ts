@@ -480,8 +480,12 @@ export class OrderService {
               isPublic: true,
             },
           },
-          createdBy: tokenPayload.accountId,
-          updatedBy: tokenPayload.accountId,
+          creator: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
         },
       });
 
@@ -499,8 +503,12 @@ export class OrderService {
               isPublic: true,
             },
           },
-          createdBy: tokenPayload.accountId,
-          updatedBy: tokenPayload.accountId,
+          creator: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
         },
       });
     });
@@ -544,8 +552,12 @@ export class OrderService {
           orderDetails: {
             connect: orderDetailIds.map((id) => ({ id })),
           },
-          createdBy: tokenPayload.accountId,
-          updatedBy: tokenPayload.accountId,
+          creator: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
         },
       });
 
@@ -566,8 +578,12 @@ export class OrderService {
           orderDetails: {
             connect: orderDetailIds.map((id) => ({ id })),
           },
-          createdBy: tokenPayload.accountId,
-          updatedBy: tokenPayload.accountId,
+          creator: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
         },
       });
     });

@@ -53,53 +53,59 @@ model Permission {
 }
 
 model Account {
-  id                      Int               @id @default(autoincrement())
-  status                  Int               @default(1)
-  type                    Int?              @default(3)
+  id                      Int                @id @default(autoincrement())
+  status                  Int                @default(1)
+  type                    Int?               @default(3)
   username                String
   password                String?
-  userId                  Int               @unique
-  user                    User              @relation(fields: [userId], references: [id])
-  isPublic                Boolean?          @default(true)
+  userId                  Int                @unique
+  user                    User               @relation(fields: [userId], references: [id])
+  isPublic                Boolean?           @default(true)
   branches                Branch[]
   createdBy               Int?
   updatedBy               Int?
-  createdAt               DateTime          @default(now())
-  updatedAt               DateTime          @updatedAt
+  createdAt               DateTime           @default(now())
+  updatedAt               DateTime           @updatedAt
   activityLogs            ActivityLog[]
   permissions             Permission[]
-  createOrders            Order[]           @relation("creator")
-  updateOrders            Order[]           @relation("updater")
-  creatorBranches         Branch[]          @relation("creator")
-  updaterBranches         Branch[]          @relation("updater")
-  creatorMeasurementUnits MeasurementUnit[] @relation("creator")
-  updaterMeasurementUnits MeasurementUnit[] @relation("updater")
-  creatorToppings         Topping[]         @relation("creator")
-  updaterToppings         Topping[]         @relation("updater")
-  creatorProductTypes     ProductType[]     @relation("creator")
-  updaterProductTypes     ProductType[]     @relation("updater")
-  creatorProducts         Product[]         @relation("creator")
-  updaterProducts         Product[]         @relation("updater")
-  creatorPermissions      Permission[]      @relation("creator")
-  updaterPermissions      Permission[]      @relation("updater")
-  creatorEmployeeGroups   EmployeeGroup[]   @relation("creator")
-  updaterEmployeeGroups   EmployeeGroup[]   @relation("updater")
-  creatorCustomerTypes    CustomerType[]    @relation("creator")
-  updaterCustomerTypes    CustomerType[]    @relation("updater")
-  creatorAreas            Area[]            @relation("creator")
-  updaterAreas            Area[]            @relation("updater")
-  creatorTables           Table[]           @relation("creator")
-  updaterTables           Table[]           @relation("updater")
-  creatorCustomers        Customer[]        @relation("creator")
-  updaterCustomers        Customer[]        @relation("updater")
-  creatorUsers            User[]            @relation("creator")
-  updaterUsers            User[]            @relation("updater")
-  creatorShops            Shop[]            @relation("creator")
-  updaterShops            Shop[]            @relation("updater")
-  creatorSupplierTypes    SupplierType[]    @relation("creator")
-  updaterSupplierTypes    SupplierType[]    @relation("updater")
-  creatorSupplier         Supplier[]        @relation("creator")
-  updaterSupplier         Supplier[]        @relation("updater")
+  createOrders            Order[]            @relation("creator")
+  updateOrders            Order[]            @relation("updater")
+  creatorBranches         Branch[]           @relation("creator")
+  updaterBranches         Branch[]           @relation("updater")
+  creatorMeasurementUnits MeasurementUnit[]  @relation("creator")
+  updaterMeasurementUnits MeasurementUnit[]  @relation("updater")
+  creatorToppings         Topping[]          @relation("creator")
+  updaterToppings         Topping[]          @relation("updater")
+  creatorProductTypes     ProductType[]      @relation("creator")
+  updaterProductTypes     ProductType[]      @relation("updater")
+  creatorProducts         Product[]          @relation("creator")
+  updaterProducts         Product[]          @relation("updater")
+  creatorPermissions      Permission[]       @relation("creator")
+  updaterPermissions      Permission[]       @relation("updater")
+  creatorEmployeeGroups   EmployeeGroup[]    @relation("creator")
+  updaterEmployeeGroups   EmployeeGroup[]    @relation("updater")
+  creatorCustomerTypes    CustomerType[]     @relation("creator")
+  updaterCustomerTypes    CustomerType[]     @relation("updater")
+  creatorAreas            Area[]             @relation("creator")
+  updaterAreas            Area[]             @relation("updater")
+  creatorTables           Table[]            @relation("creator")
+  updaterTables           Table[]            @relation("updater")
+  creatorCustomers        Customer[]         @relation("creator")
+  updaterCustomers        Customer[]         @relation("updater")
+  creatorUsers            User[]             @relation("creator")
+  updaterUsers            User[]             @relation("updater")
+  creatorShops            Shop[]             @relation("creator")
+  updaterShops            Shop[]             @relation("updater")
+  creatorSupplierTypes    SupplierType[]     @relation("creator")
+  updaterSupplierTypes    SupplierType[]     @relation("updater")
+  creatorSupplier         Supplier[]         @relation("creator")
+  updaterSupplier         Supplier[]         @relation("updater")
+  creatorPromotion        Promotion[]        @relation("creator")
+  updaterPromotion        Promotion[]        @relation("updater")
+  creatorOrderDetail      OrderDetail[]      @relation("creator")
+  updaterOrderDetail      OrderDetail[]      @relation("updater")
+  creatorTableTransaction TableTransaction[] @relation("creator")
+  updaterTableTransaction TableTransaction[] @relation("updater")
 }
 
 model User {
@@ -463,22 +469,25 @@ model Promotion {
   code                String?
   startDate           DateTime
   endDate             DateTime?
-  noEndDate           Boolean?
-  limitPerPromotion   Int
-  limitPerCustomer    Int?
-  nolimitPerPromotion Boolean
+  isHasEndDate        Boolean?             @default(false)
+  amount              Int
+  isLimit             Boolean              @default(false)
+  amountCustomer      Int?
+  isLimitCustomer     Boolean
   description         String?              @db.Text
-  value               Float
-  typePromotionValue  Int
+  value               Float?
+  typeValue           Int?
   type                Int
   isPublic            Boolean?             @default(true)
-  createdBy           Int?
-  updatedBy           Int?
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   branch              Branch               @relation(fields: [branchId], references: [id])
   promotionConditions PromotionCondition[]
   promotionProducts   PromotionProduct[]
+  createdBy           Int?
+  updatedBy           Int?
+  creator             Account?             @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?             @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model PromotionCondition {
@@ -488,8 +497,6 @@ model PromotionCondition {
   productId   Int
   amount      Int
   isPublic    Boolean?  @default(true)
-  createdBy   Int?
-  updatedBy   Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   branch      Branch    @relation(fields: [branchId], references: [id])
@@ -503,11 +510,9 @@ model PromotionProduct {
   promotionId Int
   productId   Int?
   amount      Int
-  productName String?
+  name        String?
   photoURL    String?   @db.Text
   isPublic    Boolean?  @default(true)
-  createdBy   Int?
-  updatedBy   Int?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
   branch      Branch    @relation(fields: [branchId], references: [id])
@@ -568,6 +573,8 @@ model OrderDetail {
   tableId           Int?
   createdBy         Int?
   updatedBy         Int?
+  creator           Account?           @relation("creator", fields: [createdBy], references: [id])
+  updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
   tableTransactions TableTransaction[]
 }
 
@@ -579,6 +586,8 @@ model TableTransaction {
   isPublic     Boolean?      @default(true)
   createdBy    Int?
   updatedBy    Int?
+  creator      Account?      @relation("creator", fields: [createdBy], references: [id])
+  updater      Account?      @relation("updater", fields: [updatedBy], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
   branch       Branch        @relation(fields: [branchId], references: [id])
@@ -798,10 +807,9 @@ model Branch {
   tables                     Table[]
   permissions                Permission[]
   employeeGroups             EmployeeGroup[]
-
-  toppings Topping[]
-  accounts Account[]
-  users    User[]
+  toppings                   Topping[]
+  accounts                   Account[]
+  users                      User[]
 }
 
 model WorkShift {

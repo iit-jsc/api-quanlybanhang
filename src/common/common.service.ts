@@ -220,6 +220,7 @@ export class CommonService {
     id?: number,
   ) {
     let conflictingKeys: string[] = [];
+    console.log(model, data);
 
     const result = await this.prisma[model].findFirst({
       where: {

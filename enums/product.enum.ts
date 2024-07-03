@@ -8,3 +8,8 @@ export enum PRICE_TYPE {
   WHOLE_SALE_PRICE = 2,
   IMPORT_PRICE = 3,
 }
+
+export enum PROMOTION_TYPE {
+  PERCENTAGE = 1,
+  FIXED_AMOUNT = 2,
+}
