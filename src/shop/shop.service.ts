@@ -1,4 +1,3 @@
-import * as bcrypt from 'bcrypt';
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
 import { CreateShopDto, RegisterShopDto } from './dto/create-shop.dto';
@@ -118,6 +117,9 @@ export class ShopService {
         businessTypeCode: data.businessTypeCode,
         photoURL: data.photoURL,
         status: data.status,
+        address: data.address,
+        email: data.email,
+        phone: data.phone,
         branches: {
           create: {
             name: data.branch?.name,
@@ -150,6 +152,9 @@ export class ShopService {
         businessTypeCode: data.businessTypeCode,
         status: data.status,
         photoURL: data.photoURL,
+        address: data.address,
+        email: data.email,
+        phone: data.phone,
         updatedBy: tokenPayload.accountId,
       },
       where: {
