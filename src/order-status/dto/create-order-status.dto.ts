@@ -12,6 +12,6 @@ export class CreateOrderStatusDto {
   description: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
+  @IsString()
   businessTypeId: number;
 }

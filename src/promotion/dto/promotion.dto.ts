@@ -27,13 +27,17 @@ export class CreatePromotionDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MinDate(new Date(), { message: 'Ngày tháng phải lớn hơn ngày hiện tại!' })
+  @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
+    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!',
+  })
   startDate: Date;
 
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MinDate(new Date(), { message: 'Ngày tháng phải lớn hơn ngày hiện tại!' })
+  @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
+    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!',
+  })
   endDate: Date;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -88,7 +92,7 @@ export class CreatePromotionDto {
 
 class PromotionConditionDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
+  @IsString()
   productId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -98,7 +102,7 @@ class PromotionConditionDto {
 
 class PromotionProductDto {
   @IsOptional()
-  @IsNumber()
+  @IsString()
   productId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })

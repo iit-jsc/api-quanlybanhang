@@ -31,13 +31,11 @@ export class UpdateProductDto {
   branchIds: number[];
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  @Type(() => Number)
+  @IsString()
   unitId: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  @Type(() => Number)
+  @IsString()
   productTypeId: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })

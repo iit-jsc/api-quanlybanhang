@@ -647,15 +647,15 @@ model DiscountIssue {
   code                 String?
   type                 Int
   value                Float
-  startDay             DateTime
-  endDay               DateTime?
+  startDate            DateTime
+  endDate              DateTime?
   isEndDateDisabled    Boolean?       @default(true)
   description          String?        @db.Text
   amount               Int
   isLimit              Boolean        @default(false)
   amountCustomer       Int
-  isLimitCustomer      Boolean
-  otherDiscountApplied Boolean
+  isLimitCustomer      Boolean        @default(true)
+  otherDiscountApplied Boolean        @default(false)
   minTotalOrder        Float?
   maxValue             Float?
   isPublic             Boolean?       @default(true)

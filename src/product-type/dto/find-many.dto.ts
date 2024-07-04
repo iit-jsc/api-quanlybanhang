@@ -1,10 +1,10 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class FindManyProductTypeDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
-  @IsNumber()
+  @IsString()
   branchId: string;
 
   @Type(() => Number)

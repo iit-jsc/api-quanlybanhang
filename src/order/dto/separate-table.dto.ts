@@ -1,13 +1,12 @@
-import { Type } from 'class-transformer';
-import { ArrayNotEmpty, IsNotEmpty, IsNumber } from 'class-validator';
+import { ArrayNotEmpty, IsNotEmpty, IsString } from 'class-validator';
 
 export class SeparateTableDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
+  @IsString()
   fromTableId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
+  @IsString()
   toTableId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })

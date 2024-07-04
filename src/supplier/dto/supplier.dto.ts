@@ -38,7 +38,7 @@ export class CreateSupplierDto {
   representativePhone: string;
 
   @IsOptional()
-  @IsNumber()
+  @IsString()
   supplierTypeId: string;
 }
 

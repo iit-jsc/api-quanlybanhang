@@ -57,7 +57,7 @@ export class UpdateEmployeeDto {
   startDate: Date;
 
   @IsOptional()
-  @IsNumber()
+  @IsString()
   @Type(() => Number)
   employeeGroupId: string;
 

@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/swagger';
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
+  IsBoolean,
   IsDate,
   IsEnum,
   IsNotEmpty,
@@ -34,7 +35,9 @@ export class CreateDiscountIssueDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MinDate(new Date(), { message: 'Ngày tháng phải lớn hơn ngày hiện tại!' })
+  @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
+    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!',
+  })
   startDate: Date;
 
   @IsOptional()
@@ -44,9 +47,7 @@ export class CreateDiscountIssueDto {
   endDate: Date;
 
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value);
-  })
+  @IsBoolean()
   isEndDateDisabled: boolean;
 
   @IsOptional()
@@ -57,11 +58,29 @@ export class CreateDiscountIssueDto {
   @IsNumber()
   amount: number;
 
-  @IsOptional()
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value);
-  })
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsBoolean()
   isLimit: boolean;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNumber()
+  amountCustomer: number;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsBoolean()
+  isLimitCustomer: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  otherDiscountApplied: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  minTotalOrder: number;
+
+  @IsOptional()
+  @IsNumber()
+  maxValue: number;
 }
 
 export class UpdateDiscountIssueDto extends PartialType(
