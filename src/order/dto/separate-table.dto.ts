@@ -4,13 +4,13 @@ import { ArrayNotEmpty, IsNotEmpty, IsNumber } from 'class-validator';
 export class SeparateTableDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  fromTableId: number;
+  fromTableId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  toTableId: number;
+  toTableId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách không được rỗng!' })
-  orderDetailIds: number[];
+  orderDetailIds: string[];
 }

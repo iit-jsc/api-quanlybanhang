@@ -12,6 +12,7 @@ import {
   Req,
   UseGuards,
 } from '@nestjs/common';
+import { v4 as isUuid } from 'uuid';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto } from 'utils/Common.dto';
@@ -45,9 +46,9 @@ export class ProductTypeController {
   @Get(':keyword')
   @HttpCode(HttpStatus.OK)
   findUniq(@Param('keyword') keyword: string) {
-    const idKeyword = Number(keyword);
-    const searchConditions = !isNaN(idKeyword)
-      ? [{ id: idKeyword }, { slug: { contains: keyword } }]
+    const isUuidKeyword = isUuid(keyword);
+    const searchConditions = isUuidKeyword
+      ? [{ id: keyword }, { slug: { contains: keyword } }]
       : [{ slug: { contains: keyword } }];
     return this.productTypeService.findUniq({
       OR: searchConditions,
@@ -59,7 +60,7 @@ export class ProductTypeController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_PRODUCT_TYPE', SPECIAL_ROLE.MANAGER)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() createProductTypeDto: CreateProductTypeDto,
     @Req() req: any,
   ) {

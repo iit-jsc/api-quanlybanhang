@@ -8,8 +8,8 @@ import {
 
 export class CreateOrderRatingDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  orderId: number;
+  @IsString()
+  orderId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()

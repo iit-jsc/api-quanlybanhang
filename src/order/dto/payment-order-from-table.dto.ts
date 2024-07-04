@@ -2,12 +2,12 @@ import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class PaymentFromTableDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  tableId: number;
+  @IsString()
+  tableId: string;
 
   @IsOptional()
-  @IsNumber()
-  customerId: number;
+  @IsString()
+  customerId: string;
 
   @IsOptional()
   @IsString()

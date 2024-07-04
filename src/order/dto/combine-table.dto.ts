@@ -3,9 +3,9 @@ import { IsNotEmpty, IsNumber } from 'class-validator';
 export class CombineTableDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  fromTableId: number;
+  fromTableId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  toTableId: number;
+  toTableId: string;
 }

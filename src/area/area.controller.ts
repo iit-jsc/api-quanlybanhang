@@ -44,7 +44,7 @@ export class AreaController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_AREA', SPECIAL_ROLE.MANAGER)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() createAreaDto: CreateAreaDto,
     @Req() req: any,
   ) {
@@ -88,7 +88,7 @@ export class AreaController {
     'VIEW_AREA',
     SPECIAL_ROLE.MANAGER,
   )
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.areaService.findUniq(

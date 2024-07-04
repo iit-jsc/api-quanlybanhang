@@ -39,7 +39,7 @@ export class CreateSupplierDto {
 
   @IsOptional()
   @IsNumber()
-  supplierTypeId: number;
+  supplierTypeId: string;
 }
 
 export class UpdateSupplierDto extends PartialType(CreateSupplierDto) {}

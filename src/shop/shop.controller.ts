@@ -48,7 +48,7 @@ export class ShopController {
   update(
     @Body() updateShopDto: UpdateShopDto,
     @Req() req: any,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.shopService.update(
@@ -83,7 +83,7 @@ export class ShopController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.shopService.findUniq(

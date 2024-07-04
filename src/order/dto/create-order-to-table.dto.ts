@@ -12,8 +12,8 @@ import {
 
 export class CreateOrderToTableDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  tableId: number;
+  @IsString()
+  tableId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })

@@ -52,7 +52,7 @@ export class DiscountIssueController {
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.discountIssueService.findUniq(
       {
@@ -66,7 +66,7 @@ export class DiscountIssueController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updatePromotionDto: UpdatePromotionDto,
     @Req() req: any,
   ) {

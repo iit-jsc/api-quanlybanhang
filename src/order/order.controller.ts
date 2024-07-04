@@ -86,7 +86,7 @@ export class OrderController {
   updateOrderDetail(
     @Body() updateOrderDetailDto: UpdateOrderDetailDto,
     @Req() req: any,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -144,7 +144,7 @@ export class OrderController {
   saveOrder(
     @Body() saveOrderDto: SaveOrderDto,
     @Req() req: any,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -166,7 +166,7 @@ export class OrderController {
   update(
     @Body() updateOrderDto: UpdateOrderDto,
     @Req() req: any,
-    @Param('id') id: number,
+    @Param('id') id: string,
   ) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -197,7 +197,7 @@ export class OrderController {
   @Get('/me/:id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtCustomerAuthGuard)
-  findUniqByCustomer(@Param('id') id: number, @Req() req: any) {
+  findUniqByCustomer(@Param('id') id: string, @Req() req: any) {
     const tokenCustomerPayload =
       req.tokenCustomerPayload as TokenCustomerPayload;
 
@@ -223,7 +223,7 @@ export class OrderController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('VIEW_ORDER', SPECIAL_ROLE.MANAGER)
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.findUniq(

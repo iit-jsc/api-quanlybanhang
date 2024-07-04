@@ -64,7 +64,7 @@ export class BranchController {
     'VIEW_BRANCH',
     SPECIAL_ROLE.STORE_OWNER,
   )
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.branchService.findUniq(
@@ -80,7 +80,7 @@ export class BranchController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_BRANCH', SPECIAL_ROLE.STORE_OWNER)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() createBranchDto: CreateBranchDto,
     @Req() req: any,
   ) {

@@ -1,11 +1,10 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional } from 'class-validator';
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class FindManyProductDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
-  @IsNumber()
-  branchId: number;
+  @IsString()
+  branchId: string;
 
   @Type(() => Number)
   skip?: number;
@@ -19,21 +18,15 @@ export class FindManyProductDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
-  measurementUnitIds: number[];
+  measurementUnitIds: string[];
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
-  productTypeIds: number[];
+  productTypeIds: string[];
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {

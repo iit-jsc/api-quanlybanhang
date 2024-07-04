@@ -30,7 +30,7 @@ export class AccountController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() createAccountDto: CreateAccountDto,
     @Req() req: any,
   ) {

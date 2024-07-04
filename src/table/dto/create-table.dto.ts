@@ -21,7 +21,6 @@ export class CreateTableDto {
   photoURL?: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  @Type(() => Number)
-  areaId: number;
+  @IsString()
+  areaId: string;
 }

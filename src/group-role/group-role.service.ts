@@ -8,31 +8,28 @@ import { calculatePagination } from 'utils/Helps';
 export class GroupRoleService {
   constructor(private readonly prisma: PrismaService) {}
   async findAll(params: FindManyDto) {
-    let { skip, take, businessTypeIds } = params;
-
-    let where: Prisma.GroupRoleWhereInput = {
-      type: {
-        in: businessTypeIds,
-      },
-    };
-
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.groupRole.findMany({
-        skip,
-        take,
-        where,
-        include: {
-          roles: true,
-        },
-      }),
-      this.prisma.groupRole.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+    // let { skip, take, businessTypeIds } = params;
+    // let where: Prisma.GroupRoleWhereInput = {
+    //   type: {
+    //     in: businessTypeIds,
+    //   },
+    // };
+    // const [data, totalRecords] = await Promise.all([
+    //   this.prisma.groupRole.findMany({
+    //     skip,
+    //     take,
+    //     where,
+    //     include: {
+    //       roles: true,
+    //     },
+    //   }),
+    //   this.prisma.groupRole.count({
+    //     where,
+    //   }),
+    // ]);
+    // return {
+    //   list: data,
+    //   pagination: calculatePagination(totalRecords, skip, take),
+    // };
   }
 }

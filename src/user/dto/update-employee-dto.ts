@@ -59,11 +59,11 @@ export class UpdateEmployeeDto {
   @IsOptional()
   @IsNumber()
   @Type(() => Number)
-  employeeGroupId: number;
+  employeeGroupId: string;
 
   @IsOptional()
   @IsArray()
-  permissionIds: number[];
+  permissionIds: string[];
 
   @IsOptional()
   @IsString()

@@ -24,8 +24,8 @@ export class CreateCustomerDto {
   name: string;
 
   @IsOptional()
-  @IsNumber()
-  customerTypeId: number;
+  @IsString()
+  customerTypeId: string;
 
   @IsOptional()
   @IsString()

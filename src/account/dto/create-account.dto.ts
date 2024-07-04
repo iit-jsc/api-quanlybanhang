@@ -27,8 +27,8 @@ export class CreateAccountDto {
   status: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
-  userId: number;
+  @IsString()
+  userId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
@@ -36,5 +36,5 @@ export class CreateAccountDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách quyền không được rỗng!' })
-  permissionIds: number[];
+  permissionIds: string[];
 }

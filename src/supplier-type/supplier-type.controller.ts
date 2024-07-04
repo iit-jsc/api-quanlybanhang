@@ -66,7 +66,7 @@ export class SupplierTypeController {
     'VIEW_SUPPLIER_TYPE',
     SPECIAL_ROLE.MANAGER,
   )
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.supplierTypeService.findUniq(
@@ -82,7 +82,7 @@ export class SupplierTypeController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_SUPPLIER_TYPE', SPECIAL_ROLE.MANAGER)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateSupplierTypeDto: UpdateSupplierTypeDto,
     @Req() req: any,
   ) {

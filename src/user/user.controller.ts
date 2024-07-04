@@ -65,7 +65,7 @@ export class UserController {
     'VIEW_EMPLOYEE',
     SPECIAL_ROLE.MANAGER,
   )
-  findUniqEmployee(@Param('id') id: number, @Req() req: any) {
+  findUniqEmployee(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.userService.findUniqEmployee(
@@ -81,7 +81,7 @@ export class UserController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
   updateEmployee(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateEmployeeDto: UpdateEmployeeDto,
     @Req() req: any,
   ) {

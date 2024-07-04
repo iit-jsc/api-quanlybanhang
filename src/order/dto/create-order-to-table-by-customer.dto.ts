@@ -2,19 +2,19 @@ import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsNotEmpty,
-  IsNumber,
+  IsString,
   ValidateNested,
 } from 'class-validator';
 import { ProductInOrder } from './create-order.dto';
 
 export class CreateOrderToTableByCustomerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  tableId: number;
+  @IsString()
+  tableId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  branchId: number;
+  @IsString()
+  branchId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })

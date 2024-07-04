@@ -280,7 +280,7 @@ export class AuthService {
     }
   }
 
-  async getCurrentShop(branchId: number) {
+  async getCurrentShop(branchId: string) {
     if (!branchId) return undefined;
 
     return await this.prisma.shop.findFirst({
@@ -316,7 +316,7 @@ export class AuthService {
     });
   }
 
-  async getAccountAccess(accountId: number, branchId: number) {
+  async getAccountAccess(accountId: string, branchId: string) {
     return await this.prisma.account.findUnique({
       where: {
         id: accountId,

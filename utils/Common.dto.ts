@@ -22,12 +22,9 @@ export class FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
-  branchIds: number[];
+  branchIds: string[];
 
   @Transform(({ value }: TransformFnParams) => {
     return Boolean(+value);
@@ -37,10 +34,7 @@ export class FindManyDto {
   /* ====== group role filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
   types: number[];
 
@@ -48,46 +42,33 @@ export class FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',');
   })
-  employeeGroupIds: number[];
+  employeeGroupIds: string[];
 
   /* ====== table filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
-  areaIds: number[];
+  areaIds: string[];
 
   /* ====== employee filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
-  customerTypeIds: number[];
+  customerTypeIds: string[];
 
   /* ====== order status filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
-  businessTypeIds: number[];
+  businessTypeIds: string[];
 
   /* ====== order  filter  ====== */
-  @Type(() => Number)
-  customerId?: number;
+  customerId?: string;
 
   @IsOptional()
   @Type(() => Date)
@@ -101,10 +82,7 @@ export class FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
   orderTypes: number[];
 
@@ -116,10 +94,7 @@ export class FindManyDto {
   /* ====== table  filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value
-      ?.split(',')
-      .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+    return value?.split(',').map((id: string) => id.trim());
   })
   statusOrderDetails: number[];
 }
@@ -127,7 +102,7 @@ export class FindManyDto {
 export class DeleteManyDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách ids!' })
-  ids: number[];
+  ids: string[];
 }
 
 export class DeleteManyWithIdentifierDto {
@@ -137,5 +112,5 @@ export class DeleteManyWithIdentifierDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
-  branchIds: number[];
+  branchIds: string[];
 }

@@ -9,6 +9,5 @@ export class FindManyOrderRatings {
   take?: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
-  orderId: number;
+  orderId: string;
 }

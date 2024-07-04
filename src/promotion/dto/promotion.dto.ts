@@ -89,7 +89,7 @@ export class CreatePromotionDto {
 class PromotionConditionDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  productId: number;
+  productId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
@@ -99,7 +99,7 @@ class PromotionConditionDto {
 class PromotionProductDto {
   @IsOptional()
   @IsNumber()
-  productId: number;
+  productId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
@@ -124,8 +124,8 @@ export class ProductsOrderDto {
 
 export class ProductAmountDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  productId: number;
+  @IsString()
+  productId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()

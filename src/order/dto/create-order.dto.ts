@@ -17,8 +17,8 @@ export class CreateOrderDto {
   code: string;
 
   @IsOptional()
-  @IsNumber()
-  customerId: number;
+  @IsString()
+  customerId: string;
 
   @IsOptional()
   @IsString()
@@ -45,16 +45,16 @@ export class CreateOrderDto {
 
 export class ProductInOrder {
   @IsNotEmpty({ message: 'ID sản phẩm không được để trống!' })
-  @IsNumber({}, { message: 'ID sản phẩm phải là số!' })
-  id: number;
+  @IsString()
+  id: string;
 
   @IsNotEmpty({ message: 'Số lượng sản phẩm không được để trống!' })
   @IsNumber({}, { message: 'Số lượng sản phẩm phải là số!' })
   amount: number;
 
   @IsOptional()
-  @IsNumber({}, { message: 'ID topping phải là số!' })
-  toppingId: number;
+  @IsString()
+  toppingId: string;
 
   @IsOptional()
   @IsString()

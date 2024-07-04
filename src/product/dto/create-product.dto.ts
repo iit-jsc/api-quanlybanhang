@@ -21,11 +21,12 @@ export class CreateProductDto {
   description?: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  unitId: number;
+  @IsString()
+  unitId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  productTypeId: number;
+  @IsString()
+  productTypeId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())

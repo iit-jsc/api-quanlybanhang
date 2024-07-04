@@ -49,7 +49,7 @@ export class ManagerController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.managerService.findUniq(
       {
@@ -64,7 +64,7 @@ export class ManagerController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateManagerDto: UpdateManagerDto,
     @Req() req: any,
   ) {
@@ -84,7 +84,7 @@ export class ManagerController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  remove(@Req() req: any, @Param('id') id: number) {
+  remove(@Req() req: any, @Param('id') id: string) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.managerService.remove(
       {

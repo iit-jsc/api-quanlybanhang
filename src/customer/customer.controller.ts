@@ -61,7 +61,7 @@ export class CustomerController {
     'VIEW_CUSTOMER',
     SPECIAL_ROLE.MANAGER,
   )
-  findUniq(@Param('id') id: number, @Req() req: any) {
+  findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.customerService.findUniq(
       {
@@ -76,7 +76,7 @@ export class CustomerController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_CUSTOMER', SPECIAL_ROLE.MANAGER)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() createCustomerDto: CreateCustomerDto,
     @Req() req: any,
   ) {

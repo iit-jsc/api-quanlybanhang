@@ -28,6 +28,7 @@ import { FindManyProductDto } from './dto/find-many.dto';
 import { RolesGuard } from 'guards/roles.guard';
 import { Roles } from 'guards/roles.decorator';
 import { SPECIAL_ROLE } from 'enums/common.enum';
+import { v4 as isUuid } from 'uuid';
 
 @Controller('product')
 export class ProductController {
@@ -52,9 +53,9 @@ export class ProductController {
   @Get(':keyword')
   @HttpCode(HttpStatus.OK)
   findUniq(@Param('keyword') keyword: string) {
-    const idKeyword = Number(keyword);
-    const searchConditions = !isNaN(idKeyword)
-      ? [{ id: idKeyword }, { slug: { contains: keyword } }]
+    const isUuidKeyword = isUuid(keyword);
+    const searchConditions = isUuidKeyword
+      ? [{ id: keyword }, { slug: { contains: keyword } }]
       : [{ slug: { contains: keyword } }];
 
     return this.productService.findUniq({
@@ -67,7 +68,7 @@ export class ProductController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_PRODUCT', SPECIAL_ROLE.MANAGER)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() createProductDto: CreateProductDto,
     @Req() req: any,
   ) {

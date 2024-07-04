@@ -1,7 +1,7 @@
-import { IsNotEmpty, IsNumber } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class AccessBranchDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  branchId: number;
+  @IsString()
+  branchId: string;
 }

@@ -18,7 +18,7 @@ export class ManagerService {
     private commonService: CommonService,
   ) {}
 
-  async checkManagerExisting(username: string, id?: number) {
+  async checkManagerExisting(username: string, id?: string) {
     let ownerShopAccount = await this.prisma.account.findFirst({
       where: {
         isPublic: true,
@@ -44,7 +44,7 @@ export class ManagerService {
       );
   }
 
-  async checkBranchesInShop(branchIds: number[], shopId: number) {
+  async checkBranchesInShop(branchIds: string[], shopId: string) {
     const invalidBranch = await this.prisma.branch.findFirst({
       where: {
         id: {
@@ -99,7 +99,7 @@ export class ManagerService {
               id: user.id,
             },
           },
-          branches: { connect: data.branchIds?.map((id: number) => ({ id })) },
+          branches: { connect: data.branchIds?.map((id: string) => ({ id })) },
         },
       });
 
@@ -142,7 +142,7 @@ export class ManagerService {
               : undefined,
             status: data.accountStatus,
             branches: {
-              set: data.branchIds?.map((id: number) => ({ id })),
+              set: data.branchIds?.map((id: string) => ({ id })),
             },
           },
         },

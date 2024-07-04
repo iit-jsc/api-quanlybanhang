@@ -3,12 +3,12 @@ import { DETAIL_ORDER_STATUS } from 'enums/order.enum';
 
 export class UpdateOrderDetailDto {
   @IsOptional()
-  @IsNumber()
-  productId: number;
+  @IsString()
+  productId: string;
 
   @IsOptional()
-  @IsNumber()
-  toppingId: number;
+  @IsString()
+  toppingId: string;
 
   @IsOptional()
   @IsNumber()

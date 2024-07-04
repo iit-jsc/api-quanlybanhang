@@ -1,12 +1,12 @@
 export interface TokenPayload {
-  accountId?: number;
-  shopId?: number;
-  branchId?: number;
+  accountId?: string;
+  shopId?: string;
+  branchId?: string;
   type?: number;
 }
 
 export interface TokenCustomerPayload {
-  customerId: number;
+  customerId: string;
 }
 
 export interface PaginationResult {
@@ -16,10 +16,10 @@ export interface PaginationResult {
 }
 
 export interface Condition {
-  id?: number;
+  id?: string;
   isPublic: boolean;
   shop: {
-    id: number;
+    id: string;
     isPublic: boolean;
   };
   detailPermissions?: {

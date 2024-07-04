@@ -13,5 +13,5 @@ export class CreatePermissionDto {
 
   @IsArray()
   @IsOptional()
-  roleIds: number[];
+  roleIds: string[];
 }

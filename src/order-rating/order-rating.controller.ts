@@ -37,7 +37,7 @@ export class OrderRatingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtCustomerAuthGuard)
   update(
-    @Param('id') id: number,
+    @Param('id') id: string,
     @Body() updateOrderRatingDto: UpdateOrderRatingDto,
     @Req() req: any,
   ) {

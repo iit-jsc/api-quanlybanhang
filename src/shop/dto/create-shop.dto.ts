@@ -23,8 +23,8 @@ export class RegisterShopDto {
   otp: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  businessTypeId: number;
+  @IsString()
+  businessTypeCode: string;
 
   @IsNotEmpty({ message: 'Phải cung cấp thông tin chi nhánh!' })
   @ValidateNested()
@@ -44,8 +44,8 @@ export class CreateShopDto {
   name: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  businessTypeId: number;
+  @IsString()
+  businessTypeCode: string;
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())

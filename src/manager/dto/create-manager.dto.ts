@@ -80,5 +80,5 @@ export class CreateManagerDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsArray()
-  branchIds: number[];
+  branchIds: string[];
 }

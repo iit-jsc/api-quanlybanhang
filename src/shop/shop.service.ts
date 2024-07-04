@@ -76,7 +76,11 @@ export class ShopService {
           data: {
             name: data.name,
             code: shopCode,
-            businessTypeId: data.businessTypeId,
+            businessType: {
+              connect: {
+                code: data.businessTypeCode,
+              },
+            },
             branches: {
               create: {
                 name: branch.name,
@@ -111,7 +115,7 @@ export class ShopService {
       data: {
         code: await this.generateShopCode(),
         name: data.name,
-        businessTypeId: data.businessTypeId,
+        businessTypeCode: data.businessTypeCode,
         photoURL: data.photoURL,
         status: data.status,
         branches: {
@@ -143,7 +147,7 @@ export class ShopService {
     return this.prisma.shop.update({
       data: {
         name: data.name,
-        businessTypeId: data.businessTypeId,
+        businessTypeCode: data.businessTypeCode,
         status: data.status,
         photoURL: data.photoURL,
         updatedBy: tokenPayload.accountId,

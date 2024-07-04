@@ -16,7 +16,7 @@ export class CommonService {
     return data.photoURLs;
   }
 
-  async findManyShopByAccountId(id: number) {
+  async findManyShopByAccountId(id: string) {
     return await this.prisma.shop.findMany({
       where: {
         isPublic: true,
@@ -64,9 +64,9 @@ export class CommonService {
   }
 
   async findByIdWithBranch(
-    id: number,
+    id: string,
     model: Prisma.ModelName,
-    branchId: number,
+    branchId: string,
   ) {
     return this.prisma[model].findFirstOrThrow({
       where: {
@@ -77,7 +77,7 @@ export class CommonService {
     });
   }
 
-  async findByIdWithShop(id: number, model: Prisma.ModelName, shopId: number) {
+  async findByIdWithShop(id: string, model: Prisma.ModelName, shopId: string) {
     return this.prisma[model].findFirstOrThrow({
       where: {
         isPublic: true,
@@ -92,7 +92,7 @@ export class CommonService {
 
   async findOrCreateCustomer(
     data: { name: string; email: string; address: string; phone: string },
-    where: { phone: string; branchId: number },
+    where: { phone: string; branchId: string },
   ) {
     const shop = await this.prisma.shop.findFirst({
       where: {
@@ -138,7 +138,7 @@ export class CommonService {
         });
   }
 
-  async checkTableIsReady(id: number) {
+  async checkTableIsReady(id: string) {
     const table = await this.prisma.table.findFirst({
       where: {
         id,
@@ -185,8 +185,8 @@ export class CommonService {
   async checkDataExistingInBranch<T extends AnyObject>(
     data: T,
     model: string,
-    branchId: number,
-    id?: number,
+    branchId: string,
+    id?: string,
   ) {
     let conflictingKeys: string[] = [];
 
@@ -216,8 +216,8 @@ export class CommonService {
   async checkDataExistingInShop<T extends AnyObject>(
     data: T,
     model: string,
-    shopId: number,
-    id?: number,
+    shopId: string,
+    id?: string,
   ) {
     let conflictingKeys: string[] = [];
     console.log(model, data);
@@ -262,8 +262,8 @@ export class CommonService {
 
   async checkAccountExisting<T extends AnyObject>(
     data: T,
-    shopId: number,
-    id?: number,
+    shopId: string,
+    id?: string,
   ) {
     let conflictingKeys: string[] = [];
 
@@ -296,8 +296,8 @@ export class CommonService {
 
   async checkUserExisting<T extends AnyObject>(
     data: T,
-    shopId: number,
-    id?: number,
+    shopId: string,
+    id?: string,
   ) {
     let conflictingKeys: string[] = [];
 

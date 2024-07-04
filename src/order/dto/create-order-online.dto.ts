@@ -15,8 +15,8 @@ import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
 
 export class CreateOrderOnlineDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  branchId: number;
+  @IsString()
+  branchId: string;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
@@ -35,8 +35,8 @@ export class CreateOrderOnlineDto {
   address: string;
 
   @IsOptional()
-  @IsNumber()
-  customerId: number;
+  @IsString()
+  customerId: string;
 
   @IsOptional()
   @IsString()

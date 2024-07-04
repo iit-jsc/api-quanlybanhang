@@ -5,7 +5,7 @@ export class FindManyProductTypeDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
   @IsNumber()
-  branchId: number;
+  branchId: string;
 
   @Type(() => Number)
   skip?: number;
