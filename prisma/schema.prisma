@@ -165,6 +165,9 @@ model Shop {
   status             Int                 @default(1)
   businessType       BusinessType?       @relation(fields: [businessTypeId], references: [id])
   name               String
+  phone              String
+  email              String?
+  address            String?
   photoURL           String?             @db.Text
   domain             String?
   isPublic           Boolean?            @default(true)
@@ -473,7 +476,7 @@ model Promotion {
   code                String?
   startDate           DateTime
   endDate             DateTime?
-  isNoEndDate         Boolean?             @default(true)
+  isEndDateDisabled   Boolean?             @default(true)
   amount              Int
   isLimit             Boolean              @default(false)
   amountCustomer      Int?
@@ -647,10 +650,10 @@ model DiscountIssue {
   value                Float
   startDay             DateTime
   endDay               DateTime?
-  isNoEndDate          Boolean?       @default(true)
+  isEndDateDisabled    Boolean?       @default(true)
   description          String?        @db.Text
   amount               Int
-  isLimit              Boolean
+  isLimit              Boolean        @default(false)
   amountCustomer       Int
   isLimitCustomer      Boolean
   otherDiscountApplied Boolean

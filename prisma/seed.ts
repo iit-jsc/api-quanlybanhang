@@ -443,71 +443,61 @@ async function main() {
         code: 'DELETE_ACCOUNT',
         groupCode: 'ACCOUNT',
       },
-      {
-        name: 'Xem danh sách loại nhà cung cấp',
-        code: 'VIEW_SUPPLIER_TYPE',
-        groupCode: 'SUPPLIER_TYPE',
-      },
-      {
-        name: 'Tạo loại nhà cung cấp',
-        code: 'CREATE_SUPPLIER_TYPE',
-        groupCode: 'SUPPLIER_TYPE',
-      },
-      {
-        name: 'Cập nhật loại nhà cung cấp',
-        code: 'UPDATE_SUPPLIER_TYPE',
-        groupCode: 'SUPPLIER_TYPE',
-      },
-      {
-        name: 'Xóa loại nhà cung cấp',
-        code: 'DELETE_SUPPLIER_TYPE',
-        groupCode: 'SUPPLIER_TYPE',
-      },
-      {
-        name: 'Xem danh sách loại nhà cung cấp',
-        code: 'VIEW_SUPPLIER_TYPE',
-        groupCode: 'SUPPLIER_TYPE',
-      },
-      {
-        name: 'Xem danh sách nhà cung cấp',
-        code: 'VIEW_SUPPLIER',
-        groupCode: 'SUPPLIER',
-      },
-      {
-        name: 'Tạo nhà cung cấp',
-        code: 'CREATE_SUPPLIER',
-        groupCode: 'SUPPLIER',
-      },
-      {
-        name: 'Cập nhật nhà cung cấp',
-        code: 'UPDATE_SUPPLIER',
-        groupCode: 'SUPPLIER',
-      },
-      {
-        name: 'Xóa nhà cung cấp',
-        code: 'DELETE_SUPPLIER',
-        groupCode: 'SUPPLIER',
-      },
-      {
-        name: 'Xem danh sách khuyến mãi',
-        code: 'VIEW_SUPPLIER',
-        groupCode: 'SUPPLIER',
-      },
-      {
-        name: 'Tạo khuyến mãi',
-        code: 'CREATE_PROMOTION',
-        groupCode: 'PROMOTION',
-      },
-      {
-        name: 'Cập nhật khuyến mãi',
-        code: 'UPDATE_PROMOTION',
-        groupCode: 'PROMOTION',
-      },
-      {
-        name: 'Xóa khuyến mãi',
-        code: 'DELETE_PROMOTION',
-        groupCode: 'PROMOTION',
-      },
+      // {
+      //   name: 'Xem danh sách loại nhà cung cấp',
+      //   code: 'VIEW_SUPPLIER_TYPE',
+      //   groupCode: 'SUPPLIER_TYPE',
+      // },
+      // {
+      //   name: 'Tạo loại nhà cung cấp',
+      //   code: 'CREATE_SUPPLIER_TYPE',
+      //   groupCode: 'SUPPLIER_TYPE',
+      // },
+      // {
+      //   name: 'Cập nhật loại nhà cung cấp',
+      //   code: 'UPDATE_SUPPLIER_TYPE',
+      //   groupCode: 'SUPPLIER_TYPE',
+      // },
+      // {
+      //   name: 'Xóa loại nhà cung cấp',
+      //   code: 'DELETE_SUPPLIER_TYPE',
+      //   groupCode: 'SUPPLIER_TYPE',
+      // },
+      // {
+      //   name: 'Xem danh sách nhà cung cấp',
+      //   code: 'VIEW_SUPPLIER',
+      //   groupCode: 'SUPPLIER',
+      // },
+      // {
+      //   name: 'Tạo nhà cung cấp',
+      //   code: 'CREATE_SUPPLIER',
+      //   groupCode: 'SUPPLIER',
+      // },
+      // {
+      //   name: 'Cập nhật nhà cung cấp',
+      //   code: 'UPDATE_SUPPLIER',
+      //   groupCode: 'SUPPLIER',
+      // },
+      // {
+      //   name: 'Xóa nhà cung cấp',
+      //   code: 'DELETE_SUPPLIER',
+      //   groupCode: 'SUPPLIER',
+      // },
+      // {
+      //   name: 'Tạo khuyến mãi',
+      //   code: 'CREATE_PROMOTION',
+      //   groupCode: 'PROMOTION',
+      // },
+      // {
+      //   name: 'Cập nhật khuyến mãi',
+      //   code: 'UPDATE_PROMOTION',
+      //   groupCode: 'PROMOTION',
+      // },
+      // {
+      //   name: 'Xóa khuyến mãi',
+      //   code: 'DELETE_PROMOTION',
+      //   groupCode: 'PROMOTION',
+      // },
     ],
   });
 }

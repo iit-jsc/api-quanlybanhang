@@ -42,6 +42,26 @@ export class CreateDiscountIssueDto {
   @IsDate({ message: 'Ngày tháng không hợp lệ!' })
   @MinDate(new Date(), { message: 'Ngày tháng phải lớn hơn ngày hiện tại!' })
   endDate: Date;
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isEndDateDisabled: boolean;
+
+  @IsOptional()
+  @IsString()
+  description: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNumber()
+  amount: number;
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isLimit: boolean;
 }
 
 export class UpdateDiscountIssueDto extends PartialType(

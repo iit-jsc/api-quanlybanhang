@@ -111,6 +111,9 @@ CREATE TABLE "Shop" (
     "businessTypeId" INTEGER NOT NULL,
     "status" INTEGER NOT NULL DEFAULT 1,
     "name" TEXT NOT NULL,
+    "phone" TEXT NOT NULL,
+    "email" TEXT,
+    "address" TEXT,
     "photoURL" TEXT,
     "domain" TEXT,
     "isPublic" BOOLEAN DEFAULT true,
@@ -356,13 +359,14 @@ CREATE TABLE "SupplierType" (
 CREATE TABLE "Supplier" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
-    "supplierName" TEXT NOT NULL,
+    "name" TEXT NOT NULL,
     "email" TEXT,
     "phone" TEXT NOT NULL,
     "address" TEXT,
+    "note" TEXT,
     "representativeName" TEXT,
     "representativePhone" TEXT,
-    "supplierTypeId" INTEGER NOT NULL,
+    "supplierTypeId" INTEGER,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" INTEGER,
     "updatedBy" INTEGER,
@@ -395,64 +399,59 @@ CREATE TABLE "Deal" (
 );
 
 -- CreateTable
-CREATE TABLE "Coupon" (
+CREATE TABLE "Promotion" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
-    "identifier" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT,
     "startDate" TIMESTAMP(3) NOT NULL,
     "endDate" TIMESTAMP(3),
-    "limitPerCoupon" INTEGER NOT NULL,
-    "limitPerCustomer" INTEGER,
-    "nolimitPerCoupon" BOOLEAN NOT NULL,
-    "noEndDate" BOOLEAN,
+    "isEndDateDisabled" BOOLEAN DEFAULT true,
+    "amount" INTEGER NOT NULL,
+    "isLimit" BOOLEAN NOT NULL DEFAULT false,
+    "amountCustomer" INTEGER,
+    "isLimitCustomer" BOOLEAN NOT NULL,
     "description" TEXT,
-    "value" DOUBLE PRECISION NOT NULL,
-    "typeCouponValue" INTEGER NOT NULL,
-    "typeCoupon" INTEGER NOT NULL,
-    "applyAllBranch" BOOLEAN NOT NULL,
+    "value" DOUBLE PRECISION,
+    "typeValue" INTEGER,
+    "type" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
 
-    CONSTRAINT "Coupon_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "Promotion_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "CouponConditionProduct" (
+CREATE TABLE "PromotionCondition" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
-    "couponId" INTEGER NOT NULL,
+    "promotionId" INTEGER NOT NULL,
     "productId" INTEGER NOT NULL,
     "amount" INTEGER NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "CouponConditionProduct_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "PromotionCondition_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "CouponProduct" (
+CREATE TABLE "PromotionProduct" (
     "id" SERIAL NOT NULL,
     "branchId" INTEGER NOT NULL,
-    "couponId" INTEGER NOT NULL,
+    "promotionId" INTEGER NOT NULL,
     "productId" INTEGER,
     "amount" INTEGER NOT NULL,
-    "productName" TEXT,
+    "name" TEXT,
     "photoURL" TEXT,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
 
-    CONSTRAINT "CouponProduct_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "PromotionProduct_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -554,28 +553,27 @@ CREATE TABLE "Table" (
 -- CreateTable
 CREATE TABLE "DiscountIssue" (
     "id" SERIAL NOT NULL,
-    "identifier" TEXT NOT NULL,
     "branchId" INTEGER NOT NULL,
     "name" TEXT NOT NULL,
     "code" TEXT,
-    "discountType" INTEGER NOT NULL,
-    "discountValue" DOUBLE PRECISION NOT NULL,
+    "type" INTEGER NOT NULL,
+    "value" DOUBLE PRECISION NOT NULL,
     "startDay" TIMESTAMP(3) NOT NULL,
     "endDay" TIMESTAMP(3),
-    "noEndDay" BOOLEAN,
+    "isEndDateDisabled" BOOLEAN DEFAULT true,
     "description" TEXT,
-    "limitPerCode" INTEGER NOT NULL,
-    "limitPerCustomer" INTEGER NOT NULL,
-    "noLimitPerCode" BOOLEAN NOT NULL,
-    "noLimitCustomer" BOOLEAN NOT NULL,
-    "applyAllBranch" BOOLEAN NOT NULL,
+    "amount" INTEGER NOT NULL,
+    "isLimit" BOOLEAN NOT NULL DEFAULT false,
+    "amountCustomer" INTEGER NOT NULL,
+    "isLimitCustomer" BOOLEAN NOT NULL,
     "otherDiscountApplied" BOOLEAN NOT NULL,
     "minTotalOrder" DOUBLE PRECISION,
+    "maxValue" DOUBLE PRECISION,
     "isPublic" BOOLEAN DEFAULT true,
-    "createdBy" INTEGER,
-    "updatedBy" INTEGER,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" INTEGER,
+    "updatedBy" INTEGER,
 
     CONSTRAINT "DiscountIssue_pkey" PRIMARY KEY ("id")
 );
@@ -1012,34 +1010,52 @@ ALTER TABLE "Customer" ADD CONSTRAINT "Customer_updatedBy_fkey" FOREIGN KEY ("up
 ALTER TABLE "SupplierType" ADD CONSTRAINT "SupplierType_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "SupplierType" ADD CONSTRAINT "SupplierType_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "SupplierType" ADD CONSTRAINT "SupplierType_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "Supplier" ADD CONSTRAINT "Supplier_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Supplier" ADD CONSTRAINT "Supplier_supplierTypeId_fkey" FOREIGN KEY ("supplierTypeId") REFERENCES "SupplierType"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Supplier" ADD CONSTRAINT "Supplier_supplierTypeId_fkey" FOREIGN KEY ("supplierTypeId") REFERENCES "SupplierType"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Supplier" ADD CONSTRAINT "Supplier_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "Supplier" ADD CONSTRAINT "Supplier_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Deal" ADD CONSTRAINT "Deal_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Coupon" ADD CONSTRAINT "Coupon_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Promotion" ADD CONSTRAINT "Promotion_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CouponConditionProduct" ADD CONSTRAINT "CouponConditionProduct_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Promotion" ADD CONSTRAINT "Promotion_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CouponConditionProduct" ADD CONSTRAINT "CouponConditionProduct_couponId_fkey" FOREIGN KEY ("couponId") REFERENCES "Coupon"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "Promotion" ADD CONSTRAINT "Promotion_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CouponConditionProduct" ADD CONSTRAINT "CouponConditionProduct_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PromotionCondition" ADD CONSTRAINT "PromotionCondition_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CouponProduct" ADD CONSTRAINT "CouponProduct_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PromotionCondition" ADD CONSTRAINT "PromotionCondition_promotionId_fkey" FOREIGN KEY ("promotionId") REFERENCES "Promotion"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CouponProduct" ADD CONSTRAINT "CouponProduct_couponId_fkey" FOREIGN KEY ("couponId") REFERENCES "Coupon"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "PromotionCondition" ADD CONSTRAINT "PromotionCondition_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "CouponProduct" ADD CONSTRAINT "CouponProduct_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "PromotionProduct" ADD CONSTRAINT "PromotionProduct_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PromotionProduct" ADD CONSTRAINT "PromotionProduct_promotionId_fkey" FOREIGN KEY ("promotionId") REFERENCES "Promotion"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "PromotionProduct" ADD CONSTRAINT "PromotionProduct_productId_fkey" FOREIGN KEY ("productId") REFERENCES "Product"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "Order" ADD CONSTRAINT "Order_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1067,6 +1083,18 @@ ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_productId_fkey" FOREIGN KE
 
 -- AddForeignKey
 ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_tableId_fkey" FOREIGN KEY ("tableId") REFERENCES "Table"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "OrderDetail" ADD CONSTRAINT "OrderDetail_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TableTransaction" ADD CONSTRAINT "TableTransaction_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "TableTransaction" ADD CONSTRAINT "TableTransaction_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "TableTransaction" ADD CONSTRAINT "TableTransaction_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1099,10 +1127,22 @@ ALTER TABLE "Table" ADD CONSTRAINT "Table_updatedBy_fkey" FOREIGN KEY ("updatedB
 ALTER TABLE "DiscountIssue" ADD CONSTRAINT "DiscountIssue_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "DiscountIssue" ADD CONSTRAINT "DiscountIssue_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DiscountIssue" ADD CONSTRAINT "DiscountIssue_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "DiscountCode" ADD CONSTRAINT "DiscountCode_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "DiscountCode" ADD CONSTRAINT "DiscountCode_discountIssueId_fkey" FOREIGN KEY ("discountIssueId") REFERENCES "DiscountIssue"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DiscountCode" ADD CONSTRAINT "DiscountCode_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "DiscountCode" ADD CONSTRAINT "DiscountCode_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "PointSetting" ADD CONSTRAINT "PointSetting_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

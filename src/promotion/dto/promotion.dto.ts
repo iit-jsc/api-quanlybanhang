@@ -42,7 +42,7 @@ export class CreatePromotionDto {
 
   @IsOptional()
   @IsBoolean()
-  isNoEndDate: boolean;
+  isEndDateDisabled: boolean;
 
   @IsOptional()
   @IsBoolean()
