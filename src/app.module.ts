@@ -34,6 +34,8 @@ import { SupplierTypeModule } from './supplier-type/supplier-type.module';
 import { SupplierModule } from './supplier/supplier.module';
 import { PromotionModule } from './promotion/promotion.module';
 import { DiscountIssueModule } from './discount-issue/discount-issue.module';
+import { DiscountCodeModule } from './discount-code/discount-code.module';
+import { PointSettingModule } from './point-setting/point-setting.module';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -82,6 +84,8 @@ import { DiscountIssueModule } from './discount-issue/discount-issue.module';
     SupplierModule,
     PromotionModule,
     DiscountIssueModule,
+    DiscountCodeModule,
+    PointSettingModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

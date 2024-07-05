@@ -20,6 +20,7 @@ import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { UpdatePromotionDto } from 'src/promotion/dto/promotion.dto';
 import { Roles } from 'guards/roles.decorator';
 import { SPECIAL_ROLE } from 'enums/common.enum';
+import { RolesGuard } from 'guards/roles.guard';
 
 @Controller('discount-issue')
 export class DiscountIssueController {
@@ -27,7 +28,8 @@ export class DiscountIssueController {
 
   @Post()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('CREATE_DISCOUNT_ISSUE', SPECIAL_ROLE.MANAGER)
   create(
     @Body() createDiscountIssueDto: CreateDiscountIssueDto,
     @Req() req: any,
@@ -42,7 +44,14 @@ export class DiscountIssueController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_DISCOUNT_ISSUE',
+    'UPDATE_DISCOUNT_ISSUE',
+    'DELETE_DISCOUNT_ISSUE',
+    'VIEW_DISCOUNT_ISSUE',
+    SPECIAL_ROLE.MANAGER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -51,7 +60,14 @@ export class DiscountIssueController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    'CREATE_DISCOUNT_ISSUE',
+    'UPDATE_DISCOUNT_ISSUE',
+    'DELETE_DISCOUNT_ISSUE',
+    'VIEW_DISCOUNT_ISSUE',
+    SPECIAL_ROLE.MANAGER,
+  )
   findUniq(@Param('id') id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.discountIssueService.findUniq(
@@ -64,7 +80,8 @@ export class DiscountIssueController {
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('UPDATE_DISCOUNT_ISSUE', SPECIAL_ROLE.MANAGER)
   update(
     @Param('id') id: string,
     @Body() updatePromotionDto: UpdatePromotionDto,
@@ -85,7 +102,8 @@ export class DiscountIssueController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('DELETE_DISCOUNT_ISSUE', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

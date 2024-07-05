@@ -24,6 +24,6 @@ export const SPECIAL_ROLE = {
 };
 
 export const PROMOTION_TYPE = {
-  PERCENT: 1,
-  VALUE: 2,
+  VALUE: 1,
+  GIFT: 2,
 };

@@ -10,9 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
 } from '@nestjs/common';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { CreateProductDto } from 'src/product/dto/create-product.dto';
-import { CustomFileInterceptor, CustomFilesInterceptor } from 'utils/Helps';
+import { CustomFilesInterceptor } from 'utils/Helps';
 import { CommonService } from './common.service';
 
 @Controller('common')
@@ -23,7 +21,9 @@ export class CommonController {
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
   create(@UploadedFiles() files: Array<Express.Multer.File>, @Req() req: any) {
-    const photoURLs = files.map((file) => file.path);
+    const photoURLs = files.map((file) => {
+      return file.path.replace(/\\/g, '/');
+    });
 
     return this.commonService.uploadPhotoURLs({ photoURLs });
   }

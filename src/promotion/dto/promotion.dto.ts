@@ -10,9 +10,10 @@ import {
   IsOptional,
   IsString,
   MinDate,
+  ValidateIf,
   ValidateNested,
 } from 'class-validator';
-import { PROMOTION_TYPE } from 'enums/common.enum';
+import { DISCOUNT_TYPE, PROMOTION_TYPE } from 'enums/common.enum';
 
 export class CreatePromotionDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -64,29 +65,31 @@ export class CreatePromotionDto {
   @IsString()
   description: string;
 
-  @IsOptional()
+  @ValidateIf((o) => o.type === PROMOTION_TYPE.VALUE)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   value: number;
 
-  @IsOptional()
+  @ValidateIf((o) => o.type === PROMOTION_TYPE.VALUE)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
+  @IsEnum(DISCOUNT_TYPE, { message: 'Giá trị không hợp lệ!' })
   typeValue: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  @IsEnum(PROMOTION_TYPE, { message: 'Giới tính không hợp lệ!' })
+  @IsEnum(PROMOTION_TYPE, { message: 'Giá trị không hợp lệ!' })
   type: number;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => PromotionConditionDto)
-  @ArrayMinSize(1, { message: 'Danh sách không được rỗng!' })
   promotionConditions: PromotionConditionDto[];
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ValidateIf((o) => o.type === PROMOTION_TYPE.GIFT)
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => PromotionProductDto)
-  @ArrayMinSize(1, { message: 'Danh sách không được rỗng!' })
   promotionProducts: PromotionProductDto[];
 }
 

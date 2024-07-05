@@ -11,7 +11,7 @@ export function generateUniqueId(): string {
   return generateIdentifier();
 }
 
-export function generateOrderCode(): string {
+export function generateSortCode(): string {
   var uid = new ShortUniqueId({
     dictionary: [
       '0',
@@ -30,6 +30,26 @@ export function generateOrderCode(): string {
       'D',
       'E',
       'F',
+      'G',
+      'H',
+      'I',
+      'J',
+      'K',
+      'L',
+      'M',
+      'N',
+      'O',
+      'P',
+      'Q',
+      'R',
+      'S',
+      'T',
+      'U',
+      'V',
+      'W',
+      'X',
+      'Y',
+      'Z',
     ],
   });
 

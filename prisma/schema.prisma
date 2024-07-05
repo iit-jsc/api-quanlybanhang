@@ -52,63 +52,66 @@ model Permission {
 }
 
 model Account {
-  id                      String             @id @default(uuid())
-  status                  Int                @default(1)
-  type                    Int?               @default(3)
-  username                String
-  password                String?
-  userId                  String             @unique
-  user                    User               @relation(fields: [userId], references: [id])
-  isPublic                Boolean?           @default(true)
-  branches                Branch[]
-  createdBy               String?
-  updatedBy               String?
-  createdAt               DateTime           @default(now())
-  updatedAt               DateTime           @updatedAt
-  activityLogs            ActivityLog[]
-  permissions             Permission[]
-  createOrders            Order[]            @relation("creator")
-  updateOrders            Order[]            @relation("updater")
-  creatorBranches         Branch[]           @relation("creator")
-  updaterBranches         Branch[]           @relation("updater")
-  creatorMeasurementUnits MeasurementUnit[]  @relation("creator")
-  updaterMeasurementUnits MeasurementUnit[]  @relation("updater")
-  creatorToppings         Topping[]          @relation("creator")
-  updaterToppings         Topping[]          @relation("updater")
-  creatorProductTypes     ProductType[]      @relation("creator")
-  updaterProductTypes     ProductType[]      @relation("updater")
-  creatorProducts         Product[]          @relation("creator")
-  updaterProducts         Product[]          @relation("updater")
-  creatorPermissions      Permission[]       @relation("creator")
-  updaterPermissions      Permission[]       @relation("updater")
-  creatorEmployeeGroups   EmployeeGroup[]    @relation("creator")
-  updaterEmployeeGroups   EmployeeGroup[]    @relation("updater")
-  creatorCustomerTypes    CustomerType[]     @relation("creator")
-  updaterCustomerTypes    CustomerType[]     @relation("updater")
-  creatorAreas            Area[]             @relation("creator")
-  updaterAreas            Area[]             @relation("updater")
-  creatorTables           Table[]            @relation("creator")
-  updaterTables           Table[]            @relation("updater")
-  creatorCustomers        Customer[]         @relation("creator")
-  updaterCustomers        Customer[]         @relation("updater")
-  creatorUsers            User[]             @relation("creator")
-  updaterUsers            User[]             @relation("updater")
-  creatorShops            Shop[]             @relation("creator")
-  updaterShops            Shop[]             @relation("updater")
-  creatorSupplierTypes    SupplierType[]     @relation("creator")
-  updaterSupplierTypes    SupplierType[]     @relation("updater")
-  creatorSupplier         Supplier[]         @relation("creator")
-  updaterSupplier         Supplier[]         @relation("updater")
-  creatorPromotion        Promotion[]        @relation("creator")
-  updaterPromotion        Promotion[]        @relation("updater")
-  creatorOrderDetail      OrderDetail[]      @relation("creator")
-  updaterOrderDetail      OrderDetail[]      @relation("updater")
-  creatorTableTransaction TableTransaction[] @relation("creator")
-  updaterTableTransaction TableTransaction[] @relation("updater")
-  creatorDiscountIssue    DiscountIssue[]    @relation("creator")
-  updaterDiscountIssue    DiscountIssue[]    @relation("updater")
-  creatorDiscountCode     DiscountCode[]     @relation("creator")
-  updaterDiscountCode     DiscountCode[]     @relation("updater")
+  id                       String              @id @default(uuid())
+  status                   Int                 @default(1)
+  type                     Int?                @default(3)
+  username                 String
+  password                 String?
+  userId                   String              @unique
+  user                     User                @relation(fields: [userId], references: [id])
+  isPublic                 Boolean?            @default(true)
+  branches                 Branch[]
+  createdBy                String?
+  updatedBy                String?
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  activityLogs             ActivityLog[]
+  permissions              Permission[]
+  createOrders             Order[]             @relation("creator")
+  updateOrders             Order[]             @relation("updater")
+  creatorBranches          Branch[]            @relation("creator")
+  updaterBranches          Branch[]            @relation("updater")
+  creatorMeasurementUnits  MeasurementUnit[]   @relation("creator")
+  updaterMeasurementUnits  MeasurementUnit[]   @relation("updater")
+  creatorToppings          Topping[]           @relation("creator")
+  updaterToppings          Topping[]           @relation("updater")
+  creatorProductTypes      ProductType[]       @relation("creator")
+  updaterProductTypes      ProductType[]       @relation("updater")
+  creatorProducts          Product[]           @relation("creator")
+  updaterProducts          Product[]           @relation("updater")
+  creatorPermissions       Permission[]        @relation("creator")
+  updaterPermissions       Permission[]        @relation("updater")
+  creatorEmployeeGroups    EmployeeGroup[]     @relation("creator")
+  updaterEmployeeGroups    EmployeeGroup[]     @relation("updater")
+  creatorCustomerTypes     CustomerType[]      @relation("creator")
+  updaterCustomerTypes     CustomerType[]      @relation("updater")
+  creatorAreas             Area[]              @relation("creator")
+  updaterAreas             Area[]              @relation("updater")
+  creatorTables            Table[]             @relation("creator")
+  updaterTables            Table[]             @relation("updater")
+  creatorCustomers         Customer[]          @relation("creator")
+  updaterCustomers         Customer[]          @relation("updater")
+  creatorUsers             User[]              @relation("creator")
+  updaterUsers             User[]              @relation("updater")
+  creatorShops             Shop[]              @relation("creator")
+  updaterShops             Shop[]              @relation("updater")
+  creatorSupplierTypes     SupplierType[]      @relation("creator")
+  updaterSupplierTypes     SupplierType[]      @relation("updater")
+  creatorSupplier          Supplier[]          @relation("creator")
+  updaterSupplier          Supplier[]          @relation("updater")
+  creatorPromotion         Promotion[]         @relation("creator")
+  updaterPromotion         Promotion[]         @relation("updater")
+  creatorOrderDetail       OrderDetail[]       @relation("creator")
+  updaterOrderDetail       OrderDetail[]       @relation("updater")
+  creatorTableTransaction  TableTransaction[]  @relation("creator")
+  updaterTableTransaction  TableTransaction[]  @relation("updater")
+  creatorDiscountIssue     DiscountIssue[]     @relation("creator")
+  updaterDiscountIssue     DiscountIssue[]     @relation("updater")
+  creatorDiscountCode      DiscountCode[]      @relation("creator")
+  updaterDiscountCode      DiscountCode[]      @relation("updater")
+  updaterPointSetting      PointSetting[]      @relation("updater")
+  updaterPointAccumulation PointAccumulation[] @relation("updater")
+  creatorPointHistory      PointHistory[]      @relation("creator")
 }
 
 model User {
@@ -177,7 +180,7 @@ model Shop {
   customerTypes      CustomerType[]
   customers          Customer[]
   pointAccumulations PointAccumulation[]
-  pointRedemptions   PointRedemption[]
+  pointHistories     PointHistory[]
   createdBy          String?
   updatedBy          String?
   creator            Account?            @relation("creator", fields: [createdBy], references: [id])
@@ -403,7 +406,7 @@ model Customer {
   customerType        CustomerType?       @relation(fields: [customerTypeId], references: [id])
   orders              Order[]
   pointAccumulations  PointAccumulation[]
-  pointRedemptions    PointRedemption[]
+  pointHistories      PointHistory[]
   creator             Account?            @relation("creator", fields: [createdBy], references: [id])
   updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
 }
@@ -527,34 +530,34 @@ model PromotionProduct {
 }
 
 model Order {
-  id                         String                     @id @default(uuid())
-  branchId                   String
-  customerId                 String?
-  code                       String
-  cancelReason               String?
-  cancelDate                 DateTime?
-  transactionId              String?
-  note                       String?
-  orderType                  Int
-  paymentMethod              Int?
-  isPaid                     Boolean?                   @default(false)
-  isSave                     Boolean?                   @default(false)
-  orderStatus                Int
-  isPublic                   Boolean?                   @default(true)
-  createdBy                  String?
-  updatedBy                  String?
-  createdAt                  DateTime                   @default(now())
-  updatedAt                  DateTime                   @updatedAt
-  branch                     Branch                     @relation(fields: [branchId], references: [id])
-  customer                   Customer?                  @relation(fields: [customerId], references: [id])
-  orderDetails               OrderDetail[]
-  deals                      Deal[]
-  customerRequests           CustomerRequest[]
-  orderRatings               OrderRating[]
-  creator                    Account?                   @relation("creator", fields: [createdBy], references: [id])
-  updater                    Account?                   @relation("updater", fields: [updatedBy], references: [id])
-  pointRedemptions           PointRedemption[]
-  pointAccumulationHistories PointAccumulationHistory[]
+  id               String            @id @default(uuid())
+  branchId         String
+  customerId       String?
+  code             String
+  cancelReason     String?
+  cancelDate       DateTime?
+  transactionId    String?
+  note             String?
+  discount         Float?            @default(0)
+  orderType        Int
+  paymentMethod    Int?
+  isPaid           Boolean?          @default(false)
+  isSave           Boolean?          @default(false)
+  orderStatus      Int
+  isPublic         Boolean?          @default(true)
+  createdBy        String?
+  updatedBy        String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  branch           Branch            @relation(fields: [branchId], references: [id])
+  customer         Customer?         @relation(fields: [customerId], references: [id])
+  orderDetails     OrderDetail[]
+  deals            Deal[]
+  customerRequests CustomerRequest[]
+  orderRatings     OrderRating[]
+  creator          Account?          @relation("creator", fields: [createdBy], references: [id])
+  updater          Account?          @relation("updater", fields: [updatedBy], references: [id])
+  pointHistories   PointHistory[]
 }
 
 model OrderDetail {
@@ -676,36 +679,35 @@ model DiscountCode {
   discountIssueId String
   quantityUsed    Int
   isPublic        Boolean?      @default(true)
-  createdBy       String?
-  updatedBy       String?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
   branch          Branch        @relation(fields: [branchId], references: [id])
   discountIssue   DiscountIssue @relation(fields: [discountIssueId], references: [id])
+  createdBy       String?
+  updatedBy       String?
   creator         Account?      @relation("creator", fields: [createdBy], references: [id])
   updater         Account?      @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model PointSetting {
   id        String   @id @default(uuid())
-  shopId    String
-  point     String
+  shopId    String   @unique
+  point     Float
   value     Float
-  pointType Int?
+  active    Boolean
   isPublic  Boolean? @default(true)
   updatedBy String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  updater   Account? @relation("updater", fields: [updatedBy], references: [id])
   shop      Shop     @relation(fields: [shopId], references: [id])
 }
 
 model PointAccumulation {
   id         String   @id @default(uuid())
-  customerId String
+  customerId String   @unique
   point      Float
   isPublic   Boolean? @default(true)
-  createdBy  String?
   updatedBy  String?
+  updater    Account? @relation("updater", fields: [updatedBy], references: [id])
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   customer   Customer @relation(fields: [customerId], references: [id])
@@ -713,35 +715,20 @@ model PointAccumulation {
   shopId     String
 }
 
-model PointRedemption {
-  id             String   @id @default(uuid())
-  customerId     String
-  orderId        String
-  pointToRedeem  Float
-  amountRedeemed Float
-  isPublic       Boolean? @default(true)
-  createdBy      String?
-  updatedBy      String?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
-  customer       Customer @relation(fields: [customerId], references: [id])
-  order          Order    @relation(fields: [orderId], references: [id])
-  shop           Shop     @relation(fields: [shopId], references: [id])
-  shopId         String
-}
-
-model PointAccumulationHistory {
-  id        String   @id @default(uuid())
-  branchId  String
-  point     Float?
-  orderId   String
-  isPublic  Boolean? @default(true)
-  createdBy String?
-  updatedBy String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  branch    Branch   @relation(fields: [branchId], references: [id])
-  order     Order    @relation(fields: [orderId], references: [id])
+model PointHistory {
+  id         String   @id @default(uuid())
+  customerId String
+  orderId    String
+  point      Float
+  type       Int
+  isPublic   Boolean? @default(true)
+  createdBy  String?
+  creator    Account? @relation("creator", fields: [createdBy], references: [id])
+  createdAt  DateTime @default(now())
+  customer   Customer @relation(fields: [customerId], references: [id])
+  order      Order    @relation(fields: [orderId], references: [id])
+  shop       Shop     @relation(fields: [shopId], references: [id])
+  shopId     String
 }
 
 model CustomerRequest {
@@ -772,20 +759,20 @@ model OrderRating {
 }
 
 model Branch {
-  id                         String                     @id @default(uuid())
+  id                         String                  @id @default(uuid())
   shopId                     String
-  shop                       Shop?                      @relation(fields: [shopId], references: [id])
-  photoURL                   String?                    @db.Text
+  shop                       Shop?                   @relation(fields: [shopId], references: [id])
+  photoURL                   String?                 @db.Text
   name                       String
-  address                    String?                    @db.Text
+  address                    String?                 @db.Text
   status                     Int?
-  isPublic                   Boolean?                   @default(true)
+  isPublic                   Boolean?                @default(true)
   createdBy                  String?
   updatedBy                  String?
-  creator                    Account?                   @relation("creator", fields: [createdBy], references: [id])
-  updater                    Account?                   @relation("updater", fields: [updatedBy], references: [id])
-  createdAt                  DateTime                   @default(now())
-  updatedAt                  DateTime                   @updatedAt
+  creator                    Account?                @relation("creator", fields: [createdBy], references: [id])
+  updater                    Account?                @relation("updater", fields: [updatedBy], references: [id])
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
   printTemplates             PrintTemplate[]
   currencyUnits              CurrencyUnit[]
   measurementUnits           MeasurementUnit[]
@@ -804,7 +791,6 @@ model Branch {
   areas                      Area[]
   discountIssues             DiscountIssue[]
   discountCodes              DiscountCode[]
-  pointAccumulationHistories PointAccumulationHistory[]
   orderDetails               OrderDetail[]
   customerRequests           CustomerRequest[]
   workShifts                 WorkShift[]

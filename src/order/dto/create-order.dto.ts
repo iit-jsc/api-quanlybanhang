@@ -22,6 +22,10 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsString()
+  promotionId: string;
+
+  @IsOptional()
+  @IsString()
   note: string;
 
   @IsOptional()
@@ -40,7 +44,7 @@ export class CreateOrderDto {
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
   @ValidateNested({ each: true })
   @Type(() => ProductInOrder)
-  products: ProductInOrder[];
+  orderProducts: ProductInOrder[];
 }
 
 export class ProductInOrder {

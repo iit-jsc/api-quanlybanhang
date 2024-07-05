@@ -43,26 +43,30 @@ export class PromotionService {
         type: data.type,
         branchId: tokenPayload.branchId,
         createdBy: tokenPayload.accountId,
-        promotionConditions: {
-          createMany: {
-            data: data.promotionConditions.map((condition) => ({
-              productId: condition.productId,
-              amount: condition.amount,
-              branchId: tokenPayload.branchId,
-            })),
+        ...(data.promotionConditions?.length > 0 && {
+          promotionConditions: {
+            createMany: {
+              data: data.promotionConditions.map((condition) => ({
+                productId: condition.productId,
+                amount: condition.amount,
+                branchId: tokenPayload.branchId,
+              })),
+            },
           },
-        },
-        promotionProducts: {
-          createMany: {
-            data: data.promotionProducts.map((product) => ({
-              productId: product.productId,
-              amount: product.amount,
-              name: product.name,
-              photoURL: product.photoURL,
-              branchId: tokenPayload.branchId,
-            })),
+        }),
+        ...(data.promotionProducts?.length > 0 && {
+          promotionProducts: {
+            createMany: {
+              data: data.promotionProducts.map((product) => ({
+                productId: product.productId,
+                amount: product.amount,
+                name: product.name,
+                photoURL: product.photoURL,
+                branchId: tokenPayload.branchId,
+              })),
+            },
           },
-        },
+        }),
       },
       include: {
         promotionConditions: true,
@@ -84,16 +88,27 @@ export class PromotionService {
       branchId: tokenPayload.branchId,
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
       ...(productsOrder && {
-        promotionConditions: {
-          some: {
-            OR: productsOrder.map((product) => ({
-              productId: product.productId,
-              amount: {
-                lte: product.amount,
+        ...(productsOrder && {
+          OR: [
+            {
+              promotionConditions: {
+                some: {
+                  OR: productsOrder.map((product) => ({
+                    productId: product.productId,
+                    amount: {
+                      lte: product.amount,
+                    },
+                  })),
+                },
               },
-            })),
-          },
-        },
+            },
+            {
+              promotionConditions: {
+                none: {},
+              },
+            },
+          ],
+        }),
       }),
     };
 
@@ -107,8 +122,36 @@ export class PromotionService {
         where,
         include: {
           ...(!isSort && {
-            promotionConditions: true,
-            promotionProducts: true,
+            promotionConditions: {
+              select: {
+                product: {
+                  select: {
+                    name: true,
+                    code: true,
+                    photoURLs: true,
+                    slug: true,
+                    id: true,
+                  },
+                },
+                amount: true,
+              },
+            },
+            promotionProducts: {
+              select: {
+                product: {
+                  select: {
+                    name: true,
+                    code: true,
+                    photoURLs: true,
+                    slug: true,
+                    id: true,
+                  },
+                },
+                amount: true,
+                name: true,
+                photoURL: true,
+              },
+            },
           }),
         },
       }),

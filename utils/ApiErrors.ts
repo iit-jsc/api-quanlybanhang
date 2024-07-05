@@ -8,15 +8,22 @@ import { AnyObject } from 'interfaces/common.interface';
 interface ErrorResponse {
   statusCode: number;
   message: string;
-  errors?: AnyObject[];
+  errors?: AnyObject;
+  data?: AnyObject;
 }
 
 export class CustomHttpException extends HttpException {
-  constructor(statusCode: number, message: string, errors: AnyObject[] = []) {
+  constructor(
+    statusCode: number,
+    message: string,
+    errors?: AnyObject,
+    data?: AnyObject,
+  ) {
     const response: ErrorResponse = {
-      statusCode: statusCode,
+      statusCode,
       message,
       errors,
+      data,
     };
 
     super(response, statusCode);
@@ -54,7 +61,6 @@ export class PrismaExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-
     console.log(exception);
 
     if (exception.code === 'P2002') {
@@ -88,12 +94,13 @@ export class PrismaExceptionFilter implements ExceptionFilter {
 
     if (exception instanceof HttpException) {
       const status = exception.getStatus();
-      const { message, errors } = exception.getResponse() as any;
+      const { message, errors, data } = exception.getResponse() as any;
 
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: status,
         message: message || 'UNKNOWN ERROR',
-        errors: errors || {},
+        errors: errors || errors?.length > 0 ? errors : undefined,
+        data: data || undefined,
       });
     }
 

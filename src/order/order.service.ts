@@ -22,7 +22,7 @@ import {
   ORDER_TYPE,
   TRANSACTION_TYPE,
 } from 'enums/order.enum';
-import { calculatePagination, generateOrderCode } from 'utils/Helps';
+import { calculatePagination, generateSortCode } from 'utils/Helps';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { SaveOrderDto } from './dto/save-order.dto';
 
@@ -40,19 +40,17 @@ export class OrderService {
   ) {
     return await Promise.all(
       products.map(async (product) => {
-        let toppingExist = {} as Prisma.ToppingCreateInput;
         const productExist = (await this.commonService.findByIdWithBranch(
           product.id,
           'Product',
           tokenPayload.branchId,
         )) as Prisma.ProductCreateInput;
 
-        if (product.toppingId)
-          toppingExist = (await this.commonService.findByIdWithBranch(
-            product.toppingId,
-            'Product',
-            tokenPayload.branchId,
-          )) as Prisma.ToppingCreateInput;
+        const toppingExist = ({} = (await this.commonService.findByIdWithBranch(
+          product.toppingId,
+          'Topping',
+          tokenPayload.branchId,
+        )) as Prisma.ToppingCreateInput);
 
         return {
           ...(product.toppingId && {
@@ -71,119 +69,168 @@ export class OrderService {
     );
   }
 
+  async getDiscountValue(
+    promotionId: string,
+    orderProducts: ProductInOrder[],
+    tokenPayload: TokenPayload,
+  ) {
+    const matchPromotions = await this.prisma.promotion.findMany({
+      where: {
+        isPublic: true,
+        branchId: tokenPayload.branchId,
+        OR: [
+          {
+            promotionConditions: {
+              some: {
+                OR: orderProducts.map((product) => ({
+                  productId: product.id,
+                  amount: {
+                    lte: product.amount,
+                  },
+                })),
+              },
+            },
+          },
+          {
+            promotionConditions: {
+              none: {},
+            },
+          },
+        ],
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    const promotionIds = matchPromotions.map((promotion) => promotion.id);
+
+    if (!promotionIds.includes(promotionId))
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        '#2 loginForManager - Tài khoản không tồn tại hoặc đã bị khóa!',
+      );
+  }
+
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
     const orderDetails = await this.getOrderDetails(
-      data.products,
+      data.orderProducts,
       DETAIL_ORDER_STATUS.DONE,
       tokenPayload,
     );
 
-    await this.commonService.checkDataExistingInBranch(
-      { code: data.code },
-      'Order',
-      tokenPayload.branchId,
+    await this.getDiscountValue(
+      data.promotionId,
+      data.orderProducts,
+      tokenPayload,
     );
 
-    return await this.prisma.order.create({
-      data: {
-        note: data.note,
-        orderType: ORDER_TYPE.OFFLINE,
-        orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
-        code: data.code || generateOrderCode(),
-        paymentMethod: data.paymentMethod,
-        ...(data.customerId && {
-          customer: {
-            connect: {
-              id: data.customerId,
-            },
-          },
-        }),
-        orderDetails: {
-          createMany: {
-            data: orderDetails,
-          },
-        },
-        branch: {
-          connect: {
-            id: tokenPayload.branchId,
-            isPublic: true,
-          },
-        },
-        creator: {
-          connect: {
-            id: tokenPayload.accountId,
-            isPublic: true,
-          },
-        },
-      },
-      select: {
-        id: true,
-        code: true,
-        orderType: true,
-        note: true,
-        paymentMethod: true,
-        orderStatus: true,
-        customer: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-          },
-        },
-        orderDetails: {
-          select: {
-            id: true,
-            amount: true,
-            note: true,
-            productPrice: true,
-            toppingPrice: true,
-            product: {
-              select: {
-                id: true,
-                name: true,
-                photoURLs: true,
-                code: true,
-              },
-            },
-            topping: {
-              select: {
-                id: true,
-                name: true,
-                photoURLs: true,
-              },
-            },
-          },
-        },
-        creator: {
-          select: {
-            id: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                phone: true,
-                photoURL: true,
-              },
-            },
-          },
-        },
-        updater: {
-          select: {
-            id: true,
-            user: {
-              select: {
-                id: true,
-                name: true,
-                phone: true,
-                photoURL: true,
-              },
-            },
-          },
-        },
-        createdAt: true,
-        updatedAt: true,
-      },
-    });
+    // await this.commonService.checkDataExistingInBranch(
+    //   { code: data.code },
+    //   'Order',
+    //   tokenPayload.branchId,
+    // );
+
+    // return await this.prisma.order.create({
+    //   data: {
+    //     note: data.note,
+    //     orderType: ORDER_TYPE.OFFLINE,
+    //     orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
+    //     code: data.code || generateSortCode(),
+    //     paymentMethod: data.paymentMethod,
+    //     ...(data.customerId && {
+    //       customer: {
+    //         connect: {
+    //           id: data.customerId,
+    //         },
+    //       },
+    //     }),
+    //     orderDetails: {
+    //       createMany: {
+    //         data: orderDetails,
+    //       },
+    //     },
+    //     branch: {
+    //       connect: {
+    //         id: tokenPayload.branchId,
+    //         isPublic: true,
+    //       },
+    //     },
+    //     creator: {
+    //       connect: {
+    //         id: tokenPayload.accountId,
+    //         isPublic: true,
+    //       },
+    //     },
+    //   },
+    //   select: {
+    //     id: true,
+    //     code: true,
+    //     orderType: true,
+    //     note: true,
+    //     paymentMethod: true,
+    //     orderStatus: true,
+    //     customer: {
+    //       select: {
+    //         id: true,
+    //         name: true,
+    //         phone: true,
+    //       },
+    //     },
+    //     orderDetails: {
+    //       select: {
+    //         id: true,
+    //         amount: true,
+    //         note: true,
+    //         productPrice: true,
+    //         toppingPrice: true,
+    //         product: {
+    //           select: {
+    //             id: true,
+    //             name: true,
+    //             photoURLs: true,
+    //             code: true,
+    //           },
+    //         },
+    //         topping: {
+    //           select: {
+    //             id: true,
+    //             name: true,
+    //             photoURLs: true,
+    //           },
+    //         },
+    //       },
+    //     },
+    //     creator: {
+    //       select: {
+    //         id: true,
+    //         user: {
+    //           select: {
+    //             id: true,
+    //             name: true,
+    //             phone: true,
+    //             photoURL: true,
+    //           },
+    //         },
+    //       },
+    //     },
+    //     updater: {
+    //       select: {
+    //         id: true,
+    //         user: {
+    //           select: {
+    //             id: true,
+    //             name: true,
+    //             phone: true,
+    //             photoURL: true,
+    //           },
+    //         },
+    //       },
+    //     },
+    //     createdAt: true,
+    //     updatedAt: true,
+    //   },
+    // });
   }
 
   async createOrderToTableByEmployee(
@@ -260,7 +307,7 @@ export class OrderService {
         },
         orderType: ORDER_TYPE.ONLINE,
         orderStatus: ORDER_STATUS_COMMON.WAITING,
-        code: generateOrderCode(),
+        code: generateSortCode(),
         orderDetails: {
           createMany: {
             data: orderDetails,
@@ -338,7 +385,7 @@ export class OrderService {
     const newOrder = await this.prisma.$transaction(async (prisma) => {
       const order = await prisma.order.create({
         data: {
-          code: data.code || generateOrderCode(),
+          code: data.code || generateSortCode(),
           note: data.note,
           orderType: ORDER_TYPE.OFFLINE,
           orderStatus: DETAIL_ORDER_STATUS.DONE,

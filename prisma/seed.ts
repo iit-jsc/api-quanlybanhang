@@ -144,9 +144,19 @@ async function main() {
         code: 'SUPPLIER_TYPE',
       },
       {
+        name: 'Quản lý loại  cung cấp',
+        type: 1,
+        code: 'SUPPLIER',
+      },
+      {
         name: 'Quản lý khuyến mãi',
         type: 1,
         code: 'PROMOTION',
+      },
+      {
+        name: 'Quản lý mã giảm giá',
+        type: 1,
+        code: 'DISCOUNT_ISSUE',
       },
     ],
   });
@@ -443,61 +453,86 @@ async function main() {
         code: 'DELETE_ACCOUNT',
         groupCode: 'ACCOUNT',
       },
-      // {
-      //   name: 'Xem danh sách loại nhà cung cấp',
-      //   code: 'VIEW_SUPPLIER_TYPE',
-      //   groupCode: 'SUPPLIER_TYPE',
-      // },
-      // {
-      //   name: 'Tạo loại nhà cung cấp',
-      //   code: 'CREATE_SUPPLIER_TYPE',
-      //   groupCode: 'SUPPLIER_TYPE',
-      // },
-      // {
-      //   name: 'Cập nhật loại nhà cung cấp',
-      //   code: 'UPDATE_SUPPLIER_TYPE',
-      //   groupCode: 'SUPPLIER_TYPE',
-      // },
-      // {
-      //   name: 'Xóa loại nhà cung cấp',
-      //   code: 'DELETE_SUPPLIER_TYPE',
-      //   groupCode: 'SUPPLIER_TYPE',
-      // },
-      // {
-      //   name: 'Xem danh sách nhà cung cấp',
-      //   code: 'VIEW_SUPPLIER',
-      //   groupCode: 'SUPPLIER',
-      // },
-      // {
-      //   name: 'Tạo nhà cung cấp',
-      //   code: 'CREATE_SUPPLIER',
-      //   groupCode: 'SUPPLIER',
-      // },
-      // {
-      //   name: 'Cập nhật nhà cung cấp',
-      //   code: 'UPDATE_SUPPLIER',
-      //   groupCode: 'SUPPLIER',
-      // },
-      // {
-      //   name: 'Xóa nhà cung cấp',
-      //   code: 'DELETE_SUPPLIER',
-      //   groupCode: 'SUPPLIER',
-      // },
-      // {
-      //   name: 'Tạo khuyến mãi',
-      //   code: 'CREATE_PROMOTION',
-      //   groupCode: 'PROMOTION',
-      // },
-      // {
-      //   name: 'Cập nhật khuyến mãi',
-      //   code: 'UPDATE_PROMOTION',
-      //   groupCode: 'PROMOTION',
-      // },
-      // {
-      //   name: 'Xóa khuyến mãi',
-      //   code: 'DELETE_PROMOTION',
-      //   groupCode: 'PROMOTION',
-      // },
+      {
+        name: 'Xem danh sách loại nhà cung cấp',
+        code: 'VIEW_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
+      },
+      {
+        name: 'Tạo loại nhà cung cấp',
+        code: 'CREATE_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
+      },
+      {
+        name: 'Cập nhật loại nhà cung cấp',
+        code: 'UPDATE_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
+      },
+      {
+        name: 'Xóa loại nhà cung cấp',
+        code: 'DELETE_SUPPLIER_TYPE',
+        groupCode: 'SUPPLIER_TYPE',
+      },
+      {
+        name: 'Xem danh sách nhà cung cấp',
+        code: 'VIEW_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Tạo nhà cung cấp',
+        code: 'CREATE_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Cập nhật nhà cung cấp',
+        code: 'UPDATE_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Xóa nhà cung cấp',
+        code: 'DELETE_SUPPLIER',
+        groupCode: 'SUPPLIER',
+      },
+      {
+        name: 'Xem danh sách khuyến mãi',
+        code: 'VIEW_PROMOTION',
+        groupCode: 'PROMOTION',
+      },
+      {
+        name: 'Tạo khuyến mãi',
+        code: 'CREATE_PROMOTION',
+        groupCode: 'PROMOTION',
+      },
+      {
+        name: 'Cập nhật khuyến mãi',
+        code: 'UPDATE_PROMOTION',
+        groupCode: 'PROMOTION',
+      },
+      {
+        name: 'Xóa khuyến mãi',
+        code: 'DELETE_PROMOTION',
+        groupCode: 'PROMOTION',
+      },
+      {
+        name: 'Xem danh sách mã giảm giá',
+        code: 'VIEW_DISCOUNT_ISSUE',
+        groupCode: 'DISCOUNT_ISSUE',
+      },
+      {
+        name: 'Tạo mã giảm giá',
+        code: 'CREATE_DISCOUNT_ISSUE',
+        groupCode: 'DISCOUNT_ISSUE',
+      },
+      {
+        name: 'Cập nhật mã giảm giá',
+        code: 'UPDATE_DISCOUNT_ISSUE',
+        groupCode: 'DISCOUNT_ISSUE',
+      },
+      {
+        name: 'Xóa mã giảm giá',
+        code: 'DELETE_DISCOUNT_ISSUE',
+        groupCode: 'DISCOUNT_ISSUE',
+      },
     ],
   });
 }
