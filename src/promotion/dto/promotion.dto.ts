@@ -126,7 +126,7 @@ export class ProductsOrderDto {
   @ValidateNested({ each: true })
   @Type(() => PromotionProductDto)
   @ArrayMinSize(1, { message: 'Danh sách không được rỗng!' })
-  productsOrder: ProductAmountDto[];
+  orderProducts: ProductAmountDto[];
 }
 
 export class ProductAmountDto {

@@ -81,34 +81,43 @@ export class PromotionService {
     tokenPayload: TokenPayload,
   ) {
     const { skip, take, keyword, isSort } = params;
-    const { productsOrder } = body;
+    const { orderProducts } = body;
+
+    console.log(
+      new Date(new Date().setHours(23, 59, 59, 999)),
+      new Date(new Date().setHours(0, 0, 0, 0)),
+    );
 
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
-      ...(productsOrder && {
-        ...(productsOrder && {
-          OR: [
-            {
-              promotionConditions: {
-                some: {
-                  OR: productsOrder.map((product) => ({
-                    productId: product.productId,
-                    amount: {
-                      lte: product.amount,
-                    },
-                  })),
-                },
+      ...(orderProducts && {
+        startDate: {
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+        endDate: {
+          gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        },
+        OR: [
+          {
+            promotionConditions: {
+              some: {
+                OR: orderProducts.map((product) => ({
+                  productId: product.productId,
+                  amount: {
+                    lte: product.amount,
+                  },
+                })),
               },
             },
-            {
-              promotionConditions: {
-                none: {},
-              },
+          },
+          {
+            promotionConditions: {
+              none: {},
             },
-          ],
-        }),
+          },
+        ],
       }),
     };
 

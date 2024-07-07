@@ -3,7 +3,6 @@ import { IsNotEmpty, IsString } from 'class-validator';
 
 export class FindManyProductTypeDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
   @IsString()
   branchId: string;
 

@@ -15,7 +15,6 @@ import {
 import { PromotionService } from './promotion.service';
 import {
   CreatePromotionDto,
-  ProductAmountDto,
   ProductsOrderDto,
   UpdatePromotionDto,
 } from './dto/promotion.dto';

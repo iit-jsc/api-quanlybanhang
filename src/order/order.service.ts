@@ -108,7 +108,7 @@ export class OrderService {
     if (!promotionIds.includes(promotionId))
       throw new CustomHttpException(
         HttpStatus.NOT_FOUND,
-        '#2 loginForManager - Tài khoản không tồn tại hoặc đã bị khóa!',
+        '#1 getDiscountValue - Khuyến mãi không hợp lệ!',
       );
   }
 
@@ -642,7 +642,7 @@ export class OrderService {
 
     const keySearch = ['code'];
 
-    let where: Prisma.OrderWhereInput = {
+    const where: Prisma.OrderWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && {
@@ -656,14 +656,14 @@ export class OrderService {
       ...(from &&
         to && {
           createdAt: {
-            gte: from,
+            gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
             lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
           },
         }),
       ...(from &&
         !to && {
           createdAt: {
-            gte: from,
+            gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
           },
         }),
       ...(!from &&
