@@ -1,7 +1,7 @@
 import { IsEnum, IsNumber, IsOptional, IsString } from 'class-validator';
 import { DETAIL_ORDER_STATUS } from 'enums/order.enum';
 
-export class UpdateOrderDetailDto {
+export class UpdateOrderProductDto {
   @IsOptional()
   @IsString()
   productId: string;

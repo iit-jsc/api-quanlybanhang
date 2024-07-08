@@ -43,14 +43,14 @@ export class CreateOrderDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
   @ValidateNested({ each: true })
-  @Type(() => ProductInOrder)
-  orderProducts: ProductInOrder[];
+  @Type(() => OrderProducts)
+  orderProducts: OrderProducts[];
 }
 
-export class ProductInOrder {
+export class OrderProducts {
   @IsNotEmpty({ message: 'ID sản phẩm không được để trống!' })
   @IsString()
-  id: string;
+  productId: string;
 
   @IsNotEmpty({ message: 'Số lượng sản phẩm không được để trống!' })
   @IsNumber({}, { message: 'Số lượng sản phẩm phải là số!' })

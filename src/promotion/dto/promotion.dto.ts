@@ -126,10 +126,10 @@ export class ProductsOrderDto {
   @ValidateNested({ each: true })
   @Type(() => PromotionProductDto)
   @ArrayMinSize(1, { message: 'Danh sách không được rỗng!' })
-  orderProducts: ProductAmountDto[];
+  orderProducts: OrderProductDto[];
 }
 
-export class ProductAmountDto {
+export class OrderProductDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
   productId: string;

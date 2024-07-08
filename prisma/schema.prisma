@@ -491,6 +491,7 @@ model Promotion {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   branch              Branch               @relation(fields: [branchId], references: [id])
+  orders              Order[]
   promotionConditions PromotionCondition[]
   promotionProducts   PromotionProduct[]
   createdBy           String?
@@ -558,6 +559,8 @@ model Order {
   creator          Account?          @relation("creator", fields: [createdBy], references: [id])
   updater          Account?          @relation("updater", fields: [updatedBy], references: [id])
   pointHistories   PointHistory[]
+  promotion        Promotion?        @relation(fields: [promotionId], references: [id])
+  promotionId      String?
 }
 
 model OrderDetail {

@@ -22,7 +22,7 @@ import { CreateOrderDto } from './dto/create-order.dto';
 import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
 import { CreateOrderToTableDto } from './dto/create-order-to-table.dto';
 import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto';
-import { UpdateOrderDetailDto } from './dto/update-order-detail.dto';
+import { UpdateOrderProductDto } from './dto/update-order-detail.dto';
 import { PaymentFromTableDto } from './dto/payment-order-from-table.dto';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { CombineTableDto } from './dto/combine-table.dto';
@@ -84,7 +84,7 @@ export class OrderController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   updateOrderDetail(
-    @Body() updateOrderDetailDto: UpdateOrderDetailDto,
+    @Body() updateOrderProductDto: UpdateOrderProductDto,
     @Req() req: any,
     @Param('id') id: string,
   ) {
@@ -95,7 +95,7 @@ export class OrderController {
         where: {
           id,
         },
-        data: updateOrderDetailDto,
+        data: updateOrderProductDto,
       },
       tokenPayload,
     );

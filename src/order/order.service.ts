@@ -1,15 +1,21 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreateOrderDto, ProductInOrder } from './dto/create-order.dto';
+import { CreateOrderDto, OrderProducts } from './dto/create-order.dto';
 import {
   TokenCustomerPayload,
   TokenPayload,
 } from 'interfaces/common.interface';
 import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
 import { CreateOrderToTableDto } from './dto/create-order-to-table.dto';
-import { Prisma } from '@prisma/client';
+import {
+  OrderDetail,
+  Prisma,
+  Product,
+  Promotion,
+  Topping,
+} from '@prisma/client';
 import { UpdateOrderDto } from './dto/update-order.dto';
 import { PaymentFromTableDto } from './dto/payment-order-from-table.dto';
-import { UpdateOrderDetailDto } from './dto/update-order-detail.dto';
+import { UpdateOrderProductDto } from './dto/update-order-detail.dto';
 import { CombineTableDto } from './dto/combine-table.dto';
 import { FindManyDto, DeleteManyDto } from 'utils/Common.dto';
 import { SeparateTableDto } from './dto/separate-table.dto';
@@ -25,6 +31,7 @@ import {
 import { calculatePagination, generateSortCode } from 'utils/Helps';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { SaveOrderDto } from './dto/save-order.dto';
+import { DISCOUNT_TYPE, PROMOTION_TYPE } from 'enums/common.enum';
 
 @Injectable()
 export class OrderService {
@@ -34,23 +41,25 @@ export class OrderService {
   ) {}
 
   async getOrderDetails(
-    products: ProductInOrder[],
+    orderProducts: OrderProducts[],
     status?: number,
     tokenPayload?: TokenPayload,
   ) {
     return await Promise.all(
-      products.map(async (product) => {
+      orderProducts.map(async (product) => {
         const productExist = (await this.commonService.findByIdWithBranch(
-          product.id,
+          product.productId,
           'Product',
           tokenPayload.branchId,
-        )) as Prisma.ProductCreateInput;
+        )) as Product;
 
-        const toppingExist = ({} = (await this.commonService.findByIdWithBranch(
-          product.toppingId,
-          'Topping',
-          tokenPayload.branchId,
-        )) as Prisma.ToppingCreateInput);
+        const toppingExist = product.toppingId
+          ? ((await this.commonService.findByIdWithBranch(
+              product.toppingId,
+              'Topping',
+              tokenPayload.branchId,
+            )) as Topping)
+          : null;
 
         return {
           ...(product.toppingId && {
@@ -58,58 +67,105 @@ export class OrderService {
             toppingPrice: toppingExist.price,
           }),
           productPrice: productExist.price,
-          productId: product.id,
+          productId: product.productId,
           amount: product.amount,
           status,
           branchId: tokenPayload.branchId,
           createdBy: tokenPayload.accountId,
           updatedBy: tokenPayload.accountId,
-        } as Prisma.OrderDetailCreateManyInput;
+        } as OrderDetail;
       }),
     );
   }
 
-  async getDiscountValue(
+  async getMatchPromotion(
     promotionId: string,
-    orderProducts: ProductInOrder[],
+    orderProducts: OrderProducts[],
     tokenPayload: TokenPayload,
-  ) {
+  ): Promise<Promotion> {
     const matchPromotions = await this.prisma.promotion.findMany({
       where: {
         isPublic: true,
         branchId: tokenPayload.branchId,
-        OR: [
+        startDate: {
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+        AND: [
           {
-            promotionConditions: {
-              some: {
-                OR: orderProducts.map((product) => ({
-                  productId: product.id,
-                  amount: {
-                    lte: product.amount,
+            OR: [
+              {
+                promotionConditions: {
+                  some: {
+                    OR: orderProducts.map((order) => ({
+                      productId: order.productId,
+                      amount: {
+                        lte: order.amount,
+                      },
+                    })),
                   },
-                })),
+                },
               },
-            },
+              {
+                promotionConditions: {
+                  none: {},
+                },
+              },
+            ],
           },
           {
-            promotionConditions: {
-              none: {},
-            },
+            OR: [
+              {
+                endDate: {
+                  gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                },
+              },
+              {
+                isEndDateDisabled: true,
+              },
+            ],
           },
         ],
       },
       select: {
         id: true,
+        type: true,
+        value: true,
+        typeValue: true,
       },
     });
 
-    const promotionIds = matchPromotions.map((promotion) => promotion.id);
+    const matchPromotion = matchPromotions.find(
+      (promotion) => promotion.id === promotionId,
+    );
 
-    if (!promotionIds.includes(promotionId))
+    if (!matchPromotion) {
       throw new CustomHttpException(
         HttpStatus.NOT_FOUND,
         '#1 getDiscountValue - Khuyến mãi không hợp lệ!',
       );
+    }
+
+    return matchPromotion as Promotion;
+  }
+
+  async getDiscountValue(
+    promotionId: string,
+    orderProducts: OrderProducts[],
+    tokenPayload: TokenPayload,
+  ) {
+    const matchPromotion = await this.getMatchPromotion(
+      promotionId,
+      orderProducts,
+      tokenPayload,
+    );
+
+    if (matchPromotion.type == PROMOTION_TYPE.GIFT) return 0;
+
+    if (matchPromotion.typeValue == DISCOUNT_TYPE.PERCENT) {
+    }
+
+    if (matchPromotion.typeValue == DISCOUNT_TYPE.VALUE) {
+    }
   }
 
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
@@ -119,11 +175,7 @@ export class OrderService {
       tokenPayload,
     );
 
-    await this.getDiscountValue(
-      data.promotionId,
-      data.orderProducts,
-      tokenPayload,
-    );
+    await this.getDiscountValue(data.promotionId, orderDetails, tokenPayload);
 
     // await this.commonService.checkDataExistingInBranch(
     //   { code: data.code },
@@ -138,6 +190,13 @@ export class OrderService {
     //     orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
     //     code: data.code || generateSortCode(),
     //     paymentMethod: data.paymentMethod,
+    //     ...(data.promotionId && {
+    //       promotion: {
+    //         connect: {
+    //           id: data.promotionId,
+    //         },
+    //       },
+    //     }),
     //     ...(data.customerId && {
     //       customer: {
     //         connect: {
@@ -238,7 +297,7 @@ export class OrderService {
     tokenPayload: TokenPayload,
   ) {
     const orderDetails = await this.getOrderDetails(
-      data.products,
+      data.orderProducts,
       DETAIL_ORDER_STATUS.APPROVED,
       tokenPayload,
     );
@@ -260,7 +319,7 @@ export class OrderService {
 
   async createOrderToTableByCustomer(data: CreateOrderToTableByCustomerDto) {
     const orderDetails = await this.getOrderDetails(
-      data.products,
+      data.orderProducts,
       DETAIL_ORDER_STATUS.WAITING,
       { branchId: data.branchId },
     );
@@ -282,7 +341,7 @@ export class OrderService {
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
     const orderDetails = await this.getOrderDetails(
-      data.products,
+      data.orderProducts,
       DETAIL_ORDER_STATUS.WAITING,
       { branchId: data.branchId },
     );
@@ -354,7 +413,7 @@ export class OrderService {
   async updateOrderDetail(
     params: {
       where: Prisma.OrderDetailWhereUniqueInput;
-      data: UpdateOrderDetailDto;
+      data: UpdateOrderProductDto;
     },
     tokenPayload: TokenPayload,
   ) {

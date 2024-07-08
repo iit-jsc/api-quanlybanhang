@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import {
   CreatePromotionDto,
-  ProductAmountDto,
   ProductsOrderDto,
   UpdatePromotionDto,
 } from './dto/promotion.dto';
@@ -83,11 +82,6 @@ export class PromotionService {
     const { skip, take, keyword, isSort } = params;
     const { orderProducts } = body;
 
-    console.log(
-      new Date(new Date().setHours(23, 59, 59, 999)),
-      new Date(new Date().setHours(0, 0, 0, 0)),
-    );
-
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
@@ -96,31 +90,43 @@ export class PromotionService {
         startDate: {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),
         },
-        endDate: {
-          gte: new Date(new Date().setHours(0, 0, 0, 0)),
-        },
-        OR: [
+        AND: [
           {
-            promotionConditions: {
-              some: {
-                OR: orderProducts.map((product) => ({
-                  productId: product.productId,
-                  amount: {
-                    lte: product.amount,
+            OR: [
+              {
+                promotionConditions: {
+                  some: {
+                    OR: orderProducts.map((orderDetail) => ({
+                      productId: orderDetail.productId,
+                      amount: {
+                        lte: orderDetail.amount,
+                      },
+                    })),
                   },
-                })),
+                },
               },
-            },
+              {
+                promotionConditions: {
+                  none: {},
+                },
+              },
+            ],
           },
           {
-            promotionConditions: {
-              none: {},
-            },
+            OR: [
+              {
+                endDate: {
+                  gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                },
+              },
+              {
+                isEndDateDisabled: true,
+              },
+            ],
           },
         ],
       }),
     };
-
     const [data, totalRecords] = await Promise.all([
       this.prisma.promotion.findMany({
         skip,
@@ -149,11 +155,11 @@ export class PromotionService {
               select: {
                 product: {
                   select: {
+                    id: true,
                     name: true,
                     code: true,
                     photoURLs: true,
                     slug: true,
-                    id: true,
                   },
                 },
                 amount: true,
@@ -162,6 +168,9 @@ export class PromotionService {
               },
             },
           }),
+          _count: {
+            select: { orders: true },
+          },
         },
       }),
       this.prisma.promotion.count({

@@ -5,7 +5,7 @@ import {
   IsString,
   ValidateNested,
 } from 'class-validator';
-import { ProductInOrder } from './create-order.dto';
+import { OrderProducts } from './create-order.dto';
 
 export class CreateOrderToTableByCustomerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -19,6 +19,6 @@ export class CreateOrderToTableByCustomerDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
   @ValidateNested({ each: true })
-  @Type(() => ProductInOrder)
-  products: ProductInOrder[];
+  @Type(() => OrderProducts)
+  orderProducts: OrderProducts[];
 }
