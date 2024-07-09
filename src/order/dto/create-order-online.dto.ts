@@ -52,4 +52,12 @@ export class CreateOrderOnlineDto {
   @ValidateNested({ each: true })
   @Type(() => OrderProducts)
   orderProducts: OrderProducts[];
+
+  @IsOptional()
+  @IsString()
+  promotionId: string;
+
+  @IsOptional()
+  @IsString()
+  discountCode: string;
 }

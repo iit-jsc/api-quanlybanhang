@@ -8,7 +8,9 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   MinDate,
+  ValidateIf,
 } from 'class-validator';
 import { DISCOUNT_TYPE } from 'enums/common.enum';
 
@@ -30,6 +32,8 @@ export class CreateDiscountIssueDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
+  @ValidateIf((o) => o.type === DISCOUNT_TYPE.PERCENT)
+  @Max(100)
   value: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })

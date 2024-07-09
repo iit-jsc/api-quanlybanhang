@@ -9,7 +9,9 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Max,
   MinDate,
+  Validate,
   ValidateIf,
   ValidateNested,
 } from 'class-validator';
@@ -54,20 +56,14 @@ export class CreatePromotionDto {
   isLimit: boolean;
 
   @IsOptional()
-  @IsNumber()
-  amountCustomer: number;
-
-  @IsOptional()
-  @IsBoolean()
-  isLimitCustomer: boolean;
-
-  @IsOptional()
   @IsString()
   description: string;
 
   @ValidateIf((o) => o.type === PROMOTION_TYPE.VALUE)
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
+  @ValidateIf((o) => o.typeValue === DISCOUNT_TYPE.PERCENT)
+  @Max(100)
   value: number;
 
   @ValidateIf((o) => o.type === PROMOTION_TYPE.VALUE)

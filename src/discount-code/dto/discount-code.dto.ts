@@ -18,9 +18,5 @@ export class CreateDiscountCodeDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  quantityUsed: number;
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
   amount: number;
 }

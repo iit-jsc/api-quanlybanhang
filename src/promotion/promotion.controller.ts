@@ -24,6 +24,7 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { RolesGuard } from 'guards/roles.guard';
 import { Roles } from 'guards/roles.decorator';
 import { SPECIAL_ROLE } from 'enums/common.enum';
+import { FindManyPromotionDto } from './dto/find-many.dto';
 @Controller('promotion')
 export class PromotionController {
   constructor(private readonly promotionService: PromotionService) {}
@@ -40,46 +41,19 @@ export class PromotionController {
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_PROMOTION',
-    'UPDATE_PROMOTION',
-    'DELETE_PROMOTION',
-    'VIEW_PROMOTION',
-    SPECIAL_ROLE.MANAGER,
-  )
   findAll(
-    @Query() findManyDto: FindManyDto,
+    @Query() findManyDto: FindManyPromotionDto,
     @Body() productsOrderDto: ProductsOrderDto,
-    @Req() req: any,
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.promotionService.findAll(
-      findManyDto,
-      productsOrderDto,
-      tokenPayload,
-    );
+    return this.promotionService.findAll(findManyDto, productsOrderDto);
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_PROMOTION',
-    'UPDATE_PROMOTION',
-    'DELETE_PROMOTION',
-    'VIEW_PROMOTION',
-    SPECIAL_ROLE.MANAGER,
-  )
-  findUniq(@Param('id') id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.promotionService.findUniq(
-      {
-        id,
-      },
-      tokenPayload,
-    );
+  findUniq(@Param('id') id: string) {
+    return this.promotionService.findUniq({
+      id,
+    });
   }
 
   @Patch(':id')

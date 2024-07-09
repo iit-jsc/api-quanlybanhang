@@ -10,6 +10,8 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
 import { calculatePagination } from 'utils/Helps';
 import { CommonService } from 'src/common/common.service';
+import { PROMOTION_TYPE } from 'enums/common.enum';
+import { FindManyPromotionDto } from './dto/find-many.dto';
 
 @Injectable()
 export class PromotionService {
@@ -34,8 +36,6 @@ export class PromotionService {
         isEndDateDisabled: data.isEndDateDisabled,
         amount: data.amount,
         isLimit: data.isLimit,
-        amountCustomer: data.amountCustomer,
-        isLimitCustomer: data.isLimitCustomer,
         description: data.description,
         value: data.value,
         typeValue: data.typeValue,
@@ -53,19 +53,20 @@ export class PromotionService {
             },
           },
         }),
-        ...(data.promotionProducts?.length > 0 && {
-          promotionProducts: {
-            createMany: {
-              data: data.promotionProducts.map((product) => ({
-                productId: product.productId,
-                amount: product.amount,
-                name: product.name,
-                photoURL: product.photoURL,
-                branchId: tokenPayload.branchId,
-              })),
+        ...(data.promotionProducts?.length > 0 &&
+          data.type == PROMOTION_TYPE.GIFT && {
+            promotionProducts: {
+              createMany: {
+                data: data.promotionProducts.map((product) => ({
+                  productId: product.productId,
+                  amount: product.amount,
+                  name: product.name,
+                  photoURL: product.photoURL,
+                  branchId: tokenPayload.branchId,
+                })),
+              },
             },
-          },
-        }),
+          }),
       },
       include: {
         promotionConditions: true,
@@ -74,17 +75,13 @@ export class PromotionService {
     });
   }
 
-  async findAll(
-    params: FindManyDto,
-    body: ProductsOrderDto,
-    tokenPayload: TokenPayload,
-  ) {
-    const { skip, take, keyword, isSort } = params;
+  async findAll(params: FindManyPromotionDto, body: ProductsOrderDto) {
+    const { skip, take, keyword, isSort, branchId } = params;
     const { orderProducts } = body;
 
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
-      branchId: tokenPayload.branchId,
+      branchId: branchId,
       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
       ...(orderProducts && {
         startDate: {
@@ -184,15 +181,11 @@ export class PromotionService {
     };
   }
 
-  async findUniq(
-    where: Prisma.PromotionWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.PromotionWhereUniqueInput) {
     return this.prisma.promotion.findFirstOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
       },
       include: {
         promotionConditions: true,
@@ -219,8 +212,6 @@ export class PromotionService {
         isEndDateDisabled: data.isEndDateDisabled,
         amount: data.amount,
         isLimit: data.isLimit,
-        amountCustomer: data.amountCustomer,
-        isLimitCustomer: data.isLimitCustomer,
         description: data.description,
         value: data.value,
         typeValue: data.typeValue,

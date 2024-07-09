@@ -26,6 +26,10 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsString()
+  discountCode: string;
+
+  @IsOptional()
+  @IsString()
   note: string;
 
   @IsOptional()

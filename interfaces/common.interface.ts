@@ -1,3 +1,5 @@
+import { Promotion } from '@prisma/client';
+
 export interface TokenPayload {
   accountId?: string;
   shopId?: string;
@@ -32,4 +34,10 @@ export interface Condition {
 
 export interface AnyObject {
   [key: string]: any;
+}
+
+export interface PromotionCountOrder extends Promotion {
+  _count: {
+    orders: number;
+  };
 }

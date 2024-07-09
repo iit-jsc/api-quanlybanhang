@@ -1,6 +1,7 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateOrderDto, OrderProducts } from './dto/create-order.dto';
 import {
+  PromotionCountOrder,
   TokenCustomerPayload,
   TokenPayload,
 } from 'interfaces/common.interface';
@@ -81,12 +82,12 @@ export class OrderService {
   async getMatchPromotion(
     promotionId: string,
     orderProducts: OrderProducts[],
-    tokenPayload: TokenPayload,
+    branchId: string,
   ): Promise<Promotion> {
     const matchPromotions = await this.prisma.promotion.findMany({
       where: {
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: branchId,
         startDate: {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),
         },
@@ -131,6 +132,11 @@ export class OrderService {
         type: true,
         value: true,
         typeValue: true,
+        isLimit: true,
+        amount: true,
+        _count: {
+          select: { orders: true },
+        },
       },
     });
 
@@ -138,158 +144,228 @@ export class OrderService {
       (promotion) => promotion.id === promotionId,
     );
 
-    if (!matchPromotion) {
+    if (!matchPromotion)
       throw new CustomHttpException(
         HttpStatus.NOT_FOUND,
-        '#1 getDiscountValue - Khuyến mãi không hợp lệ!',
+        '#1 getPromotionValue - Khuyến mãi không hợp lệ!',
       );
-    }
 
-    return matchPromotion as Promotion;
+    if (matchPromotion._count.orders >= matchPromotion.amount)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#2 getPromotionValue - Số lượng đã hết!',
+      );
+
+    return matchPromotion as PromotionCountOrder;
   }
 
-  async getDiscountValue(
+  async getPromotionValue(
     promotionId: string,
-    orderProducts: OrderProducts[],
-    tokenPayload: TokenPayload,
+    orderDetails: OrderDetail[],
+    branchId: string,
   ) {
     const matchPromotion = await this.getMatchPromotion(
       promotionId,
-      orderProducts,
-      tokenPayload,
+      orderDetails,
+      branchId,
     );
 
     if (matchPromotion.type == PROMOTION_TYPE.GIFT) return 0;
 
     if (matchPromotion.typeValue == DISCOUNT_TYPE.PERCENT) {
+      return (this.getTotalInOrder(orderDetails) * matchPromotion.value) / 100;
     }
 
     if (matchPromotion.typeValue == DISCOUNT_TYPE.VALUE) {
+      return matchPromotion.value;
     }
   }
 
+  getTotalInOrder(orderDetails: OrderDetail[]) {
+    return orderDetails.reduce(
+      (total, order) =>
+        total + order.amount * (order.productPrice + (order.toppingPrice || 0)),
+      0,
+    );
+  }
+
+  async getDiscountValue(
+    orderDetails: OrderDetail[],
+    code: string,
+    branchId: string,
+  ) {
+    const discountIssue = await this.prisma.discountIssue.findFirst({
+      where: {
+        isPublic: true,
+        branchId,
+        startDate: {
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+        AND: [
+          {
+            OR: [
+              {
+                endDate: {
+                  gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                },
+              },
+              {
+                isEndDateDisabled: true,
+              },
+            ],
+          },
+        ],
+        discountCodes: {
+          some: {
+            code: code,
+            isUsed: false,
+            isPublic: true,
+          },
+        },
+      },
+    });
+
+    if (!discountIssue)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        '#1 getDiscountValue - Mã giảm giá không tồn tại hoặc đã hết hạn!',
+      );
+
+    const total = this.getTotalInOrder(orderDetails);
+
+    if (discountIssue.minTotalOrder && discountIssue.minTotalOrder > total)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#2 getDiscountValue - Giá trị đơn hàng chưa đủ điều kiện!',
+      );
+
+    if (discountIssue.type == DISCOUNT_TYPE.PERCENT) {
+      const discountTotal =
+        (this.getTotalInOrder(orderDetails) * discountIssue.value) / 100;
+
+      return Math.min(discountTotal, discountIssue.maxValue);
+    }
+
+    if (discountIssue.type == DISCOUNT_TYPE.VALUE) return discountIssue.value;
+  }
+
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
+    let promotionValue = 0;
+    let discountValue = 0;
+
+    await this.commonService.checkDataExistingInBranch(
+      { code: data.code },
+      'Order',
+      tokenPayload.branchId,
+    );
+
     const orderDetails = await this.getOrderDetails(
       data.orderProducts,
       DETAIL_ORDER_STATUS.DONE,
       tokenPayload,
     );
 
-    await this.getDiscountValue(data.promotionId, orderDetails, tokenPayload);
+    if (data.promotionId)
+      promotionValue = await this.getPromotionValue(
+        data.promotionId,
+        orderDetails,
+        tokenPayload.branchId,
+      );
 
-    // await this.commonService.checkDataExistingInBranch(
-    //   { code: data.code },
-    //   'Order',
-    //   tokenPayload.branchId,
-    // );
+    if (data.discountCode)
+      discountValue = await this.getDiscountValue(
+        orderDetails,
+        data.discountCode,
+        tokenPayload.branchId,
+      );
 
-    // return await this.prisma.order.create({
-    //   data: {
-    //     note: data.note,
-    //     orderType: ORDER_TYPE.OFFLINE,
-    //     orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
-    //     code: data.code || generateSortCode(),
-    //     paymentMethod: data.paymentMethod,
-    //     ...(data.promotionId && {
-    //       promotion: {
-    //         connect: {
-    //           id: data.promotionId,
-    //         },
-    //       },
-    //     }),
-    //     ...(data.customerId && {
-    //       customer: {
-    //         connect: {
-    //           id: data.customerId,
-    //         },
-    //       },
-    //     }),
-    //     orderDetails: {
-    //       createMany: {
-    //         data: orderDetails,
-    //       },
-    //     },
-    //     branch: {
-    //       connect: {
-    //         id: tokenPayload.branchId,
-    //         isPublic: true,
-    //       },
-    //     },
-    //     creator: {
-    //       connect: {
-    //         id: tokenPayload.accountId,
-    //         isPublic: true,
-    //       },
-    //     },
-    //   },
-    //   select: {
-    //     id: true,
-    //     code: true,
-    //     orderType: true,
-    //     note: true,
-    //     paymentMethod: true,
-    //     orderStatus: true,
-    //     customer: {
-    //       select: {
-    //         id: true,
-    //         name: true,
-    //         phone: true,
-    //       },
-    //     },
-    //     orderDetails: {
-    //       select: {
-    //         id: true,
-    //         amount: true,
-    //         note: true,
-    //         productPrice: true,
-    //         toppingPrice: true,
-    //         product: {
-    //           select: {
-    //             id: true,
-    //             name: true,
-    //             photoURLs: true,
-    //             code: true,
-    //           },
-    //         },
-    //         topping: {
-    //           select: {
-    //             id: true,
-    //             name: true,
-    //             photoURLs: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //     creator: {
-    //       select: {
-    //         id: true,
-    //         user: {
-    //           select: {
-    //             id: true,
-    //             name: true,
-    //             phone: true,
-    //             photoURL: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //     updater: {
-    //       select: {
-    //         id: true,
-    //         user: {
-    //           select: {
-    //             id: true,
-    //             name: true,
-    //             phone: true,
-    //             photoURL: true,
-    //           },
-    //         },
-    //       },
-    //     },
-    //     createdAt: true,
-    //     updatedAt: true,
-    //   },
-    // });
+    return await this.prisma.$transaction(async (prisma) => {
+      await prisma.discountCode.update({
+        where: {
+          branchId_code: {
+            branchId: tokenPayload.branchId,
+            code: data.discountCode,
+          },
+        },
+        data: { isUsed: true, updatedBy: tokenPayload.accountId },
+      });
+
+      return await prisma.order.create({
+        data: {
+          note: data.note,
+          orderType: ORDER_TYPE.OFFLINE,
+          orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
+          code: data.code || generateSortCode(),
+          paymentMethod: data.paymentMethod,
+          promotionValue: promotionValue,
+          discountValue: discountValue,
+          ...(data.promotionId && {
+            promotion: {
+              connect: {
+                id: data.promotionId,
+              },
+            },
+          }),
+          ...(data.customerId && {
+            customer: {
+              connect: {
+                id: data.customerId,
+              },
+            },
+          }),
+          orderDetails: {
+            createMany: {
+              data: orderDetails,
+            },
+          },
+          branch: {
+            connect: {
+              id: tokenPayload.branchId,
+              isPublic: true,
+            },
+          },
+          creator: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
+        },
+        include: {
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+            },
+          },
+          orderDetails: {
+            select: {
+              id: true,
+              amount: true,
+              note: true,
+              productPrice: true,
+              toppingPrice: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                  code: true,
+                },
+              },
+              topping: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                },
+              },
+            },
+          },
+        },
+      });
+    });
   }
 
   async createOrderToTableByEmployee(
@@ -340,11 +416,28 @@ export class OrderService {
   }
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
+    let promotionValue = 0;
+    let discountValue = 0;
+
     const orderDetails = await this.getOrderDetails(
       data.orderProducts,
       DETAIL_ORDER_STATUS.WAITING,
       { branchId: data.branchId },
     );
+
+    if (data.promotionId)
+      promotionValue = await this.getPromotionValue(
+        data.promotionId,
+        orderDetails,
+        data.branchId,
+      );
+
+    if (data.discountCode)
+      discountValue = await this.getDiscountValue(
+        orderDetails,
+        data.discountCode,
+        data.branchId,
+      );
 
     const customer = await this.commonService.findOrCreateCustomer(
       {
@@ -356,57 +449,61 @@ export class OrderService {
       { phone: data.phone, branchId: data.branchId },
     );
 
-    return this.prisma.order.create({
-      data: {
-        note: data.note,
-        customer: {
-          connect: {
-            id: customer.id,
+    return await this.prisma.$transaction(async (prisma) => {
+      await prisma.discountCode.update({
+        where: {
+          branchId_code: {
+            branchId: data.branchId,
+            code: data.discountCode,
           },
         },
-        orderType: ORDER_TYPE.ONLINE,
-        orderStatus: ORDER_STATUS_COMMON.WAITING,
-        code: generateSortCode(),
-        orderDetails: {
-          createMany: {
-            data: orderDetails,
+        data: { isUsed: true },
+      });
+      return this.prisma.order.create({
+        data: {
+          promotionValue,
+          discountValue,
+          note: data.note,
+          customer: {
+            connect: {
+              id: customer.id,
+            },
+          },
+          orderType: ORDER_TYPE.ONLINE,
+          orderStatus: ORDER_STATUS_COMMON.WAITING,
+          code: generateSortCode(),
+          orderDetails: {
+            createMany: {
+              data: orderDetails,
+            },
+          },
+          branch: {
+            connect: {
+              id: data.branchId,
+              isPublic: true,
+            },
           },
         },
-        branch: {
-          connect: {
-            id: data.branchId,
-            isPublic: true,
-          },
-        },
-      },
-      select: {
-        id: true,
-        note: true,
-        orderStatus: true,
-        customer: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        orderDetails: {
-          select: {
-            id: true,
-            amount: true,
-            note: true,
-            productPrice: true,
-            toppingPrice: true,
-            product: {
-              select: {
-                id: true,
-                name: true,
-                photoURLs: true,
-                code: true,
+        include: {
+          orderDetails: {
+            select: {
+              id: true,
+              amount: true,
+              note: true,
+              productPrice: true,
+              toppingPrice: true,
+              product: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURLs: true,
+                  code: true,
+                },
               },
             },
           },
         },
-      },
+      });
     });
   }
 
@@ -810,6 +907,7 @@ export class OrderService {
         isPublic: true,
       },
       include: {
+        promotion: true,
         customer: {
           select: {
             id: true,
@@ -990,6 +1088,7 @@ export class OrderService {
         customerId: tokenCustomerPayload.customerId,
       },
       include: {
+        promotion: true,
         customer: {
           select: {
             id: true,

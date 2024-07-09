@@ -20,7 +20,6 @@ export class DiscountCodeService {
       discountCodeData.push({
         code: `${data.prefix || ''}${generateSortCode()}${data.suffixes || ''}`,
         branchId: tokenPayload.branchId,
-        quantityUsed: data.quantityUsed,
         discountIssueId: data.discountIssueId,
         createdBy: tokenPayload.accountId,
       });

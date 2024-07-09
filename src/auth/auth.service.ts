@@ -295,6 +295,9 @@ export class AuthService {
         name: true,
         code: true,
         photoURL: true,
+        address: true,
+        email: true,
+        phone: true,
         branches: {
           select: {
             id: true,

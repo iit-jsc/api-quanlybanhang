@@ -481,8 +481,6 @@ model Promotion {
   isEndDateDisabled   Boolean?             @default(true)
   amount              Int
   isLimit             Boolean              @default(false)
-  amountCustomer      Int?
-  isLimitCustomer     Boolean
   description         String?              @db.Text
   value               Float?
   typeValue           Int?
@@ -539,7 +537,8 @@ model Order {
   cancelDate       DateTime?
   transactionId    String?
   note             String?
-  discount         Float?            @default(0)
+  promotionValue   Float?            @default(0)
+  discountValue    Float?            @default(0)
   orderType        Int
   paymentMethod    Int?
   isPaid           Boolean?          @default(false)
@@ -647,40 +646,37 @@ model Table {
 }
 
 model DiscountIssue {
-  id                   String         @id @default(uuid())
-  branchId             String
-  name                 String
-  code                 String?
-  type                 Int
-  value                Float
-  startDate            DateTime
-  endDate              DateTime?
-  isEndDateDisabled    Boolean?       @default(true)
-  description          String?        @db.Text
-  amount               Int
-  isLimit              Boolean        @default(false)
-  amountCustomer       Int
-  isLimitCustomer      Boolean        @default(true)
-  otherDiscountApplied Boolean        @default(false)
-  minTotalOrder        Float?
-  maxValue             Float?
-  isPublic             Boolean?       @default(true)
-  createdAt            DateTime       @default(now())
-  updatedAt            DateTime       @updatedAt
-  branch               Branch         @relation(fields: [branchId], references: [id])
-  discountCodes        DiscountCode[]
-  createdBy            String?
-  updatedBy            String?
-  creator              Account?       @relation("creator", fields: [createdBy], references: [id])
-  updater              Account?       @relation("updater", fields: [updatedBy], references: [id])
+  id                String         @id @default(uuid())
+  branchId          String
+  name              String
+  code              String?
+  type              Int
+  value             Float
+  startDate         DateTime
+  endDate           DateTime?
+  isEndDateDisabled Boolean?       @default(true)
+  description       String?        @db.Text
+  amount            Int
+  isLimit           Boolean        @default(false)
+  minTotalOrder     Float?
+  maxValue          Float?
+  isPublic          Boolean?       @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  branch            Branch         @relation(fields: [branchId], references: [id])
+  discountCodes     DiscountCode[]
+  createdBy         String?
+  updatedBy         String?
+  creator           Account?       @relation("creator", fields: [createdBy], references: [id])
+  updater           Account?       @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model DiscountCode {
   id              String        @id @default(uuid())
   branchId        String
   code            String
+  isUsed          Boolean       @default(false)
   discountIssueId String
-  quantityUsed    Int
   isPublic        Boolean?      @default(true)
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -690,6 +686,8 @@ model DiscountCode {
   updatedBy       String?
   creator         Account?      @relation("creator", fields: [createdBy], references: [id])
   updater         Account?      @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, code])
 }
 
 model PointSetting {
