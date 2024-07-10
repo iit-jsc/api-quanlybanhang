@@ -59,10 +59,4 @@ export class CreateProductDto {
 
   @IsOptional()
   status: number;
-
-  @IsOptional()
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value);
-  })
-  isInitialStock: boolean;
 }

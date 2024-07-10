@@ -36,6 +36,9 @@ import { PromotionModule } from './promotion/promotion.module';
 import { DiscountIssueModule } from './discount-issue/discount-issue.module';
 import { DiscountCodeModule } from './discount-code/discount-code.module';
 import { PointSettingModule } from './point-setting/point-setting.module';
+import { WarehouseModule } from './warehouse/warehouse.module';
+import { StockModule } from './stock/stock.module';
+import { InventoryTransactionModule } from './inventory-transaction/inventory-transaction.module';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -86,6 +89,9 @@ import { PointSettingModule } from './point-setting/point-setting.module';
     DiscountIssueModule,
     DiscountCodeModule,
     PointSettingModule,
+    WarehouseModule,
+    StockModule,
+    InventoryTransactionModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

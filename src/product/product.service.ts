@@ -31,7 +31,6 @@ export class ProductService {
         otherAttributes: data.otherAttributes,
         isCombo: data.isCombo,
         status: data.status,
-        isInitialStock: data.isInitialStock,
         photoURLs: data.photoURLs,
         productType: {
           connect: {
@@ -111,7 +110,6 @@ export class ProductService {
           otherAttributes: true,
           isCombo: true,
           status: true,
-          isInitialStock: true,
           slug: true,
           measurementUnit: {
             select: {
@@ -156,7 +154,6 @@ export class ProductService {
         otherAttributes: true,
         isCombo: true,
         status: true,
-        isInitialStock: true,
         slug: true,
         measurementUnit: true,
       },
@@ -199,7 +196,6 @@ export class ProductService {
         otherAttributes: data.otherAttributes,
         isCombo: data.isCombo,
         status: data.status,
-        isInitialStock: data.isInitialStock,
         updatedBy: tokenPayload.accountId,
       },
     });

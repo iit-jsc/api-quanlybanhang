@@ -27,7 +27,7 @@ export class DiscountCodeController {
   @Post()
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_DISCOUNT_CODE', SPECIAL_ROLE.MANAGER)
+  @Roles('CREATE_DISCOUNT_ISSUE', SPECIAL_ROLE.MANAGER)
   create(
     @Body() createDiscountCodeDto: CreateDiscountCodeDto,
     @Req() req: any,
@@ -41,10 +41,10 @@ export class DiscountCodeController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    'CREATE_DISCOUNT_CODE',
-    'UPDATE_DISCOUNT_CODE',
-    'DELETE_DISCOUNT_CODE',
-    'VIEW_DISCOUNT_CODE',
+    'CREATE_DISCOUNT_ISSUE',
+    'UPDATE_DISCOUNT_ISSUE',
+    'DELETE_DISCOUNT_ISSUE',
+    'VIEW_DISCOUNT_ISSUE',
     SPECIAL_ROLE.MANAGER,
   )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {

@@ -88,9 +88,4 @@ export class UpdateProductDto {
   @IsBoolean()
   @Type(() => Number)
   status: number;
-
-  @IsOptional()
-  @IsBoolean()
-  @Type(() => Boolean)
-  isInitialStock: boolean;
 }

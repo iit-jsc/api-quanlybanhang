@@ -28,7 +28,7 @@ export class SupplierController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @Post('')
-  // @Roles('CREATE_SUPPLIER', SPECIAL_ROLE.MANAGER)
+  @Roles('CREATE_SUPPLIER', SPECIAL_ROLE.MANAGER)
   create(@Body() createSupplierDto: CreateSupplierDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.supplierService.create(createSupplierDto, tokenPayload);
