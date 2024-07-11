@@ -27,3 +27,13 @@ export const PROMOTION_TYPE = {
   VALUE: 1,
   GIFT: 2,
 };
+
+export const INVENTORY_TRANSACTION_TYPE = {
+  IMPORT: 1,
+  EXPORT: 2,
+};
+
+export const INVENTORY_TRANSACTION_STATUS = {
+  DRAFT: 1,
+  PROCESSED: 2,
+};

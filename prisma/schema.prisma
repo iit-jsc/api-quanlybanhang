@@ -52,72 +52,71 @@ model Permission {
 }
 
 model Account {
-  id                          String                       @id @default(uuid())
-  status                      Int                          @default(1)
-  type                        Int?                         @default(3)
+  id                          String                 @id @default(uuid())
+  status                      Int                    @default(1)
+  type                        Int?                   @default(3)
   username                    String
   password                    String?
-  userId                      String                       @unique
-  user                        User                         @relation(fields: [userId], references: [id])
-  isPublic                    Boolean?                     @default(true)
+  userId                      String                 @unique
+  user                        User                   @relation(fields: [userId], references: [id])
+  isPublic                    Boolean?               @default(true)
   branches                    Branch[]
   createdBy                   String?
   updatedBy                   String?
-  createdAt                   DateTime                     @default(now())
-  updatedAt                   DateTime                     @updatedAt
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
   activityLogs                ActivityLog[]
   permissions                 Permission[]
-  createOrders                Order[]                      @relation("creator")
-  updateOrders                Order[]                      @relation("updater")
-  creatorBranches             Branch[]                     @relation("creator")
-  updaterBranches             Branch[]                     @relation("updater")
-  creatorMeasurementUnits     MeasurementUnit[]            @relation("creator")
-  updaterMeasurementUnits     MeasurementUnit[]            @relation("updater")
-  creatorToppings             Topping[]                    @relation("creator")
-  updaterToppings             Topping[]                    @relation("updater")
-  creatorProductTypes         ProductType[]                @relation("creator")
-  updaterProductTypes         ProductType[]                @relation("updater")
-  creatorProducts             Product[]                    @relation("creator")
-  updaterProducts             Product[]                    @relation("updater")
-  creatorPermissions          Permission[]                 @relation("creator")
-  updaterPermissions          Permission[]                 @relation("updater")
-  creatorEmployeeGroups       EmployeeGroup[]              @relation("creator")
-  updaterEmployeeGroups       EmployeeGroup[]              @relation("updater")
-  creatorCustomerTypes        CustomerType[]               @relation("creator")
-  updaterCustomerTypes        CustomerType[]               @relation("updater")
-  creatorAreas                Area[]                       @relation("creator")
-  updaterAreas                Area[]                       @relation("updater")
-  creatorTables               Table[]                      @relation("creator")
-  updaterTables               Table[]                      @relation("updater")
-  creatorCustomers            Customer[]                   @relation("creator")
-  updaterCustomers            Customer[]                   @relation("updater")
-  creatorUsers                User[]                       @relation("creator")
-  updaterUsers                User[]                       @relation("updater")
-  creatorShops                Shop[]                       @relation("creator")
-  updaterShops                Shop[]                       @relation("updater")
-  creatorSupplierTypes        SupplierType[]               @relation("creator")
-  updaterSupplierTypes        SupplierType[]               @relation("updater")
-  creatorSupplier             Supplier[]                   @relation("creator")
-  updaterSupplier             Supplier[]                   @relation("updater")
-  creatorPromotion            Promotion[]                  @relation("creator")
-  updaterPromotion            Promotion[]                  @relation("updater")
-  creatorOrderDetail          OrderDetail[]                @relation("creator")
-  updaterOrderDetail          OrderDetail[]                @relation("updater")
-  creatorTableTransaction     TableTransaction[]           @relation("creator")
-  updaterTableTransaction     TableTransaction[]           @relation("updater")
-  creatorDiscountIssue        DiscountIssue[]              @relation("creator")
-  updaterDiscountIssue        DiscountIssue[]              @relation("updater")
-  creatorDiscountCode         DiscountCode[]               @relation("creator")
-  updaterDiscountCode         DiscountCode[]               @relation("updater")
-  updaterPointSetting         PointSetting[]               @relation("updater")
-  updaterPointAccumulation    PointAccumulation[]          @relation("updater")
-  creatorPointHistory         PointHistory[]               @relation("creator")
-  creatorStock                Stock[]                      @relation("creator")
-  updaterStock                Stock[]                      @relation("updater")
-  creatorInventoryTransaction InventoryTransaction[]       @relation("creator")
-  updaterInventoryTransaction InventoryTransaction[]       @relation("updater")
-  updaterWarehouse            Warehouse[]                  @relation("updater")
-  inventoryTransactionDetails InventoryTransactionDetail[]
+  createOrders                Order[]                @relation("creator")
+  updateOrders                Order[]                @relation("updater")
+  creatorBranches             Branch[]               @relation("creator")
+  updaterBranches             Branch[]               @relation("updater")
+  creatorMeasurementUnits     MeasurementUnit[]      @relation("creator")
+  updaterMeasurementUnits     MeasurementUnit[]      @relation("updater")
+  creatorToppings             Topping[]              @relation("creator")
+  updaterToppings             Topping[]              @relation("updater")
+  creatorProductTypes         ProductType[]          @relation("creator")
+  updaterProductTypes         ProductType[]          @relation("updater")
+  creatorProducts             Product[]              @relation("creator")
+  updaterProducts             Product[]              @relation("updater")
+  creatorPermissions          Permission[]           @relation("creator")
+  updaterPermissions          Permission[]           @relation("updater")
+  creatorEmployeeGroups       EmployeeGroup[]        @relation("creator")
+  updaterEmployeeGroups       EmployeeGroup[]        @relation("updater")
+  creatorCustomerTypes        CustomerType[]         @relation("creator")
+  updaterCustomerTypes        CustomerType[]         @relation("updater")
+  creatorAreas                Area[]                 @relation("creator")
+  updaterAreas                Area[]                 @relation("updater")
+  creatorTables               Table[]                @relation("creator")
+  updaterTables               Table[]                @relation("updater")
+  creatorCustomers            Customer[]             @relation("creator")
+  updaterCustomers            Customer[]             @relation("updater")
+  creatorUsers                User[]                 @relation("creator")
+  updaterUsers                User[]                 @relation("updater")
+  creatorShops                Shop[]                 @relation("creator")
+  updaterShops                Shop[]                 @relation("updater")
+  creatorSupplierTypes        SupplierType[]         @relation("creator")
+  updaterSupplierTypes        SupplierType[]         @relation("updater")
+  creatorSupplier             Supplier[]             @relation("creator")
+  updaterSupplier             Supplier[]             @relation("updater")
+  creatorPromotion            Promotion[]            @relation("creator")
+  updaterPromotion            Promotion[]            @relation("updater")
+  creatorOrderDetail          OrderDetail[]          @relation("creator")
+  updaterOrderDetail          OrderDetail[]          @relation("updater")
+  creatorTableTransaction     TableTransaction[]     @relation("creator")
+  updaterTableTransaction     TableTransaction[]     @relation("updater")
+  creatorDiscountIssue        DiscountIssue[]        @relation("creator")
+  updaterDiscountIssue        DiscountIssue[]        @relation("updater")
+  creatorDiscountCode         DiscountCode[]         @relation("creator")
+  updaterDiscountCode         DiscountCode[]         @relation("updater")
+  updaterPointSetting         PointSetting[]         @relation("updater")
+  updaterPointAccumulation    PointAccumulation[]    @relation("updater")
+  creatorPointHistory         PointHistory[]         @relation("creator")
+  creatorStock                Stock[]                @relation("creator")
+  updaterStock                Stock[]                @relation("updater")
+  creatorInventoryTransaction InventoryTransaction[] @relation("creator")
+  updaterInventoryTransaction InventoryTransaction[] @relation("updater")
+  updaterWarehouse            Warehouse[]            @relation("updater")
 }
 
 model User {
@@ -363,58 +362,67 @@ model Warehouse {
   inventoryTransactions InventoryTransaction[]
   updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
   updatedBy             String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  stocks                Stock[]
 }
 
 model Stock {
-  id                     String               @id @default(uuid())
-  branchId               String
-  productId              String
-  inventoryTransactionId String
-  inventoryTransaction   InventoryTransaction @relation(fields: [inventoryTransactionId], references: [id])
-  quantity               Float?
-  isPublic               Boolean?             @default(true)
-  createdAt              DateTime             @default(now())
-  updatedAt              DateTime             @updatedAt
-  branch                 Branch               @relation(fields: [branchId], references: [id])
-  product                Product              @relation(fields: [productId], references: [id])
-  createdBy              String?
-  updatedBy              String?
-  creator                Account?             @relation("creator", fields: [createdBy], references: [id])
-  updater                Account?             @relation("updater", fields: [updatedBy], references: [id])
+  id          String    @id @default(uuid())
+  branchId    String
+  productId   String
+  quantity    Float?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  branch      Branch    @relation(fields: [branchId], references: [id])
+  product     Product   @relation(fields: [productId], references: [id])
+  warehouseId String
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  createdBy   String?
+  updatedBy   String?
+
+  creator Account? @relation("creator", fields: [createdBy], references: [id])
+  updater Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([productId, warehouseId])
 }
 
 model InventoryTransaction {
-  id              String    @id @default(uuid())
-  status          Int
-  warehouseId     String
-  warehouse       Warehouse @relation(fields: [warehouseId], references: [id])
-  supplierId      String?
-  type            Int
-  supplier        Supplier? @relation(fields: [supplierId], references: [id])
-  code            String?
-  importWarehouse String?
-  importAddress   String?   @db.Text
-  importOrderCode String?
-  branch          Branch?   @relation(fields: [branchId], references: [id])
-  branchId        String?
-  isPublic        Boolean?  @default(true)
-  createdBy       String?
-  updatedBy       String?
-  creator         Account?  @relation("creator", fields: [createdBy], references: [id])
-  updater         Account?  @relation("updater", fields: [updatedBy], references: [id])
-  stocks          Stock[]
+  id                          String                       @id @default(uuid())
+  status                      Int
+  warehouseId                 String
+  warehouse                   Warehouse                    @relation(fields: [warehouseId], references: [id])
+  supplierId                  String?
+  type                        Int
+  supplier                    Supplier?                    @relation(fields: [supplierId], references: [id])
+  code                        String?
+  importWarehouse             String?
+  importAddress               String?                      @db.Text
+  importOrderCode             String?
+  branch                      Branch?                      @relation(fields: [branchId], references: [id])
+  branchId                    String?
+  isPublic                    Boolean?                     @default(true)
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+  createdBy                   String?
+  updatedBy                   String?
+  creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])
+  updater                     Account?                     @relation("updater", fields: [updatedBy], references: [id])
+  inventoryTransactionDetails InventoryTransactionDetail[]
 }
 
 model InventoryTransactionDetail {
-  id                     String   @id @default(uuid())
+  id                     String                @id @default(uuid())
   inventoryTransactionId String
-  inventoryTransaction   Account? @relation(fields: [inventoryTransactionId], references: [id])
+  inventoryTransaction   InventoryTransaction? @relation(fields: [inventoryTransactionId], references: [id])
   productId              String?
-  product                Product? @relation(fields: [productId], references: [id])
-  price                  Float    @default(0)
+  product                Product?              @relation(fields: [productId], references: [id])
+  price                  Float                 @default(0)
   documentQuantity       Float?
   actualQuantity         Float
-  isPublic               Boolean? @default(true)
+  isPublic               Boolean?              @default(true)
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
 }
 
 model CustomerType {

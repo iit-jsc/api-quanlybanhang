@@ -158,6 +158,11 @@ async function main() {
         type: 1,
         code: 'DISCOUNT_ISSUE',
       },
+      {
+        name: 'Quản lý kho',
+        type: 1,
+        code: 'WAREHOUSE',
+      },
     ],
   });
 
@@ -532,6 +537,26 @@ async function main() {
         name: 'Xóa mã giảm giá',
         code: 'DELETE_DISCOUNT_ISSUE',
         groupCode: 'DISCOUNT_ISSUE',
+      },
+      {
+        name: 'Xem danh sách kho',
+        code: 'VIEW_WAREHOUSE',
+        groupCode: 'WAREHOUSE',
+      },
+      {
+        name: 'Tạo kho',
+        code: 'CREATE_WAREHOUSE',
+        groupCode: 'WAREHOUSE',
+      },
+      {
+        name: 'Cập nhật kho',
+        code: 'UPDATE_WAREHOUSE',
+        groupCode: 'WAREHOUSE',
+      },
+      {
+        name: 'Xóa kho',
+        code: 'DELETE_WAREHOUSE',
+        groupCode: 'WAREHOUSE',
       },
     ],
   });

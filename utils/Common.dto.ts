@@ -4,6 +4,7 @@ import {
   IsDate,
   IsNotEmpty,
   IsOptional,
+  IsString,
   ValidationArguments,
   ValidationOptions,
   registerDecorator,
@@ -97,6 +98,11 @@ export class FindManyDto {
     return value?.split(',').map((id: string) => id.trim());
   })
   statusOrderDetails: number[];
+
+  /* ====== warehouse filter  ====== */
+  @IsOptional()
+  @IsString()
+  productId: string;
 }
 
 export class DeleteManyDto {

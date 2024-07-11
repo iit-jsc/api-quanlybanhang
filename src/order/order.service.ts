@@ -881,6 +881,9 @@ export class OrderService {
                 },
               },
             },
+            where: {
+              isPublic: true,
+            },
           },
           createdAt: true,
         },
@@ -939,6 +942,9 @@ export class OrderService {
                 photoURLs: true,
               },
             },
+          },
+          where: {
+            isPublic: true,
           },
         },
       },
