@@ -10,7 +10,6 @@ import {
   TokenPayload,
 } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { UserService } from 'src/user/user.service';
 import { CustomHttpException } from 'utils/ApiErrors';
 
 @Injectable()
@@ -21,8 +20,9 @@ export class JwtAuthGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
-    const authHeader = request.headers.authorization;
+    const request = this.getRequest(context);
+
+    const authHeader = request.headers?.authorization;
 
     if (!authHeader) return false;
 
@@ -31,7 +31,7 @@ export class JwtAuthGuard implements CanActivate {
     if (!token)
       throw new CustomHttpException(
         HttpStatus.NOT_FOUND,
-        '#1 canActivate - Không tim thấy token!',
+        '#1 canActivate - Không tìm thấy token!',
       );
 
     try {
@@ -52,6 +52,13 @@ export class JwtAuthGuard implements CanActivate {
     }
 
     return true;
+  }
+
+  private getRequest(context: ExecutionContext) {
+    if (context.getType() === 'ws') {
+      return context.switchToWs().getClient().handshake;
+    }
+    return context.switchToHttp().getRequest();
   }
 }
 

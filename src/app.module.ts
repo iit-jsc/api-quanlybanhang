@@ -39,6 +39,8 @@ import { PointSettingModule } from './point-setting/point-setting.module';
 import { WarehouseModule } from './warehouse/warehouse.module';
 import { StockModule } from './stock/stock.module';
 import { InventoryTransactionModule } from './inventory-transaction/inventory-transaction.module';
+import { GatewayModule } from './gateway/gateway.module';
+import { CommonService } from './common/common.service';
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -53,11 +55,6 @@ import { InventoryTransactionModule } from './inventory-transaction/inventory-tr
       secret: process.env.SECRET_KEY,
       signOptions: { expiresIn: '48h' },
     }),
-    // TwilioModule.forRoot({
-    //   isGlobal: true,
-    //   accountSid: process.env.TWILIO_ACCOUNT_SID,
-    //   authToken: process.env.TWILIO_AUTH_TOKEN,
-    // }),
     CommonModule,
     UserModule,
     AccountModule,
@@ -92,6 +89,7 @@ import { InventoryTransactionModule } from './inventory-transaction/inventory-tr
     WarehouseModule,
     StockModule,
     InventoryTransactionModule,
+    GatewayModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

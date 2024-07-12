@@ -945,3 +945,11 @@ model PhoneVerification {
   isUsed    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
+
+model Socket {
+  id        String   @id @default(uuid())
+  socketId  String
+  branchId  String
+  shopId    String
+  createdAt DateTime @default(now())
+}

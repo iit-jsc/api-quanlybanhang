@@ -1,4 +1,4 @@
-import { HttpAdapterHost, NestFactory } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { AppModule } from './app.module';
 import { json, static as static_ } from 'express';
@@ -10,7 +10,7 @@ import {
 import { PrismaExceptionFilter, errorFormatter } from 'utils/ApiErrors';
 import { ValidationError } from 'class-validator';
 import { TransformInterceptor } from 'utils/ApiResponse';
-import * as admin from 'firebase-admin';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const cfgService = app.get(ConfigService);

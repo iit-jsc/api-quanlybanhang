@@ -31,7 +31,6 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private jwtService: JwtService,
     private commonService: CommonService,
-    private firebaseService: FirebaseService,
   ) {}
 
   async loginForStaff(data: LoginForStaffDto) {
@@ -122,8 +121,6 @@ export class AuthService {
     }
 
     if (!data.password) {
-      await this.firebaseService.verifyIdToken(data.accessToken);
-
       account = await this.prisma.account.findFirst({
         where: {
           isPublic: true,
