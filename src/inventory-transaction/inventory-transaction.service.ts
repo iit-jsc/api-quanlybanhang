@@ -4,12 +4,12 @@ import {
   CreateInventoryTransactionDto,
   UpdateInventoryTransactionDto,
 } from './dto/inventory-transaction.dto';
-import { TokenPayload } from 'interfaces/common.interface';
+import { AnyObject, TokenPayload } from 'interfaces/common.interface';
 import {
   INVENTORY_TRANSACTION_STATUS,
   INVENTORY_TRANSACTION_TYPE,
 } from 'enums/common.enum';
-import { Prisma } from '@prisma/client';
+import { InventoryTransactionDetail, Prisma } from '@prisma/client';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
@@ -22,7 +22,69 @@ export class InventoryTransactionService {
     quantity: number,
     productId: string,
     warehouseId: string,
-  ) {}
+  ) {
+    const stock = await this.prisma.stock.findUnique({
+      where: { productId_warehouseId: { productId, warehouseId } },
+      select: {
+        id: true,
+        quantity: true,
+      },
+    });
+
+    if (!stock || stock.quantity < quantity)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        '#1 checkQuantityValid - Số lượng không hợp lệ!',
+      );
+  }
+
+  async handleProcessedTransaction(
+    data: CreateInventoryTransactionDto | UpdateInventoryTransactionDto,
+    prisma: AnyObject,
+    tokenPayload: TokenPayload,
+  ) {
+    if (!data.inventoryTransactionDetails)
+      throw new CustomHttpException(
+        HttpStatus.BAD_REQUEST,
+        '#1 handleProcessedTransaction - Không được để trống!',
+        [{ inventoryTransactionDetails: 'Không được để trống!' }],
+      );
+
+    await Promise.all(
+      data.inventoryTransactionDetails.map(async (detail) => {
+        if (data.type === INVENTORY_TRANSACTION_TYPE.EXPORT)
+          await this.checkQuantityValid(
+            detail.actualQuantity,
+            detail.productId,
+            data.warehouseId,
+          );
+
+        return prisma.stock.upsert({
+          where: {
+            productId_warehouseId: {
+              productId: detail.productId,
+              warehouseId: data.warehouseId,
+            },
+          },
+          create: {
+            productId: detail.productId,
+            warehouseId: data.warehouseId,
+            quantity: detail.actualQuantity,
+            branchId: tokenPayload.branchId,
+            createdBy: tokenPayload.accountId,
+            updatedBy: tokenPayload.accountId,
+          },
+          update: {
+            quantity:
+              data.type === INVENTORY_TRANSACTION_TYPE.IMPORT
+                ? { increment: detail.actualQuantity }
+                : { decrement: detail.actualQuantity },
+            updatedBy: tokenPayload.accountId,
+          },
+        });
+      }),
+    );
+  }
 
   async create(
     data: CreateInventoryTransactionDto,
@@ -54,35 +116,8 @@ export class InventoryTransactionService {
         },
       });
 
-      if (data.status == INVENTORY_TRANSACTION_STATUS.PROCESSED) {
-        await Promise.all(
-          data.inventoryTransactionDetails.map((detail) => {
-            return prisma.stock.upsert({
-              where: {
-                productId_warehouseId: {
-                  productId: detail.productId,
-                  warehouseId: data.warehouseId,
-                },
-              },
-              create: {
-                productId: detail.productId,
-                warehouseId: data.warehouseId,
-                quantity: detail.actualQuantity,
-                branchId: tokenPayload.branchId,
-                createdBy: tokenPayload.accountId,
-                updatedBy: tokenPayload.accountId,
-              },
-              update: {
-                quantity:
-                  data.type === INVENTORY_TRANSACTION_TYPE.IMPORT
-                    ? { increment: detail.actualQuantity }
-                    : { decrement: detail.actualQuantity },
-                updatedBy: tokenPayload.accountId,
-              },
-            });
-          }),
-        );
-      }
+      if (data.status == INVENTORY_TRANSACTION_STATUS.PROCESSED)
+        await this.handleProcessedTransaction(data, prisma, tokenPayload);
 
       return inventoryTransaction;
     });
@@ -118,35 +153,8 @@ export class InventoryTransactionService {
           '#1 update - Không thể cập nhật vì đã được xử lý!',
         );
 
-      if (data.status === INVENTORY_TRANSACTION_STATUS.PROCESSED) {
-        await Promise.all(
-          data.inventoryTransactionDetails.map((detail) => {
-            return prisma.stock.upsert({
-              where: {
-                productId_warehouseId: {
-                  productId: detail.productId,
-                  warehouseId: data.warehouseId,
-                },
-              },
-              create: {
-                productId: detail.productId,
-                warehouseId: data.warehouseId,
-                quantity: detail.actualQuantity,
-                branchId: tokenPayload.branchId,
-                createdBy: tokenPayload.accountId,
-                updatedBy: tokenPayload.accountId,
-              },
-              update: {
-                quantity:
-                  data.type === INVENTORY_TRANSACTION_TYPE.IMPORT
-                    ? { increment: detail.actualQuantity }
-                    : { decrement: detail.actualQuantity },
-                updatedBy: tokenPayload.accountId,
-              },
-            });
-          }),
-        );
-      }
+      if (data.status === INVENTORY_TRANSACTION_STATUS.PROCESSED)
+        await this.handleProcessedTransaction(data, prisma, tokenPayload);
 
       return await prisma.inventoryTransaction.update({
         where: {
@@ -284,11 +292,41 @@ export class InventoryTransactionService {
         id: true,
         type: true,
         code: true,
+        status: true,
         importWarehouse: true,
         importAddress: true,
         importOrderCode: true,
-        supplier: true,
-        status: true,
+        supplier: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+          },
+        },
+        inventoryTransactionDetails: {
+          where: { isPublic: true },
+          select: {
+            id: true,
+            actualQuantity: true,
+            documentQuantity: true,
+            price: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+                photoURLs: true,
+                measurementUnit: {
+                  select: {
+                    id: true,
+                    name: true,
+                    code: true,
+                  },
+                },
+              },
+            },
+          },
+        },
         creator: {
           select: {
             username: true,
@@ -310,14 +348,19 @@ export class InventoryTransactionService {
     where: Prisma.InventoryTransactionWhereInput,
     tokenPayload: TokenPayload,
   ) {
-    const inventoryProcessed = await this.prisma.inventoryTransaction.findMany({
-      where: {
-        ...where,
-        isPublic: true,
-        branchId: tokenPayload.branchId,
-        status: { not: INVENTORY_TRANSACTION_STATUS.PROCESSED },
-      },
-    });
+    const processedInventories =
+      await this.prisma.inventoryTransaction.findMany({
+        where: {
+          ...where,
+          isPublic: true,
+          branchId: tokenPayload.branchId,
+          status: INVENTORY_TRANSACTION_STATUS.PROCESSED,
+        },
+        select: {
+          id: true,
+          code: true,
+        },
+      });
 
     const count = await this.prisma.inventoryTransaction.updateMany({
       where: {
@@ -332,6 +375,6 @@ export class InventoryTransactionService {
       },
     });
 
-    return { ...count, inventoryProcessed };
+    return { ...count, processedInventories };
   }
 }
