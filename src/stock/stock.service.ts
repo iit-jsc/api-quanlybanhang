@@ -24,6 +24,9 @@ export class StockService {
         skip,
         take,
         where,
+        include: {
+          warehouse: true,
+        },
       }),
       this.prisma.stock.count({
         where,

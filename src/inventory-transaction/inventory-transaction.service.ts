@@ -18,6 +18,12 @@ import { calculatePagination } from 'utils/Helps';
 export class InventoryTransactionService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async checkQuantityValid(
+    quantity: number,
+    productId: string,
+    warehouseId: string,
+  ) {}
+
   async create(
     data: CreateInventoryTransactionDto,
     tokenPayload: TokenPayload,
@@ -47,6 +53,7 @@ export class InventoryTransactionService {
           createdBy: tokenPayload.accountId,
         },
       });
+
       if (data.status == INVENTORY_TRANSACTION_STATUS.PROCESSED) {
         await Promise.all(
           data.inventoryTransactionDetails.map((detail) => {
@@ -66,15 +73,17 @@ export class InventoryTransactionService {
                 updatedBy: tokenPayload.accountId,
               },
               update: {
-                quantity: {
-                  increment: detail.actualQuantity,
-                },
+                quantity:
+                  data.type === INVENTORY_TRANSACTION_TYPE.IMPORT
+                    ? { increment: detail.actualQuantity }
+                    : { decrement: detail.actualQuantity },
                 updatedBy: tokenPayload.accountId,
               },
             });
           }),
         );
       }
+
       return inventoryTransaction;
     });
   }
@@ -129,7 +138,7 @@ export class InventoryTransactionService {
               },
               update: {
                 quantity:
-                  data.status === INVENTORY_TRANSACTION_TYPE.IMPORT
+                  data.type === INVENTORY_TRANSACTION_TYPE.IMPORT
                     ? { increment: detail.actualQuantity }
                     : { decrement: detail.actualQuantity },
                 updatedBy: tokenPayload.accountId,
@@ -139,7 +148,7 @@ export class InventoryTransactionService {
         );
       }
 
-      await prisma.inventoryTransaction.update({
+      return await prisma.inventoryTransaction.update({
         where: {
           id: params.where.id,
           branchId: tokenPayload.branchId,
@@ -153,27 +162,27 @@ export class InventoryTransactionService {
           importWarehouse: data.importWarehouse,
           importAddress: data.importAddress,
           importOrderCode: data.importOrderCode,
-          ...(data.inventoryTransactionDetails ?? {
-            inventoryTransactionDetails: {
-              deleteMany: {
-                inventoryTransactionId: where.id,
-              },
-              createMany: {
-                data: data.inventoryTransactionDetails.map((detail) => ({
-                  productId: detail.productId,
-                  actualQuantity: detail.actualQuantity,
-                  price: detail.price,
-                  documentQuantity: detail.documentQuantity,
-                })),
-              },
-            },
-          }),
+          ...(data.inventoryTransactionDetails
+            ? {
+                inventoryTransactionDetails: {
+                  deleteMany: {
+                    inventoryTransactionId: where.id,
+                  },
+                  createMany: {
+                    data: data.inventoryTransactionDetails.map((detail) => ({
+                      productId: detail.productId,
+                      actualQuantity: detail.actualQuantity,
+                      price: detail.price,
+                      documentQuantity: detail.documentQuantity,
+                    })),
+                  },
+                },
+              }
+            : {}),
           branchId: tokenPayload.branchId,
           updatedBy: tokenPayload.accountId,
         },
       });
-
-      return inventoryTransaction;
     });
   }
 
@@ -216,12 +225,25 @@ export class InventoryTransactionService {
           id: true,
           type: true,
           code: true,
+          status: true,
           importWarehouse: true,
           importAddress: true,
           importOrderCode: true,
-          supplier: true,
+          supplier: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+            },
+          },
           inventoryTransactionDetails: {
             where: { isPublic: true },
+            select: {
+              id: true,
+              actualQuantity: true,
+              documentQuantity: true,
+              price: true,
+            },
           },
           creator: {
             select: {
@@ -266,6 +288,7 @@ export class InventoryTransactionService {
         importAddress: true,
         importOrderCode: true,
         supplier: true,
+        status: true,
         creator: {
           select: {
             username: true,
