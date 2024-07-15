@@ -240,6 +240,7 @@ export class ManagerService {
               status: true,
             },
           },
+          updatedAt: true,
         },
       }),
       this.prisma.user.count({

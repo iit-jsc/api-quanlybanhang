@@ -71,9 +71,7 @@ export class ShopController {
 
     return this.shopService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

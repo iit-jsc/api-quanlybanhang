@@ -59,13 +59,10 @@ export class OrderRatingController {
   @UseGuards(JwtCustomerAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenCustomerPayload;
-    console.log(deleteManyDto);
 
     return this.orderRatingService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

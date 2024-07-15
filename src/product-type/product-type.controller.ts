@@ -86,9 +86,7 @@ export class ProductTypeController {
 
     return this.productTypeService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

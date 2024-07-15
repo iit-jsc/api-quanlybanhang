@@ -100,9 +100,7 @@ export class CustomerController {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.customerService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

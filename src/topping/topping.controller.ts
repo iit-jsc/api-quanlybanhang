@@ -107,9 +107,7 @@ export class ToppingController {
 
     return this.toppingService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

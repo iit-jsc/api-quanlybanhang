@@ -4,7 +4,7 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { CommonService } from 'src/common/common.service';
 import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 
 @Injectable()
@@ -143,6 +143,7 @@ export class CustomerService {
           representativeName: true,
           representativePhone: true,
           createdAt: true,
+          updatedAt: true,
         },
       }),
       this.prisma.customer.count({
@@ -259,13 +260,12 @@ export class CustomerService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.CustomerWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.customer.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.customer.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         shop: {
           id: tokenPayload.shopId,
@@ -277,5 +277,7 @@ export class CustomerService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

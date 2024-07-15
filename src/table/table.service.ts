@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { CreateTableDto } from './dto/create-table.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { TokenPayload } from 'interfaces/common.interface';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { Prisma } from '@prisma/client';
 import { calculatePagination } from 'utils/Helps';
 import { CommonService } from 'src/common/common.service';
@@ -114,6 +114,7 @@ export class TableService {
               isPublic: true,
             },
           },
+          updatedAt: true,
         },
       }),
       this.prisma.table.count({
@@ -273,10 +274,12 @@ export class TableService {
     });
   }
 
-  async deleteMany(where: Prisma.TableWhereInput, tokenPayload: TokenPayload) {
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     return this.prisma.table.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branch: {
           id: tokenPayload.branchId,

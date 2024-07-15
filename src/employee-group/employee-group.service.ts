@@ -4,7 +4,7 @@ import { CreateEmployeeGroupDto } from './dto/create-employee-group.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
 import { calculatePagination } from 'utils/Helps';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Injectable()
 export class EmployeeGroupService {
@@ -50,6 +50,7 @@ export class EmployeeGroupService {
           id: true,
           name: true,
           description: true,
+          updatedAt: true,
         },
       }),
       this.prisma.employeeGroup.count({
@@ -103,13 +104,12 @@ export class EmployeeGroupService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.EmployeeGroupWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.employeeGroup.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.employeeGroup.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -118,5 +118,7 @@ export class EmployeeGroupService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

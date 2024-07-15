@@ -3,7 +3,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { CreateWarehouseDto, UpdateWarehouseDto } from './dto/warehouse.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 
 @Injectable()
@@ -88,13 +88,12 @@ export class WarehouseService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.WarehouseWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.warehouse.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = this.prisma.warehouse.updateMany({
       where: {
-        id: where.id,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -103,5 +102,7 @@ export class WarehouseService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

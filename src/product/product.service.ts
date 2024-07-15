@@ -7,6 +7,7 @@ import { CreateProductDto } from './dto/create-product.dto';
 import { CommonService } from 'src/common/common.service';
 import { FindManyProductDto } from './dto/find-many.dto';
 import * as slug from 'slug';
+import { DeleteManyDto } from 'utils/Common.dto';
 @Injectable()
 export class ProductService {
   constructor(
@@ -124,6 +125,7 @@ export class ProductService {
               name: true,
             },
           },
+          updatedAt: true,
         },
       }),
       this.prisma.product.count({
@@ -201,13 +203,12 @@ export class ProductService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.ProductWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.product.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.product.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branch: {
           id: tokenPayload.branchId,
@@ -218,5 +219,7 @@ export class ProductService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

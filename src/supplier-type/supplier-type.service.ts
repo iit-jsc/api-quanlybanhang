@@ -75,6 +75,7 @@ export class SupplierTypeService {
           id: true,
           name: true,
           description: true,
+          updatedAt: true,
         },
       }),
       this.prisma.supplierType.count({

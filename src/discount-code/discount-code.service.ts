@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { CreateDiscountCodeDto } from './dto/discount-code.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { PrismaService } from 'nestjs-prisma';
 import { calculatePagination, generateSortCode } from 'utils/Helps';
 import { CustomHttpException } from 'utils/ApiErrors';
@@ -46,13 +46,12 @@ export class DiscountCodeService {
       );
   }
 
-  async deleteMany(
-    where: Prisma.DiscountCodeWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.discountCode.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.discountCode.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -61,6 +60,8 @@ export class DiscountCodeService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {

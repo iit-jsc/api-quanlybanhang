@@ -4,7 +4,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { CreatePermissionDto } from './dto/create-permission.dto';
 import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Injectable()
 export class PermissionService {
@@ -75,6 +75,7 @@ export class PermissionService {
               code: true,
             },
           },
+          updatedAt: true,
         },
       }),
       this.prisma.permission.count({
@@ -146,13 +147,12 @@ export class PermissionService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.PermissionWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.permission.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.permission.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -161,5 +161,7 @@ export class PermissionService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

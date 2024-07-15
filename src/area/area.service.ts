@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 import { CreateAreaDto } from './dto/create-area.dto';
 import { CommonService } from 'src/common/common.service';
@@ -87,6 +87,7 @@ export class AreaService {
               description: true,
             },
           },
+          updatedAt: true,
         },
       }),
       this.prisma.area.count({
@@ -171,10 +172,12 @@ export class AreaService {
     });
   }
 
-  async deleteMany(where: Prisma.AreaWhereInput, tokenPayload: TokenPayload) {
-    return this.prisma.area.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.area.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branch: {
           id: tokenPayload.branchId,
@@ -186,5 +189,7 @@ export class AreaService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

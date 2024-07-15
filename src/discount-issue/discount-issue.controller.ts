@@ -109,9 +109,7 @@ export class DiscountIssueController {
 
     return this.discountIssueService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

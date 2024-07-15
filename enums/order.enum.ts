@@ -6,14 +6,17 @@ export const ORDER_TYPE = {
 export const ORDER_STATUS_COMMON = {
   WAITING: 1,
   APPROVED: 2,
-  PREPARING: 3,
-  CANCELLED: 4,
+  TRANSPORTING: 3,
+  SUCCESS: 4,
+  CANCELLED: 5,
 };
 
 export const DETAIL_ORDER_STATUS = {
   WAITING: 1,
   APPROVED: 2,
-  DONE: 3,
+  TRANSPORTING: 3,
+  SUCCESS: 4,
+  CANCELLED: 5,
 };
 
 export const TRANSACTION_TYPE = {

@@ -6,6 +6,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { calculatePagination } from 'utils/Helps';
 import { CreateProductTypeDto } from './dto/create-product-type.dto';
 import { FindManyProductTypeDto } from './dto/find-many.dto';
+import { DeleteManyDto } from 'utils/Common.dto';
 
 @Injectable()
 export class ProductTypeService {
@@ -66,6 +67,7 @@ export class ProductTypeService {
               isPublic: true,
             },
           },
+          updatedAt: true,
         },
       }),
       this.prisma.productType.count({
@@ -134,13 +136,12 @@ export class ProductTypeService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.ProductTypeWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.productType.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.productType.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
       },
       data: {
@@ -148,5 +149,7 @@ export class ProductTypeService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

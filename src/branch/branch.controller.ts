@@ -105,9 +105,7 @@ export class BranchController {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.branchService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

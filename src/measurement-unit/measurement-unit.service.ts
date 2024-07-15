@@ -4,7 +4,7 @@ import { CreateMeasurementUnitDto } from './dto/create-measurement-unit.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { calculatePagination } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Injectable()
 export class MeasurementUnitService {
@@ -48,8 +48,9 @@ export class MeasurementUnitService {
         where,
         select: {
           id: true,
-          name: true,
           code: true,
+          name: true,
+          updatedAt: true,
         },
       }),
       this.prisma.measurementUnit.count({
@@ -75,8 +76,8 @@ export class MeasurementUnitService {
       },
       select: {
         id: true,
-        name: true,
         code: true,
+        name: true,
       },
     });
   }
@@ -108,13 +109,12 @@ export class MeasurementUnitService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.MeasurementUnitWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.measurementUnit.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.measurementUnit.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -123,5 +123,7 @@ export class MeasurementUnitService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

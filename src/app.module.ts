@@ -40,7 +40,8 @@ import { WarehouseModule } from './warehouse/warehouse.module';
 import { StockModule } from './stock/stock.module';
 import { InventoryTransactionModule } from './inventory-transaction/inventory-transaction.module';
 import { GatewayModule } from './gateway/gateway.module';
-import { CommonService } from './common/common.service';
+import { OrderGateway } from './gateway/order.gateway';
+
 @Module({
   imports: [
     PrismaModule.forRoot({
@@ -94,10 +95,4 @@ import { CommonService } from './common/common.service';
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],
 })
-export class AppModule {
-  configure(consumer: MiddlewareConsumer) {
-    consumer
-      .apply(LoggerMiddleware)
-      .forRoutes({ path: 'measurement-unit', method: RequestMethod.POST });
-  }
-}
+export class AppModule {}

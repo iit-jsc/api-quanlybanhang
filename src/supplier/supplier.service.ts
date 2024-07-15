@@ -92,6 +92,7 @@ export class SupplierService {
               description: true,
             },
           },
+          updatedAt: true,
         },
       }),
       this.prisma.supplier.count({

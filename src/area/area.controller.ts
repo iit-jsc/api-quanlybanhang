@@ -107,9 +107,7 @@ export class AreaController {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.areaService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

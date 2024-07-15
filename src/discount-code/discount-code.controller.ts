@@ -82,9 +82,7 @@ export class DiscountCodeController {
 
     return this.discountCodeService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

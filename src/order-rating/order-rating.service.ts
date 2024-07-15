@@ -60,13 +60,12 @@ export class OrderRatingService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.OrderRatingWhereInput,
-    tokenPayload: TokenCustomerPayload,
-  ) {
-    return await this.prisma.orderRating.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenCustomerPayload) {
+    const count = await this.prisma.orderRating.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         order: {
           customer: {
             id: tokenPayload.customerId,
@@ -78,6 +77,8 @@ export class OrderRatingService {
         isPublic: false,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 
   async findAll(

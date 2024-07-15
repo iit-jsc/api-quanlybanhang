@@ -4,7 +4,7 @@ import {
   ProductsOrderDto,
   UpdatePromotionDto,
 } from './dto/promotion.dto';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
@@ -164,6 +164,7 @@ export class PromotionService {
                 photoURL: true,
               },
             },
+            updatedAt: true,
           }),
           _count: {
             select: { orders: true },
@@ -261,15 +262,14 @@ export class PromotionService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.PromotionWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     await this.prisma.promotionProduct.updateMany({
       where: {
         isPublic: true,
         promotion: {
-          ...where,
+          id: {
+            in: data.ids,
+          },
           isPublic: true,
           branchId: tokenPayload.branchId,
         },
@@ -283,7 +283,9 @@ export class PromotionService {
       where: {
         isPublic: true,
         promotion: {
-          ...where,
+          id: {
+            in: data.ids,
+          },
           isPublic: true,
           branchId: tokenPayload.branchId,
         },
@@ -293,9 +295,11 @@ export class PromotionService {
       },
     });
 
-    return this.prisma.promotion.updateMany({
+    const count = await this.prisma.promotion.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -304,5 +308,7 @@ export class PromotionService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

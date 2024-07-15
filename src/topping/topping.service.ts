@@ -4,7 +4,7 @@ import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { calculatePagination, generateUniqueId } from 'utils/Helps';
 import { CreateToppingDto } from './dto/create-topping.dto';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Injectable()
 export class ToppingService {
@@ -60,6 +60,7 @@ export class ToppingService {
           description: true,
           price: true,
           photoURLs: true,
+          updatedAt: true,
         },
       }),
       this.prisma.topping.count({
@@ -120,13 +121,12 @@ export class ToppingService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.ToppingWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.topping.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.topping.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -135,5 +135,7 @@ export class ToppingService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

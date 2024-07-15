@@ -6,7 +6,7 @@ import {
   CreateDiscountIssueDto,
   UpdateDiscountIssueDto,
 } from './dto/discount-issue.dto';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 
 @Injectable()
@@ -102,13 +102,12 @@ export class DiscountIssueService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.DiscountIssueWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    return this.prisma.discountIssue.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.discountIssue.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -117,5 +116,7 @@ export class DiscountIssueService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

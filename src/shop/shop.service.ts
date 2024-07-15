@@ -8,7 +8,7 @@ import { CustomHttpException } from 'utils/ApiErrors';
 import { AuthService } from 'src/auth/auth.service';
 import { TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { UpdateShopDto } from './dto/update-shop.dto';
 import { calculatePagination } from 'utils/Helps';
 
@@ -174,10 +174,12 @@ export class ShopService {
     });
   }
 
-  async deleteMany(where: Prisma.ShopWhereInput, tokenPayload: TokenPayload) {
-    return this.prisma.shop.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.shop.updateMany({
       where: {
-        id: where.id,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branches: {
           some: {
@@ -195,6 +197,8 @@ export class ShopService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 
   async findUniq(

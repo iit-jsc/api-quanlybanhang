@@ -11,7 +11,7 @@ import {
 } from 'enums/common.enum';
 import { InventoryTransactionDetail, Prisma } from '@prisma/client';
 import { CustomHttpException } from 'utils/ApiErrors';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { calculatePagination } from 'utils/Helps';
 
 @Injectable()
@@ -266,6 +266,7 @@ export class InventoryTransactionService {
               },
             },
           },
+          updatedAt: true,
         },
       }),
       this.prisma.inventoryTransaction.count({
@@ -344,14 +345,13 @@ export class InventoryTransactionService {
     });
   }
 
-  async deleteMany(
-    where: Prisma.InventoryTransactionWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     const processedInventories =
       await this.prisma.inventoryTransaction.findMany({
         where: {
-          ...where,
+          id: {
+            in: data.ids,
+          },
           isPublic: true,
           branchId: tokenPayload.branchId,
           status: INVENTORY_TRANSACTION_STATUS.PROCESSED,
@@ -364,7 +364,9 @@ export class InventoryTransactionService {
 
     const count = await this.prisma.inventoryTransaction.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         status: INVENTORY_TRANSACTION_STATUS.DRAFT,
         isPublic: true,
         branchId: tokenPayload.branchId,
@@ -375,6 +377,6 @@ export class InventoryTransactionService {
       },
     });
 
-    return { ...count, processedInventories };
+    return { ...count, ids: data.ids, processedInventories };
   }
 }

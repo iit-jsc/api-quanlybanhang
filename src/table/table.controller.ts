@@ -109,9 +109,7 @@ export class TableController {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.tableService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

@@ -946,10 +946,10 @@ model PhoneVerification {
   createdAt DateTime @default(now())
 }
 
-model Socket {
-  id        String   @id @default(uuid())
-  socketId  String
+model AccountSocket {
+  socketId  String   @unique
   branchId  String
   shopId    String
+  accountId String
   createdAt DateTime @default(now())
 }

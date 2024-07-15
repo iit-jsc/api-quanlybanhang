@@ -5,7 +5,7 @@ import { UserService } from 'src/user/user.service';
 import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from 'nestjs-prisma';
-import { FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CommonService } from 'src/common/common.service';
 
 @Injectable()
@@ -67,6 +67,7 @@ export class BranchService {
           name: true,
           address: true,
           createdAt: true,
+          updatedAt: true,
         },
       }),
       this.prisma.branch.count({
@@ -140,10 +141,12 @@ export class BranchService {
     });
   }
 
-  async deleteMany(where: Prisma.BranchWhereInput, tokenPayload: TokenPayload) {
-    return this.prisma.branch.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.branch.updateMany({
       where: {
-        ...where,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         shop: {
           id: tokenPayload.shopId,
@@ -160,5 +163,7 @@ export class BranchService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 }

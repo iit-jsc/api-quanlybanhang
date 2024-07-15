@@ -112,9 +112,7 @@ export class InventoryTransactionController {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.inventoryTransactionService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

@@ -33,12 +33,16 @@ import { calculatePagination, generateSortCode } from 'utils/Helps';
 import { CustomHttpException } from 'utils/ApiErrors';
 import { SaveOrderDto } from './dto/save-order.dto';
 import { DISCOUNT_TYPE, PROMOTION_TYPE } from 'enums/common.enum';
+import { OrderGateway } from 'src/gateway/order.gateway';
+import { TableGateway } from 'src/gateway/table.gateway';
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
+    private readonly orderGateway: OrderGateway,
+    private readonly tableGateway: TableGateway,
   ) {}
 
   async getOrderDetails(
@@ -261,7 +265,7 @@ export class OrderService {
 
     const orderDetails = await this.getOrderDetails(
       data.orderProducts,
-      DETAIL_ORDER_STATUS.DONE,
+      DETAIL_ORDER_STATUS.SUCCESS,
       tokenPayload,
     );
 
@@ -280,17 +284,18 @@ export class OrderService {
       );
 
     return await this.prisma.$transaction(async (prisma) => {
-      await prisma.discountCode.update({
-        where: {
-          branchId_code: {
-            branchId: tokenPayload.branchId,
-            code: data.discountCode,
+      if (data.discountCode)
+        await prisma.discountCode.update({
+          where: {
+            branchId_code: {
+              branchId: tokenPayload.branchId,
+              code: data.discountCode,
+            },
           },
-        },
-        data: { isUsed: true, updatedBy: tokenPayload.accountId },
-      });
+          data: { isUsed: true, updatedBy: tokenPayload.accountId },
+        });
 
-      return await prisma.order.create({
+      const order = await prisma.order.create({
         data: {
           note: data.note,
           orderType: ORDER_TYPE.OFFLINE,
@@ -365,6 +370,12 @@ export class OrderService {
           },
         },
       });
+
+      // Gửi socket
+
+      await this.orderGateway.handleModifyOrder(order);
+
+      return order;
     });
   }
 
@@ -378,7 +389,7 @@ export class OrderService {
       tokenPayload,
     );
 
-    return await this.prisma.table.update({
+    const table = await this.prisma.table.update({
       where: { id: data.tableId },
       data: {
         orderDetails: {
@@ -391,6 +402,11 @@ export class OrderService {
         orderDetails: true,
       },
     });
+
+    // Bắn socket cho các người dùng
+    await this.tableGateway.handleModifyTable(table);
+
+    return table;
   }
 
   async createOrderToTableByCustomer(data: CreateOrderToTableByCustomerDto) {
@@ -400,7 +416,7 @@ export class OrderService {
       { branchId: data.branchId },
     );
 
-    return await this.prisma.table.update({
+    const table = await this.prisma.table.update({
       where: { id: data.tableId },
       data: {
         orderDetails: {
@@ -413,6 +429,12 @@ export class OrderService {
         orderDetails: true,
       },
     });
+
+    // Bắn socket cho các người dùng
+
+    await this.tableGateway.handleModifyTable(table);
+
+    return table;
   }
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
@@ -450,16 +472,18 @@ export class OrderService {
     );
 
     return await this.prisma.$transaction(async (prisma) => {
-      await prisma.discountCode.update({
-        where: {
-          branchId_code: {
-            branchId: data.branchId,
-            code: data.discountCode,
+      if (data.discountCode)
+        await prisma.discountCode.update({
+          where: {
+            branchId_code: {
+              branchId: data.branchId,
+              code: data.discountCode,
+            },
           },
-        },
-        data: { isUsed: true },
-      });
-      return this.prisma.order.create({
+          data: { isUsed: true },
+        });
+
+      const order = await this.prisma.order.create({
         data: {
           promotionValue,
           discountValue,
@@ -504,6 +528,12 @@ export class OrderService {
           },
         },
       });
+
+      // Gửi socket
+
+      await this.orderGateway.handleModifyOrder(order);
+
+      return order;
     });
   }
 
@@ -515,7 +545,8 @@ export class OrderService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-    return await this.prisma.orderDetail.update({
+
+    const orderDetail = await this.prisma.orderDetail.update({
       where: {
         id: where.id,
         branch: {
@@ -531,7 +562,15 @@ export class OrderService {
         status: data.status,
         updatedBy: tokenPayload.accountId,
       },
+      include: {
+        order: true,
+      },
     });
+
+    // Gửi socket
+    await this.orderGateway.handleModifyOrder(orderDetail.order);
+
+    return orderDetail;
   }
 
   async paymentFromTable(
@@ -544,7 +583,7 @@ export class OrderService {
           code: data.code || generateSortCode(),
           note: data.note,
           orderType: ORDER_TYPE.OFFLINE,
-          orderStatus: DETAIL_ORDER_STATUS.DONE,
+          orderStatus: ORDER_STATUS_COMMON.SUCCESS,
           paymentMethod: data.paymentMethod,
           isPaid: true,
           ...(data.customerId && {
@@ -583,7 +622,7 @@ export class OrderService {
         where: {
           isPublic: true,
           status: {
-            not: DETAIL_ORDER_STATUS.DONE,
+            not: DETAIL_ORDER_STATUS.SUCCESS,
           },
           table: {
             isPublic: true,
@@ -886,6 +925,7 @@ export class OrderService {
             },
           },
           createdAt: true,
+          updatedAt: true,
         },
       }),
       this.prisma.order.count({
