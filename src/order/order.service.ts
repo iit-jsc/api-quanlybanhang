@@ -1011,11 +1011,11 @@ export class OrderService {
     });
   }
 
-  async deleteMany(deleteManyDto: DeleteManyDto, tokenPayload: TokenPayload) {
-    return await this.prisma.order.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.order.updateMany({
       where: {
         id: {
-          in: deleteManyDto.ids,
+          in: data.ids,
         },
         branch: { isPublic: true, id: tokenPayload.branchId },
       },
@@ -1024,6 +1024,8 @@ export class OrderService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return { ...count, ids: data.ids };
   }
 
   async findAllByCustomer(

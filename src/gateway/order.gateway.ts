@@ -1,11 +1,9 @@
 import { UseGuards } from '@nestjs/common';
 import { WebSocketGateway } from '@nestjs/websockets';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenPayload } from 'interfaces/common.interface';
 import { PrismaService } from 'nestjs-prisma';
 import { Order } from '@prisma/client';
-import { BaseGateway } from './base.gateway'; // Import BaseGateway
-
+import { BaseGateway } from './base.gateway';
 @UseGuards(JwtAuthGuard)
 @WebSocketGateway()
 export class OrderGateway extends BaseGateway {

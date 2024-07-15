@@ -153,7 +153,7 @@ export class ManagerService {
     });
   }
 
-  async remove(where: Prisma.UserWhereUniqueInput, tokenPayload: TokenPayload) {
+  async delete(where: Prisma.UserWhereUniqueInput, tokenPayload: TokenPayload) {
     return await this.prisma.$transaction(async (prisma) => {
       const user = await prisma.user.update({
         where: {
