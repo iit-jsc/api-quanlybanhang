@@ -14,10 +14,6 @@ export class PaymentFromTableDto {
   note: string;
 
   @IsOptional()
-  @IsString()
-  code: string;
-
-  @IsOptional()
   @IsNumber()
   paymentMethod: number;
 

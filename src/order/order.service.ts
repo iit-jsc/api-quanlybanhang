@@ -481,13 +481,6 @@ export class OrderService {
     let promotionValue = 0;
     let discountValue = 0;
 
-    if (data.customerId)
-      await this.commonService.checkDataExistingInShop(
-        { customerId: data.customerId },
-        "Customer",
-        tokenPayload.shopId,
-      );
-
     const newOrder = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const orderDetails = await this.getOrderDetailsInTable(data.tableId, prisma);
 
@@ -515,7 +508,7 @@ export class OrderService {
 
       const order = await prisma.order.create({
         data: {
-          code: data.code || generateSortCode(),
+          code: generateSortCode(),
           note: data.note,
           orderType: ORDER_TYPE.OFFLINE,
           orderStatus: ORDER_STATUS_COMMON.SUCCESS,
