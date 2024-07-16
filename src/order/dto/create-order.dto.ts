@@ -42,13 +42,17 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsBoolean()
-  isPaid: Boolean = false;
+  isPaid: boolean = false;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
   @ValidateNested({ each: true })
   @Type(() => OrderProducts)
   orderProducts: OrderProducts[];
+
+  @IsOptional()
+  @IsNumber()
+  exchangePoint: number;
 }
 
 export class OrderProducts {

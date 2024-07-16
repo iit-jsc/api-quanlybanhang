@@ -1,12 +1,12 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { DETAIL_ORDER_STATUS } from 'enums/order.enum';
-import { AnyObject } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { permission } from 'process';
-import { CreateCustomerDto } from 'src/customer/dto/create-customer.dto';
-import { ConfirmPhoneDto } from 'src/shop/dto/confirm-phone.dto';
-import { CustomHttpException } from 'utils/ApiErrors';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { DETAIL_ORDER_STATUS } from "enums/order.enum";
+import { AnyObject } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { permission } from "process";
+import { CreateCustomerDto } from "src/customer/dto/create-customer.dto";
+import { ConfirmPhoneDto } from "src/shop/dto/confirm-phone.dto";
+import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
 export class CommonService {
@@ -66,11 +66,7 @@ export class CommonService {
     });
   }
 
-  async findByIdWithBranch(
-    id: string,
-    model: Prisma.ModelName,
-    branchId: string,
-  ) {
+  async findByIdWithBranch(id: string, model: Prisma.ModelName, branchId: string) {
     return this.prisma[model].findFirstOrThrow({
       where: {
         isPublic: true,
@@ -154,11 +150,7 @@ export class CommonService {
       },
     });
 
-    if (!table)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        '#1 checkTableIsReady - Bàn này không sẵn sàng!',
-      );
+    if (!table) throw new CustomHttpException(HttpStatus.CONFLICT, "#1 checkTableIsReady - Bàn này không sẵn sàng!");
   }
 
   async confirmOTP(data: ConfirmPhoneDto) {
@@ -185,12 +177,7 @@ export class CommonService {
     // });
   }
 
-  async checkDataExistingInBranch<T extends AnyObject>(
-    data: T,
-    model: string,
-    branchId: string,
-    id?: string,
-  ) {
+  async checkDataExistingInBranch<T extends AnyObject>(data: T, model: string, branchId: string, id?: string) {
     let conflictingKeys: string[] = [];
 
     const result = await this.prisma[model].findFirst({
@@ -198,52 +185,42 @@ export class CommonService {
         isPublic: true,
         branchId: branchId,
         OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: 'insensitive' },
+          [key]: { equals: data[key], mode: "insensitive" },
         })),
       },
     });
 
     if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        (key) => result[key] === data[key],
-      );
+      conflictingKeys = Object.keys(data).filter((key) => result[key] === data[key]);
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        '#1 checkDataExistingInBranch - Dữ liệu đã tồn tại!',
-        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+        "#1 checkDataExistingInBranch - Dữ liệu đã tồn tại!",
+        conflictingKeys.map((key) => ({ [key]: "Dữ liệu đã được sử dụng!" })),
       );
     }
   }
 
-  async checkDataExistingInShop<T extends AnyObject>(
-    data: T,
-    model: string,
-    shopId: string,
-    id?: string,
-  ) {
+  async checkDataExistingInShop<T extends AnyObject>(data: T, model: string, shopId: string, id?: string) {
     let conflictingKeys: string[] = [];
-    console.log(model, data);
 
     const result = await this.prisma[model].findFirst({
       where: {
         isPublic: true,
         shopId: shopId,
         OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: 'insensitive' },
+          [key]: { equals: data[key], mode: "insensitive" },
         })),
       },
     });
 
     if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        (key) => result[key] === data[key],
-      );
+      conflictingKeys = Object.keys(data).filter((key) => result[key] === data[key]);
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        '#1 checkDataExistingInShop - Dữ liệu đã tồn tại!',
-        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+        "#1 checkDataExistingInShop - Dữ liệu đã tồn tại!",
+        conflictingKeys.map((key) => ({ [key]: "Dữ liệu đã được sử dụng!" })),
       );
     }
   }
@@ -263,18 +240,14 @@ export class CommonService {
     // return `IIT${nextNumber}`;
   }
 
-  async checkAccountExisting<T extends AnyObject>(
-    data: T,
-    shopId: string,
-    id?: string,
-  ) {
+  async checkAccountExisting<T extends AnyObject>(data: T, shopId: string, id?: string) {
     let conflictingKeys: string[] = [];
 
     const result = await this.prisma.account.findFirst({
       where: {
         isPublic: true,
         OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: 'insensitive' },
+          [key]: { equals: data[key], mode: "insensitive" },
         })),
         branches: {
           some: {
@@ -285,30 +258,24 @@ export class CommonService {
     });
 
     if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        (key) => result[key] === data[key],
-      );
+      conflictingKeys = Object.keys(data).filter((key) => result[key] === data[key]);
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        '#1 checkAccountExisting - Dữ liệu đã tồn tại!',
-        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+        "#1 checkAccountExisting - Dữ liệu đã tồn tại!",
+        conflictingKeys.map((key) => ({ [key]: "Dữ liệu đã được sử dụng!" })),
       );
     }
   }
 
-  async checkUserExisting<T extends AnyObject>(
-    data: T,
-    shopId: string,
-    id?: string,
-  ) {
+  async checkUserExisting<T extends AnyObject>(data: T, shopId: string, id?: string) {
     let conflictingKeys: string[] = [];
 
     const result = await this.prisma.user.findFirst({
       where: {
         isPublic: true,
         OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: 'insensitive' },
+          [key]: { equals: data[key], mode: "insensitive" },
         })),
         account: {
           branches: {
@@ -321,15 +288,29 @@ export class CommonService {
     });
 
     if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        (key) => result[key] === data[key],
-      );
+      conflictingKeys = Object.keys(data).filter((key) => result[key] === data[key]);
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        '#1 checkUserExisting - Dữ liệu đã tồn tại!',
-        conflictingKeys.map((key) => ({ [key]: 'Dữ liệu đã được sử dụng!' })),
+        "#1 checkUserExisting - Dữ liệu đã tồn tại!",
+        conflictingKeys.map((key) => ({ [key]: "Dữ liệu đã được sử dụng!" })),
       );
     }
+  }
+
+  async checkOrderChange(orderId: string) {
+    const order = await this.prisma.order.findFirst({
+      where: {
+        id: orderId,
+        isPaid: true,
+      },
+      select: { id: true },
+    });
+
+    if (order)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        "#1 checkOrderChange - Đơn hàng này không thể cập nhật vì đã thanh toán!",
+      );
   }
 }

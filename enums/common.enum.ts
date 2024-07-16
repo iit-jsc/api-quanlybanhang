@@ -37,3 +37,8 @@ export const INVENTORY_TRANSACTION_STATUS = {
   DRAFT: 1,
   PROCESSED: 2,
 };
+
+export const POINT_TYPE = {
+  ADD: 1,
+  EXCHANGE: 2,
+};

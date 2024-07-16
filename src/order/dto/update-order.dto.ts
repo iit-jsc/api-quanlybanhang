@@ -1,11 +1,5 @@
-import { Type } from 'class-transformer';
-import {
-  IsBoolean,
-  IsDate,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
+import { Type } from "class-transformer";
+import { IsBoolean, IsDate, IsNumber, IsOptional, IsString } from "class-validator";
 
 export class UpdateOrderDto {
   @IsOptional()
@@ -32,4 +26,8 @@ export class UpdateOrderDto {
   @IsDate()
   @Type(() => Date)
   cancelDate: Date;
+
+  @IsOptional()
+  @IsNumber()
+  exchangePoint: number;
 }

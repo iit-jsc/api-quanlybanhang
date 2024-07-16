@@ -1,40 +1,26 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreateOrderDto, OrderProducts } from './dto/create-order.dto';
-import {
-  PromotionCountOrder,
-  TokenCustomerPayload,
-  TokenPayload,
-} from 'interfaces/common.interface';
-import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
-import { CreateOrderToTableDto } from './dto/create-order-to-table.dto';
-import {
-  OrderDetail,
-  Prisma,
-  Product,
-  Promotion,
-  Topping,
-} from '@prisma/client';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { PaymentFromTableDto } from './dto/payment-order-from-table.dto';
-import { UpdateOrderProductDto } from './dto/update-order-detail.dto';
-import { CombineTableDto } from './dto/combine-table.dto';
-import { FindManyDto, DeleteManyDto } from 'utils/Common.dto';
-import { SeparateTableDto } from './dto/separate-table.dto';
-import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto';
-import { PrismaService } from 'nestjs-prisma';
-import { CommonService } from 'src/common/common.service';
-import {
-  DETAIL_ORDER_STATUS,
-  ORDER_STATUS_COMMON,
-  ORDER_TYPE,
-  TRANSACTION_TYPE,
-} from 'enums/order.enum';
-import { calculatePagination, generateSortCode } from 'utils/Helps';
-import { CustomHttpException } from 'utils/ApiErrors';
-import { SaveOrderDto } from './dto/save-order.dto';
-import { DISCOUNT_TYPE, PROMOTION_TYPE } from 'enums/common.enum';
-import { OrderGateway } from 'src/gateway/order.gateway';
-import { TableGateway } from 'src/gateway/table.gateway';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { CreateOrderDto, OrderProducts } from "./dto/create-order.dto";
+import { PromotionCountOrder, TokenCustomerPayload, TokenPayload, AnyObject } from "interfaces/common.interface";
+import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
+import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
+import { OrderDetail, Prisma, PrismaClient, Product, Promotion, Topping } from "@prisma/client";
+import { UpdateOrderDto } from "./dto/update-order.dto";
+import { PaymentFromTableDto } from "./dto/payment-order-from-table.dto";
+import { UpdateOrderProductDto } from "./dto/update-order-detail.dto";
+import { CombineTableDto } from "./dto/combine-table.dto";
+import { FindManyDto, DeleteManyDto } from "utils/Common.dto";
+import { SeparateTableDto } from "./dto/separate-table.dto";
+import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-customer.dto";
+import { PrismaService } from "nestjs-prisma";
+import { CommonService } from "src/common/common.service";
+import { DETAIL_ORDER_STATUS, ORDER_STATUS_COMMON, ORDER_TYPE, TRANSACTION_TYPE } from "enums/order.enum";
+import { calculatePagination, generateSortCode } from "utils/Helps";
+import { CustomHttpException } from "utils/ApiErrors";
+import { SaveOrderDto } from "./dto/save-order.dto";
+import { DISCOUNT_TYPE, PROMOTION_TYPE } from "enums/common.enum";
+import { OrderGateway } from "src/gateway/order.gateway";
+import { TableGateway } from "src/gateway/table.gateway";
+import { PointAccumulationService } from "src/point-accumulation/point-accumulation.service";
 
 @Injectable()
 export class OrderService {
@@ -43,25 +29,22 @@ export class OrderService {
     private commonService: CommonService,
     private readonly orderGateway: OrderGateway,
     private readonly tableGateway: TableGateway,
+    private readonly pointAccumulationService: PointAccumulationService,
   ) {}
 
-  async getOrderDetails(
-    orderProducts: OrderProducts[],
-    status?: number,
-    tokenPayload?: TokenPayload,
-  ) {
+  async getOrderDetails(orderProducts: OrderProducts[], status?: number, tokenPayload?: TokenPayload) {
     return await Promise.all(
       orderProducts.map(async (product) => {
         const productExist = (await this.commonService.findByIdWithBranch(
           product.productId,
-          'Product',
+          "Product",
           tokenPayload.branchId,
         )) as Product;
 
         const toppingExist = product.toppingId
           ? ((await this.commonService.findByIdWithBranch(
               product.toppingId,
-              'Topping',
+              "Topping",
               tokenPayload.branchId,
             )) as Topping)
           : null;
@@ -83,11 +66,7 @@ export class OrderService {
     );
   }
 
-  async getMatchPromotion(
-    promotionId: string,
-    orderProducts: OrderProducts[],
-    branchId: string,
-  ): Promise<Promotion> {
+  async getMatchPromotion(promotionId: string, orderProducts: OrderProducts[], branchId: string): Promise<Promotion> {
     const matchPromotions = await this.prisma.promotion.findMany({
       where: {
         isPublic: true,
@@ -144,35 +123,19 @@ export class OrderService {
       },
     });
 
-    const matchPromotion = matchPromotions.find(
-      (promotion) => promotion.id === promotionId,
-    );
+    const matchPromotion = matchPromotions.find((promotion) => promotion.id === promotionId);
 
     if (!matchPromotion)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        '#1 getPromotionValue - Khuyến mãi không hợp lệ!',
-      );
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 getPromotionValue - Khuyến mãi không hợp lệ!");
 
     if (matchPromotion._count.orders >= matchPromotion.amount)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        '#2 getPromotionValue - Số lượng đã hết!',
-      );
+      throw new CustomHttpException(HttpStatus.CONFLICT, "#2 getPromotionValue - Số lượng đã hết!");
 
     return matchPromotion as PromotionCountOrder;
   }
 
-  async getPromotionValue(
-    promotionId: string,
-    orderDetails: OrderDetail[],
-    branchId: string,
-  ) {
-    const matchPromotion = await this.getMatchPromotion(
-      promotionId,
-      orderDetails,
-      branchId,
-    );
+  async getPromotionValue(promotionId: string, orderDetails: OrderDetail[], branchId: string) {
+    const matchPromotion = await this.getMatchPromotion(promotionId, orderDetails, branchId);
 
     if (matchPromotion.type == PROMOTION_TYPE.GIFT) return 0;
 
@@ -187,17 +150,12 @@ export class OrderService {
 
   getTotalInOrder(orderDetails: OrderDetail[]) {
     return orderDetails.reduce(
-      (total, order) =>
-        total + order.amount * (order.productPrice + (order.toppingPrice || 0)),
+      (total, order) => total + order.amount * (order.productPrice + (order.toppingPrice || 0)),
       0,
     );
   }
 
-  async getDiscountValue(
-    orderDetails: OrderDetail[],
-    code: string,
-    branchId: string,
-  ) {
+  async getDiscountValue(orderDetails: OrderDetail[], code: string, branchId: string) {
     const discountIssue = await this.prisma.discountIssue.findFirst({
       where: {
         isPublic: true,
@@ -232,20 +190,16 @@ export class OrderService {
     if (!discountIssue)
       throw new CustomHttpException(
         HttpStatus.NOT_FOUND,
-        '#1 getDiscountValue - Mã giảm giá không tồn tại hoặc đã hết hạn!',
+        "#1 getDiscountValue - Mã giảm giá không tồn tại hoặc đã hết hạn!",
       );
 
     const total = this.getTotalInOrder(orderDetails);
 
     if (discountIssue.minTotalOrder && discountIssue.minTotalOrder > total)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        '#2 getDiscountValue - Giá trị đơn hàng chưa đủ điều kiện!',
-      );
+      throw new CustomHttpException(HttpStatus.CONFLICT, "#2 getDiscountValue - Giá trị đơn hàng chưa đủ điều kiện!");
 
     if (discountIssue.type == DISCOUNT_TYPE.PERCENT) {
-      const discountTotal =
-        (this.getTotalInOrder(orderDetails) * discountIssue.value) / 100;
+      const discountTotal = (this.getTotalInOrder(orderDetails) * discountIssue.value) / 100;
 
       return Math.min(discountTotal, discountIssue.maxValue);
     }
@@ -257,33 +211,17 @@ export class OrderService {
     let promotionValue = 0;
     let discountValue = 0;
 
-    await this.commonService.checkDataExistingInBranch(
-      { code: data.code },
-      'Order',
-      tokenPayload.branchId,
-    );
+    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Order", tokenPayload.branchId);
 
-    const orderDetails = await this.getOrderDetails(
-      data.orderProducts,
-      DETAIL_ORDER_STATUS.SUCCESS,
-      tokenPayload,
-    );
+    const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.SUCCESS, tokenPayload);
 
     if (data.promotionId)
-      promotionValue = await this.getPromotionValue(
-        data.promotionId,
-        orderDetails,
-        tokenPayload.branchId,
-      );
+      promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, tokenPayload.branchId);
 
     if (data.discountCode)
-      discountValue = await this.getDiscountValue(
-        orderDetails,
-        data.discountCode,
-        tokenPayload.branchId,
-      );
+      discountValue = await this.getDiscountValue(orderDetails, data.discountCode, tokenPayload.branchId);
 
-    return await this.prisma.$transaction(async (prisma) => {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       if (data.discountCode)
         await prisma.discountCode.update({
           where: {
@@ -295,6 +233,11 @@ export class OrderService {
           data: { isUsed: true, updatedBy: tokenPayload.accountId },
         });
 
+      const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
+        data.exchangePoint,
+        tokenPayload.shopId,
+      );
+
       const order = await prisma.order.create({
         data: {
           note: data.note,
@@ -302,8 +245,11 @@ export class OrderService {
           orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
           code: data.code || generateSortCode(),
           paymentMethod: data.paymentMethod,
-          promotionValue: promotionValue,
-          discountValue: discountValue,
+          isPaid: data.isPaid,
+          promotionValue,
+          discountValue,
+          convertedPointValue,
+          usedPoint: data.exchangePoint,
           ...(data.promotionId && {
             promotion: {
               connect: {
@@ -371,23 +317,31 @@ export class OrderService {
         },
       });
 
-      // Gửi socket
+      // Xử lý tích điểm
+      if (data.customerId && data.isPaid) {
+        const totalInOrder = this.getTotalInOrder(orderDetails);
 
+        await Promise.all([
+          this.pointAccumulationService.handleAddPoint(data.customerId, order.id, totalInOrder, tokenPayload, prisma),
+          this.pointAccumulationService.handleExchangePoint(
+            data.customerId,
+            order.id,
+            data.exchangePoint,
+            tokenPayload,
+            prisma,
+          ),
+        ]);
+      }
+
+      // Gửi socket
       await this.orderGateway.handleModifyOrder(order);
 
       return order;
     });
   }
 
-  async createOrderToTableByEmployee(
-    data: CreateOrderToTableDto,
-    tokenPayload: TokenPayload,
-  ) {
-    const orderDetails = await this.getOrderDetails(
-      data.orderProducts,
-      DETAIL_ORDER_STATUS.APPROVED,
-      tokenPayload,
-    );
+  async createOrderToTableByEmployee(data: CreateOrderToTableDto, tokenPayload: TokenPayload) {
+    const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.APPROVED, tokenPayload);
 
     const table = await this.prisma.table.update({
       where: { id: data.tableId },
@@ -410,11 +364,9 @@ export class OrderService {
   }
 
   async createOrderToTableByCustomer(data: CreateOrderToTableByCustomerDto) {
-    const orderDetails = await this.getOrderDetails(
-      data.orderProducts,
-      DETAIL_ORDER_STATUS.WAITING,
-      { branchId: data.branchId },
-    );
+    const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.WAITING, {
+      branchId: data.branchId,
+    });
 
     const table = await this.prisma.table.update({
       where: { id: data.tableId },
@@ -441,25 +393,13 @@ export class OrderService {
     let promotionValue = 0;
     let discountValue = 0;
 
-    const orderDetails = await this.getOrderDetails(
-      data.orderProducts,
-      DETAIL_ORDER_STATUS.WAITING,
-      { branchId: data.branchId },
-    );
+    const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.WAITING, {
+      branchId: data.branchId,
+    });
 
-    if (data.promotionId)
-      promotionValue = await this.getPromotionValue(
-        data.promotionId,
-        orderDetails,
-        data.branchId,
-      );
+    if (data.promotionId) promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, data.branchId);
 
-    if (data.discountCode)
-      discountValue = await this.getDiscountValue(
-        orderDetails,
-        data.discountCode,
-        data.branchId,
-      );
+    if (data.discountCode) discountValue = await this.getDiscountValue(orderDetails, data.discountCode, data.branchId);
 
     const customer = await this.commonService.findOrCreateCustomer(
       {
@@ -537,47 +477,42 @@ export class OrderService {
     });
   }
 
-  async updateOrderDetail(
-    params: {
-      where: Prisma.OrderDetailWhereUniqueInput;
-      data: UpdateOrderProductDto;
-    },
-    tokenPayload: TokenPayload,
-  ) {
-    const { where, data } = params;
+  async paymentFromTable(data: PaymentFromTableDto, tokenPayload: TokenPayload) {
+    let promotionValue = 0;
+    let discountValue = 0;
 
-    const orderDetail = await this.prisma.orderDetail.update({
-      where: {
-        id: where.id,
-        branch: {
-          isPublic: true,
-          id: tokenPayload.branchId,
-        },
-      },
-      data: {
-        productId: data.productId,
-        toppingId: data.toppingId,
-        amount: data.amount,
-        note: data.note,
-        status: data.status,
-        updatedBy: tokenPayload.accountId,
-      },
-      include: {
-        order: true,
-      },
-    });
+    if (data.customerId)
+      await this.commonService.checkDataExistingInShop(
+        { customerId: data.customerId },
+        "Customer",
+        tokenPayload.shopId,
+      );
 
-    // Gửi socket
-    await this.orderGateway.handleModifyOrder(orderDetail.order);
+    const newOrder = await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const orderDetails = await this.getOrderDetailsInTable(data.tableId, prisma);
 
-    return orderDetail;
-  }
+      if (data.promotionId)
+        promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, tokenPayload.branchId);
 
-  async paymentFromTable(
-    data: PaymentFromTableDto,
-    tokenPayload: TokenPayload,
-  ) {
-    const newOrder = await this.prisma.$transaction(async (prisma) => {
+      if (data.discountCode)
+        discountValue = await this.getDiscountValue(orderDetails, data.discountCode, tokenPayload.branchId);
+
+      if (data.discountCode)
+        await prisma.discountCode.update({
+          where: {
+            branchId_code: {
+              branchId: tokenPayload.branchId,
+              code: data.discountCode,
+            },
+          },
+          data: { isUsed: true, updatedBy: tokenPayload.accountId },
+        });
+
+      const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
+        data.exchangePoint,
+        tokenPayload.shopId,
+      );
+
       const order = await prisma.order.create({
         data: {
           code: data.code || generateSortCode(),
@@ -586,6 +521,10 @@ export class OrderService {
           orderStatus: ORDER_STATUS_COMMON.SUCCESS,
           paymentMethod: data.paymentMethod,
           isPaid: true,
+          promotionValue: promotionValue,
+          discountValue: discountValue,
+          convertedPointValue,
+          usedPoint: data.exchangePoint,
           ...(data.customerId && {
             customer: {
               connect: {
@@ -614,42 +553,25 @@ export class OrderService {
         },
       });
 
-      const orderDetails = await prisma.orderDetail.updateMany({
-        data: {
-          tableId: null,
-          updatedBy: tokenPayload.accountId,
-        },
-        where: {
-          isPublic: true,
-          status: {
-            not: DETAIL_ORDER_STATUS.SUCCESS,
-          },
-          table: {
-            isPublic: true,
-            id: data.tableId,
-          },
-        },
-      });
+      // Xử lý tích điểm
+      if (data.customerId) {
+        const totalInOrder = this.getTotalInOrder(orderDetails);
 
-      await prisma.tableTransaction.updateMany({
-        data: {
-          isPublic: false,
-          updatedBy: tokenPayload.accountId,
-        },
-        where: {
-          isPublic: true,
-          table: {
-            isPublic: true,
-            id: data.tableId,
-          },
-        },
-      });
+        await Promise.all([
+          this.pointAccumulationService.handleAddPoint(data.customerId, order.id, totalInOrder, tokenPayload, prisma),
+          this.pointAccumulationService.handleExchangePoint(
+            data.customerId,
+            order.id,
+            data.exchangePoint,
+            tokenPayload,
+            prisma,
+          ),
+        ]);
+      }
 
-      if (orderDetails.count === 0)
-        throw new CustomHttpException(
-          HttpStatus.NOT_FOUND,
-          '#1 paymentFromTable - Không tìm thấy sản phẩm!',
-        );
+      await this.passOrderDetailToOrder(orderDetails, order.id, prisma, tokenPayload);
+
+      await this.deleteTableTransaction(data.tableId, prisma, tokenPayload);
 
       return order;
     });
@@ -666,28 +588,60 @@ export class OrderService {
   ) {
     const { where, data } = params;
 
-    return await this.prisma.order.update({
-      where: {
-        id: where.id,
-        branch: {
-          id: tokenPayload.branchId,
-          isPublic: true,
-        },
-      },
-      data: {
-        orderStatus: data.orderStatus,
-        note: data.note,
-        paymentMethod: data.paymentMethod,
-        isPaid: data.isPaid,
-        cancelReason: data.cancelReason,
-        cancelDate: data.cancelDate,
-        updater: {
-          connect: {
-            id: tokenPayload.accountId,
+    await this.commonService.checkOrderChange(where.id);
+
+    const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
+      data.exchangePoint,
+      tokenPayload.shopId,
+    );
+
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const order = await prisma.order.update({
+        where: {
+          id: where.id,
+          branch: {
+            id: tokenPayload.branchId,
             isPublic: true,
           },
         },
-      },
+        data: {
+          orderStatus: data.orderStatus,
+          note: data.note,
+          paymentMethod: data.paymentMethod,
+          isPaid: data.isPaid,
+          cancelReason: data.cancelReason,
+          cancelDate: data.cancelDate,
+          convertedPointValue,
+          usedPoint: data.exchangePoint,
+          updater: {
+            connect: {
+              id: tokenPayload.accountId,
+              isPublic: true,
+            },
+          },
+        },
+        include: {
+          orderDetails: true,
+        },
+      });
+
+      // Xử lý tích điểm
+      if (order.customerId) {
+        const totalInOrder = this.getTotalInOrder(order.orderDetails);
+
+        await Promise.all([
+          this.pointAccumulationService.handleAddPoint(order.customerId, order.id, totalInOrder, tokenPayload, prisma),
+          this.pointAccumulationService.handleExchangePoint(
+            order.customerId,
+            order.id,
+            data.exchangePoint,
+            tokenPayload,
+            prisma,
+          ),
+        ]);
+      }
+
+      return order;
     });
   }
 
@@ -832,17 +786,16 @@ export class OrderService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, customerId, from, to, orderTypes, isPaid } =
-      params;
+    let { skip, take, keyword, customerId, from, to, orderTypes, isPaid } = params;
 
-    const keySearch = ['code'];
+    const keySearch = ["code"];
 
     const where: Prisma.OrderWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
       ...(customerId && {
@@ -881,7 +834,7 @@ export class OrderService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         select: {
           id: true,
@@ -939,10 +892,7 @@ export class OrderService {
     };
   }
 
-  async findUniq(
-    where: Prisma.OrderWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.OrderWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.order.findFirstOrThrow({
       where: {
         id: where.id,
@@ -1012,10 +962,19 @@ export class OrderService {
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const ordersPaid = await this.prisma.order.findMany({
+      where: { id: { in: data.ids }, isPublic: true, isPaid: true },
+      select: { id: true },
+    });
+
+    const ordersPaidIds = ordersPaid.map((order) => order.id);
+
+    const idsToDelete = data.ids.filter((id) => !ordersPaidIds.includes(id));
+
     const count = await this.prisma.order.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: idsToDelete,
         },
         branch: { isPublic: true, id: tokenPayload.branchId },
       },
@@ -1025,23 +984,25 @@ export class OrderService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return {
+      ...count,
+      ids: data.ids,
+      deletedIds: idsToDelete,
+      notDeletedIds: ordersPaidIds,
+    };
   }
 
-  async findAllByCustomer(
-    params: FindManyDto,
-    tokenCustomerPayload: TokenCustomerPayload,
-  ) {
+  async findAllByCustomer(params: FindManyDto, tokenCustomerPayload: TokenCustomerPayload) {
     let { skip, take, keyword, from, to } = params;
 
-    const keySearch = ['code'];
+    const keySearch = ["code"];
 
     let where: Prisma.OrderWhereInput = {
       isPublic: true,
       customerId: tokenCustomerPayload.customerId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
       ...(from &&
@@ -1071,7 +1032,7 @@ export class OrderService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         select: {
           id: true,
@@ -1125,10 +1086,7 @@ export class OrderService {
     };
   }
 
-  async findUniqByCustomer(
-    where: Prisma.OrderWhereUniqueInput,
-    tokenCustomerPayload: TokenCustomerPayload,
-  ) {
+  async findUniqByCustomer(where: Prisma.OrderWhereUniqueInput, tokenCustomerPayload: TokenCustomerPayload) {
     return this.prisma.order.findFirstOrThrow({
       where: {
         id: where.id,
@@ -1172,5 +1130,50 @@ export class OrderService {
         },
       },
     });
+  }
+
+  async passOrderDetailToOrder(
+    orderDetails: OrderDetail[],
+    orderId: string,
+    prisma: PrismaClient,
+    tokenPayload: TokenPayload,
+  ) {
+    if (orderDetails.length <= 0)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        "#1 passOrderDetailToOrder - Không tìm thấy thông tin sản phẩm!",
+      );
+
+    const orderDetailIds = orderDetails?.map((orderDetail) => orderDetail.id);
+
+    return await prisma.orderDetail.updateMany({
+      data: {
+        tableId: null,
+        updatedBy: tokenPayload.accountId,
+        orderId: orderId,
+      },
+      where: {
+        id: {
+          in: orderDetailIds,
+        },
+        isPublic: true,
+      },
+    });
+  }
+
+  async deleteTableTransaction(tableId: string, prisma: PrismaClient, tokenPayload: TokenPayload) {
+    await prisma.tableTransaction.updateMany({
+      where: {
+        table: {
+          isPublic: true,
+          id: tableId,
+        },
+      },
+      data: { isPublic: true, updatedBy: tokenPayload.accountId },
+    });
+  }
+
+  async getOrderDetailsInTable(tableId: string, prisma: PrismaClient) {
+    return prisma.orderDetail.findMany({ where: { tableId, isPublic: true } });
   }
 }

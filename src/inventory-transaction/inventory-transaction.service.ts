@@ -362,10 +362,14 @@ export class InventoryTransactionService {
         },
       });
 
+    const notDeletedIds = processedInventories.map((inventory) => inventory.id);
+
+    const idsToDelete = data.ids.filter((id) => !notDeletedIds.includes(id));
+
     const count = await this.prisma.inventoryTransaction.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: idsToDelete,
         },
         status: INVENTORY_TRANSACTION_STATUS.DRAFT,
         isPublic: true,
@@ -377,6 +381,6 @@ export class InventoryTransactionService {
       },
     });
 
-    return { ...count, ids: data.ids, processedInventories };
+    return { ...count, ids: data.ids, notDeletedIds, idsToDelete };
   }
 }

@@ -1,11 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { CreateTableDto } from './dto/create-table.dto';
-import { PrismaService } from 'nestjs-prisma';
-import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { Prisma } from '@prisma/client';
-import { calculatePagination } from 'utils/Helps';
-import { CommonService } from 'src/common/common.service';
+import { Injectable } from "@nestjs/common";
+import { CreateTableDto } from "./dto/create-table.dto";
+import { PrismaService } from "nestjs-prisma";
+import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { Prisma } from "@prisma/client";
+import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
+import { DETAIL_ORDER_STATUS } from "enums/order.enum";
 
 @Injectable()
 export class TableService {
@@ -15,17 +16,9 @@ export class TableService {
   ) {}
 
   async create(data: CreateTableDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch(
-      { code: data.code },
-      'Table',
-      tokenPayload.branchId,
-    );
+    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Table", tokenPayload.branchId);
 
-    await this.commonService.findByIdWithBranch(
-      data.areaId,
-      'Area',
-      tokenPayload.branchId,
-    );
+    await this.commonService.findByIdWithBranch(data.areaId, "Area", tokenPayload.branchId);
 
     return await this.prisma.table.create({
       data: {
@@ -58,13 +51,13 @@ export class TableService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword, areaIds, statusOrderDetails } = params;
 
-    const keySearch = ['name', 'code'];
+    const keySearch = ["name", "code"];
 
     const where: Prisma.TableWhereInput = {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
       ...(areaIds?.length > 0 && {
@@ -97,22 +90,8 @@ export class TableService {
               photoURL: true,
             },
           },
-          orderDetails: {
-            select: {
-              id: true,
-              status: true,
-              productPrice: true,
-              toppingPrice: true,
-              amount: true,
-            },
-            where: {
-              ...(statusOrderDetails?.length > 0 && {
-                status: {
-                  in: statusOrderDetails,
-                },
-              }),
-              isPublic: true,
-            },
+          _count: {
+            select: { orderDetails: true },
           },
           updatedAt: true,
         },
@@ -128,10 +107,7 @@ export class TableService {
     };
   }
 
-  async findUniq(
-    where: Prisma.TableWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.TableWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.table.findUniqueOrThrow({
       where: {
         ...where,
@@ -162,6 +138,8 @@ export class TableService {
             amount: true,
             note: true,
             status: true,
+            productPrice: true,
+            toppingPrice: true,
             topping: {
               select: {
                 id: true,
@@ -234,19 +212,9 @@ export class TableService {
   ) {
     const { where, data } = params;
 
-    await this.commonService.checkDataExistingInBranch(
-      { code: data.code },
-      'Table',
-      tokenPayload.branchId,
-      where.id,
-    );
+    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Table", tokenPayload.branchId, where.id);
 
-    if (data.areaId)
-      await this.commonService.findByIdWithBranch(
-        data.areaId,
-        'Area',
-        tokenPayload.branchId,
-      );
+    if (data.areaId) await this.commonService.findByIdWithBranch(data.areaId, "Area", tokenPayload.branchId);
 
     return this.prisma.table.update({
       where: {

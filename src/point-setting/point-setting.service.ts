@@ -19,7 +19,6 @@ export class PointSettingService {
     return this.prisma.pointSetting.upsert({
       where: {
         shopId: tokenPayload.shopId,
-        isPublic: true,
       },
       create: {
         value: data.value,
@@ -41,7 +40,6 @@ export class PointSettingService {
     return this.prisma.pointSetting.findUniqueOrThrow({
       where: {
         shopId: tokenPayload.shopId,
-        isPublic: true,
       },
     });
   }

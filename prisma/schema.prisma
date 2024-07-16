@@ -111,7 +111,6 @@ model Account {
   updaterDiscountCode         DiscountCode[]         @relation("updater")
   updaterPointSetting         PointSetting[]         @relation("updater")
   updaterPointAccumulation    PointAccumulation[]    @relation("updater")
-  creatorPointHistory         PointHistory[]         @relation("creator")
   creatorStock                Stock[]                @relation("creator")
   updaterStock                Stock[]                @relation("updater")
   creatorInventoryTransaction InventoryTransaction[] @relation("creator")
@@ -196,11 +195,14 @@ model Shop {
 model PrintTemplate {
   id        String   @id @default(uuid())
   type      Int
+  isDefault Boolean? @default(false)
   content   String?  @db.Text
   shopId    String?
   shop      Shop?    @relation(fields: [shopId], references: [id])
   updatedBy String?
   updatedAt DateTime @updatedAt
+
+  @@unique([shopId, type])
 }
 
 model CurrencyUnit {
@@ -589,37 +591,39 @@ model PromotionProduct {
 }
 
 model Order {
-  id               String            @id @default(uuid())
-  branchId         String
-  customerId       String?
-  code             String
-  cancelReason     String?
-  cancelDate       DateTime?
-  transactionId    String?
-  note             String?
-  promotionValue   Float?            @default(0)
-  discountValue    Float?            @default(0)
-  orderType        Int
-  paymentMethod    Int?
-  isPaid           Boolean?          @default(false)
-  isSave           Boolean?          @default(false)
-  orderStatus      Int
-  isPublic         Boolean?          @default(true)
-  createdBy        String?
-  updatedBy        String?
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  branch           Branch            @relation(fields: [branchId], references: [id])
-  customer         Customer?         @relation(fields: [customerId], references: [id])
-  orderDetails     OrderDetail[]
-  deals            Deal[]
-  customerRequests CustomerRequest[]
-  orderRatings     OrderRating[]
-  creator          Account?          @relation("creator", fields: [createdBy], references: [id])
-  updater          Account?          @relation("updater", fields: [updatedBy], references: [id])
-  pointHistories   PointHistory[]
-  promotion        Promotion?        @relation(fields: [promotionId], references: [id])
-  promotionId      String?
+  id                  String            @id @default(uuid())
+  branchId            String
+  customerId          String?
+  code                String
+  cancelReason        String?
+  cancelDate          DateTime?
+  transactionId       String?
+  note                String?
+  promotionValue      Float?            @default(0)
+  discountValue       Float?            @default(0)
+  convertedPointValue Float?            @default(0)
+  usedPoint           Float?            @default(0)
+  orderType           Int
+  paymentMethod       Int?
+  isPaid              Boolean?          @default(false)
+  isSave              Boolean?          @default(false)
+  orderStatus         Int
+  isPublic            Boolean?          @default(true)
+  createdBy           String?
+  updatedBy           String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  branch              Branch            @relation(fields: [branchId], references: [id])
+  customer            Customer?         @relation(fields: [customerId], references: [id])
+  orderDetails        OrderDetail[]
+  deals               Deal[]
+  customerRequests    CustomerRequest[]
+  orderRatings        OrderRating[]
+  creator             Account?          @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?          @relation("updater", fields: [updatedBy], references: [id])
+  pointHistories      PointHistory[]
+  promotion           Promotion?        @relation(fields: [promotionId], references: [id])
+  promotionId         String?
 }
 
 model OrderDetail {
@@ -756,7 +760,6 @@ model PointSetting {
   point     Float
   value     Float
   active    Boolean
-  isPublic  Boolean? @default(true)
   updatedBy String?
   updater   Account? @relation("updater", fields: [updatedBy], references: [id])
   shop      Shop     @relation(fields: [shopId], references: [id])
@@ -782,9 +785,6 @@ model PointHistory {
   orderId    String
   point      Float
   type       Int
-  isPublic   Boolean? @default(true)
-  createdBy  String?
-  creator    Account? @relation("creator", fields: [createdBy], references: [id])
   createdAt  DateTime @default(now())
   customer   Customer @relation(fields: [customerId], references: [id])
   order      Order    @relation(fields: [orderId], references: [id])

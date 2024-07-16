@@ -79,28 +79,6 @@ export class OrderController {
     );
   }
 
-  @Patch('/detail/:id')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
-  updateOrderDetail(
-    @Body() updateOrderProductDto: UpdateOrderProductDto,
-    @Req() req: any,
-    @Param('id') id: string,
-  ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.orderService.updateOrderDetail(
-      {
-        where: {
-          id,
-        },
-        data: updateOrderProductDto,
-      },
-      tokenPayload,
-    );
-  }
-
   @Post('/payment-from-table')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)

@@ -41,6 +41,10 @@ import { StockModule } from './stock/stock.module';
 import { InventoryTransactionModule } from './inventory-transaction/inventory-transaction.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { OrderGateway } from './gateway/order.gateway';
+import { PrintTemplateModule } from './print-template/print-template.module';
+import { PointAccumulationModule } from './point-accumulation/point-accumulation.module';
+import { PointHistoryModule } from './point-history/point-history.module';
+import { OrderDetailModule } from './order-detail/order-detail.module';
 
 @Module({
   imports: [
@@ -91,6 +95,10 @@ import { OrderGateway } from './gateway/order.gateway';
     StockModule,
     InventoryTransactionModule,
     GatewayModule,
+    PrintTemplateModule,
+    PointAccumulationModule,
+    PointHistoryModule,
+    OrderDetailModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

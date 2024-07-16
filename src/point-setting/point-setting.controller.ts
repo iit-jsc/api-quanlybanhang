@@ -11,10 +11,6 @@ import {
 } from '@nestjs/common';
 import { PointSettingService } from './point-setting.service';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { RolesGuard } from 'guards/roles.guard';
-import { Roles } from 'guards/roles.decorator';
-import { SPECIAL_ROLE } from 'enums/common.enum';
-import { CreatePermissionDto } from 'src/permission/dto/create-permission.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { UpdatePointSettingDto } from './dto/point-setting.dto';
 
