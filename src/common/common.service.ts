@@ -160,21 +160,17 @@ export class CommonService {
         phone: data.phone,
         isUsed: false,
         createdAt: {
-          gt: new Date(Date.now() - 60 * 1000),
+          gt: new Date(Date.now() - 120 * 1000),
         },
       },
     });
 
-    // if (!otp)
-    //   throw new CustomHttpException(
-    //     HttpStatus.BAD_REQUEST,
-    //     '#1 confirmOTP - Mã OTP không hợp lệ!',
-    //   );
+    if (!otp) throw new CustomHttpException(HttpStatus.BAD_REQUEST, "#1 confirmOTP - Mã OTP không hợp lệ!");
 
-    // await this.prisma.phoneVerification.update({
-    //   where: { id: otp.id },
-    //   data: { isUsed: true },
-    // });
+    await this.prisma.phoneVerification.update({
+      where: { id: otp.id },
+      data: { isUsed: true },
+    });
   }
 
   async checkDataExistingInBranch<T extends AnyObject>(data: T, model: string, branchId: string, id?: string) {

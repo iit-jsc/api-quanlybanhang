@@ -1,29 +1,20 @@
-import { FirebaseService } from './../firebase/firebase.service';
-import {
-  LoginDto,
-  LoginForCustomerDto,
-  LoginForManagerDto,
-  LoginForStaffDto,
-} from './dto/login.dto';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import * as bcrypt from 'bcrypt';
-import * as admin from 'firebase-admin';
-import { JwtService } from '@nestjs/jwt';
-import { mapResponseLogin } from 'map-responses/account.map-response';
-import { CustomHttpException } from 'utils/ApiErrors';
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
-import { AccessBranchDto } from './dto/access-branch.dto';
-import {
-  TokenCustomerPayload,
-  TokenPayload,
-} from 'interfaces/common.interface';
-import { CommonService } from 'src/common/common.service';
-import { VerifyPhoneDto } from 'src/shop/dto/verify-phone.dto';
-import { ChangePasswordDto } from './dto/change-password.dto';
-import { ChangeAvatarDto } from './dto/change-information.dto';
-const https = require('https');
-const Buffer = require('buffer').Buffer;
+import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto } from "./dto/login.dto";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import * as bcrypt from "bcrypt";
+import { JwtService } from "@nestjs/jwt";
+import { mapResponseLogin } from "map-responses/account.map-response";
+import { CustomHttpException } from "utils/ApiErrors";
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
+import { AccessBranchDto } from "./dto/access-branch.dto";
+import { TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
+import { CommonService } from "src/common/common.service";
+import { VerifyPhoneDto } from "src/shop/dto/verify-phone.dto";
+import { ChangePasswordDto } from "./dto/change-password.dto";
+import { ChangeAvatarDto } from "./dto/change-information.dto";
+import { TransporterService } from "src/transporter/transporter.service";
+const https = require("https");
+const Buffer = require("buffer").Buffer;
 
 @Injectable()
 export class AuthService {
@@ -31,6 +22,7 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private jwtService: JwtService,
     private commonService: CommonService,
+    private transporterService: TransporterService,
   ) {}
 
   async loginForStaff(data: LoginForStaffDto) {
@@ -63,15 +55,12 @@ export class AuthService {
     if (!account || !(await bcrypt.compare(data.password, account.password))) {
       throw new CustomHttpException(
         HttpStatus.UNAUTHORIZED,
-        '#1 loginForStaff - Tài khoản hoặc mật khẩu không chính xác!',
+        "#1 loginForStaff - Tài khoản hoặc mật khẩu không chính xác!",
       );
     }
 
     if (account.status == ACCOUNT_STATUS.INACTIVE) {
-      throw new CustomHttpException(
-        HttpStatus.FORBIDDEN,
-        '#2 loginForStaff - Tài khoản đã bị khóa!',
-      );
+      throw new CustomHttpException(HttpStatus.FORBIDDEN, "#2 loginForStaff - Tài khoản đã bị khóa!");
     }
 
     const shops = await this.commonService.findManyShopByAccountId(account.id);
@@ -80,7 +69,7 @@ export class AuthService {
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: '24h',
+        expiresIn: "1000h",
       }),
       shops,
     };
@@ -108,43 +97,39 @@ export class AuthService {
         },
       });
 
-      if (
-        !account ||
-        !account.password ||
-        !(await bcrypt.compare(data.password, account.password))
-      ) {
+      if (!account || !account.password || !(await bcrypt.compare(data.password, account.password))) {
         throw new CustomHttpException(
           HttpStatus.UNAUTHORIZED,
-          '#1 loginForManager - Tài khoản hoặc mật khẩu không chính xác!',
+          "#1 loginForManager - Tài khoản hoặc mật khẩu không chính xác!",
         );
       }
     }
 
-    if (!data.password) {
-      account = await this.prisma.account.findFirst({
-        where: {
-          isPublic: true,
-          username: {
-            equals: data.phone,
-          },
-          status: ACCOUNT_STATUS.ACTIVE,
-          OR: [
-            {
-              type: ACCOUNT_TYPE.MANAGER,
-            },
-            {
-              type: ACCOUNT_TYPE.STORE_OWNER,
-            },
-          ],
-        },
-      });
-    }
+    // if (!data.password) {
+    //   account = await this.prisma.account.findFirst({
+    //     where: {
+    //       isPublic: true,
+    //       username: {
+    //         equals: data.phone,
+    //       },
+    //       status: ACCOUNT_STATUS.ACTIVE,
+    //       OR: [
+    //         {
+    //           type: ACCOUNT_TYPE.MANAGER,
+    //         },
+    //         {
+    //           type: ACCOUNT_TYPE.STORE_OWNER,
+    //         },
+    //       ],
+    //     },
+    //   });
+    // }
 
-    if (!account)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        '#2 loginForManager - Tài khoản không tồn tại hoặc đã bị khóa!',
-      );
+    // if (!account)
+    //   throw new CustomHttpException(
+    //     HttpStatus.NOT_FOUND,
+    //     "#2 loginForManager - Tài khoản không tồn tại hoặc đã bị khóa!",
+    //   );
 
     const shops = await this.commonService.findManyShopByAccountId(account.id);
 
@@ -152,7 +137,7 @@ export class AuthService {
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: '24h',
+        expiresIn: "1000h",
       }),
       shops,
     };
@@ -181,27 +166,18 @@ export class AuthService {
           customerId: customer.id,
         } as TokenCustomerPayload,
         {
-          expiresIn: '48h',
+          expiresIn: "1000h",
         },
       ),
       customer,
     };
   }
 
-  async accessBranch(
-    accessBranchDto: AccessBranchDto,
-    tokenPayload: TokenPayload,
-  ) {
-    const account = await this.getAccountAccess(
-      tokenPayload.accountId,
-      accessBranchDto.branchId,
-    );
+  async accessBranch(accessBranchDto: AccessBranchDto, tokenPayload: TokenPayload) {
+    const account = await this.getAccountAccess(tokenPayload.accountId, accessBranchDto.branchId);
 
     if (!account) {
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        '#1 accessBranch - Không tìm thấy tài nguyên!',
-      );
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 accessBranch - Không tìm thấy tài nguyên!");
     }
 
     const currentShop = await this.getCurrentShop(accessBranchDto.branchId);
@@ -216,60 +192,55 @@ export class AuthService {
           shopId: currentShop.id,
         } as TokenPayload,
         {
-          expiresIn: '48h',
+          expiresIn: "48h",
         },
       ),
       ...mapResponseLogin({ account, shops, currentShop }),
     };
   }
 
-  // async verifyPhone(data: VerifyPhoneDto) {
-  //   // const client = require('twilio')(
-  //   //   process.env.TWILIO_ACCOUNT_SID,
-  //   //   process.env.TWILIO_AUTH_TOKEN,
-  //   // );
+  async verifyPhone(data: VerifyPhoneDto) {
+    const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
 
-  //   const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
+    let user = null;
 
-  //   return await this.prisma.phoneVerification.create({
-  //     data: { code: otp, phone: data.phone },
-  //   });
+    if (data.isCustomer) {
+      user = await this.prisma.customer.findFirst({
+        where: { phone: data.phone, email: { not: null } },
+        select: { id: true, email: true },
+      });
+    } else {
+      user = await this.prisma.user.findFirst({
+        where: { email: { not: null }, account: { username: data.phone } },
+        select: { id: true, email: true },
+      });
+    }
 
-  //   // return await client.messages.create({
-  //   //   body: 'Your verification code is: ' + otp,
-  //   //   from: process.env.TWILIO_ACCOUNT_PHONE,
-  //   //   to: '+84' + data.phone.substring(1),
-  //   // });
-  // }
+    await this.transporterService.sendOTP(user?.email, otp);
+
+    await this.prisma.phoneVerification.create({
+      data: { code: otp, phone: data.phone },
+    });
+
+    return user.email;
+  }
 
   async getMe(token: string) {
-    if (!token)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        'Không tim thấy token!',
-      );
+    if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tim thấy token!");
 
     try {
       const payload = (await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY,
       })) as TokenPayload;
 
-      const shops = await this.commonService.findManyShopByAccountId(
-        payload.accountId,
-      );
+      const shops = await this.commonService.findManyShopByAccountId(payload.accountId);
 
-      const account = await this.getAccountAccess(
-        payload.accountId,
-        payload.branchId,
-      );
+      const account = await this.getAccountAccess(payload.accountId, payload.branchId);
 
       const currentShop = await this.getCurrentShop(payload.branchId);
 
       if (!account) {
-        throw new CustomHttpException(
-          HttpStatus.NOT_FOUND,
-          '#1 getMe - Không tìm thấy tài nguyên!',
-        );
+        throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 getMe - Không tìm thấy tài nguyên!");
       }
       return { ...mapResponseLogin({ account, shops, currentShop }) };
     } catch (error) {

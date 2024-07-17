@@ -1,16 +1,17 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { CreateShopDto, RegisterShopDto } from './dto/create-shop.dto';
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
-import { BRANCH_STATUS } from 'enums/shop.enum';
-import { CommonService } from 'src/common/common.service';
-import { CustomHttpException } from 'utils/ApiErrors';
-import { AuthService } from 'src/auth/auth.service';
-import { TokenPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { UpdateShopDto } from './dto/update-shop.dto';
-import { calculatePagination } from 'utils/Helps';
+import * as bcrypt from "bcrypt";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { CreateShopDto, RegisterShopDto } from "./dto/create-shop.dto";
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
+import { BRANCH_STATUS } from "enums/shop.enum";
+import { CommonService } from "src/common/common.service";
+import { CustomHttpException } from "utils/ApiErrors";
+import { AuthService } from "src/auth/auth.service";
+import { TokenPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { UpdateShopDto } from "./dto/update-shop.dto";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class ShopService {
@@ -23,90 +24,74 @@ export class ShopService {
   async registerShop(data: RegisterShopDto) {
     const { user, branch } = data;
 
-    await this.commonService.confirmOTP({
-      code: data.otp,
-      phone: data.user.phone,
-    });
+    const { newShop, accountId } = await this.prisma.$transaction(async (prisma) => {
+      // Kiểm tra tài khoản tồn tại chưa
+      let ownerShopAccount = await this.prisma.account.findFirst({
+        where: {
+          isPublic: true,
+          OR: [{ type: ACCOUNT_TYPE.MANAGER }, { type: ACCOUNT_TYPE.STORE_OWNER }],
+          username: {
+            equals: user.phone,
+          },
+        },
+      });
 
-    const { newShop, accountId } = await this.prisma.$transaction(
-      async (prisma) => {
-        // Kiểm tra tài khoản tồn tại chưa
-        let ownerShopAccount = await this.prisma.account.findFirst({
-          where: {
-            isPublic: true,
-            OR: [
-              { type: ACCOUNT_TYPE.MANAGER },
-              { type: ACCOUNT_TYPE.STORE_OWNER },
-            ],
-            username: {
-              equals: user.phone,
+      if (ownerShopAccount) throw new CustomHttpException(HttpStatus.CONFLICT, "#1 create - Tài khoản đã tồn tại!");
+
+      let ownerShop = await prisma.user.create({
+        data: {
+          name: user.name,
+          phone: user.phone,
+          email: user.email,
+          account: {
+            create: {
+              username: user.phone,
+              password: bcrypt.hashSync(data.user.password, 10),
+              status: ACCOUNT_STATUS.ACTIVE,
+              type: ACCOUNT_TYPE.STORE_OWNER,
             },
           },
-        });
+        },
+        select: {
+          id: true,
+          account: true,
+        },
+      });
 
-        if (ownerShopAccount)
-          throw new CustomHttpException(
-            HttpStatus.CONFLICT,
-            '#1 create - Tài khoản đã tồn tại!',
-          );
+      const shopCode = await this.generateShopCode();
 
-        let ownerShop = await prisma.user.create({
-          data: {
-            name: user.name,
-            phone: user.phone,
-            email: user.email,
-            account: {
-              create: {
-                username: user.phone,
-                status: ACCOUNT_STATUS.ACTIVE,
-                type: ACCOUNT_TYPE.STORE_OWNER,
-              },
+      const newShop = await prisma.shop.create({
+        data: {
+          name: data.name,
+          code: shopCode,
+          businessType: {
+            connect: {
+              code: data.businessTypeCode,
             },
           },
-          select: {
-            id: true,
-            account: true,
-          },
-        });
-
-        const shopCode = await this.generateShopCode();
-
-        const newShop = await prisma.shop.create({
-          data: {
-            name: data.name,
-            code: shopCode,
-            businessType: {
-              connect: {
-                code: data.businessTypeCode,
-              },
-            },
-            branches: {
-              create: {
-                name: branch.name,
-                address: branch.address,
-                status: BRANCH_STATUS.ACTIVE,
-                accounts: {
-                  connect: {
-                    id: ownerShop.account.id,
-                  },
+          branches: {
+            create: {
+              name: branch.name,
+              address: branch.address,
+              status: BRANCH_STATUS.ACTIVE,
+              accounts: {
+                connect: {
+                  id: ownerShop.account.id,
                 },
               },
             },
           },
-          select: {
-            id: true,
-            branches: true,
-          },
-        });
+        },
+        select: {
+          id: true,
+          branches: true,
+        },
+      });
 
-        return { newShop, accountId: ownerShop.account.id };
-      },
-    );
+      return { newShop, accountId: ownerShop.account.id };
+    });
 
-    return await this.authService.accessBranch(
-      { branchId: newShop?.branches?.[0]?.id },
-      { accountId },
-    );
+    return await this.authService.accessBranch({ branchId: newShop?.branches?.[0]?.id }, { accountId });
   }
 
   async create(data: CreateShopDto, tokenPayload: TokenPayload) {
@@ -201,10 +186,7 @@ export class ShopService {
     return { ...count, ids: data.ids };
   }
 
-  async findUniq(
-    where: Prisma.ShopWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.ShopWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.shop.findUniqueOrThrow({
       where: {
         ...where,
@@ -225,7 +207,7 @@ export class ShopService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
 
-    const keySearch = ['name', 'code'];
+    const keySearch = ["name", "code"];
 
     let where: Prisma.ShopWhereInput = {
       isPublic: true,
@@ -240,7 +222,7 @@ export class ShopService {
       },
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
     };
@@ -250,7 +232,7 @@ export class ShopService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
       }),
@@ -267,18 +249,18 @@ export class ShopService {
   async generateShopCode() {
     const shop = await this.prisma.shop.findFirst({
       orderBy: {
-        code: 'desc',
+        code: "desc",
       },
       select: {
         code: true,
       },
     });
 
-    if (!shop) return 'IIT0001';
+    if (!shop) return "IIT0001";
 
     const numberPart = +shop.code.slice(3);
 
-    const nextNumber = (numberPart + 1).toString().padStart(4, '0');
+    const nextNumber = (numberPart + 1).toString().padStart(4, "0");
 
     return `IIT${nextNumber}`;
   }
