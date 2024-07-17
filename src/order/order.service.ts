@@ -638,76 +638,11 @@ export class OrderService {
     });
   }
 
-  async mergeTable(data: CombineTableDto, tokenPayload: TokenPayload) {
-    const { fromTableId, toTableId } = data;
-
-    await this.prisma.$transaction(async (prisma) => {
-      await prisma.orderDetail.updateMany({
-        data: {
-          tableId: toTableId,
-        },
-        where: {
-          isPublic: true,
-          table: {
-            isPublic: true,
-            id: fromTableId,
-          },
-        },
-      });
-
-      await prisma.tableTransaction.create({
-        data: {
-          type: TRANSACTION_TYPE.MERGE,
-          table: {
-            connect: {
-              id: data.fromTableId,
-            },
-          },
-          branch: {
-            connect: {
-              id: tokenPayload.branchId,
-              isPublic: true,
-            },
-          },
-          creator: {
-            connect: {
-              id: tokenPayload.accountId,
-              isPublic: true,
-            },
-          },
-        },
-      });
-
-      await prisma.tableTransaction.create({
-        data: {
-          type: TRANSACTION_TYPE.MERGED,
-          table: {
-            connect: {
-              id: data.toTableId,
-            },
-          },
-          branch: {
-            connect: {
-              id: tokenPayload.branchId,
-              isPublic: true,
-            },
-          },
-          creator: {
-            connect: {
-              id: tokenPayload.accountId,
-              isPublic: true,
-            },
-          },
-        },
-      });
-    });
-  }
-
   async separateTable(data: SeparateTableDto, tokenPayload: TokenPayload) {
     const { fromTableId, toTableId, orderDetailIds } = data;
 
-    await this.prisma.$transaction(async (prisma) => {
-      await prisma.orderDetail.updateMany({
+    await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const response = await prisma.orderDetail.updateMany({
         data: {
           tableId: toTableId,
           updatedBy: tokenPayload.accountId,
@@ -724,57 +659,70 @@ export class OrderService {
         },
       });
 
-      await prisma.tableTransaction.create({
-        data: {
-          type: TRANSACTION_TYPE.MOVE,
-          branch: {
-            connect: {
-              id: tokenPayload.branchId,
-              isPublic: true,
-            },
-          },
-          table: {
-            connect: {
-              id: data.fromTableId,
-            },
-          },
-          orderDetails: {
-            connect: orderDetailIds.map((id) => ({ id })),
-          },
-          creator: {
-            connect: {
-              id: tokenPayload.accountId,
-              isPublic: true,
-            },
-          },
-        },
-      });
+      if (response.count > 0) {
+        const moveTransaction = this.createTransaction(
+          data.fromTableId,
+          TRANSACTION_TYPE.MOVE,
+          orderDetailIds,
+          tokenPayload,
+          prisma,
+        );
 
-      await prisma.tableTransaction.create({
-        data: {
-          type: TRANSACTION_TYPE.MOVED,
-          branch: {
-            connect: {
-              id: tokenPayload.branchId,
-              isPublic: true,
-            },
+        const movedTransaction = this.createTransaction(
+          data.toTableId,
+          TRANSACTION_TYPE.MOVED,
+          orderDetailIds,
+          tokenPayload,
+          prisma,
+        );
+
+        // delete table transaction nếu table không còn order
+        const countOrderDetail = await prisma.orderDetail.count({
+          where: { tableId: data.fromTableId, isPublic: true },
+        });
+
+        if (countOrderDetail == 0) await this.deleteTableTransaction(data.fromTableId, prisma, tokenPayload);
+
+        await Promise.all([moveTransaction, movedTransaction]);
+      }
+
+      return response;
+    });
+  }
+
+  async createTransaction(
+    tableId: string,
+    type: number,
+    orderDetailIds: string[] | null,
+    tokenPayload: TokenPayload,
+    prisma: PrismaClient,
+  ) {
+    return prisma.tableTransaction.create({
+      data: {
+        type: type,
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
+            isPublic: true,
           },
-          table: {
-            connect: {
-              id: data.toTableId,
-            },
+        },
+        table: {
+          connect: {
+            id: tableId,
           },
+        },
+        ...(orderDetailIds && {
           orderDetails: {
             connect: orderDetailIds.map((id) => ({ id })),
           },
-          creator: {
-            connect: {
-              id: tokenPayload.accountId,
-              isPublic: true,
-            },
+        }),
+        creator: {
+          connect: {
+            id: tokenPayload.accountId,
+            isPublic: true,
           },
         },
-      });
+      },
     });
   }
 
@@ -1157,12 +1105,10 @@ export class OrderService {
   async deleteTableTransaction(tableId: string, prisma: PrismaClient, tokenPayload: TokenPayload) {
     await prisma.tableTransaction.updateMany({
       where: {
-        table: {
-          isPublic: true,
-          id: tableId,
-        },
+        tableId,
+        isPublic: true,
       },
-      data: { isPublic: true, updatedBy: tokenPayload.accountId },
+      data: { isPublic: false, updatedBy: tokenPayload.accountId },
     });
   }
 

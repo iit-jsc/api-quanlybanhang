@@ -11,119 +11,86 @@ import {
   UseGuards,
   Req,
   Query,
-} from '@nestjs/common';
-import { OrderService } from './order.service';
-import { JwtAuthGuard, JwtCustomerAuthGuard } from 'guards/jwt-auth.guard';
-import {
-  TokenCustomerPayload,
-  TokenPayload,
-} from 'interfaces/common.interface';
-import { CreateOrderDto } from './dto/create-order.dto';
-import { CreateOrderOnlineDto } from './dto/create-order-online.dto';
-import { CreateOrderToTableDto } from './dto/create-order-to-table.dto';
-import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto';
-import { UpdateOrderProductDto } from './dto/update-order-detail.dto';
-import { PaymentFromTableDto } from './dto/payment-order-from-table.dto';
-import { UpdateOrderDto } from './dto/update-order.dto';
-import { CombineTableDto } from './dto/combine-table.dto';
-import { SeparateTableDto } from './dto/separate-table.dto';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { SaveOrderDto } from './dto/save-order.dto';
-import { RolesGuard } from 'guards/roles.guard';
-import { Roles } from 'guards/roles.decorator';
-import { SPECIAL_ROLE } from 'enums/common.enum';
+} from "@nestjs/common";
+import { OrderService } from "./order.service";
+import { JwtAuthGuard, JwtCustomerAuthGuard } from "guards/jwt-auth.guard";
+import { TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
+import { CreateOrderDto } from "./dto/create-order.dto";
+import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
+import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
+import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-customer.dto";
+import { UpdateOrderProductDto } from "./dto/update-order-detail.dto";
+import { PaymentFromTableDto } from "./dto/payment-order-from-table.dto";
+import { UpdateOrderDto } from "./dto/update-order.dto";
+import { CombineTableDto } from "./dto/combine-table.dto";
+import { SeparateTableDto } from "./dto/separate-table.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { SaveOrderDto } from "./dto/save-order.dto";
+import { RolesGuard } from "guards/roles.guard";
+import { Roles } from "guards/roles.decorator";
+import { SPECIAL_ROLE } from "enums/common.enum";
 
-@Controller('order')
+@Controller("order")
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  @Post('')
+  @Post("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_ORDER', SPECIAL_ROLE.MANAGER)
+  @Roles("CREATE_ORDER", SPECIAL_ROLE.MANAGER)
   create(@Body() createOrderDto: CreateOrderDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.create(createOrderDto, tokenPayload);
   }
 
-  @Post('/online')
+  @Post("/online")
   @HttpCode(HttpStatus.OK)
   createOrderOnline(@Body() createOrderOnlineDto: CreateOrderOnlineDto) {
     return this.orderService.createOrderOnline(createOrderOnlineDto);
   }
 
-  @Post('/to-table')
+  @Post("/to-table")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_ORDER', SPECIAL_ROLE.MANAGER)
-  createOrderToTableByEmployee(
-    @Body() createOrderToTableDto: CreateOrderToTableDto,
-    @Req() req: any,
-  ) {
+  @Roles("CREATE_ORDER", SPECIAL_ROLE.MANAGER)
+  createOrderToTableByEmployee(@Body() createOrderToTableDto: CreateOrderToTableDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.orderService.createOrderToTableByEmployee(
-      createOrderToTableDto,
-      tokenPayload,
-    );
+    return this.orderService.createOrderToTableByEmployee(createOrderToTableDto, tokenPayload);
   }
 
-  @Post('/to-table-by-customer')
+  @Post("/to-table-by-customer")
   @HttpCode(HttpStatus.OK)
-  createOrderToTableByCustomer(
-    @Body() createOrderToTableByCustomerDto: CreateOrderToTableByCustomerDto,
-  ) {
-    return this.orderService.createOrderToTableByCustomer(
-      createOrderToTableByCustomerDto,
-    );
+  createOrderToTableByCustomer(@Body() createOrderToTableByCustomerDto: CreateOrderToTableByCustomerDto) {
+    return this.orderService.createOrderToTableByCustomer(createOrderToTableByCustomerDto);
   }
 
-  @Post('/payment-from-table')
+  @Post("/payment-from-table")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
-  paymentFromTable(
-    @Body() paymentFromTableDto: PaymentFromTableDto,
-    @Req() req: any,
-  ) {
+  @Roles("UPDATE_ORDER", SPECIAL_ROLE.MANAGER)
+  paymentFromTable(@Body() paymentFromTableDto: PaymentFromTableDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.orderService.paymentFromTable(
-      paymentFromTableDto,
-      tokenPayload,
-    );
+    return this.orderService.paymentFromTable(paymentFromTableDto, tokenPayload);
   }
 
-  @Post('/combine-table')
+  @Post("/separate-table")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
-  mergeTable(@Body() combineTableDto: CombineTableDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.orderService.mergeTable(combineTableDto, tokenPayload);
-  }
-
-  @Post('/separate-table')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
+  @Roles("UPDATE_ORDER", SPECIAL_ROLE.MANAGER)
   separateTable(@Body() separateTableDto: SeparateTableDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.separateTable(separateTableDto, tokenPayload);
   }
 
-  @Patch('/:id/save')
+  @Patch("/:id/save")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
-  saveOrder(
-    @Body() saveOrderDto: SaveOrderDto,
-    @Req() req: any,
-    @Param('id') id: string,
-  ) {
+  @Roles("UPDATE_ORDER", SPECIAL_ROLE.MANAGER)
+  saveOrder(@Body() saveOrderDto: SaveOrderDto, @Req() req: any, @Param("id") id: string) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.saveOrder(
@@ -137,15 +104,11 @@ export class OrderController {
     );
   }
 
-  @Patch('/:id')
+  @Patch("/:id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
-  update(
-    @Body() updateOrderDto: UpdateOrderDto,
-    @Req() req: any,
-    @Param('id') id: string,
-  ) {
+  @Roles("UPDATE_ORDER", SPECIAL_ROLE.MANAGER)
+  update(@Body() updateOrderDto: UpdateOrderDto, @Req() req: any, @Param("id") id: string) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.update(
@@ -159,25 +122,20 @@ export class OrderController {
     );
   }
 
-  @Get('/me')
+  @Get("/me")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtCustomerAuthGuard)
   findAllByCustomer(@Query() findManyDto: FindManyDto, @Req() req: any) {
-    const tokenCustomerPayload =
-      req.tokenCustomerPayload as TokenCustomerPayload;
+    const tokenCustomerPayload = req.tokenCustomerPayload as TokenCustomerPayload;
 
-    return this.orderService.findAllByCustomer(
-      findManyDto,
-      tokenCustomerPayload,
-    );
+    return this.orderService.findAllByCustomer(findManyDto, tokenCustomerPayload);
   }
 
-  @Get('/me/:id')
+  @Get("/me/:id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtCustomerAuthGuard)
-  findUniqByCustomer(@Param('id') id: string, @Req() req: any) {
-    const tokenCustomerPayload =
-      req.tokenCustomerPayload as TokenCustomerPayload;
+  findUniqByCustomer(@Param("id") id: string, @Req() req: any) {
+    const tokenCustomerPayload = req.tokenCustomerPayload as TokenCustomerPayload;
 
     return this.orderService.findUniqByCustomer(
       {
@@ -187,21 +145,21 @@ export class OrderController {
     );
   }
 
-  @Get('')
+  @Get("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('VIEW_ORDER', SPECIAL_ROLE.MANAGER)
+  @Roles("VIEW_ORDER", SPECIAL_ROLE.MANAGER)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.findAll(findManyDto, tokenPayload);
   }
 
-  @Get(':id')
+  @Get(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('VIEW_ORDER', SPECIAL_ROLE.MANAGER)
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  @Roles("VIEW_ORDER", SPECIAL_ROLE.MANAGER)
+  findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.orderService.findUniq(
@@ -212,10 +170,10 @@ export class OrderController {
     );
   }
 
-  @Delete('')
+  @Delete("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('DELETE_ORDER', SPECIAL_ROLE.MANAGER)
+  @Roles("DELETE_ORDER", SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

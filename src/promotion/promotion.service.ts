@@ -1,17 +1,13 @@
-import { Injectable } from '@nestjs/common';
-import {
-  CreatePromotionDto,
-  ProductsOrderDto,
-  UpdatePromotionDto,
-} from './dto/promotion.dto';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from 'nestjs-prisma';
-import { calculatePagination } from 'utils/Helps';
-import { CommonService } from 'src/common/common.service';
-import { PROMOTION_TYPE } from 'enums/common.enum';
-import { FindManyPromotionDto } from './dto/find-many.dto';
+import { Injectable } from "@nestjs/common";
+import { CreatePromotionDto, ProductsOrderDto, UpdatePromotionDto } from "./dto/promotion.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { TokenPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "nestjs-prisma";
+import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
+import { PROMOTION_TYPE } from "enums/common.enum";
+import { FindManyPromotionDto } from "./dto/find-many.dto";
 
 @Injectable()
 export class PromotionService {
@@ -21,11 +17,7 @@ export class PromotionService {
   ) {}
 
   async create(data: CreatePromotionDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch(
-      { code: data.code },
-      'Promotion',
-      tokenPayload.branchId,
-    );
+    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Promotion", tokenPayload.branchId);
 
     return this.prisma.promotion.create({
       data: {
@@ -82,7 +74,7 @@ export class PromotionService {
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
       branchId: branchId,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
       ...(orderProducts && {
         startDate: {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),
@@ -129,7 +121,7 @@ export class PromotionService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         include: {
@@ -164,7 +156,6 @@ export class PromotionService {
                 photoURL: true,
               },
             },
-            updatedAt: true,
           }),
           _count: {
             select: { orders: true },

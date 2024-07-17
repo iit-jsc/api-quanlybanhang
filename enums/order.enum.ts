@@ -20,8 +20,6 @@ export const DETAIL_ORDER_STATUS = {
 };
 
 export const TRANSACTION_TYPE = {
-  MERGE: 1,
-  MERGED: 2,
-  MOVE: 3,
-  MOVED: 4,
+  MOVE: 1,
+  MOVED: 2,
 };
