@@ -264,4 +264,12 @@ export class ShopService {
 
     return `IIT${nextNumber}`;
   }
+
+  async getShopByKeyword(data: FindManyDto) {
+    return this.prisma.shop.findUniqueOrThrow({
+      where: {
+        code: data.code,
+      },
+    });
+  }
 }

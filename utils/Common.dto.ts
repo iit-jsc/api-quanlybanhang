@@ -1,4 +1,4 @@
-import { Transform, TransformFnParams, Type } from 'class-transformer';
+import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   ArrayNotEmpty,
   IsDate,
@@ -8,7 +8,7 @@ import {
   ValidationArguments,
   ValidationOptions,
   registerDecorator,
-} from 'class-validator';
+} from "class-validator";
 
 export class FindManyDto {
   @Type(() => Number)
@@ -23,7 +23,7 @@ export class FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   branchIds: string[];
 
@@ -35,7 +35,7 @@ export class FindManyDto {
   /* ====== group role filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   types: number[];
 
@@ -43,28 +43,28 @@ export class FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',');
+    return value?.split(",");
   })
   employeeGroupIds: string[];
 
   /* ====== table filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   areaIds: string[];
 
   /* ====== employee filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   customerTypeIds: string[];
 
   /* ====== order status filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   businessTypeIds: string[];
 
@@ -83,7 +83,7 @@ export class FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   orderTypes: number[];
 
@@ -95,7 +95,7 @@ export class FindManyDto {
   /* ====== table  filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   statusOrderDetails: number[];
 
@@ -103,20 +103,30 @@ export class FindManyDto {
   @IsOptional()
   @IsString()
   productId: string;
+
+  /* ====== shop filter  ====== */
+  @IsOptional()
+  @IsString()
+  code: string;
+
+  /* ====== shop filter  ====== */
+  @IsOptional()
+  @IsString()
+  domains: string[];
 }
 
 export class DeleteManyDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách ids!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @ArrayNotEmpty({ message: "Danh sách ids!" })
   ids: string[];
 }
 
 export class DeleteManyWithIdentifierDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách identifier không được rỗng!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @ArrayNotEmpty({ message: "Danh sách identifier không được rỗng!" })
   identifiers: string[];
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @ArrayNotEmpty({ message: "Danh sách chi nhánh không được rỗng!" })
   branchIds: string[];
 }

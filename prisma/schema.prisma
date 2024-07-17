@@ -175,7 +175,7 @@ model Shop {
   email              String?
   address            String?
   photoURL           String?             @db.Text
-  domain             String?
+  domain             Json?
   isPublic           Boolean?            @default(true)
   createdAt          DateTime            @default(now())
   updatedAt          DateTime            @updatedAt
