@@ -1,8 +1,8 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { UpdatePrintTemplateDto } from './dto/print-template.dto';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { UpdatePrintTemplateDto } from "./dto/print-template.dto";
 
 @Injectable()
 export class PrintTemplateService {
@@ -35,25 +35,23 @@ export class PrintTemplateService {
     });
   }
 
-  async findUniq(
-    where: Prisma.PrintTemplateWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
-    const printTemplate = await this.prisma.printTemplate.findFirst({
+  async findUniq(where: Prisma.PrintTemplateWhereInput, tokenPayload: TokenPayload) {
+    return this.prisma.printTemplate.findUniqueOrThrow({
       where: {
-        shopId: tokenPayload.shopId,
-        type: +where.type,
+        shopId_type: {
+          shopId: tokenPayload.shopId,
+          type: +where.type,
+        },
       },
     });
+  }
 
-    if (printTemplate)
-      return await this.prisma.printTemplate.findFirst({
-        where: {
-          type: +where.type,
-          isDefault: true,
-        },
-      });
-
-    return printTemplate;
+  async findDefaultTemplate(where: Prisma.PrintTemplateWhereInput, tokenPayload: TokenPayload) {
+    return await this.prisma.printTemplate.findFirst({
+      where: {
+        type: +where.type,
+        isDefault: true,
+      },
+    });
   }
 }

@@ -19,8 +19,8 @@ export const PAYMENT_METHOD = {
 };
 
 export const SPECIAL_ROLE = {
-  STORE_OWNER: 'STORE_OWNER',
-  MANAGER: 'MANAGER',
+  STORE_OWNER: "STORE_OWNER",
+  MANAGER: "MANAGER",
 };
 
 export const PROMOTION_TYPE = {
@@ -41,4 +41,10 @@ export const INVENTORY_TRANSACTION_STATUS = {
 export const POINT_TYPE = {
   ADD: 1,
   EXCHANGE: 2,
+};
+
+export const PRINT_TEMPLATE_TYPE = {
+  TEMP_PAYMENT_FORM: 1,
+  PAYMENT_FORM: 2,
+  ORDER_FORM: 3,
 };
