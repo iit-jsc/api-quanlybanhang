@@ -1,13 +1,13 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { calculatePagination, generateUniqueId } from 'utils/Helps';
-import { CreateProductDto } from './dto/create-product.dto';
-import { CommonService } from 'src/common/common.service';
-import { FindManyProductDto } from './dto/find-many.dto';
-import * as slug from 'slug';
-import { DeleteManyDto } from 'utils/Common.dto';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { calculatePagination, generateUniqueId } from "utils/Helps";
+import { CreateProductDto } from "./dto/create-product.dto";
+import { CommonService } from "src/common/common.service";
+import { FindManyProductDto } from "./dto/find-many.dto";
+import * as slug from "slug";
+import { DeleteManyDto } from "utils/Common.dto";
 @Injectable()
 export class ProductService {
   constructor(
@@ -18,7 +18,7 @@ export class ProductService {
   async create(data: CreateProductDto, tokenPayload: TokenPayload) {
     await this.commonService.checkDataExistingInBranch(
       { slug: data.slug, code: data.code },
-      'Product',
+      "Product",
       tokenPayload.branchId,
     );
 
@@ -30,7 +30,6 @@ export class ProductService {
         price: data.price,
         description: data.description,
         otherAttributes: data.otherAttributes,
-        isCombo: data.isCombo,
         status: data.status,
         photoURLs: data.photoURLs,
         productType: {
@@ -58,23 +57,14 @@ export class ProductService {
   }
 
   async findAll(params: FindManyProductDto) {
-    let {
-      skip,
-      take,
-      keyword,
-      productTypeIds,
-      measurementUnitIds,
-      statuses,
-      isCombo,
-      branchId,
-    } = params;
-    const keySearch = ['name', 'code', 'sku'];
+    let { skip, take, keyword, productTypeIds, measurementUnitIds, statuses, branchId } = params;
+    const keySearch = ["name", "code", "sku"];
     let where: Prisma.ProductWhereInput = {
       isPublic: true,
       branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
       ...(productTypeIds?.length > 0 && {
@@ -88,7 +78,6 @@ export class ProductService {
         },
       }),
       ...(statuses && { status: { in: statuses } }),
-      ...(isCombo && { isCombo }),
       status: { in: statuses },
     };
     const [data, totalRecords] = await Promise.all([
@@ -96,7 +85,7 @@ export class ProductService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -109,7 +98,6 @@ export class ProductService {
           description: true,
           photoURLs: true,
           otherAttributes: true,
-          isCombo: true,
           status: true,
           slug: true,
           measurementUnit: {
@@ -154,7 +142,6 @@ export class ProductService {
         description: true,
         photoURLs: true,
         otherAttributes: true,
-        isCombo: true,
         status: true,
         slug: true,
         measurementUnit: true,
@@ -173,7 +160,7 @@ export class ProductService {
 
     await this.commonService.checkDataExistingInBranch(
       { slug: data.slug, code: data.code },
-      'Product',
+      "Product",
       tokenPayload.branchId,
       where.id,
     );
@@ -196,7 +183,6 @@ export class ProductService {
         price: data.price,
         photoURLs: data.photoURLs,
         otherAttributes: data.otherAttributes,
-        isCombo: data.isCombo,
         status: data.status,
         updatedBy: tokenPayload.accountId,
       },

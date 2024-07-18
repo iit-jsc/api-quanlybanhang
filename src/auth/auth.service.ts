@@ -69,7 +69,7 @@ export class AuthService {
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: "1000h",
+        expiresIn: "96h",
       }),
       shops,
     };
@@ -137,7 +137,7 @@ export class AuthService {
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: "1000h",
+        expiresIn: "96h",
       }),
       shops,
     };
@@ -166,7 +166,7 @@ export class AuthService {
           customerId: customer.id,
         } as TokenCustomerPayload,
         {
-          expiresIn: "1000h",
+          expiresIn: "96h",
         },
       ),
       customer,
@@ -192,7 +192,7 @@ export class AuthService {
           shopId: currentShop.id,
         } as TokenPayload,
         {
-          expiresIn: "48h",
+          expiresIn: "96h",
         },
       ),
       ...mapResponseLogin({ account, shops, currentShop }),

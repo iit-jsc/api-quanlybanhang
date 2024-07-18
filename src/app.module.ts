@@ -46,6 +46,7 @@ import { PointHistoryModule } from "./point-history/point-history.module";
 import { OrderDetailModule } from "./order-detail/order-detail.module";
 import { TransporterModule } from "./transporter/transporter.module";
 import { MailerModule } from "@nestjs-modules/mailer";
+import { WorkShiftModule } from './work-shift/work-shift.module';
 
 @Module({
   imports: [
@@ -112,6 +113,7 @@ import { MailerModule } from "@nestjs-modules/mailer";
     PointHistoryModule,
     OrderDetailModule,
     TransporterModule,
+    WorkShiftModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

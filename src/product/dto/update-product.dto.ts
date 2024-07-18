@@ -1,4 +1,4 @@
-import { Transform, TransformFnParams, Type } from 'class-transformer';
+import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   ArrayNotEmpty,
   IsArray,
@@ -8,10 +8,10 @@ import {
   IsObject,
   IsOptional,
   IsString,
-} from 'class-validator';
+} from "class-validator";
 
 export class UpdateProductDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   name: string;
@@ -20,32 +20,32 @@ export class UpdateProductDto {
   @IsString()
   description?: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @ArrayNotEmpty({ message: "Danh sách chi nhánh không được rỗng!" })
   @Transform(({ value }: TransformFnParams) => {
     return value
-      ?.split(',')
+      ?.split(",")
       .map((id: string) => parseInt(id.trim()))
       .filter((id: number) => !isNaN(id));
   })
   branchIds: number[];
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   unitId: number;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   productTypeId: number;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   sku: string;
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
+  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   code: string;
 
@@ -67,7 +67,7 @@ export class UpdateProductDto {
   @IsOptional()
   @IsArray()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => parseInt(id.trim()));
+    return value?.split(",").map((id: string) => parseInt(id.trim()));
   })
   photoURLs: string[];
 
@@ -78,11 +78,6 @@ export class UpdateProductDto {
   })
   @Type(() => Object)
   otherAttributes: object;
-
-  @IsOptional()
-  @IsBoolean()
-  @Type(() => Boolean)
-  isCombo: boolean;
 
   @IsOptional()
   @IsBoolean()

@@ -1,8 +1,8 @@
-import { Transform, TransformFnParams, Type } from 'class-transformer';
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Transform, TransformFnParams, Type } from "class-transformer";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class FindManyProductDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   branchId: string;
 
@@ -18,27 +18,22 @@ export class FindManyProductDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   measurementUnitIds: string[];
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => id.trim());
   })
   productTypeIds: string[];
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value
-      ?.split(',')
+      ?.split(",")
       .map((id: string) => parseInt(id.trim()))
       .filter((id: number) => !isNaN(id));
   })
   statuses?: number[];
-
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value);
-  })
-  isCombo?: boolean;
 }
