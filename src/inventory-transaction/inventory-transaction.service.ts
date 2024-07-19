@@ -1,28 +1,18 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import {
-  CreateInventoryTransactionDto,
-  UpdateInventoryTransactionDto,
-} from './dto/inventory-transaction.dto';
-import { AnyObject, TokenPayload } from 'interfaces/common.interface';
-import {
-  INVENTORY_TRANSACTION_STATUS,
-  INVENTORY_TRANSACTION_TYPE,
-} from 'enums/common.enum';
-import { InventoryTransactionDetail, Prisma } from '@prisma/client';
-import { CustomHttpException } from 'utils/ApiErrors';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { calculatePagination } from 'utils/Helps';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { CreateInventoryTransactionDto, UpdateInventoryTransactionDto } from "./dto/inventory-transaction.dto";
+import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { INVENTORY_TRANSACTION_STATUS, INVENTORY_TRANSACTION_TYPE } from "enums/common.enum";
+import { InventoryTransactionDetail, Prisma } from "@prisma/client";
+import { CustomHttpException } from "utils/ApiErrors";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class InventoryTransactionService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async checkQuantityValid(
-    quantity: number,
-    productId: string,
-    warehouseId: string,
-  ) {
+  async checkQuantityValid(quantity: number, productId: string, warehouseId: string) {
     const stock = await this.prisma.stock.findUnique({
       where: { productId_warehouseId: { productId, warehouseId } },
       select: {
@@ -32,10 +22,7 @@ export class InventoryTransactionService {
     });
 
     if (!stock || stock.quantity < quantity)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        '#1 checkQuantityValid - Số lượng không hợp lệ!',
-      );
+      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 checkQuantityValid - Số lượng không hợp lệ!");
   }
 
   async handleProcessedTransaction(
@@ -44,20 +31,14 @@ export class InventoryTransactionService {
     tokenPayload: TokenPayload,
   ) {
     if (!data.inventoryTransactionDetails)
-      throw new CustomHttpException(
-        HttpStatus.BAD_REQUEST,
-        '#1 handleProcessedTransaction - Không được để trống!',
-        [{ inventoryTransactionDetails: 'Không được để trống!' }],
-      );
+      throw new CustomHttpException(HttpStatus.BAD_REQUEST, "#1 handleProcessedTransaction - Không được để trống!", [
+        { inventoryTransactionDetails: "Không được để trống!" },
+      ]);
 
     await Promise.all(
       data.inventoryTransactionDetails.map(async (detail) => {
         if (data.type === INVENTORY_TRANSACTION_TYPE.EXPORT)
-          await this.checkQuantityValid(
-            detail.actualQuantity,
-            detail.productId,
-            data.warehouseId,
-          );
+          await this.checkQuantityValid(detail.actualQuantity, detail.productId, data.warehouseId);
 
         return prisma.stock.upsert({
           where: {
@@ -86,10 +67,7 @@ export class InventoryTransactionService {
     );
   }
 
-  async create(
-    data: CreateInventoryTransactionDto,
-    tokenPayload: TokenPayload,
-  ) {
+  async create(data: CreateInventoryTransactionDto, tokenPayload: TokenPayload) {
     return await this.prisma.$transaction(async (prisma) => {
       const inventoryTransaction = await prisma.inventoryTransaction.create({
         data: {
@@ -133,25 +111,19 @@ export class InventoryTransactionService {
     const { where, data } = params;
 
     return await this.prisma.$transaction(async (prisma) => {
-      const inventoryTransaction =
-        await prisma.inventoryTransaction.findUniqueOrThrow({
-          where: {
-            id: where.id,
-            branchId: tokenPayload.branchId,
-          },
-          select: {
-            id: true,
-            status: true,
-          },
-        });
+      const inventoryTransaction = await prisma.inventoryTransaction.findUniqueOrThrow({
+        where: {
+          id: where.id,
+          branchId: tokenPayload.branchId,
+        },
+        select: {
+          id: true,
+          status: true,
+        },
+      });
 
-      if (
-        inventoryTransaction.status === INVENTORY_TRANSACTION_STATUS.PROCESSED
-      )
-        throw new CustomHttpException(
-          HttpStatus.CONFLICT,
-          '#1 update - Không thể cập nhật vì đã được xử lý!',
-        );
+      if (inventoryTransaction.status === INVENTORY_TRANSACTION_STATUS.PROCESSED)
+        throw new CustomHttpException(HttpStatus.CONFLICT, "#1 update - Không thể cập nhật vì đã được xử lý!");
 
       if (data.status === INVENTORY_TRANSACTION_STATUS.PROCESSED)
         await this.handleProcessedTransaction(data, prisma, tokenPayload);
@@ -198,7 +170,7 @@ export class InventoryTransactionService {
     let { skip, take, keyword, types, from, to } = params;
     let where: Prisma.InventoryTransactionWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
       ...(types && { type: { in: types } }),
       ...(from &&
         to && {
@@ -226,7 +198,7 @@ export class InventoryTransactionService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -279,10 +251,7 @@ export class InventoryTransactionService {
     };
   }
 
-  async findUniq(
-    where: Prisma.InventoryTransactionWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.InventoryTransactionWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.inventoryTransaction.findUniqueOrThrow({
       where: {
         ...where,
@@ -346,21 +315,20 @@ export class InventoryTransactionService {
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const processedInventories =
-      await this.prisma.inventoryTransaction.findMany({
-        where: {
-          id: {
-            in: data.ids,
-          },
-          isPublic: true,
-          branchId: tokenPayload.branchId,
-          status: INVENTORY_TRANSACTION_STATUS.PROCESSED,
+    const processedInventories = await this.prisma.inventoryTransaction.findMany({
+      where: {
+        id: {
+          in: data.ids,
         },
-        select: {
-          id: true,
-          code: true,
-        },
-      });
+        isPublic: true,
+        branchId: tokenPayload.branchId,
+        status: INVENTORY_TRANSACTION_STATUS.PROCESSED,
+      },
+      select: {
+        id: true,
+        code: true,
+      },
+    });
 
     const notDeletedIds = processedInventories.map((inventory) => inventory.id);
 
@@ -381,6 +349,6 @@ export class InventoryTransactionService {
       },
     });
 
-    return { ...count, ids: data.ids, notDeletedIds, idsToDelete };
+    return { ...count, ids: data.ids, notValidIds: notDeletedIds, validIds: idsToDelete } as DeleteManyResponse;
   }
 }

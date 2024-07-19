@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { CreateMeasurementUnitDto } from './dto/create-measurement-unit.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { calculatePagination } from 'utils/Helps';
-import { Prisma } from '@prisma/client';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { CreateMeasurementUnitDto } from "./dto/create-measurement-unit.dto";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { calculatePagination } from "utils/Helps";
+import { Prisma } from "@prisma/client";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
 @Injectable()
 export class MeasurementUnitService {
@@ -35,7 +35,7 @@ export class MeasurementUnitService {
     let where: Prisma.MeasurementUnitWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
     };
 
     const [data, totalRecords] = await Promise.all([
@@ -43,7 +43,7 @@ export class MeasurementUnitService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -64,10 +64,7 @@ export class MeasurementUnitService {
     };
   }
 
-  async findUniq(
-    where: Prisma.MeasurementUnitWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.MeasurementUnitWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.measurementUnit.findUniqueOrThrow({
       where: {
         ...where,
@@ -124,6 +121,6 @@ export class MeasurementUnitService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

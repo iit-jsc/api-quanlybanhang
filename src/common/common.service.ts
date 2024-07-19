@@ -173,7 +173,12 @@ export class CommonService {
     });
   }
 
-  async checkDataExistingInBranch<T extends AnyObject>(data: T, model: string, branchId: string, id?: string) {
+  async checkDataExistingInBranch<T extends AnyObject>(
+    data: T,
+    model: Prisma.ModelName,
+    branchId: string,
+    id?: string,
+  ) {
     let conflictingKeys: string[] = [];
 
     const result = await this.prisma[model].findFirst({
@@ -197,7 +202,7 @@ export class CommonService {
     }
   }
 
-  async checkDataExistingInShop<T extends AnyObject>(data: T, model: string, shopId: string, id?: string) {
+  async checkDataExistingInShop<T extends AnyObject>(data: T, model: Prisma.ModelName, shopId: string, id?: string) {
     let conflictingKeys: string[] = [];
 
     const result = await this.prisma[model].findFirst({

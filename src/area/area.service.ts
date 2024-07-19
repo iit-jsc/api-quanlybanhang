@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { calculatePagination } from 'utils/Helps';
-import { CreateAreaDto } from './dto/create-area.dto';
-import { CommonService } from 'src/common/common.service';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
+import { CreateAreaDto } from "./dto/create-area.dto";
+import { CommonService } from "src/common/common.service";
 
 @Injectable()
 export class AreaService {
@@ -15,11 +15,7 @@ export class AreaService {
   ) {}
 
   async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch(
-      { code: data.code },
-      'Area',
-      tokenPayload.branchId,
-    );
+    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Area", tokenPayload.branchId);
 
     return await this.prisma.area.create({
       data: {
@@ -29,6 +25,13 @@ export class AreaService {
         name: data.name,
         description: data.description,
         photoURL: data.photoURL,
+        tables: {
+          create: {
+            name: "Bàn 01",
+            isPublic: true,
+            branchId: tokenPayload.branchId,
+          },
+        },
         branch: {
           connect: {
             id: tokenPayload.branchId,
@@ -46,13 +49,13 @@ export class AreaService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword } = params;
 
-    const keySearch = ['name', 'code'];
+    const keySearch = ["name", "code"];
 
     const where: Prisma.AreaWhereInput = {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
       branch: {
@@ -66,7 +69,7 @@ export class AreaService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -101,10 +104,7 @@ export class AreaService {
     };
   }
 
-  async findUniq(
-    where: Prisma.AreaWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.AreaWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.area.findUniqueOrThrow({
       where: {
         ...where,
@@ -146,12 +146,7 @@ export class AreaService {
   ) {
     const { where, data } = params;
 
-    await this.commonService.checkDataExistingInBranch(
-      { code: data.code },
-      'Area',
-      tokenPayload.branchId,
-      where.id,
-    );
+    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Area", tokenPayload.branchId, where.id);
 
     return this.prisma.area.update({
       where: {
@@ -190,6 +185,6 @@ export class AreaService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

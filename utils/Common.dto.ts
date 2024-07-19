@@ -39,8 +39,6 @@ export class FindManyDto {
   })
   types: number[];
 
-  /* ====== employee filter  ====== */
-
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(",");
@@ -54,7 +52,6 @@ export class FindManyDto {
   })
   areaIds: string[];
 
-  /* ====== employee filter  ====== */
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(",").map((id: string) => id.trim());
@@ -113,6 +110,19 @@ export class FindManyDto {
   @IsOptional()
   @IsString()
   domains: string[];
+
+  /* ====== employee schedule filter  ====== */
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => id.trim());
+  })
+  employeeIds: string[];
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => id.trim());
+  })
+  workShiftIds: string[];
 }
 
 export class DeleteManyDto {

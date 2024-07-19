@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { CreateWarehouseDto, UpdateWarehouseDto } from './dto/warehouse.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { calculatePagination } from 'utils/Helps';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { CreateWarehouseDto, UpdateWarehouseDto } from "./dto/warehouse.dto";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class WarehouseService {
@@ -47,14 +47,14 @@ export class WarehouseService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
 
-    const keySearch = ['name'];
+    const keySearch = ["name"];
 
     let where: Prisma.WarehouseWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
     };
@@ -75,10 +75,7 @@ export class WarehouseService {
     };
   }
 
-  async findUniq(
-    where: Prisma.WarehouseWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.WarehouseWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.warehouse.findUniqueOrThrow({
       where: {
         ...where,
@@ -89,7 +86,7 @@ export class WarehouseService {
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = this.prisma.warehouse.updateMany({
+    const count = await this.prisma.warehouse.updateMany({
       where: {
         id: {
           in: data.ids,
@@ -103,6 +100,6 @@ export class WarehouseService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

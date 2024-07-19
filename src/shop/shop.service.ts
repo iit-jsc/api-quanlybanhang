@@ -7,7 +7,7 @@ import { BRANCH_STATUS } from "enums/shop.enum";
 import { CommonService } from "src/common/common.service";
 import { CustomHttpException } from "utils/ApiErrors";
 import { AuthService } from "src/auth/auth.service";
-import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
@@ -183,7 +183,7 @@ export class ShopService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 
   async findUniq(where: Prisma.ShopWhereUniqueInput, tokenPayload: TokenPayload) {

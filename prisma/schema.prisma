@@ -884,10 +884,11 @@ model WorkShift {
   id                 String             @id @default(uuid())
   branchId           String
   name               String
-  startTime          DateTime           @db.Time
-  endTime            DateTime           @db.Time
+  startTime          String
+  endTime            String
   limitEmployee      Int?
   isNotLimitEmployee Boolean?           @default(true)
+  description        String?            @db.Text
   isPublic           Boolean?           @default(true)
   createdBy          String?
   updatedBy          String?

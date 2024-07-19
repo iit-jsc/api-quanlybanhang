@@ -9,11 +9,11 @@ export class CreateWorkShiftDto {
   name: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
-  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Thời gian không hợp lệ, định dạng phải là HH:mm" })
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Thời gian không hợp lệ, định dạng phải là HH:mm!" })
   startTime: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
-  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Thời gian không hợp lệ, định dạng phải là HH:mm" })
+  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Thời gian không hợp lệ, định dạng phải là HH:mm!" })
   endTime: string;
 
   @IsOptional()
@@ -25,6 +25,10 @@ export class CreateWorkShiftDto {
   @IsBoolean()
   @Type(() => Boolean)
   isNotLimitEmployee?: boolean;
+
+  @IsOptional()
+  @IsString()
+  description?: boolean;
 }
 
 export class UpdateWorkShiftDto extends PartialType(CreateWorkShiftDto) {}

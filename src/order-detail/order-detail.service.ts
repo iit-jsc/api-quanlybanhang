@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { CommonService } from 'src/common/common.service';
-import { OrderGateway } from 'src/gateway/order.gateway';
-import { UpdateOrderProductDto } from 'src/order/dto/update-order-detail.dto';
-import { DeleteManyDto } from 'utils/Common.dto';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { CommonService } from "src/common/common.service";
+import { OrderGateway } from "src/gateway/order.gateway";
+import { UpdateOrderProductDto } from "src/order/dto/update-order-detail.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 
 @Injectable()
 export class OrderDetailService {
@@ -99,6 +99,6 @@ export class OrderDetailService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

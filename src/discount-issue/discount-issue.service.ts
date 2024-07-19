@@ -1,19 +1,22 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import {
-  CreateDiscountIssueDto,
-  UpdateDiscountIssueDto,
-} from './dto/discount-issue.dto';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { calculatePagination } from 'utils/Helps';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { CreateDiscountIssueDto, UpdateDiscountIssueDto } from "./dto/discount-issue.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
 
 @Injectable()
 export class DiscountIssueService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateDiscountIssueDto, tokenPayload: TokenPayload) {
+    await this.commonService.checkDataExistingInBranch({ code: data.code }, "DiscountIssue", tokenPayload.branchId);
+
     return await this.prisma.discountIssue.create({
       data: {
         name: data.name,
@@ -43,7 +46,14 @@ export class DiscountIssueService {
   ) {
     const { where, data } = params;
 
-    return await this.prisma.discountIssue.create({
+    await this.commonService.checkDataExistingInBranch(
+      { code: data.code },
+      "DiscountIssue",
+      tokenPayload.branchId,
+      where.id,
+    );
+
+    return await this.prisma.discountIssue.update({
       data: {
         name: data.name,
         code: data.code,
@@ -60,6 +70,7 @@ export class DiscountIssueService {
         branchId: tokenPayload.branchId,
         updatedBy: tokenPayload.accountId,
       },
+      where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId },
     });
   }
 
@@ -67,7 +78,7 @@ export class DiscountIssueService {
     let { skip, take, keyword } = params;
     let where: Prisma.DiscountIssueWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
       branchId: tokenPayload.branchId,
     };
     const [data, totalRecords] = await Promise.all([
@@ -75,7 +86,7 @@ export class DiscountIssueService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
       }),
@@ -89,10 +100,7 @@ export class DiscountIssueService {
     };
   }
 
-  async findUniq(
-    where: Prisma.DiscountIssueWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.DiscountIssueWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.discountIssue.findUniqueOrThrow({
       where: {
         ...where,
@@ -117,6 +125,6 @@ export class DiscountIssueService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

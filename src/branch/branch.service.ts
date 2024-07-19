@@ -1,12 +1,12 @@
-import { CreateBranchDto } from 'src/branch/dto/create-branch.dto';
-import { Injectable } from '@nestjs/common';
-import { TokenPayload } from 'interfaces/common.interface';
-import { UserService } from 'src/user/user.service';
-import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
-import { Prisma } from '@prisma/client';
-import { PrismaService } from 'nestjs-prisma';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { CommonService } from 'src/common/common.service';
+import { CreateBranchDto } from "src/branch/dto/create-branch.dto";
+import { Injectable } from "@nestjs/common";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { UserService } from "src/user/user.service";
+import { calculatePagination, roleBasedBranchFilter } from "utils/Helps";
+import { Prisma } from "@prisma/client";
+import { PrismaService } from "nestjs-prisma";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { CommonService } from "src/common/common.service";
 
 @Injectable()
 export class BranchService {
@@ -50,7 +50,7 @@ export class BranchService {
         id: tokenPayload.shopId,
         isPublic: true,
       },
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
     };
 
     const [data, totalRecords] = await Promise.all([
@@ -58,7 +58,7 @@ export class BranchService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -81,10 +81,7 @@ export class BranchService {
     };
   }
 
-  async findUniq(
-    where: Prisma.BranchWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.BranchWhereUniqueInput, tokenPayload: TokenPayload) {
     return await this.prisma.branch.findUniqueOrThrow({
       where: {
         ...where,
@@ -164,6 +161,6 @@ export class BranchService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

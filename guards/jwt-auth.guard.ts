@@ -29,9 +29,23 @@ export class JwtAuthGuard implements CanActivate {
 
       const account = await this.prisma.account.findUniqueOrThrow({
         where: { id: payload.accountId, isPublic: true },
+        select: {
+          id: true,
+          type: true,
+          userId: true,
+          branches: {
+            select: { shopId: true, id: true },
+          },
+        },
       });
 
-      request.tokenPayload = { ...payload, type: account.type };
+      request.tokenPayload = {
+        type: account.type,
+        userId: account.userId,
+        branchId: account.branches?.[0]?.id,
+        shopId: account.branches?.[0]?.shopId,
+        accountId: account.id,
+      } as TokenPayload;
     } catch (error) {
       throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "#2 canActivate - Token hết hạn!");
     }

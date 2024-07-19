@@ -1,8 +1,9 @@
-import { Promotion } from '@prisma/client';
+import { Promotion } from "@prisma/client";
 
 export interface TokenPayload {
   accountId?: string;
   shopId?: string;
+  userId?: string;
   branchId?: string;
   type?: number;
 }
@@ -40,4 +41,11 @@ export interface PromotionCountOrder extends Promotion {
   _count: {
     orders: number;
   };
+}
+
+export interface DeleteManyResponse {
+  count: number;
+  ids: string[];
+  validIds?: string[];
+  notValidIds?: string[];
 }

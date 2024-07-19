@@ -1,15 +1,15 @@
-import * as bcrypt from 'bcrypt';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreateManagerDto } from './dto/create-manager.dto';
-import { UpdateManagerDto } from './dto/update-manager.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
-import { PrismaService } from 'nestjs-prisma';
-import { CommonService } from 'src/common/common.service';
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
-import { calculatePagination } from 'utils/Helps';
-import { CustomHttpException } from 'utils/ApiErrors';
+import * as bcrypt from "bcrypt";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { CreateManagerDto } from "./dto/create-manager.dto";
+import { UpdateManagerDto } from "./dto/update-manager.dto";
+import { TokenPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { FindManyDto } from "utils/Common.dto";
+import { PrismaService } from "nestjs-prisma";
+import { CommonService } from "src/common/common.service";
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
+import { calculatePagination } from "utils/Helps";
+import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
 export class ManagerService {
@@ -22,10 +22,7 @@ export class ManagerService {
     let ownerShopAccount = await this.prisma.account.findFirst({
       where: {
         isPublic: true,
-        OR: [
-          { type: ACCOUNT_TYPE.MANAGER },
-          { type: ACCOUNT_TYPE.STORE_OWNER },
-        ],
+        OR: [{ type: ACCOUNT_TYPE.MANAGER }, { type: ACCOUNT_TYPE.STORE_OWNER }],
         username: {
           equals: username?.trim(),
         },
@@ -38,10 +35,7 @@ export class ManagerService {
     });
 
     if (ownerShopAccount)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        '#1 checkManagerExisting - Tài khoản đã tồn tại!',
-      );
+      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 checkManagerExisting - Tài khoản đã tồn tại!");
   }
 
   async checkBranchesInShop(branchIds: string[], shopId: string) {
@@ -58,10 +52,7 @@ export class ManagerService {
     });
 
     if (invalidBranch)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        '#1 checkBranchesInShop - Chi nhánh không tồn tại!',
-      );
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 checkBranchesInShop - Chi nhánh không tồn tại!");
   }
 
   async create(data: CreateManagerDto, tokenPayload: TokenPayload) {
@@ -137,9 +128,7 @@ export class ManagerService {
         updatedBy: tokenPayload.accountId,
         account: {
           update: {
-            password: data.newPassword
-              ? bcrypt.hashSync(data.newPassword, 10)
-              : undefined,
+            password: data.newPassword ? bcrypt.hashSync(data.newPassword, 10) : undefined,
             status: data.accountStatus,
             branches: {
               set: data.branchIds?.map((id: string) => ({ id })),
@@ -192,13 +181,13 @@ export class ManagerService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword } = params;
 
-    const keySearch = ['name', 'code', 'email', 'phone'];
+    const keySearch = ["name", "code", "email", "phone"];
 
     const where: Prisma.UserWhereInput = {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
       account: {
@@ -216,7 +205,7 @@ export class ManagerService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -254,10 +243,7 @@ export class ManagerService {
     };
   }
 
-  async findUniq(
-    where: Prisma.UserWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.UserWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.user.findUniqueOrThrow({
       where: {
         ...where,

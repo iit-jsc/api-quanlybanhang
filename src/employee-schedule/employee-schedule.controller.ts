@@ -12,23 +12,23 @@ import {
   Req,
   UseGuards,
 } from "@nestjs/common";
-import { WorkShiftService } from "./work-shift.service";
-import { CreateWorkShiftDto, UpdateWorkShiftDto } from "./dto/work-shift.dto";
+import { EmployeeScheduleService } from "./employee-schedule.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
+import { RegisterScheduleDto, UpdateRegisterScheduleDto } from "./dto/employee.schedule.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
-@Controller("work-shift")
-export class WorkShiftController {
-  constructor(private readonly workShiftService: WorkShiftService) {}
+@Controller("employee-schedule")
+export class EmployeeScheduleController {
+  constructor(private readonly employeeScheduleService: EmployeeScheduleService) {}
 
   @Post("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  create(@Body() createWorkShiftDto: CreateWorkShiftDto, @Req() req: any) {
+  create(@Body() registerScheduleDto: RegisterScheduleDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.workShiftService.create(createWorkShiftDto, tokenPayload);
+    return this.employeeScheduleService.registerSchedule(registerScheduleDto, tokenPayload);
   }
 
   @Get("")
@@ -37,7 +37,7 @@ export class WorkShiftController {
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.workShiftService.findAll(findManyDto, tokenPayload);
+    return this.employeeScheduleService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(":id")
@@ -46,7 +46,7 @@ export class WorkShiftController {
   findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.workShiftService.findUniq(
+    return this.employeeScheduleService.findUniq(
       {
         id,
       },
@@ -57,15 +57,15 @@ export class WorkShiftController {
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  update(@Param("id") id: string, @Body() updateWorkShiftDto: UpdateWorkShiftDto, @Req() req: any) {
+  update(@Param("id") id: string, @Body() updateRegisterScheduleDto: UpdateRegisterScheduleDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.workShiftService.update(
+    return this.employeeScheduleService.update(
       {
         where: {
           id,
         },
-        data: updateWorkShiftDto,
+        data: updateRegisterScheduleDto,
       },
       tokenPayload,
     );
@@ -77,7 +77,7 @@ export class WorkShiftController {
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.workShiftService.deleteMany(
+    return this.employeeScheduleService.deleteMany(
       {
         ids: deleteManyDto.ids,
       },

@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { CreatePermissionDto } from './dto/create-permission.dto';
-import { calculatePagination, roleBasedBranchFilter } from 'utils/Helps';
-import { Prisma } from '@prisma/client';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { Injectable } from "@nestjs/common";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { CreatePermissionDto } from "./dto/create-permission.dto";
+import { calculatePagination, roleBasedBranchFilter } from "utils/Helps";
+import { Prisma } from "@prisma/client";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
 @Injectable()
 export class PermissionService {
@@ -43,7 +43,7 @@ export class PermissionService {
     const where: Prisma.PermissionWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
     };
 
     const [data, totalRecords] = await Promise.all([
@@ -51,7 +51,7 @@ export class PermissionService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -112,10 +112,7 @@ export class PermissionService {
     });
   }
 
-  async findUniq(
-    where: Prisma.PermissionWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.PermissionWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.permission.findUniqueOrThrow({
       where: {
         ...where,
@@ -162,6 +159,6 @@ export class PermissionService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

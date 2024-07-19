@@ -1,12 +1,12 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { CreateOrderRatingDto } from './dto/create-order-rating.dto';
-import { TokenCustomerPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { calculatePagination } from 'utils/Helps';
-import { FindManyOrderRatings } from './dto/find-many-order-rating';
-import { UpdateOrderRatingDto } from './dto/update-order-rating.dto';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { CreateOrderRatingDto } from "./dto/create-order-rating.dto";
+import { DeleteManyResponse, TokenCustomerPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
+import { FindManyOrderRatings } from "./dto/find-many-order-rating";
+import { UpdateOrderRatingDto } from "./dto/update-order-rating.dto";
 
 @Injectable()
 export class OrderRatingService {
@@ -78,13 +78,10 @@ export class OrderRatingService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 
-  async findAll(
-    params: FindManyOrderRatings,
-    tokenPayload: TokenCustomerPayload,
-  ) {
+  async findAll(params: FindManyOrderRatings, tokenPayload: TokenCustomerPayload) {
     const { skip, take, orderId } = params;
 
     const where: Prisma.OrderRatingWhereInput = {
@@ -100,7 +97,7 @@ export class OrderRatingService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
       }),

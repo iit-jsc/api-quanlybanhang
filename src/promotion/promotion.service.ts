@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { CreatePromotionDto, ProductsOrderDto, UpdatePromotionDto } from "./dto/promotion.dto";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { calculatePagination } from "utils/Helps";
@@ -300,6 +300,6 @@ export class PromotionService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

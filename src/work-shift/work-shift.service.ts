@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { CreateWorkShiftDto, UpdateWorkShiftDto } from "./dto/work-shift.dto";
-import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
@@ -54,6 +54,7 @@ export class WorkShiftService {
           endTime: true,
           limitEmployee: true,
           isNotLimitEmployee: true,
+          description: true,
         },
       }),
       this.prisma.workShift.count({
@@ -100,5 +101,21 @@ export class WorkShiftService {
     });
   }
 
-  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {}
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.workShift.updateMany({
+      where: {
+        id: {
+          in: data.ids,
+        },
+        isPublic: true,
+        branchId: tokenPayload.branchId,
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+
+    return { ...count, ids: data.ids } as DeleteManyResponse;
+  }
 }

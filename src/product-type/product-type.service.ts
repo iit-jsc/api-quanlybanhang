@@ -1,12 +1,12 @@
-import { CommonService } from 'src/common/common.service';
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { calculatePagination } from 'utils/Helps';
-import { CreateProductTypeDto } from './dto/create-product-type.dto';
-import { FindManyProductTypeDto } from './dto/find-many.dto';
-import { DeleteManyDto } from 'utils/Common.dto';
+import { CommonService } from "src/common/common.service";
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { calculatePagination } from "utils/Helps";
+import { CreateProductTypeDto } from "./dto/create-product-type.dto";
+import { FindManyProductTypeDto } from "./dto/find-many.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 
 @Injectable()
 export class ProductTypeService {
@@ -16,11 +16,7 @@ export class ProductTypeService {
   ) {}
 
   async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch(
-      { slug: data.slug },
-      'ProductType',
-      tokenPayload.branchId,
-    );
+    await this.commonService.checkDataExistingInBranch({ slug: data.slug }, "ProductType", tokenPayload.branchId);
 
     return this.prisma.productType.create({
       data: {
@@ -46,14 +42,14 @@ export class ProductTypeService {
     let where: Prisma.ProductTypeWhereInput = {
       isPublic: true,
       branchId: branchId,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
     };
     const [data, totalRecords] = await Promise.all([
       this.prisma.productType.findMany({
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -112,7 +108,7 @@ export class ProductTypeService {
 
     await this.commonService.checkDataExistingInBranch(
       { slug: data.slug },
-      'ProductType',
+      "ProductType",
       tokenPayload.branchId,
       where.id,
     );
@@ -150,6 +146,6 @@ export class ProductTypeService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

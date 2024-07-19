@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { CreateEmployeeGroupDto } from './dto/create-employee-group.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { calculatePagination } from 'utils/Helps';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { CreateEmployeeGroupDto } from "./dto/create-employee-group.dto";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { calculatePagination } from "utils/Helps";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
 @Injectable()
 export class EmployeeGroupService {
@@ -35,7 +35,7 @@ export class EmployeeGroupService {
     let where: Prisma.EmployeeGroupWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
     };
 
     const [data, totalRecords] = await Promise.all([
@@ -43,7 +43,7 @@ export class EmployeeGroupService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -64,10 +64,7 @@ export class EmployeeGroupService {
     };
   }
 
-  async findUniq(
-    where: Prisma.EmployeeGroupWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.EmployeeGroupWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.employeeGroup.findUniqueOrThrow({
       where: {
         ...where,
@@ -119,6 +116,6 @@ export class EmployeeGroupService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

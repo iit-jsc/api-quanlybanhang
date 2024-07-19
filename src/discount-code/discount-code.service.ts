@@ -1,11 +1,11 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { CreateDiscountCodeDto } from './dto/discount-code.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { PrismaService } from 'nestjs-prisma';
-import { calculatePagination, generateSortCode } from 'utils/Helps';
-import { CustomHttpException } from 'utils/ApiErrors';
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { CreateDiscountCodeDto } from "./dto/discount-code.dto";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { PrismaService } from "nestjs-prisma";
+import { calculatePagination, generateSortCode } from "utils/Helps";
+import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
 export class DiscountCodeService {
@@ -18,7 +18,7 @@ export class DiscountCodeService {
 
     for (let i = 0; i < data.amount; i++) {
       discountCodeData.push({
-        code: `${data.prefix || ''}${generateSortCode()}${data.suffixes || ''}`,
+        code: `${data.prefix || ""}${generateSortCode()}${data.suffixes || ""}`,
         branchId: tokenPayload.branchId,
         discountIssueId: data.discountIssueId,
         createdBy: tokenPayload.accountId,
@@ -40,7 +40,7 @@ export class DiscountCodeService {
     if (amount + currentAmount > discountIssue.amount)
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        '#1 checkAmountValid - Số lượng vượt quá đợt khuyến mãi!',
+        "#1 checkAmountValid - Số lượng vượt quá đợt khuyến mãi!",
         [],
         { currentAmount, maxAmount: discountIssue.amount },
       );
@@ -61,7 +61,7 @@ export class DiscountCodeService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -69,14 +69,14 @@ export class DiscountCodeService {
     let where: Prisma.DiscountCodeWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
     };
     const [data, totalRecords] = await Promise.all([
       this.prisma.discountCode.findMany({
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
       }),
@@ -90,10 +90,7 @@ export class DiscountCodeService {
     };
   }
 
-  async findUniq(
-    where: Prisma.DiscountCodeWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.DiscountCodeWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.discountCode.findUniqueOrThrow({
       where: {
         ...where,

@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { calculatePagination, generateUniqueId } from 'utils/Helps';
-import { CreateToppingDto } from './dto/create-topping.dto';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { calculatePagination, generateUniqueId } from "utils/Helps";
+import { CreateToppingDto } from "./dto/create-topping.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
 @Injectable()
 export class ToppingService {
@@ -34,14 +34,14 @@ export class ToppingService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     let { skip, take, keyword } = params;
 
-    const keySearch = ['name'];
+    const keySearch = ["name"];
 
     let where: Prisma.ToppingWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
     };
@@ -51,7 +51,7 @@ export class ToppingService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -73,10 +73,7 @@ export class ToppingService {
     };
   }
 
-  async findUniq(
-    where: Prisma.ToppingWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.ToppingWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.topping.findUniqueOrThrow({
       where: {
         ...where,
@@ -136,6 +133,6 @@ export class ToppingService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

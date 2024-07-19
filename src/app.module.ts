@@ -47,6 +47,7 @@ import { OrderDetailModule } from "./order-detail/order-detail.module";
 import { TransporterModule } from "./transporter/transporter.module";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { WorkShiftModule } from './work-shift/work-shift.module';
+import { EmployeeScheduleModule } from './employee-schedule/employee-schedule.module';
 
 @Module({
   imports: [
@@ -114,6 +115,7 @@ import { WorkShiftModule } from './work-shift/work-shift.module';
     OrderDetailModule,
     TransporterModule,
     WorkShiftModule,
+    EmployeeScheduleModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

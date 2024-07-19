@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { calculatePagination, generateUniqueId } from 'utils/Helps';
-import { CreateCustomerTypeDto } from './dto/create-customer-type';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { calculatePagination, generateUniqueId } from "utils/Helps";
+import { CreateCustomerTypeDto } from "./dto/create-customer-type";
 
 @Injectable()
 export class CustomerTypeService {
@@ -35,7 +35,7 @@ export class CustomerTypeService {
     let { skip, take, keyword } = params;
     let where: Prisma.CustomerTypeWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,
@@ -46,7 +46,7 @@ export class CustomerTypeService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -68,10 +68,7 @@ export class CustomerTypeService {
     };
   }
 
-  async findUniq(
-    where: Prisma.CustomerTypeWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.CustomerTypeWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.customerType.findUniqueOrThrow({
       where: {
         ...where,
@@ -136,6 +133,6 @@ export class CustomerTypeService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

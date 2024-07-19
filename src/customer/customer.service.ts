@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common';
-import { CreateCustomerDto } from './dto/create-customer.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { CommonService } from 'src/common/common.service';
-import { Prisma } from '@prisma/client';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { calculatePagination } from 'utils/Helps';
+import { Injectable } from "@nestjs/common";
+import { CreateCustomerDto } from "./dto/create-customer.dto";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { CommonService } from "src/common/common.service";
+import { Prisma } from "@prisma/client";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class CustomerService {
@@ -15,18 +15,10 @@ export class CustomerService {
   ) {}
 
   async create(data: CreateCustomerDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInShop(
-      { phone: data.phone },
-      'Customer',
-      tokenPayload.shopId,
-    );
+    await this.commonService.checkDataExistingInShop({ phone: data.phone }, "Customer", tokenPayload.shopId);
 
     if (data.customerTypeId)
-      await this.commonService.findByIdWithShop(
-        data.customerTypeId,
-        'CustomerType',
-        tokenPayload.shopId,
-      );
+      await this.commonService.findByIdWithShop(data.customerTypeId, "CustomerType", tokenPayload.shopId);
 
     return await this.prisma.customer.create({
       data: {
@@ -69,13 +61,13 @@ export class CustomerService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword, customerTypeIds, from, to } = params;
 
-    const keySearch = ['name', 'code', 'email', 'phone'];
+    const keySearch = ["name", "code", "email", "phone"];
 
     const where: Prisma.CustomerWhereInput = {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
       ...(customerTypeIds?.length > 0 && {
@@ -114,7 +106,7 @@ export class CustomerService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -156,10 +148,7 @@ export class CustomerService {
     };
   }
 
-  async findUniq(
-    where: Prisma.CustomerWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniq(where: Prisma.CustomerWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.customer.findUniqueOrThrow({
       where: {
         ...where,
@@ -208,19 +197,10 @@ export class CustomerService {
   ) {
     const { where, data } = params;
 
-    await this.commonService.checkDataExistingInShop(
-      { phone: data.phone },
-      'Customer',
-      tokenPayload.shopId,
-      where.id,
-    );
+    await this.commonService.checkDataExistingInShop({ phone: data.phone }, "Customer", tokenPayload.shopId, where.id);
 
     if (data.customerTypeId)
-      await this.commonService.findByIdWithShop(
-        data.customerTypeId,
-        'CustomerType',
-        tokenPayload.shopId,
-      );
+      await this.commonService.findByIdWithShop(data.customerTypeId, "CustomerType", tokenPayload.shopId);
 
     return this.prisma.customer.update({
       where: {
@@ -278,6 +258,6 @@ export class CustomerService {
       },
     });
 
-    return { ...count, ids: data.ids };
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }
