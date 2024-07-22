@@ -17,6 +17,9 @@ import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { RegisterScheduleDto, UpdateRegisterScheduleDto } from "./dto/employee.schedule.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { Roles } from "guards/roles.decorator";
+import { RolesGuard } from "guards/roles.guard";
+import { SPECIAL_ROLE } from "enums/common.enum";
 
 @Controller("employee-schedule")
 export class EmployeeScheduleController {
@@ -24,7 +27,8 @@ export class EmployeeScheduleController {
 
   @Post("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @Roles("CREATE_EMPLOYEE_SCHEDULE", SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   create(@Body() registerScheduleDto: RegisterScheduleDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -33,7 +37,14 @@ export class EmployeeScheduleController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    "CREATE_EMPLOYEE_SCHEDULE",
+    "UPDATE_EMPLOYEE_SCHEDULE",
+    "DELETE_EMPLOYEE_SCHEDULE",
+    "VIEW_EMPLOYEE_SCHEDULE",
+    SPECIAL_ROLE.MANAGER,
+  )
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -42,7 +53,14 @@ export class EmployeeScheduleController {
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(
+    "CREATE_EMPLOYEE_SCHEDULE",
+    "UPDATE_EMPLOYEE_SCHEDULE",
+    "DELETE_EMPLOYEE_SCHEDULE",
+    "VIEW_EMPLOYEE_SCHEDULE",
+    SPECIAL_ROLE.MANAGER,
+  )
   findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -56,7 +74,8 @@ export class EmployeeScheduleController {
 
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @Roles("UPDATE_EMPLOYEE_SCHEDULE", SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   update(@Param("id") id: string, @Body() updateRegisterScheduleDto: UpdateRegisterScheduleDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -73,7 +92,8 @@ export class EmployeeScheduleController {
 
   @Delete("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @Roles("DELETE_EMPLOYEE_SCHEDULE", SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

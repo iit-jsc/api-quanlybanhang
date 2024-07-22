@@ -11,56 +11,44 @@ import {
   UseGuards,
   Req,
   Query,
-} from '@nestjs/common';
-import { SupplierService } from './supplier.service';
-import { CreateSupplierDto, UpdateSupplierDto } from './dto/supplier.dto';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { RolesGuard } from 'guards/roles.guard';
-import { Roles } from 'guards/roles.decorator';
-import { SPECIAL_ROLE } from 'enums/common.enum';
+} from "@nestjs/common";
+import { SupplierService } from "./supplier.service";
+import { CreateSupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
+import { JwtAuthGuard } from "guards/jwt-auth.guard";
+import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { RolesGuard } from "guards/roles.guard";
+import { Roles } from "guards/roles.decorator";
+import { SPECIAL_ROLE } from "enums/common.enum";
 
-@Controller('supplier')
+@Controller("supplier")
 export class SupplierController {
   constructor(private readonly supplierService: SupplierService) {}
 
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  @Post('')
-  @Roles('CREATE_SUPPLIER', SPECIAL_ROLE.MANAGER)
+  @Post("")
+  @Roles("CREATE_SUPPLIER", SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   create(@Body() createSupplierDto: CreateSupplierDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.supplierService.create(createSupplierDto, tokenPayload);
   }
 
-  @Get('')
+  @Get("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_SUPPLIER',
-    'UPDATE_SUPPLIER',
-    'DELETE_SUPPLIER',
-    'VIEW_SUPPLIER',
-    SPECIAL_ROLE.MANAGER,
-  )
+  @Roles("CREATE_SUPPLIER", "UPDATE_SUPPLIER", "DELETE_SUPPLIER", "VIEW_SUPPLIER", SPECIAL_ROLE.MANAGER)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.supplierService.findAll(findManyDto, tokenPayload);
   }
 
-  @Get(':id')
+  @Get(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_SUPPLIER',
-    'UPDATE_SUPPLIER',
-    'DELETE_SUPPLIER',
-    'VIEW_SUPPLIER',
-    SPECIAL_ROLE.MANAGER,
-  )
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  @Roles("CREATE_SUPPLIER", "UPDATE_SUPPLIER", "DELETE_SUPPLIER", "VIEW_SUPPLIER", SPECIAL_ROLE.MANAGER)
+  findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.supplierService.findUniq(
@@ -71,15 +59,11 @@ export class SupplierController {
     );
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_SUPPLIER', SPECIAL_ROLE.MANAGER)
-  update(
-    @Param('id') id: string,
-    @Body() updateSupplierDto: UpdateSupplierDto,
-    @Req() req: any,
-  ) {
+  @Roles("UPDATE_SUPPLIER", SPECIAL_ROLE.MANAGER)
+  update(@Param("id") id: string, @Body() updateSupplierDto: UpdateSupplierDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.supplierService.update(
@@ -93,10 +77,10 @@ export class SupplierController {
     );
   }
 
-  @Delete('')
+  @Delete("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('DELETE_SUPPLIER', SPECIAL_ROLE.MANAGER)
+  @Roles("DELETE_SUPPLIER", SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.supplierService.deleteMany(

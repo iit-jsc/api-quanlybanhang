@@ -17,14 +17,17 @@ import { CreateWorkShiftDto, UpdateWorkShiftDto } from "./dto/work-shift.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { Roles } from "guards/roles.decorator";
+import { SPECIAL_ROLE } from "enums/common.enum";
+import { RolesGuard } from "guards/roles.guard";
 
 @Controller("work-shift")
 export class WorkShiftController {
   constructor(private readonly workShiftService: WorkShiftService) {}
 
   @Post("")
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @Roles("CREATE_WORK_SHIFT", SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
   create(@Body() createWorkShiftDto: CreateWorkShiftDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -33,7 +36,8 @@ export class WorkShiftController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("CREATE_WORK_SHIFT", "UPDATE_WORK_SHIFT", "DELETE_WORK_SHIFT", "VIEW_WORK_SHIFT", SPECIAL_ROLE.MANAGER)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -42,7 +46,8 @@ export class WorkShiftController {
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("CREATE_WORK_SHIFT", "UPDATE_WORK_SHIFT", "DELETE_WORK_SHIFT", "VIEW_WORK_SHIFT", SPECIAL_ROLE.MANAGER)
   findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -56,7 +61,8 @@ export class WorkShiftController {
 
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("UPDATE_WORK_SHIFT", SPECIAL_ROLE.MANAGER)
   update(@Param("id") id: string, @Body() updateWorkShiftDto: UpdateWorkShiftDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -73,7 +79,8 @@ export class WorkShiftController {
 
   @Delete("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("DELETE_WORK_SHIFT", SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
