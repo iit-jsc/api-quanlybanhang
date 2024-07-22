@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CreateTableDto } from "./dto/create-table.dto";
+import { CreateTableDto, UpdateTableDto } from "./dto/table.dto";
 import { PrismaService } from "nestjs-prisma";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -205,7 +205,7 @@ export class TableService {
   async update(
     params: {
       where: Prisma.TableWhereUniqueInput;
-      data: CreateTableDto;
+      data: UpdateTableDto;
     },
     tokenPayload: TokenPayload,
   ) {
@@ -226,15 +226,17 @@ export class TableService {
         code: data.code,
         photoURL: data.photoURL,
         description: data.description,
+        ...(data.areaId && {
+          area: {
+            connect: {
+              id: data.areaId,
+              isPublic: true,
+            },
+          },
+        }),
         updater: {
           connect: {
             id: tokenPayload.accountId,
-          },
-        },
-        area: {
-          connect: {
-            id: data.areaId,
-            isPublic: true,
           },
         },
       },

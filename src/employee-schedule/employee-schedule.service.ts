@@ -56,10 +56,15 @@ export class EmployeeScheduleService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, from, to, employeeIds, workShiftIds } = params;
+    let { skip, take, from, to, employeeIds, workShiftIds, keyword } = params;
     const keySearch = ["name"];
 
     let where: Prisma.EmployeeScheduleWhereInput = {
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword, mode: "insensitive" },
+        })),
+      }),
       ...(employeeIds?.length > 0 && {
         employeeId: { in: employeeIds },
       }),

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { CreateMeasurementUnitDto } from "./dto/create-measurement-unit.dto";
+import { CreateMeasurementUnitDto, UpdateMeasurementUnitDto } from "./dto/measurement-unit.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { calculatePagination } from "utils/Helps";
 import { Prisma } from "@prisma/client";
@@ -82,7 +82,7 @@ export class MeasurementUnitService {
   async update(
     params: {
       where: Prisma.MeasurementUnitWhereUniqueInput;
-      data: Prisma.MeasurementUnitUpdateInput;
+      data: UpdateMeasurementUnitDto;
     },
     tokenPayload: TokenPayload,
   ) {

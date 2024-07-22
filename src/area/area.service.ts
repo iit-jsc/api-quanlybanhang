@@ -4,7 +4,7 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
-import { CreateAreaDto } from "./dto/create-area.dto";
+import { CreateAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { CommonService } from "src/common/common.service";
 
 @Injectable()
@@ -140,7 +140,7 @@ export class AreaService {
   async update(
     params: {
       where: Prisma.AreaWhereUniqueInput;
-      data: CreateAreaDto;
+      data: UpdateAreaDto;
     },
     tokenPayload: TokenPayload,
   ) {

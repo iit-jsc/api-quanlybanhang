@@ -1,9 +1,10 @@
-import { Transform, TransformFnParams, Type } from 'class-transformer';
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { BRANCH_STATUS } from 'enums/shop.enum';
+import { PartialType } from "@nestjs/swagger";
+import { Transform, TransformFnParams, Type } from "class-transformer";
+import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { BRANCH_STATUS } from "enums/shop.enum";
 
 export class CreateBranchDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   name: string;
@@ -18,6 +19,8 @@ export class CreateBranchDto {
 
   @IsOptional()
   @Type(() => Number)
-  @IsEnum(BRANCH_STATUS, { message: 'Trạng thái không hợp lệ!' })
+  @IsEnum(BRANCH_STATUS, { message: "Trạng thái không hợp lệ!" })
   status?: number;
 }
+
+export class UpdateBranchDto extends PartialType(CreateBranchDto) {}

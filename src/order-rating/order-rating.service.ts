@@ -1,12 +1,11 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { CreateOrderRatingDto } from "./dto/create-order-rating.dto";
+import { CreateOrderRatingDto, UpdateOrderRatingDto } from "./dto/order-rating.dto";
 import { DeleteManyResponse, TokenCustomerPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { FindManyOrderRatings } from "./dto/find-many-order-rating";
-import { UpdateOrderRatingDto } from "./dto/update-order-rating.dto";
 
 @Injectable()
 export class OrderRatingService {

@@ -1,7 +1,6 @@
 import * as bcrypt from "bcrypt";
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { CreateManagerDto } from "./dto/create-manager.dto";
-import { UpdateManagerDto } from "./dto/update-manager.dto";
+import { CreateManagerDto, UpdateManagerDto } from "./dto/manager.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { FindManyDto } from "utils/Common.dto";
@@ -56,7 +55,7 @@ export class ManagerService {
   }
 
   async create(data: CreateManagerDto, tokenPayload: TokenPayload) {
-    await this.checkManagerExisting(data.phone);
+    await this.commonService.checkUserExisting({ phone: data.phone, email: data.email }, tokenPayload.shopId);
 
     // Kiểm tra chi nhánh thuộc shop không
     await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
@@ -107,10 +106,16 @@ export class ManagerService {
   ) {
     const { where, data } = params;
 
-    await this.checkManagerExisting(data.phone, where.id);
+    if (data.phone || data.email)
+      await this.commonService.checkUserExisting(
+        { phone: data.phone, email: data.email },
+        tokenPayload.shopId,
+        where.id,
+      );
 
     // Kiểm tra chi nhánh thuộc shop không
-    await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
+    if (data.branchIds && data.branchIds?.length > 0)
+      await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
 
     return this.prisma.user.update({
       data: {
@@ -128,16 +133,27 @@ export class ManagerService {
         updatedBy: tokenPayload.accountId,
         account: {
           update: {
-            password: data.newPassword ? bcrypt.hashSync(data.newPassword, 10) : undefined,
             status: data.accountStatus,
-            branches: {
-              set: data.branchIds?.map((id: string) => ({ id })),
-            },
+            ...(data.newPassword && { password: data.newPassword ? bcrypt.hashSync(data.newPassword, 10) : undefined }),
+            ...(data.branchIds &&
+              data.branchIds?.length > 0 && {
+                branches: {
+                  set: data.branchIds?.map((id: string) => ({ id })),
+                },
+              }),
           },
         },
       },
       where: {
         id: where.id,
+        isPublic: true,
+        account: {
+          branches: {
+            some: {
+              shopId: tokenPayload.shopId,
+            },
+          },
+        },
       },
     });
   }

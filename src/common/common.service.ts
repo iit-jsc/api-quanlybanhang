@@ -1,10 +1,7 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { DETAIL_ORDER_STATUS } from "enums/order.enum";
 import { AnyObject } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { permission } from "process";
-import { CreateCustomerDto } from "src/customer/dto/create-customer.dto";
 import { ConfirmPhoneDto } from "src/shop/dto/confirm-phone.dto";
 import { CustomHttpException } from "utils/ApiErrors";
 

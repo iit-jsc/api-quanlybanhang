@@ -4,7 +4,7 @@ import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { calculatePagination } from "utils/Helps";
-import { CreateProductTypeDto } from "./dto/create-product-type.dto";
+import { CreateProductTypeDto, UpdateProductTypeDto } from "./dto/product-type.dto";
 import { FindManyProductTypeDto } from "./dto/find-many.dto";
 import { DeleteManyDto } from "utils/Common.dto";
 
@@ -79,7 +79,8 @@ export class ProductTypeService {
   async findUniq(where: Prisma.ProductTypeWhereInput) {
     return this.prisma.productType.findFirst({
       where: {
-        ...where,
+        slug: where.slug,
+        branchId: where.branchId,
         isPublic: true,
       },
       select: {
@@ -100,7 +101,7 @@ export class ProductTypeService {
   async update(
     params: {
       where: Prisma.ProductTypeWhereUniqueInput;
-      data: CreateProductTypeDto;
+      data: UpdateProductTypeDto;
     },
     tokenPayload: TokenPayload,
   ) {

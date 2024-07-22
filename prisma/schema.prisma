@@ -120,59 +120,62 @@ model Account {
   updaterWorkShift            WorkShift[]            @relation("updater")
   creatorEmployeeSchedule     EmployeeSchedule[]     @relation("creator")
   updaterEmployeeSchedule     EmployeeSchedule[]     @relation("updater")
-  creatorSalarySetting        SalarySetting[]        @relation("creator")
-  updaterSalarySetting        SalarySetting[]        @relation("updater")
   creatorTableSalary          TableSalary[]          @relation("creator")
   updaterTableSalary          TableSalary[]          @relation("updater")
+  creatorEmployeeSalary       EmployeeSalary[]       @relation("creator")
+  updaterEmployeeSalary       EmployeeSalary[]       @relation("updater")
+  creatorAllowanceDeduction   AllowanceDeduction[]   @relation("creator")
+  updaterAllowanceDeduction   AllowanceDeduction[]   @relation("updater")
   creatorDetailTableSalary    DetailTableSalary[]    @relation("creator")
   updaterDetailTableSalary    DetailTableSalary[]    @relation("updater")
 }
 
 model User {
-  id                String              @id @default(uuid())
-  name              String
-  code              String?
-  phone             String
-  email             String?
-  photoURL          String?             @db.Text
-  address           String?             @db.Text
-  cardId            String?
-  cardDate          DateTime?
-  cardAddress       String?
-  birthday          DateTime?
-  sex               Int?
-  startDate         DateTime?
-  employeeGroupId   String?
-  employeeGroup     EmployeeGroup?      @relation(fields: [employeeGroupId], references: [id])
-  isPublic          Boolean?            @default(true)
-  createdAt         DateTime            @default(now())
-  updatedAt         DateTime            @updatedAt
-  employeeSchedules EmployeeSchedule[]
-  createdBy         String?
-  updatedBy         String?
-  creator           Account?            @relation("creator", fields: [createdBy], references: [id])
-  updater           Account?            @relation("updater", fields: [updatedBy], references: [id])
-  branch            Branch?             @relation(fields: [branchId], references: [id])
-  branchId          String?
-  account           Account?
-  DetailTableSalary DetailTableSalary[]
+  id                  String              @id @default(uuid())
+  name                String
+  code                String?
+  phone               String
+  email               String?
+  photoURL            String?             @db.Text
+  address             String?             @db.Text
+  cardId              String?
+  cardDate            DateTime?
+  cardAddress         String?
+  birthday            DateTime?
+  sex                 Int?
+  startDate           DateTime?
+  employeeGroupId     String?
+  employeeGroup       EmployeeGroup?      @relation(fields: [employeeGroupId], references: [id])
+  isPublic            Boolean?            @default(true)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  employeeSchedules   EmployeeSchedule[]
+  createdBy           String?
+  updatedBy           String?
+  creator             Account?            @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
+  branch              Branch?             @relation(fields: [branchId], references: [id])
+  branchId            String?
+  account             Account?
+  employeeSalary      EmployeeSalary?
+  detailTableSalaries DetailTableSalary[]
 }
 
 model EmployeeGroup {
-  id            String         @id @default(uuid())
-  name          String
-  description   String?        @db.Text
-  users         User[]
-  branch        Branch?        @relation(fields: [branchId], references: [id])
-  branchId      String?
-  isPublic      Boolean?       @default(true)
-  createdBy     String?
-  updatedBy     String?
-  creator       Account?       @relation("creator", fields: [createdBy], references: [id])
-  updater       Account?       @relation("updater", fields: [updatedBy], references: [id])
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  salarySetting SalarySetting?
+  id              String   @id @default(uuid())
+  name            String
+  description     String?  @db.Text
+  users           User[]
+  branch          Branch?  @relation(fields: [branchId], references: [id])
+  branchId        String?
+  isPublic        Boolean? @default(true)
+  createdBy       String?
+  updatedBy       String?
+  creator         Account? @relation("creator", fields: [createdBy], references: [id])
+  updater         Account? @relation("updater", fields: [updatedBy], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  salarySettingId String?
 }
 
 model Shop {
@@ -320,6 +323,7 @@ model Product {
   slug                        String                       @unique
   code                        String?
   price                       Float                        @default(0)
+  oldPrice                    Float?
   description                 String?                      @db.Text
   photoURLs                   Json?
   otherAttributes             Json?
@@ -685,7 +689,7 @@ model Area {
   name        String
   code        String?
   description String?  @db.Text
-  photoURL    String?  @db.Text
+  photoURL    String?  @default("uploads/area.png") @db.Text
   isPublic    Boolean? @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
@@ -873,11 +877,10 @@ model Branch {
   users                      User[]
   warehouses                 Warehouse[]
   inventoryTransactions      InventoryTransaction[]
-  salarySettings             SalarySetting[]
-  allowanceSettings          AllowanceSetting[]
-  TableSalaries              TableSalary[]
+  tableSalaries              TableSalary[]
+  employeeSalaries           EmployeeSalary[]
+  allowanceDeductions        AllowanceDeduction[]
   detailTableSalaries        DetailTableSalary[]
-  allowances                 Allowance[]
 }
 
 model WorkShift {
@@ -918,41 +921,19 @@ model EmployeeSchedule {
   workShift   WorkShift @relation(fields: [workShiftId], references: [id])
 }
 
-model SalarySetting {
-  id                String             @id @default(uuid())
-  branchId          String
-  baseSalary        Float
-  type              Int
-  employeeGroupId   String             @unique
-  employeeGroup     EmployeeGroup      @relation(fields: [employeeGroupId], references: [id])
-  isPublic          Boolean?           @default(true)
-  createdBy         String?
-  updatedBy         String?
-  creator           Account?           @relation("creator", fields: [createdBy], references: [id])
-  updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  branch            Branch             @relation(fields: [branchId], references: [id])
-  sllowanceSettings AllowanceSetting[]
-}
-
-model AllowanceSetting {
-  id              String        @id @default(uuid())
-  salarySettingId String
-  name            String
-  amount          Float
-  description     String?       @db.Text
-  salarySetting   SalarySetting @relation(fields: [salarySettingId], references: [id])
-  branchId        String
-  branch          Branch        @relation(fields: [branchId], references: [id])
-}
-
 model TableSalary {
   id                  String              @id @default(uuid())
   name                String
   description         String              @db.Text
+  type                Int
   branchId            String
   branch              Branch              @relation(fields: [branchId], references: [id])
+  allowanceLabel      Json?
+  deductionLabel      Json?
+  isPublic            Boolean?            @default(true)
+  isConfirm           Boolean?            @default(false)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
   createdBy           String?
   updatedBy           String?
   creator             Account?            @relation("creator", fields: [createdBy], references: [id])
@@ -961,29 +942,59 @@ model TableSalary {
 }
 
 model DetailTableSalary {
-  id            String      @id @default(uuid())
-  tableSalaryId String
-  tableSalary   TableSalary @relation(fields: [tableSalaryId], references: [id])
-  branchId      String
-  branch        Branch      @relation(fields: [branchId], references: [id])
-  employeeId    String
-  employee      User        @relation(fields: [employeeId], references: [id])
-  allowances    Allowance[]
-  createdBy     String?
-  updatedBy     String?
-  creator       Account?    @relation("creator", fields: [createdBy], references: [id])
-  updater       Account?    @relation("updater", fields: [updatedBy], references: [id])
+  id             String      @id @default(uuid())
+  tableSalaryId  String
+  tableSalary    TableSalary @relation(fields: [tableSalaryId], references: [id])
+  allowanceValue Json?
+  deductionValue Json?
+  baseSalary     Float       @default(0)
+  salaryType     Int?
+  workDay        Float
+  employeeId     String
+  employee       User        @relation(fields: [employeeId], references: [id])
+  isPublic       Boolean?    @default(true)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+  createdBy      String?
+  updatedBy      String?
+  creator        Account?    @relation("creator", fields: [createdBy], references: [id])
+  updater        Account?    @relation("updater", fields: [updatedBy], references: [id])
+  branch         Branch?     @relation(fields: [branchId], references: [id])
+  branchId       String?
 }
 
-model Allowance {
-  id                  String             @id @default(uuid())
-  name                String
-  amount              Float
-  description         String?            @db.Text
-  branchId            String
-  branch              Branch             @relation(fields: [branchId], references: [id])
-  detailTableSalary   DetailTableSalary? @relation(fields: [detailTableSalaryId], references: [id])
-  detailTableSalaryId String?
+model AllowanceDeduction {
+  id          String   @id @default(uuid())
+  name        String
+  description String?  @db.Text
+  type        Int
+  branchId    String
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  isPublic    Boolean? @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  createdBy   String?
+  updatedBy   String?
+  creator     Account? @relation("creator", fields: [createdBy], references: [id])
+  updater     Account? @relation("updater", fields: [updatedBy], references: [id])
+}
+
+model EmployeeSalary {
+  id         String   @id @default(uuid())
+  employeeId String   @unique
+  employee   User     @relation(fields: [employeeId], references: [id])
+  baseSalary Float    @default(0)
+  isFulltime Boolean  @default(true)
+  salaryType Int?
+  isPublic   Boolean? @default(true)
+  branchId   String
+  branch     Branch   @relation(fields: [branchId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String?
+  updatedBy  String?
+  creator    Account? @relation("creator", fields: [createdBy], references: [id])
+  updater    Account? @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model PhoneVerification {

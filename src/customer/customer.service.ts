@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CreateCustomerDto } from "./dto/create-customer.dto";
+import { CreateCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
@@ -191,7 +191,7 @@ export class CustomerService {
   async update(
     params: {
       where: Prisma.CustomerWhereUniqueInput;
-      data: CreateCustomerDto;
+      data: UpdateCustomerDto;
     },
     tokenPayload: TokenPayload,
   ) {
@@ -217,11 +217,6 @@ export class CustomerService {
         phone: data.phone,
         address: data.address,
         birthDay: data.birthDay,
-        customerType: {
-          connect: {
-            id: data.customerTypeId,
-          },
-        },
         description: data.description,
         discount: data.discount,
         discountType: data.discountType,
@@ -231,6 +226,13 @@ export class CustomerService {
         sex: data.sex,
         representativeName: data.representativeName,
         representativePhone: data.representativePhone,
+        ...(data.customerTypeId && {
+          customerType: {
+            connect: {
+              id: data.customerTypeId,
+            },
+          },
+        }),
         updater: {
           connect: {
             id: tokenPayload.accountId,

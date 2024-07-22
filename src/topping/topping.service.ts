@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { calculatePagination, generateUniqueId } from "utils/Helps";
-import { CreateToppingDto } from "./dto/create-topping.dto";
+import { CreateToppingDto, UpdateToppingDto } from "./dto/topping.dto";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
 @Injectable()
@@ -93,7 +93,7 @@ export class ToppingService {
   async update(
     params: {
       where: Prisma.ToppingWhereUniqueInput;
-      data: CreateToppingDto;
+      data: UpdateToppingDto;
     },
     tokenPayload: TokenPayload,
   ) {

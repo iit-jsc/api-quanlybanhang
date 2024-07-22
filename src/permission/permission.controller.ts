@@ -11,55 +11,45 @@ import {
   Query,
   Req,
   UseGuards,
-} from '@nestjs/common';
-import { PermissionService } from './permission.service';
-import { CreatePermissionDto } from './dto/create-permission.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { RolesGuard } from 'guards/roles.guard';
-import { Roles } from 'guards/roles.decorator';
-import { SPECIAL_ROLE } from 'enums/common.enum';
+} from "@nestjs/common";
+import { PermissionService } from "./permission.service";
+import { CreatePermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
+import { TokenPayload } from "interfaces/common.interface";
+import { JwtAuthGuard } from "guards/jwt-auth.guard";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { RolesGuard } from "guards/roles.guard";
+import { Roles } from "guards/roles.decorator";
+import { SPECIAL_ROLE } from "enums/common.enum";
 
-@Controller('permission')
+@Controller("permission")
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
-  @Post('')
+  @Post("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_PERMISSION', SPECIAL_ROLE.MANAGER)
+  @Roles("CREATE_PERMISSION", SPECIAL_ROLE.MANAGER)
   create(@Body() createPermissionDto: CreatePermissionDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.permissionService.create(createPermissionDto, tokenPayload);
   }
 
-  @Get('')
+  @Get("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_PERMISSION',
-    'UPDATE_PERMISSION',
-    'DELETE_PERMISSION',
-    'VIEW_PERMISSION',
-    SPECIAL_ROLE.MANAGER,
-  )
+  @Roles("CREATE_PERMISSION", "UPDATE_PERMISSION", "DELETE_PERMISSION", "VIEW_PERMISSION", SPECIAL_ROLE.MANAGER)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.permissionService.findAll(findManyDto, tokenPayload);
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_PERMISSION', SPECIAL_ROLE.MANAGER)
-  update(
-    @Param('id') id: string,
-    @Body() createPermissionDto: CreatePermissionDto,
-    @Req() req: any,
-  ) {
+  @Roles("UPDATE_PERMISSION", SPECIAL_ROLE.MANAGER)
+  update(@Param("id") id: string, @Body() updatePermissionDto: UpdatePermissionDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.permissionService.update(
@@ -67,23 +57,17 @@ export class PermissionController {
         where: {
           id,
         },
-        data: createPermissionDto,
+        data: updatePermissionDto,
       },
       tokenPayload,
     );
   }
 
-  @Get(':id')
+  @Get(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_PERMISSION',
-    'UPDATE_PERMISSION',
-    'DELETE_PERMISSION',
-    'VIEW_PERMISSION',
-    SPECIAL_ROLE.MANAGER,
-  )
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  @Roles("CREATE_PERMISSION", "UPDATE_PERMISSION", "DELETE_PERMISSION", "VIEW_PERMISSION", SPECIAL_ROLE.MANAGER)
+  findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.permissionService.findUniq(
@@ -94,10 +78,10 @@ export class PermissionController {
     );
   }
 
-  @Delete('')
+  @Delete("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('DELETE_PERMISSION', SPECIAL_ROLE.MANAGER)
+  @Roles("DELETE_PERMISSION", SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

@@ -1,4 +1,4 @@
-import { CreateBranchDto } from "src/branch/dto/create-branch.dto";
+import { CreateBranchDto, UpdateBranchDto } from "src/branch/dto/create-branch.dto";
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { UserService } from "src/user/user.service";
@@ -104,7 +104,7 @@ export class BranchService {
   async update(
     params: {
       where: Prisma.BranchWhereUniqueInput;
-      data: Prisma.BranchUpdateInput;
+      data: UpdateBranchDto;
     },
     tokenPayload: TokenPayload,
   ) {

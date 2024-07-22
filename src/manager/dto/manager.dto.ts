@@ -1,3 +1,4 @@
+import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   IsArray,
@@ -11,10 +12,10 @@ import {
   MaxDate,
   MinLength,
 } from "class-validator";
-import { SEX_TYPE } from "enums/user.enum";
+import { ACCOUNT_STATUS, SEX_TYPE } from "enums/user.enum";
 import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
-export class CreateEmployeeDto {
+export class CreateManagerDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
@@ -51,18 +52,18 @@ export class CreateEmployeeDto {
   cardDate: Date;
 
   @IsOptional()
+  @IsString()
+  cardId: string;
+
+  @IsOptional()
+  @IsString()
+  cardAddress: string;
+
+  @IsOptional()
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: "Ngày tháng không hợp lệ!" })
   @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
   startDate: Date;
-
-  @IsOptional()
-  @IsString()
-  employeeGroupId: string;
-
-  @IsOptional()
-  @IsArray()
-  permissionIds: string[];
 
   @IsOptional()
   @IsString()
@@ -72,27 +73,26 @@ export class CreateEmployeeDto {
   @IsString()
   address: string;
 
-  @IsOptional()
-  @IsString()
-  cardId: string;
-
-  @IsOptional()
-  @IsString()
-  cardAddress: string;
-
-  @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
-  code: string;
-
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
-  username: string;
-
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   @MinLength(6, { message: "Mật khẩu phải có ít nhất 6 kí tự." })
   password: string;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsArray()
+  branchIds: string[];
+}
+
+export class UpdateManagerDto extends PartialType(CreateManagerDto) {
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  @MinLength(6, { message: "Mật khẩu phải có ít nhất 6 kí tự." })
+  newPassword: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsEnum(ACCOUNT_STATUS, { message: "Trạng thái không hợp lệ!" })
+  accountStatus: number;
 }

@@ -1,4 +1,5 @@
-import { Transform, TransformFnParams } from 'class-transformer';
+import { PartialType } from "@nestjs/swagger";
+import { Transform, TransformFnParams } from "class-transformer";
 import {
   IsDate,
   IsEmail,
@@ -9,16 +10,13 @@ import {
   IsString,
   MaxDate,
   Validate,
-} from 'class-validator';
-import { DISCOUNT_TYPE } from 'enums/common.enum';
-import { ENDOW_TYPE, SEX_TYPE } from 'enums/user.enum';
-import {
-  DiscountConstraint,
-  IsVietnamesePhoneNumber,
-} from 'utils/CustomValidates';
+} from "class-validator";
+import { DISCOUNT_TYPE } from "enums/common.enum";
+import { ENDOW_TYPE, SEX_TYPE } from "enums/user.enum";
+import { DiscountConstraint, IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateCustomerDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   name: string;
@@ -29,7 +27,7 @@ export class CreateCustomerDto {
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
+  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   code: string;
 
@@ -37,7 +35,7 @@ export class CreateCustomerDto {
   @IsEmail()
   email: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   @IsVietnamesePhoneNumber()
   phone: string;
@@ -60,13 +58,13 @@ export class CreateCustomerDto {
 
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MaxDate(new Date(), { message: 'Ngày tháng phải nhỏ hơn ngày hiện tại!' })
+  @IsDate({ message: "Ngày tháng không hợp lệ!" })
+  @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
   birthDay: Date;
 
   @IsOptional()
   @IsNumber()
-  @IsEnum(ENDOW_TYPE, { message: 'Endow không hợp lệ!' })
+  @IsEnum(ENDOW_TYPE, { message: "Endow không hợp lệ!" })
   endow: number;
 
   @IsOptional()
@@ -76,12 +74,12 @@ export class CreateCustomerDto {
 
   @IsOptional()
   @IsNumber()
-  @IsEnum(DISCOUNT_TYPE, { message: 'Loại giảm giá không hợp lệ!' })
+  @IsEnum(DISCOUNT_TYPE, { message: "Loại giảm giá không hợp lệ!" })
   discountType: number;
 
   @IsOptional()
   @IsNumber()
-  @IsEnum(SEX_TYPE, { message: 'Giới tính không hợp lệ!' })
+  @IsEnum(SEX_TYPE, { message: "Giới tính không hợp lệ!" })
   sex: number;
 
   @IsOptional()
@@ -92,3 +90,5 @@ export class CreateCustomerDto {
   @IsString()
   tax: string;
 }
+
+export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}

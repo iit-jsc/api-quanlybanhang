@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { calculatePagination, generateUniqueId } from "utils/Helps";
-import { CreateProductDto } from "./dto/create-product.dto";
+import { CreateProductDto, UpdateProductDto } from "./dto/product.dto";
 import { CommonService } from "src/common/common.service";
 import { FindManyProductDto } from "./dto/find-many.dto";
 import * as slug from "slug";
@@ -24,11 +24,12 @@ export class ProductService {
 
     return this.prisma.product.create({
       data: {
-        slug: data.slug,
         name: data.name,
+        description: data.description,
+        slug: data.slug,
         code: data.code,
         price: data.price,
-        description: data.description,
+        oldPrice: data.oldPrice,
         otherAttributes: data.otherAttributes,
         status: data.status,
         photoURLs: data.photoURLs,
@@ -95,6 +96,7 @@ export class ProductService {
           name: true,
           code: true,
           price: true,
+          oldPrice: true,
           description: true,
           photoURLs: true,
           otherAttributes: true,
@@ -129,7 +131,8 @@ export class ProductService {
   async findUniq(where: Prisma.ProductWhereInput) {
     return this.prisma.product.findFirst({
       where: {
-        ...where,
+        slug: where.slug,
+        branchId: where.branchId,
         isPublic: true,
       },
       select: {
@@ -139,12 +142,26 @@ export class ProductService {
         name: true,
         code: true,
         price: true,
+        oldPrice: true,
         description: true,
         photoURLs: true,
         otherAttributes: true,
         status: true,
         slug: true,
-        measurementUnit: true,
+        measurementUnit: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+          },
+        },
+        productType: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        updatedAt: true,
       },
     });
   }
@@ -152,7 +169,7 @@ export class ProductService {
   async update(
     params: {
       where: Prisma.ProductWhereUniqueInput;
-      data: CreateProductDto;
+      data: UpdateProductDto;
     },
     tokenPayload: TokenPayload,
   ) {
@@ -181,6 +198,7 @@ export class ProductService {
         productTypeId: data.productTypeId,
         code: data.code,
         price: data.price,
+        oldPrice: data.oldPrice,
         photoURLs: data.photoURLs,
         otherAttributes: data.otherAttributes,
         status: data.status,

@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { CreateEmployeeGroupDto } from "./dto/create-employee-group.dto";
+import { CreateEmployeeGroupDto, UpdateEmployeeGroupDto } from "./dto/employee-group.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { calculatePagination } from "utils/Helps";
@@ -82,7 +82,7 @@ export class EmployeeGroupService {
   async update(
     params: {
       where: Prisma.EmployeeGroupWhereUniqueInput;
-      data: Prisma.EmployeeGroupUpdateInput;
+      data: UpdateEmployeeGroupDto;
     },
     tokenPayload: TokenPayload,
   ) {
@@ -95,7 +95,8 @@ export class EmployeeGroupService {
         updatedBy: tokenPayload.accountId,
       },
       where: {
-        ...where,
+        id: where.id,
+        isPublic: true,
         branchId: tokenPayload.branchId,
       },
     });

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { CreatePermissionDto } from "./dto/create-permission.dto";
+import { CreatePermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
 import { calculatePagination, roleBasedBranchFilter } from "utils/Helps";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -92,7 +92,7 @@ export class PermissionService {
   async update(
     params: {
       where: Prisma.PermissionWhereUniqueInput;
-      data: Prisma.PermissionUpdateInput;
+      data: UpdatePermissionDto;
     },
     tokenPayload: TokenPayload,
   ) {
@@ -102,6 +102,13 @@ export class PermissionService {
       data: {
         name: data.name,
         description: data.description,
+        ...(data.roleIds && {
+          roles: {
+            set: data.roleIds.map((id) => ({
+              id,
+            })),
+          },
+        }),
         updatedBy: tokenPayload.accountId,
       },
       where: {

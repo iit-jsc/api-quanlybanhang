@@ -11,61 +11,45 @@ import {
   Delete,
   Query,
   Get,
-} from '@nestjs/common';
-import { UserService } from './user.service';
-import { CreateEmployeeDto } from './dto/create-employee-dto';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { UpdateEmployeeDto } from './dto/update-employee-dto';
-import { RolesGuard } from 'guards/roles.guard';
-import { Roles } from 'guards/roles.decorator';
-import { SPECIAL_ROLE } from 'enums/common.enum';
+} from "@nestjs/common";
+import { UserService } from "./user.service";
+import { CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
+import { JwtAuthGuard } from "guards/jwt-auth.guard";
+import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { RolesGuard } from "guards/roles.guard";
+import { Roles } from "guards/roles.decorator";
+import { SPECIAL_ROLE } from "enums/common.enum";
 
-@Controller('user')
+@Controller("user")
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  @Post('/employee')
+  @Post("/employee")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
-  createEmployee(
-    @Body() createEmployeeDto: CreateEmployeeDto,
-    @Req() req: any,
-  ) {
+  @Roles("CREATE_EMPLOYEE", SPECIAL_ROLE.MANAGER)
+  createEmployee(@Body() createEmployeeDto: CreateEmployeeDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.userService.createEmployee(createEmployeeDto, tokenPayload);
   }
 
-  @Get('/employee')
+  @Get("/employee")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_EMPLOYEE',
-    'UPDATE_EMPLOYEE',
-    'DELETE_EMPLOYEE',
-    'VIEW_EMPLOYEE',
-    SPECIAL_ROLE.MANAGER,
-  )
+  @Roles("CREATE_EMPLOYEE", "UPDATE_EMPLOYEE", "DELETE_EMPLOYEE", "VIEW_EMPLOYEE", SPECIAL_ROLE.MANAGER)
   findAllEmployee(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.userService.findAllEmployee(findManyDto, tokenPayload);
   }
 
-  @Get('/employee/:id')
+  @Get("/employee/:id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_EMPLOYEE',
-    'UPDATE_EMPLOYEE',
-    'DELETE_EMPLOYEE',
-    'VIEW_EMPLOYEE',
-    SPECIAL_ROLE.MANAGER,
-  )
-  findUniqEmployee(@Param('id') id: string, @Req() req: any) {
+  @Roles("CREATE_EMPLOYEE", "UPDATE_EMPLOYEE", "DELETE_EMPLOYEE", "VIEW_EMPLOYEE", SPECIAL_ROLE.MANAGER)
+  findUniqEmployee(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.userService.findUniqEmployee(
@@ -76,15 +60,11 @@ export class UserController {
     );
   }
 
-  @Patch('/employee/:id')
+  @Patch("/employee/:id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
-  updateEmployee(
-    @Param('id') id: string,
-    @Body() updateEmployeeDto: UpdateEmployeeDto,
-    @Req() req: any,
-  ) {
+  @Roles("UPDATE_EMPLOYEE", SPECIAL_ROLE.MANAGER)
+  updateEmployee(@Param("id") id: string, @Body() updateEmployeeDto: UpdateEmployeeDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.userService.updateEmployee(
@@ -98,10 +78,10 @@ export class UserController {
     );
   }
 
-  @Delete('')
+  @Delete("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('DELETE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
+  @Roles("DELETE_EMPLOYEE", SPECIAL_ROLE.MANAGER)
   deleteManyEmployee(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.userService.deleteManyEmployee(

@@ -1,15 +1,14 @@
-import * as bcrypt from 'bcrypt';
-import { HttpStatus, Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { CreateEmployeeDto } from './dto/create-employee-dto';
-import { AnyObject, TokenPayload } from 'interfaces/common.interface';
-import { CustomHttpException } from 'utils/ApiErrors';
-import { CommonService } from 'src/common/common.service';
-import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
-import { calculatePagination } from 'utils/Helps';
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum';
-import { UpdateEmployeeDto } from './dto/update-employee-dto';
+import * as bcrypt from "bcrypt";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
+import { AnyObject, TokenPayload } from "interfaces/common.interface";
+import { CustomHttpException } from "utils/ApiErrors";
+import { CommonService } from "src/common/common.service";
+import { Prisma } from "@prisma/client";
+import { FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
 
 @Injectable()
 export class UserService {
@@ -19,15 +18,9 @@ export class UserService {
   ) {}
 
   async createEmployee(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkUserExisting(
-      { phone: data.phone, email: data.email },
-      tokenPayload.shopId,
-    );
+    await this.commonService.checkUserExisting({ phone: data.phone, email: data.email }, tokenPayload.shopId);
 
-    await this.commonService.checkAccountExisting(
-      { username: data.username },
-      tokenPayload.shopId,
-    );
+    await this.commonService.checkAccountExisting({ username: data.username }, tokenPayload.shopId);
 
     return await this.prisma.$transaction(async (prisma) => {
       const user = await prisma.user.create({
@@ -79,14 +72,14 @@ export class UserService {
   async findAllEmployee(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword, employeeGroupIds } = params;
 
-    const keySearch = ['name', 'code', 'email', 'phone'];
+    const keySearch = ["name", "code", "email", "phone"];
 
     const where: Prisma.UserWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
       ...(employeeGroupIds?.length > 0 && {
@@ -105,7 +98,7 @@ export class UserService {
         skip,
         take,
         orderBy: {
-          createdAt: 'desc',
+          createdAt: "desc",
         },
         where,
         select: {
@@ -151,10 +144,7 @@ export class UserService {
     };
   }
 
-  async findUniqEmployee(
-    where: Prisma.UserWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async findUniqEmployee(where: Prisma.UserWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.user.findUniqueOrThrow({
       where: {
         ...where,
@@ -207,11 +197,12 @@ export class UserService {
   ) {
     const { where, data } = params;
 
-    await this.commonService.checkUserExisting(
-      { phone: data.phone, email: data.email },
-      tokenPayload.shopId,
-      where.id,
-    );
+    if (!data.phone || data.email)
+      await this.commonService.checkUserExisting(
+        { phone: data.phone, email: data.email },
+        tokenPayload.shopId,
+        where.id,
+      );
 
     return this.prisma.user.update({
       data: {
@@ -231,13 +222,13 @@ export class UserService {
         updatedBy: tokenPayload.accountId,
         account: {
           update: {
-            password: data.newPassword
-              ? bcrypt.hashSync(data.newPassword, 10)
-              : undefined,
             status: data.accountStatus,
-            permissions: {
-              set: data.permissionIds?.map((id) => ({ id })),
-            },
+            ...(data.accountStatus && { password: bcrypt.hashSync(data.newPassword, 10) }),
+            ...(data.permissionIds && {
+              permissions: {
+                set: data.permissionIds?.map((id) => ({ id })),
+              },
+            }),
           },
         },
       },
@@ -246,23 +237,10 @@ export class UserService {
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
-      select: {
-        account: {
-          select: {
-            type: true,
-            username: true,
-            status: true,
-            permissions: true,
-          },
-        },
-      },
     });
   }
 
-  async deleteManyEmployee(
-    where: Prisma.UserWhereInput,
-    tokenPayload: TokenPayload,
-  ) {
+  async deleteManyEmployee(where: Prisma.UserWhereInput, tokenPayload: TokenPayload) {
     await this.prisma.account.updateMany({
       where: {
         isPublic: true,

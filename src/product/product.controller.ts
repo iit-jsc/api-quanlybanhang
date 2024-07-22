@@ -10,68 +10,54 @@ import {
   Post,
   Query,
   Req,
-  UploadedFiles,
   UseGuards,
-  UseInterceptors,
-} from '@nestjs/common';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenPayload } from 'interfaces/common.interface';
-import {
-  DeleteManyDto,
-  DeleteManyWithIdentifierDto,
-  FindManyDto,
-} from 'utils/Common.dto';
-import { ProductService } from './product.service';
-import { CreateProductDto } from './dto/create-product.dto';
-import { CustomFilesInterceptor } from 'utils/Helps';
-import { FindManyProductDto } from './dto/find-many.dto';
-import { RolesGuard } from 'guards/roles.guard';
-import { Roles } from 'guards/roles.decorator';
-import { SPECIAL_ROLE } from 'enums/common.enum';
-import { v4 as isUuid } from 'uuid';
+} from "@nestjs/common";
+import { JwtAuthGuard } from "guards/jwt-auth.guard";
+import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyDto, FindBySlugDto } from "utils/Common.dto";
+import { ProductService } from "./product.service";
+import { CreateProductDto, UpdateProductDto } from "./dto/product.dto";
+import { FindManyProductDto } from "./dto/find-many.dto";
+import { RolesGuard } from "guards/roles.guard";
+import { Roles } from "guards/roles.decorator";
+import { SPECIAL_ROLE } from "enums/common.enum";
+import { v4 as isUuid } from "uuid";
+import { equal } from "assert";
 
-@Controller('product')
+@Controller("product")
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
-  @Post('')
+  @Post("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_PRODUCT', SPECIAL_ROLE.MANAGER)
+  @Roles("CREATE_PRODUCT", SPECIAL_ROLE.MANAGER)
   create(@Body() createProductDto: CreateProductDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.productService.create(createProductDto, tokenPayload);
   }
 
-  @Get('')
+  @Get("")
   @HttpCode(HttpStatus.OK)
   findAll(@Query() findManyDto: FindManyProductDto, @Req() req: any) {
     return this.productService.findAll(findManyDto);
   }
 
-  @Get(':keyword')
+  @Get(":slug")
   @HttpCode(HttpStatus.OK)
-  findUniq(@Param('keyword') keyword: string) {
-    const isUuidKeyword = isUuid(keyword);
-    const searchConditions = isUuidKeyword
-      ? [{ id: keyword }, { slug: { contains: keyword } }]
-      : [{ slug: { contains: keyword } }];
-
+  findUniq(@Param("slug") slug: string, @Query() findBySlugDto: FindBySlugDto) {
     return this.productService.findUniq({
-      OR: searchConditions,
+      slug,
+      branchId: findBySlugDto.branchId,
     });
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_PRODUCT', SPECIAL_ROLE.MANAGER)
-  update(
-    @Param('id') id: string,
-    @Body() createProductDto: CreateProductDto,
-    @Req() req: any,
-  ) {
+  @Roles("UPDATE_PRODUCT", SPECIAL_ROLE.MANAGER)
+  update(@Param("id") id: string, @Body() updateProductDto: UpdateProductDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.productService.update(
@@ -79,16 +65,16 @@ export class ProductController {
         where: {
           id,
         },
-        data: createProductDto,
+        data: updateProductDto,
       },
       tokenPayload,
     );
   }
 
-  @Delete('')
+  @Delete("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('DELETE_PRODUCT', SPECIAL_ROLE.MANAGER)
+  @Roles("DELETE_PRODUCT", SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

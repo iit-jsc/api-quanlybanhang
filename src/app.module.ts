@@ -46,8 +46,9 @@ import { PointHistoryModule } from "./point-history/point-history.module";
 import { OrderDetailModule } from "./order-detail/order-detail.module";
 import { TransporterModule } from "./transporter/transporter.module";
 import { MailerModule } from "@nestjs-modules/mailer";
-import { WorkShiftModule } from './work-shift/work-shift.module';
-import { EmployeeScheduleModule } from './employee-schedule/employee-schedule.module';
+import { WorkShiftModule } from "./work-shift/work-shift.module";
+import { EmployeeScheduleModule } from "./employee-schedule/employee-schedule.module";
+import { EmployeeSalaryModule } from './employee-salary/employee-salary.module';
 
 @Module({
   imports: [
@@ -116,6 +117,7 @@ import { EmployeeScheduleModule } from './employee-schedule/employee-schedule.mo
     TransporterModule,
     WorkShiftModule,
     EmployeeScheduleModule,
+    EmployeeSalaryModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

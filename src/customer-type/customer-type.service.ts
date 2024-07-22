@@ -4,7 +4,7 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination, generateUniqueId } from "utils/Helps";
-import { CreateCustomerTypeDto } from "./dto/create-customer-type";
+import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from "./dto/create-customer-type";
 
 @Injectable()
 export class CustomerTypeService {
@@ -91,7 +91,7 @@ export class CustomerTypeService {
   async update(
     params: {
       where: Prisma.CustomerTypeWhereUniqueInput;
-      data: CreateCustomerTypeDto;
+      data: UpdateCustomerTypeDto;
     },
     tokenPayload: TokenPayload,
   ) {

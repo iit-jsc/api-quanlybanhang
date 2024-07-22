@@ -11,22 +11,21 @@ import {
   HttpStatus,
   Req,
   Query,
-} from '@nestjs/common';
-import { ManagerService } from './manager.service';
-import { CreateManagerDto } from './dto/create-manager.dto';
-import { UpdateManagerDto } from './dto/update-manager.dto';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { RolesGuard } from 'guards/roles.guard';
-import { SPECIAL_ROLE } from 'enums/common.enum';
-import { Roles } from 'guards/roles.decorator';
-import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+} from "@nestjs/common";
+import { ManagerService } from "./manager.service";
+import { CreateManagerDto, UpdateManagerDto } from "./dto/manager.dto";
+import { JwtAuthGuard } from "guards/jwt-auth.guard";
+import { RolesGuard } from "guards/roles.guard";
+import { SPECIAL_ROLE } from "enums/common.enum";
+import { Roles } from "guards/roles.decorator";
+import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
-@Controller('manager')
+@Controller("manager")
 export class ManagerController {
   constructor(private readonly managerService: ManagerService) {}
 
-  @Post('/')
+  @Post("/")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
@@ -35,7 +34,7 @@ export class ManagerController {
     return this.managerService.create(createManagerDto, tokenPayload);
   }
 
-  @Get('')
+  @Get("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
@@ -45,11 +44,11 @@ export class ManagerController {
     return this.managerService.findAll(findManyDto, tokenPayload);
   }
 
-  @Get(':id')
+  @Get(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  findUniq(@Param('id') id: string, @Req() req: any) {
+  findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.managerService.findUniq(
       {
@@ -59,15 +58,11 @@ export class ManagerController {
     );
   }
 
-  @Patch(':id')
+  @Patch(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  update(
-    @Param('id') id: string,
-    @Body() updateManagerDto: UpdateManagerDto,
-    @Req() req: any,
-  ) {
+  update(@Param("id") id: string, @Body() updateManagerDto: UpdateManagerDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.managerService.update(
       {
@@ -80,11 +75,11 @@ export class ManagerController {
     );
   }
 
-  @Delete(':id')
+  @Delete(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  delete(@Req() req: any, @Param('id') id: string) {
+  delete(@Req() req: any, @Param("id") id: string) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.managerService.delete(
       {

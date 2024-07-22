@@ -1,14 +1,5 @@
 import { Transform, TransformFnParams, Type } from "class-transformer";
-import {
-  ArrayNotEmpty,
-  IsDate,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  ValidationArguments,
-  ValidationOptions,
-  registerDecorator,
-} from "class-validator";
+import { ArrayNotEmpty, IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
 
 export class FindManyDto {
   @Type(() => Number)
@@ -123,6 +114,12 @@ export class FindManyDto {
     return value?.split(",").map((id: string) => id.trim());
   })
   workShiftIds: string[];
+}
+
+export class FindBySlugDto {
+  @IsNotEmpty()
+  @IsString()
+  branchId: string;
 }
 
 export class DeleteManyDto {
