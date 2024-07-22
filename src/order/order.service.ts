@@ -6,8 +6,6 @@ import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { OrderDetail, Prisma, PrismaClient, Product, Promotion, Topping } from "@prisma/client";
 import { UpdateOrderDto } from "./dto/update-order.dto";
 import { PaymentFromTableDto } from "./dto/payment-order-from-table.dto";
-import { UpdateOrderProductDto } from "./dto/update-order-detail.dto";
-import { CombineTableDto } from "./dto/combine-table.dto";
 import { FindManyDto, DeleteManyDto } from "utils/Common.dto";
 import { SeparateTableDto } from "./dto/separate-table.dto";
 import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-customer.dto";

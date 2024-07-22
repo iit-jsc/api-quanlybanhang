@@ -1,5 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, HttpStatus } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { ACCOUNT_STATUS } from "enums/user.enum";
 import { TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CustomHttpException } from "utils/ApiErrors";
@@ -28,7 +29,7 @@ export class JwtAuthGuard implements CanActivate {
       })) as TokenPayload;
 
       const account = await this.prisma.account.findUniqueOrThrow({
-        where: { id: payload.accountId, isPublic: true },
+        where: { id: payload.accountId, isPublic: true, status: ACCOUNT_STATUS.ACTIVE },
         select: {
           id: true,
           type: true,
@@ -39,15 +40,18 @@ export class JwtAuthGuard implements CanActivate {
         },
       });
 
+      if (!account)
+        throw new CustomHttpException(HttpStatus.CONFLICT, "#2 canActivate - Thông tin đăng nhập không hợp lệ!");
+
       request.tokenPayload = {
+        branchId: payload.branchId,
         type: account.type,
         userId: account.userId,
-        branchId: account.branches?.[0]?.id,
         shopId: account.branches?.[0]?.shopId,
         accountId: account.id,
       } as TokenPayload;
     } catch (error) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "#2 canActivate - Token hết hạn!");
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "#3 canActivate - Token hết hạn!");
     }
 
     return true;

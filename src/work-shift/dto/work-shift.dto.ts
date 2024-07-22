@@ -28,7 +28,7 @@ export class CreateWorkShiftDto {
 
   @IsOptional()
   @IsString()
-  description?: boolean;
+  description?: string;
 }
 
 export class UpdateWorkShiftDto extends PartialType(CreateWorkShiftDto) {}

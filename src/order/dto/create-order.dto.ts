@@ -1,4 +1,4 @@
-import { Transform, TransformFnParams, Type } from 'class-transformer';
+import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   ArrayNotEmpty,
   IsBoolean,
@@ -6,13 +6,14 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
-} from 'class-validator';
+} from "class-validator";
 
 export class CreateOrderDto {
   @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
+  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   code: string;
 
@@ -44,24 +45,25 @@ export class CreateOrderDto {
   @IsBoolean()
   isPaid: boolean = false;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @ArrayNotEmpty({ message: "Danh sách sản phẩm không được rỗng!" })
   @ValidateNested({ each: true })
   @Type(() => OrderProducts)
   orderProducts: OrderProducts[];
 
   @IsOptional()
   @IsNumber()
+  @Min(1)
   exchangePoint: number;
 }
 
 export class OrderProducts {
-  @IsNotEmpty({ message: 'ID sản phẩm không được để trống!' })
+  @IsNotEmpty({ message: "ID sản phẩm không được để trống!" })
   @IsString()
   productId: string;
 
-  @IsNotEmpty({ message: 'Số lượng sản phẩm không được để trống!' })
-  @IsNumber({}, { message: 'Số lượng sản phẩm phải là số!' })
+  @IsNotEmpty({ message: "Số lượng sản phẩm không được để trống!" })
+  @IsNumber({}, { message: "Số lượng sản phẩm phải là số!" })
   amount: number;
 
   @IsOptional()

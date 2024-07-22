@@ -1,5 +1,5 @@
 import { Type } from "class-transformer";
-import { IsBoolean, IsDate, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsDate, IsNumber, IsOptional, IsString, Min } from "class-validator";
 
 export class UpdateOrderDto {
   @IsOptional()
@@ -29,5 +29,6 @@ export class UpdateOrderDto {
 
   @IsOptional()
   @IsNumber()
+  @Min(1)
   exchangePoint: number;
 }

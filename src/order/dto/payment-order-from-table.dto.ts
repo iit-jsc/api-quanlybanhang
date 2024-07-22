@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
 
 export class PaymentFromTableDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -27,5 +27,6 @@ export class PaymentFromTableDto {
 
   @IsOptional()
   @IsNumber()
+  @Min(1)
   exchangePoint: number;
 }

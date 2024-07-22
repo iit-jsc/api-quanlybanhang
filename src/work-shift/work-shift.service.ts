@@ -18,6 +18,7 @@ export class WorkShiftService {
         endTime: data.endTime,
         limitEmployee: data.limitEmployee,
         isNotLimitEmployee: data.isNotLimitEmployee,
+        description: data.description,
         createdBy: tokenPayload.accountId,
         branchId: tokenPayload.branchId,
       },
@@ -25,7 +26,7 @@ export class WorkShiftService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, from, to } = params;
 
     const keySearch = ["name"];
 
@@ -37,15 +38,31 @@ export class WorkShiftService {
           [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
+      ...(from &&
+        to && {
+          date: {
+            gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          },
+        }),
+      ...(from &&
+        !to && {
+          date: {
+            gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+          },
+        }),
+      ...(!from &&
+        to && {
+          date: {
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          },
+        }),
     };
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.workShift.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
         where,
         select: {
           id: true,
@@ -55,6 +72,7 @@ export class WorkShiftService {
           limitEmployee: true,
           isNotLimitEmployee: true,
           description: true,
+          updatedAt: true,
         },
       }),
       this.prisma.workShift.count({
@@ -84,18 +102,21 @@ export class WorkShiftService {
     },
     tokenPayload: TokenPayload,
   ) {
+    const { where, data } = params;
+
     return this.prisma.workShift.update({
       where: {
-        id: params.where.id,
+        id: where.id,
         branchId: tokenPayload.branchId,
         isPublic: true,
       },
       data: {
-        name: params.data.name,
-        startTime: params.data.startTime,
-        endTime: params.data.endTime,
-        limitEmployee: params.data.limitEmployee,
-        isNotLimitEmployee: params.data.isNotLimitEmployee,
+        name: data.name,
+        startTime: data.startTime,
+        endTime: data.endTime,
+        limitEmployee: data.limitEmployee,
+        description: data.description,
+        isNotLimitEmployee: data.isNotLimitEmployee,
         updatedBy: tokenPayload.accountId,
       },
     });

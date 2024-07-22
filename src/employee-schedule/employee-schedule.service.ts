@@ -36,6 +36,8 @@ export class EmployeeScheduleService {
 
     const validIds = await this.filterValidRegisterSchedule([where.id], tokenPayload);
 
+    console.log(validIds);
+
     if (tokenPayload.type === ACCOUNT_TYPE.STAFF && validIds.length == 0)
       throw new CustomHttpException(HttpStatus.CONFLICT, "#1 update - Không thể cập nhật dữ liệu này!");
 
@@ -47,7 +49,7 @@ export class EmployeeScheduleService {
       data: {
         date: data.date,
         workShiftId: data.workShiftId,
-        employeeId: tokenPayload.accountId,
+        employeeId: tokenPayload.userId,
         updatedBy: tokenPayload.accountId,
       },
     });
@@ -138,6 +140,25 @@ export class EmployeeScheduleService {
           id: tokenPayload.branchId,
         },
       },
+      include: {
+        workShift: {
+          select: {
+            id: true,
+            name: true,
+            startTime: true,
+            endTime: true,
+          },
+        },
+        employee: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            photoURL: true,
+            phone: true,
+          },
+        },
+      },
     });
   }
 
@@ -167,7 +188,7 @@ export class EmployeeScheduleService {
     const employeeSchedules = await this.prisma.employeeSchedule.findMany({
       where: {
         id: { in: employeeScheduleIds },
-        employeeId: tokenPayload.accountId,
+        employeeId: tokenPayload.userId,
         branchId: tokenPayload.branchId,
         isPublic: true,
       },
@@ -175,6 +196,8 @@ export class EmployeeScheduleService {
         id: true,
       },
     });
+
+    console.log(employeeSchedules);
 
     return employeeSchedules.map((employeeSchedule) => employeeSchedule.id);
   }

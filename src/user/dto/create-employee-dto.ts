@@ -58,7 +58,6 @@ export class CreateEmployeeDto {
 
   @IsOptional()
   @IsString()
-  @Type(() => Number)
   employeeGroupId: string;
 
   @IsOptional()

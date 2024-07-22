@@ -189,7 +189,6 @@ export class AuthService {
         {
           accountId: tokenPayload.accountId,
           branchId: accessBranchDto.branchId,
-          shopId: currentShop.id,
         } as TokenPayload,
         {
           expiresIn: "96h",
