@@ -15,13 +15,12 @@ import {
 import { OrderService } from "./order.service";
 import { JwtAuthGuard, JwtCustomerAuthGuard } from "guards/jwt-auth.guard";
 import { TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
-import { CreateOrderDto } from "./dto/create-order.dto";
+import { CreateOrderDto, UpdateOrderDto } from "./dto/order.dto";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-customer.dto";
 import { UpdateOrderProductDto } from "./dto/update-order-detail.dto";
 import { PaymentFromTableDto } from "./dto/payment-order-from-table.dto";
-import { UpdateOrderDto } from "./dto/update-order.dto";
 import { CombineTableDto } from "./dto/combine-table.dto";
 import { SeparateTableDto } from "./dto/separate-table.dto";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";

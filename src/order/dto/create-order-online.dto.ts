@@ -1,5 +1,5 @@
-import { Type } from 'class-transformer';
-import { OrderProducts } from './create-order.dto';
+import { Type } from "class-transformer";
+import { OrderProducts } from "./order.dto";
 import {
   ArrayNotEmpty,
   IsEmail,
@@ -9,20 +9,20 @@ import {
   IsOptional,
   IsString,
   ValidateNested,
-} from 'class-validator';
-import { PAYMENT_METHOD } from 'enums/common.enum';
-import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
+} from "class-validator";
+import { PAYMENT_METHOD } from "enums/common.enum";
+import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateOrderOnlineDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   branchId: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   name: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsVietnamesePhoneNumber()
   phone: string;
 
@@ -44,11 +44,11 @@ export class CreateOrderOnlineDto {
 
   @IsOptional()
   @IsNumber()
-  @IsEnum(PAYMENT_METHOD, { message: 'Phương thức thanh toán không hợp lệ!' })
+  @IsEnum(PAYMENT_METHOD, { message: "Phương thức thanh toán không hợp lệ!" })
   paymentMethod: number;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @ArrayNotEmpty({ message: "Danh sách sản phẩm không được rỗng!" })
   @ValidateNested({ each: true })
   @Type(() => OrderProducts)
   orderProducts: OrderProducts[];

@@ -1,7 +1,9 @@
+import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   ArrayNotEmpty,
   IsBoolean,
+  IsDate,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -73,4 +75,15 @@ export class OrderProducts {
   @IsOptional()
   @IsString()
   note: string;
+}
+
+export class UpdateOrderDto extends PartialType(CreateOrderDto) {
+  @IsOptional()
+  @IsString()
+  cancelReason: string;
+
+  @IsOptional()
+  @IsDate()
+  @Type(() => Date)
+  cancelDate: Date;
 }
