@@ -1,2 +1,0 @@
--- AlterTable
-ALTER TABLE "Shop" ALTER COLUMN "phone" DROP NOT NULL;

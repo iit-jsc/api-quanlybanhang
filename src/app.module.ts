@@ -1,4 +1,5 @@
-import { MiddlewareConsumer, Module, RequestMethod } from "@nestjs/common";
+import { CompensationSettingModule } from "./compensation-setting/compensation-setting.module";
+import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
 import { AppService } from "./app.service";
 import { PrismaModule, PrismaService } from "nestjs-prisma";
@@ -9,9 +10,7 @@ import { AuthModule } from "./auth/auth.module";
 import { BranchModule } from "./branch/branch.module";
 import { ShopModule } from "./shop/shop.module";
 import { JwtModule } from "@nestjs/jwt";
-import { TransformInterceptor } from "utils/ApiResponse";
 import { MeasurementUnitModule } from "./measurement-unit/measurement-unit.module";
-import { LoggerMiddleware } from "middlewares/check-branch.middleware";
 import { PermissionModule } from "./permission/permission.module";
 import { EmployeeGroupModule } from "./employee-group/employee-group.module";
 import { CommonModule } from "./common/common.module";
@@ -48,7 +47,9 @@ import { TransporterModule } from "./transporter/transporter.module";
 import { MailerModule } from "@nestjs-modules/mailer";
 import { WorkShiftModule } from "./work-shift/work-shift.module";
 import { EmployeeScheduleModule } from "./employee-schedule/employee-schedule.module";
-import { EmployeeSalaryModule } from './employee-salary/employee-salary.module';
+import { EmployeeSalaryModule } from "./employee-salary/employee-salary.module";
+import { TableSalaryModule } from "./table-salary/table-salary.module";
+import { TransformInterceptor } from "utils/ApiResponse";
 
 @Module({
   imports: [
@@ -118,6 +119,8 @@ import { EmployeeSalaryModule } from './employee-salary/employee-salary.module';
     WorkShiftModule,
     EmployeeScheduleModule,
     EmployeeSalaryModule,
+    TableSalaryModule,
+    CompensationSettingModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],
