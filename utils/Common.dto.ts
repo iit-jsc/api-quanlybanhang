@@ -1,5 +1,6 @@
 import { Transform, TransformFnParams, Type } from "class-transformer";
-import { ArrayNotEmpty, IsDate, IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ArrayNotEmpty, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { FIND_UNIQ_TYPE } from "enums/common.enum";
 
 export class FindManyDto {
   @Type(() => Number)
@@ -136,4 +137,13 @@ export class DeleteManyWithIdentifierDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @ArrayNotEmpty({ message: "Danh sách chi nhánh không được rỗng!" })
   branchIds: string[];
+}
+
+export class FindUniqDto {
+  @IsOptional()
+  @IsNumber()
+  @Transform(({ value }: TransformFnParams) => {
+    return +value;
+  })
+  type: number = FIND_UNIQ_TYPE.ID;
 }

@@ -1,6 +1,6 @@
 import { PartialType } from "@nestjs/swagger";
-import { Transform, TransformFnParams } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
+import { SALARY_TYPE } from "enums/common.enum";
 
 export class CreateEmployeeSalaryDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -17,6 +17,7 @@ export class CreateEmployeeSalaryDto {
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
+  @IsEnum(SALARY_TYPE, { message: "Loại lương không hợp lệ!" })
   salaryType: number;
 }
 

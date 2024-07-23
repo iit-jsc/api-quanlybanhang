@@ -92,7 +92,7 @@ export class EmployeeSalaryService {
   async findUniq(where: Prisma.EmployeeSalaryWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.employeeSalary.findUniqueOrThrow({
       where: {
-        id: where.id,
+        ...where,
         isPublic: true,
         branchId: tokenPayload.branchId,
       },

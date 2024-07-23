@@ -48,3 +48,14 @@ export const PRINT_TEMPLATE_TYPE = {
   PAYMENT_FORM: 2,
   ORDER_FORM: 3,
 };
+
+export const FIND_UNIQ_TYPE = {
+  ID: 1,
+  OTHER: 2,
+};
+
+export const SALARY_TYPE = {
+  DAY: 1,
+  WEEK: 2,
+  MONTH: 3,
+};

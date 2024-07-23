@@ -13,12 +13,12 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { EmployeeSalaryService } from "./employee-salary.service";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto, FindManyDto, FindUniqDto } from "utils/Common.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { CreateEmployeeSalaryDto, UpdateEmployeeSalaryDto } from "./dto/employee-salary.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { RolesGuard } from "guards/roles.guard";
-import { SPECIAL_ROLE } from "enums/common.enum";
+import { FIND_UNIQ_TYPE, SPECIAL_ROLE } from "enums/common.enum";
 import { Roles } from "guards/roles.decorator";
 
 @Controller("employee-salary")
@@ -61,13 +61,11 @@ export class EmployeeSalaryController {
   //   "VIEW_EMPLOYEE_SCHEDULE",
   //   SPECIAL_ROLE.MANAGER,
   // )
-  findUniq(@Param("id") id: string, @Req() req: any) {
+  findUniq(@Param("id") id: string, @Req() req: any, @Query() findUniqDto: FindUniqDto) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.employeeSalaryService.findUniq(
-      {
-        id,
-      },
+      findUniqDto.type === FIND_UNIQ_TYPE.ID ? { id } : { employeeId: id },
       tokenPayload,
     );
   }
