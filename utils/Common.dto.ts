@@ -25,9 +25,10 @@ export class FindManyDto {
   isSort?: boolean;
 
   /* ====== group role filter  ====== */
+
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(",").map((id: string) => id.trim());
+    return value?.split(",").map((id: string) => +id.trim());
   })
   types: number[];
 
@@ -38,6 +39,7 @@ export class FindManyDto {
   employeeGroupIds: string[];
 
   /* ====== table filter  ====== */
+
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(",").map((id: string) => id.trim());
@@ -51,6 +53,7 @@ export class FindManyDto {
   customerTypeIds: string[];
 
   /* ====== order status filter  ====== */
+
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(",").map((id: string) => id.trim());
@@ -58,6 +61,9 @@ export class FindManyDto {
   businessTypeIds: string[];
 
   /* ====== order  filter  ====== */
+
+  @IsOptional()
+  @IsString()
   customerId?: string;
 
   @IsOptional()
@@ -82,6 +88,7 @@ export class FindManyDto {
   isPaid?: boolean;
 
   /* ====== table  filter  ====== */
+
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(",").map((id: string) => id.trim());
@@ -89,21 +96,25 @@ export class FindManyDto {
   statusOrderDetails: number[];
 
   /* ====== warehouse filter  ====== */
+
   @IsOptional()
   @IsString()
   productId: string;
 
   /* ====== shop filter  ====== */
+
   @IsOptional()
   @IsString()
   code: string;
 
   /* ====== shop filter  ====== */
+
   @IsOptional()
   @IsString()
   domains: string[];
 
   /* ====== employee schedule filter  ====== */
+
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(",").map((id: string) => id.trim());
@@ -115,6 +126,11 @@ export class FindManyDto {
     return value?.split(",").map((id: string) => id.trim());
   })
   workShiftIds: string[];
+
+  /* ====== compensation setting filter  ====== */
+
+  @Transform(({ value }: TransformFnParams) => (value === undefined ? value : Boolean(+value)))
+  isFulltime?: boolean;
 }
 
 export class FindBySlugDto {

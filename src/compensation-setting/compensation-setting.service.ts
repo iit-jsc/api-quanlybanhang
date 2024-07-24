@@ -5,12 +5,25 @@ import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { CreateCompensationSettingDto, UpdateCompensationSettingDto } from "./dto/compensation-setting.dto";
+import { CommonService } from "src/common/common.service";
+import { ACCOUNT_TYPE } from "enums/user.enum";
 
 @Injectable()
 export class CompensationSettingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly commonService: CommonService,
+  ) {}
 
   async create(data: CreateCompensationSettingDto, tokenPayload: TokenPayload) {
+    const employeeIds = await this.commonService.findAllIdsInBranch("User", tokenPayload.branchId, {
+      account: {
+        type: ACCOUNT_TYPE.STAFF,
+      },
+    });
+
+    const compensationEmployeeData = employeeIds.map((employeeId: string) => ({}));
+
     return await this.prisma.compensationSetting.create({
       data: {
         name: data.name,
@@ -51,7 +64,7 @@ export class CompensationSettingService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword, types } = params;
 
-    const keySearch = ["name", "code"];
+    const keySearch = ["name"];
 
     const where: Prisma.CompensationSettingWhereInput = {
       isPublic: true,

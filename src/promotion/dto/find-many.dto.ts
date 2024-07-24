@@ -1,8 +1,8 @@
-import { Transform, TransformFnParams, Type } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Transform, TransformFnParams, Type } from "class-transformer";
+import { IsNotEmpty, IsString } from "class-validator";
 
 export class FindManyPromotionDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   branchId: string;
 

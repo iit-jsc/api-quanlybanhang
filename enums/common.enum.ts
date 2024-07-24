@@ -59,3 +59,8 @@ export const SALARY_TYPE = {
   WEEK: 2,
   MONTH: 3,
 };
+
+export const COMPENSATION_TYPE = {
+  ALLOWANCE: 1,
+  DEDUCTION: 2,
+};

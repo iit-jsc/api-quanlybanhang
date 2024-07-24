@@ -311,4 +311,14 @@ export class CommonService {
         "#1 checkOrderChange - Đơn hàng này không thể cập nhật vì đã thanh toán!",
       );
   }
+
+  async findAllIdsInBranch(model: Prisma.ModelName, branchId: string, condition?: AnyObject) {
+    return await this.prisma[model].findMany({
+      where: {
+        isPublic: true,
+        branchId,
+        condition,
+      },
+    });
+  }
 }

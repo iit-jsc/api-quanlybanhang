@@ -18,7 +18,10 @@ export class UserService {
   ) {}
 
   async createEmployee(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkUserExisting({ phone: data.phone, email: data.email }, tokenPayload.shopId);
+    await this.commonService.checkUserExisting(
+      { phone: data.phone, email: data.email, code: data.code },
+      tokenPayload.shopId,
+    );
 
     await this.commonService.checkAccountExisting({ username: data.username }, tokenPayload.shopId);
 
@@ -199,7 +202,7 @@ export class UserService {
 
     if (!data.phone || data.email)
       await this.commonService.checkUserExisting(
-        { phone: data.phone, email: data.email },
+        { phone: data.phone, email: data.email, code: data.code },
         tokenPayload.shopId,
         where.id,
       );

@@ -46,12 +46,16 @@ export class EmployeeSalaryService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take } = params;
+    let { skip, take, employeeIds, isFulltime } = params;
 
     let where: Prisma.EmployeeSalaryWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
+      isFulltime,
+      ...(employeeIds && { employeeId: { in: employeeIds } }),
     };
+
+    console.log(where);
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.employeeSalary.findMany({

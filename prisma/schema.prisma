@@ -161,7 +161,6 @@ model User {
   account               Account?
   employeeSalary        EmployeeSalary?
   detailTableSalaries   DetailTableSalary[]
-  compensationSettings  CompensationSetting[]
   compensationEmployees CompensationEmployee[]
 }
 
@@ -984,8 +983,6 @@ model CompensationSetting {
   updatedBy             String?
   creator               Account?               @relation("creator", fields: [createdBy], references: [id])
   updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
-  user                  User?                  @relation(fields: [userId], references: [id])
-  userId                String?
   compensationEmployees CompensationEmployee[]
 }
 

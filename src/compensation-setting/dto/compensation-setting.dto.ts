@@ -1,6 +1,7 @@
 import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams } from "class-transformer";
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { COMPENSATION_TYPE } from "enums/common.enum";
 
 export class CreateCompensationSettingDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -12,8 +13,9 @@ export class CreateCompensationSettingDto {
   @IsString()
   description: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
+  @IsEnum(COMPENSATION_TYPE, { message: "Loại không hợp lệ" })
   type: number;
 
   @IsNotEmpty({ message: "Không được để trống!" })
