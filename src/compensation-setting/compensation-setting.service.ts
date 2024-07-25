@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { Prisma } from "@prisma/client";
+import { CompensationEmployee, Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { CreateCompensationSettingDto, UpdateCompensationSettingDto } from "./dto/compensation-setting.dto";
@@ -22,44 +22,90 @@ export class CompensationSettingService {
       },
     });
 
-    const compensationEmployeeData = employeeIds.map((employeeId: string) => ({}));
+    return await this.prisma.$transaction(async (prisma) => {
+      const compensationSetting = await this.prisma.compensationSetting.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          defaultValue: data.defaultValue,
+          type: data.type,
+          branchId: tokenPayload.branchId,
+          createdBy: tokenPayload.accountId,
+        },
+      });
 
-    return await this.prisma.compensationSetting.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        defaultValue: data.defaultValue,
+      const compensationEmployeeData = employeeIds.map((employeeId: string) => ({
+        employeeId,
+        compensationSettingId: compensationSetting.id,
         type: data.type,
-        branchId: tokenPayload.branchId,
+        value: data.defaultValue,
         createdBy: tokenPayload.accountId,
-      },
-    });
-  }
-
-  async update(
-    params: {
-      where: Prisma.CompensationSettingWhereUniqueInput;
-      data: UpdateCompensationSettingDto;
-    },
-    tokenPayload: TokenPayload,
-  ) {
-    const { where, data } = params;
-
-    return await this.prisma.compensationSetting.update({
-      where: {
-        id: where.id,
         branchId: tokenPayload.branchId,
-        isPublic: true,
-      },
-      data: {
-        name: data.name,
-        description: data.description,
-        type: data.type,
-        defaultValue: data.defaultValue,
-        updatedBy: tokenPayload.accountId,
-      },
+      })) as Prisma.CompensationEmployeeCreateManyInput[];
+
+      await prisma.compensationEmployee.createMany({ data: compensationEmployeeData, skipDuplicates: true });
+
+      return compensationSetting;
     });
   }
+
+  // async update(
+  //   params: {
+  //     where: Prisma.CompensationSettingWhereUniqueInput;
+  //     data: UpdateCompensationSettingDto;
+  //   },
+  //   tokenPayload: TokenPayload,
+  // ) {
+  //   const { where, data } = params;
+
+  //   return await this.prisma.$transaction(async (prisma) => {
+  //     const employeeIds = await this.commonService.findAllIdsInBranch("User", tokenPayload.branchId, {
+  //       account: {
+  //         type: ACCOUNT_TYPE.STAFF,
+  //       },
+  //     });
+
+  //     const compensationEmployeeData = employeeIds.map(async (employeeId: string) => {
+  //       return prisma.compensationEmployee.upsert({
+  //         where: {
+  //           compensationSettingId_employeeId: {
+  //             employeeId,
+  //             compensationSettingId: where.id,
+  //           },
+  //         },
+  //         create: {
+  //           employeeId,
+  //           compensationSettingId: where.id,
+  //           type: data.type,
+  //           value: data.defaultValue,
+  //           createdBy: tokenPayload.accountId,
+  //           branchId: tokenPayload.branchId,
+  //         },
+  //         update: {
+  //           value: data.defaultValue,
+  //           updatedBy: tokenPayload.accountId,
+  //         },
+  //       });
+  //     });
+
+  //     await Promise.all(compensationEmployeeData);
+
+  //     return await prisma.compensationSetting.update({
+  //       where: {
+  //         id: where.id,
+  //         branchId: tokenPayload.branchId,
+  //         isPublic: true,
+  //       },
+  //       data: {
+  //         name: data.name,
+  //         description: data.description,
+  //         type: data.type,
+  //         defaultValue: data.defaultValue,
+  //         updatedBy: tokenPayload.accountId,
+  //       },
+  //     });
+  //   });
+  // }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword, types } = params;
@@ -121,23 +167,31 @@ export class CompensationSettingService {
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = await this.prisma.compensationSetting.updateMany({
-      where: {
-        id: {
-          in: data.ids,
+    return await this.prisma.$transaction(async (prisma) => {
+      await prisma.compensationEmployee.deleteMany({
+        where: {
+          branchId: tokenPayload.branchId,
+          compensationSettingId: {
+            in: data.ids,
+          },
         },
-        isPublic: true,
-        branch: {
-          id: tokenPayload.branchId,
-          isPublic: true,
-        },
-      },
-      data: {
-        isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+      });
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+      const count = await prisma.compensationSetting.updateMany({
+        where: {
+          id: {
+            in: data.ids,
+          },
+          isPublic: true,
+          branchId: tokenPayload.branchId,
+        },
+        data: {
+          isPublic: false,
+          updatedBy: tokenPayload.accountId,
+        },
+      });
+
+      return { ...count, ids: data.ids } as DeleteManyResponse;
+    });
   }
 }

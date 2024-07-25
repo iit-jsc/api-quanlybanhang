@@ -1,6 +1,6 @@
 import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams, Type } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from "class-validator";
+import { IsBoolean, IsNotEmpty, isNumber, IsNumber, IsOptional, IsString, Matches } from "class-validator";
 
 export class CreateWorkShiftDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -9,12 +9,12 @@ export class CreateWorkShiftDto {
   name: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
-  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Thời gian không hợp lệ, định dạng phải là HH:mm!" })
-  startTime: string;
+  @IsNumber()
+  startTime: number;
 
   @IsNotEmpty({ message: "Không được để trống!" })
-  @Matches(/^([01]\d|2[0-3]):([0-5]\d)$/, { message: "Thời gian không hợp lệ, định dạng phải là HH:mm!" })
-  endTime: string;
+  @IsNumber()
+  endTime: number;
 
   @IsOptional()
   @IsNumber()

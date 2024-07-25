@@ -283,6 +283,13 @@ export class CommonService {
           },
         },
       },
+      include: {
+        account: {
+          include: {
+            branches: true,
+          },
+        },
+      },
     });
 
     if (result && result.id !== id) {
@@ -313,12 +320,17 @@ export class CommonService {
   }
 
   async findAllIdsInBranch(model: Prisma.ModelName, branchId: string, condition?: AnyObject) {
-    return await this.prisma[model].findMany({
+    const list = await this.prisma[model].findMany({
       where: {
         isPublic: true,
         branchId,
-        condition,
+        ...(condition && condition),
+      },
+      select: {
+        id: true,
       },
     });
+
+    return list.map((item) => item.id);
   }
 }

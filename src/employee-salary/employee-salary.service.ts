@@ -16,7 +16,6 @@ export class EmployeeSalaryService {
         employeeId: data.employeeId,
         baseSalary: data.baseSalary,
         isFulltime: data.isFulltime,
-        salaryType: data.salaryType,
         branchId: tokenPayload.branchId,
         createdBy: tokenPayload.accountId,
       },
@@ -34,7 +33,6 @@ export class EmployeeSalaryService {
         employeeId: data.employeeId,
         baseSalary: data.baseSalary,
         isFulltime: data.isFulltime,
-        salaryType: data.salaryType,
         updatedBy: tokenPayload.accountId,
       },
       where: {
@@ -54,8 +52,6 @@ export class EmployeeSalaryService {
       isFulltime,
       ...(employeeIds && { employeeId: { in: employeeIds } }),
     };
-
-    console.log(where);
 
     const [data, totalRecords] = await Promise.all([
       this.prisma.employeeSalary.findMany({
@@ -78,7 +74,6 @@ export class EmployeeSalaryService {
             },
           },
           isFulltime: true,
-          salaryType: true,
           updatedAt: true,
         },
       }),
@@ -113,7 +108,6 @@ export class EmployeeSalaryService {
           },
         },
         isFulltime: true,
-        salaryType: true,
         updatedAt: true,
       },
     });

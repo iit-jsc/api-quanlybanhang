@@ -5,12 +5,19 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { calculatePagination } from "utils/Helps";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { CommonService } from "src/common/common.service";
 
 @Injectable()
 export class MeasurementUnitService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateMeasurementUnitDto, tokenPayload: TokenPayload) {
+    if (data.code)
+      await this.commonService.checkDataExistingInBranch({ code: data.code }, "MeasurementUnit", tokenPayload.branchId);
+
     return await this.prisma.measurementUnit.create({
       data: {
         name: data.name,
@@ -87,6 +94,14 @@ export class MeasurementUnitService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    if (data.code)
+      await this.commonService.checkDataExistingInBranch(
+        { code: data.code },
+        "MeasurementUnit",
+        tokenPayload.branchId,
+        where.id,
+      );
 
     return this.prisma.measurementUnit.update({
       data: {

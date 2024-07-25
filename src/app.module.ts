@@ -50,6 +50,7 @@ import { EmployeeScheduleModule } from "./employee-schedule/employee-schedule.mo
 import { EmployeeSalaryModule } from "./employee-salary/employee-salary.module";
 import { TableSalaryModule } from "./table-salary/table-salary.module";
 import { TransformInterceptor } from "utils/ApiResponse";
+import { CompensationEmployeeModule } from './compensation-employee/compensation-employee.module';
 
 @Module({
   imports: [
@@ -121,6 +122,7 @@ import { TransformInterceptor } from "utils/ApiResponse";
     EmployeeSalaryModule,
     TableSalaryModule,
     CompensationSettingModule,
+    CompensationEmployeeModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

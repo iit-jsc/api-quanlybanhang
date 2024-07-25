@@ -69,24 +69,6 @@ export class CompensationSettingController {
     );
   }
 
-  @Patch(":id")
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  // @Roles("UPDATE_EMPLOYEE_GROUP", SPECIAL_ROLE.MANAGER)
-  update(@Param("id") id: string, @Body() updateCompensationSettingDto: UpdateCompensationSettingDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.compensationSettingService.update(
-      {
-        where: {
-          id,
-        },
-        data: updateCompensationSettingDto,
-      },
-      tokenPayload,
-    );
-  }
-
   @Delete("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)

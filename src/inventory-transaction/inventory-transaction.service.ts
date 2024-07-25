@@ -349,6 +349,6 @@ export class InventoryTransactionService {
       },
     });
 
-    return { ...count, ids: data.ids, notValidIds: notDeletedIds, validIds: idsToDelete } as DeleteManyResponse;
+    return { ...count, ids: idsToDelete, notValidIds: notDeletedIds } as DeleteManyResponse;
   }
 }

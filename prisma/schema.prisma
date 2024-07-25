@@ -121,6 +121,7 @@ model Account {
   creatorEmployeeSchedule     EmployeeSchedule[]     @relation("creator")
   updaterEmployeeSchedule     EmployeeSchedule[]     @relation("updater")
   creatorTableSalary          TableSalary[]          @relation("creator")
+  confirmerTableSalary        TableSalary[]          @relation("confirmer")
   updaterTableSalary          TableSalary[]          @relation("updater")
   creatorEmployeeSalary       EmployeeSalary[]       @relation("creator")
   updaterEmployeeSalary       EmployeeSalary[]       @relation("updater")
@@ -842,7 +843,7 @@ model Branch {
   photoURL                   String?                 @db.Text
   name                       String
   address                    String?                 @db.Text
-  status                     Int?
+  status                     Int?                    @default(1)
   isPublic                   Boolean?                @default(true)
   createdBy                  String?
   updatedBy                  String?
@@ -891,8 +892,8 @@ model WorkShift {
   id                 String             @id @default(uuid())
   branchId           String
   name               String
-  startTime          String
-  endTime            String
+  startTime          Int
+  endTime            Int
   limitEmployee      Int?
   isNotLimitEmployee Boolean?           @default(true)
   description        String?            @db.Text
@@ -929,7 +930,7 @@ model TableSalary {
   id                  String              @id @default(uuid())
   name                String
   description         String              @db.Text
-  type                Int
+  isFulltime          Boolean             @default(true)
   branchId            String
   branch              Branch              @relation(fields: [branchId], references: [id])
   allowanceLabel      Json?
@@ -943,6 +944,7 @@ model TableSalary {
   updatedBy           String?
   creator             Account?            @relation("creator", fields: [createdBy], references: [id])
   updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
+  confirmer           Account?            @relation("confirmer", fields: [confirmBy], references: [id])
   detailTableSalaries DetailTableSalary[]
 }
 
@@ -1002,6 +1004,8 @@ model CompensationEmployee {
   updatedBy             String?
   creator               Account?            @relation("creator", fields: [createdBy], references: [id])
   updater               Account?            @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([compensationSettingId, employeeId])
 }
 
 model EmployeeSalary {
@@ -1010,7 +1014,6 @@ model EmployeeSalary {
   employee   User     @relation(fields: [employeeId], references: [id])
   baseSalary Float    @default(0)
   isFulltime Boolean  @default(true)
-  salaryType Int?
   isPublic   Boolean? @default(true)
   branchId   String
   branch     Branch   @relation(fields: [branchId], references: [id])

@@ -186,7 +186,7 @@ export class EmployeeScheduleService {
       },
     });
 
-    return isStaff ? { ...count, ids: data.ids, validIds, notValidIds } : { ...count, ids: data.ids };
+    return isStaff ? { ...count, ids: validIds, notValidIds } : { ...count, ids: data.ids };
   }
 
   async filterValidRegisterSchedule(employeeScheduleIds: string[], tokenPayload: TokenPayload) {

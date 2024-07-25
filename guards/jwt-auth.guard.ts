@@ -1,5 +1,6 @@
 import { Injectable, CanActivate, ExecutionContext, HttpStatus } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
+import { BRANCH_STATUS } from "enums/shop.enum";
 import { ACCOUNT_STATUS } from "enums/user.enum";
 import { TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
@@ -29,13 +30,19 @@ export class JwtAuthGuard implements CanActivate {
       })) as TokenPayload;
 
       const account = await this.prisma.account.findUniqueOrThrow({
-        where: { id: payload.accountId, isPublic: true, status: ACCOUNT_STATUS.ACTIVE },
+        where: {
+          id: payload.accountId,
+          isPublic: true,
+          status: ACCOUNT_STATUS.ACTIVE,
+          branches: { some: { id: payload.branchId, isPublic: true, status: BRANCH_STATUS.ACTIVE } },
+        },
         select: {
           id: true,
           type: true,
           userId: true,
           branches: {
             select: { shopId: true, id: true },
+            where: { id: payload.branchId },
           },
         },
       });
