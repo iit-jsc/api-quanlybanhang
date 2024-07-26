@@ -13,10 +13,12 @@ export class EmployeeScheduleService {
   constructor(private readonly prisma: PrismaService) {}
 
   async registerSchedule(data: RegisterScheduleDto, tokenPayload: TokenPayload) {
-    await this.checkLimitEmployee(data.workShiftId);
+    const workShift = await this.getAndCheckLimitWorkShift(data.workShiftId);
 
     return this.prisma.employeeSchedule.create({
       data: {
+        startTime: workShift.startTime,
+        endTime: workShift.endTime,
         date: data.date,
         workShiftId: data.workShiftId,
         employeeId: tokenPayload.userId,
@@ -32,11 +34,9 @@ export class EmployeeScheduleService {
   ) {
     const { data, where } = params;
 
-    await this.checkLimitEmployee(data.workShiftId, where.id);
+    const workShift = await this.getAndCheckLimitWorkShift(data.workShiftId, where.id);
 
     const validIds = await this.filterValidRegisterSchedule([where.id], tokenPayload);
-
-    console.log(validIds);
 
     if (tokenPayload.type === ACCOUNT_TYPE.STAFF && validIds.length == 0)
       throw new CustomHttpException(HttpStatus.CONFLICT, "#1 update - Không thể cập nhật dữ liệu này!");
@@ -47,6 +47,8 @@ export class EmployeeScheduleService {
         isPublic: true,
       },
       data: {
+        startTime: workShift.startTime,
+        endTime: workShift.endTime,
         date: data.date,
         workShiftId: data.workShiftId,
         employeeId: tokenPayload.userId,
@@ -140,10 +142,7 @@ export class EmployeeScheduleService {
       where: {
         ...where,
         isPublic: true,
-        branch: {
-          isPublic: true,
-          id: tokenPayload.branchId,
-        },
+        branchId: tokenPayload.branchId,
       },
       include: {
         workShift: {
@@ -207,7 +206,7 @@ export class EmployeeScheduleService {
     return employeeSchedules.map((employeeSchedule) => employeeSchedule.id);
   }
 
-  async checkLimitEmployee(workShiftId: string, employeeScheduleId?: string) {
+  async getAndCheckLimitWorkShift(workShiftId: string, employeeScheduleId?: string) {
     const countEmployee = await this.prisma.employeeSchedule.count({
       where: {
         ...{ id: { not: employeeScheduleId } },
@@ -216,9 +215,13 @@ export class EmployeeScheduleService {
       },
     });
 
-    const workShift = await this.prisma.workShift.findFirstOrThrow({ where: { id: workShiftId } });
+    const workShift = await this.prisma.workShift.findFirstOrThrow({
+      where: { id: workShiftId },
+    });
 
     if (!workShift.isNotLimitEmployee && countEmployee >= workShift.limitEmployee)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 checkLimitEmployee - Đã vượt quá số lượng!");
+      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 getAndCheckLimitWorkShift - Đã vượt quá số lượng!");
+
+    return workShift;
   }
 }

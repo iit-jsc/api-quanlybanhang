@@ -22,6 +22,7 @@ export class BranchService {
         address: createBranchDto.address,
         photoURL: createBranchDto.photoURL,
         status: createBranchDto.status,
+        others: createBranchDto.others,
         creator: {
           connect: {
             id: tokenPayload.accountId,
@@ -91,13 +92,6 @@ export class BranchService {
           isPublic: true,
         },
       },
-      select: {
-        id: true,
-        photoURL: true,
-        name: true,
-        address: true,
-        createdAt: true,
-      },
     });
   }
 
@@ -116,6 +110,7 @@ export class BranchService {
         address: data.address,
         photoURL: data.photoURL,
         status: data.status,
+        others: data.others,
         updater: {
           connect: {
             id: tokenPayload.accountId,

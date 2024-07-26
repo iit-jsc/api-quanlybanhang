@@ -120,10 +120,7 @@ export class CompensationSettingService {
         })),
       }),
       ...(types && { type: { in: types } }),
-      branch: {
-        id: tokenPayload.branchId,
-        isPublic: true,
-      },
+      branchId: tokenPayload.branchId,
     };
 
     const [data, totalRecords] = await Promise.all([
@@ -158,10 +155,7 @@ export class CompensationSettingService {
       where: {
         ...where,
         isPublic: true,
-        branch: {
-          isPublic: true,
-          id: tokenPayload.branchId,
-        },
+        branchId: tokenPayload.branchId,
       },
     });
   }

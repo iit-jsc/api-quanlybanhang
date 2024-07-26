@@ -41,7 +41,7 @@ export class CompensationEmployeeService {
     const { where, data } = params;
 
     return await this.prisma.compensationEmployee.update({
-      where: { id: where.id },
+      where: { id: where.id, branchId: tokenPayload.branchId },
       data: { value: data.value, updatedBy: tokenPayload.accountId },
     });
   }
@@ -50,6 +50,7 @@ export class CompensationEmployeeService {
     let { skip, take, employeeIds } = params;
     let where: Prisma.CompensationEmployeeWhereInput = {
       ...(employeeIds && { employeeId: { in: employeeIds } }),
+      branchId: tokenPayload.branchId,
     };
     const [data, totalRecords] = await Promise.all([
       this.prisma.compensationEmployee.findMany({

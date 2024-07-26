@@ -271,6 +271,7 @@ export class AuthService {
             name: true,
             address: true,
             photoURL: true,
+            orders: true,
           },
           where: {
             isPublic: true,

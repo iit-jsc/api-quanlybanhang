@@ -699,12 +699,13 @@ CREATE TABLE "Branch" (
     "photoURL" TEXT,
     "name" TEXT NOT NULL,
     "address" TEXT,
-    "status" INTEGER,
+    "status" INTEGER DEFAULT 1,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" TEXT,
     "updatedBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "others" JSONB,
 
     CONSTRAINT "Branch_pkey" PRIMARY KEY ("id")
 );
@@ -714,8 +715,8 @@ CREATE TABLE "WorkShift" (
     "id" TEXT NOT NULL,
     "branchId" TEXT NOT NULL,
     "name" TEXT NOT NULL,
-    "startTime" TEXT NOT NULL,
-    "endTime" TEXT NOT NULL,
+    "startTime" INTEGER NOT NULL,
+    "endTime" INTEGER NOT NULL,
     "limitEmployee" INTEGER,
     "isNotLimitEmployee" BOOLEAN DEFAULT true,
     "description" TEXT,
@@ -734,6 +735,8 @@ CREATE TABLE "EmployeeSchedule" (
     "branchId" TEXT NOT NULL,
     "employeeId" TEXT NOT NULL,
     "workShiftId" TEXT NOT NULL,
+    "startTime" INTEGER NOT NULL,
+    "endTime" INTEGER NOT NULL,
     "date" TIMESTAMP(3) NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdBy" TEXT,
@@ -749,12 +752,13 @@ CREATE TABLE "TableSalary" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "type" INTEGER NOT NULL,
+    "isFulltime" BOOLEAN NOT NULL DEFAULT true,
     "branchId" TEXT NOT NULL,
     "allowanceLabel" JSONB,
     "deductionLabel" JSONB,
     "isPublic" BOOLEAN DEFAULT true,
     "isConfirm" BOOLEAN DEFAULT false,
+    "confirmBy" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
     "createdBy" TEXT,
@@ -770,8 +774,8 @@ CREATE TABLE "DetailTableSalary" (
     "allowanceValue" JSONB,
     "deductionValue" JSONB,
     "baseSalary" DOUBLE PRECISION NOT NULL DEFAULT 0,
-    "salaryType" INTEGER,
     "workDay" DOUBLE PRECISION NOT NULL,
+    "totalHours" DOUBLE PRECISION,
     "employeeId" TEXT NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -784,11 +788,12 @@ CREATE TABLE "DetailTableSalary" (
 );
 
 -- CreateTable
-CREATE TABLE "AllowanceDeduction" (
+CREATE TABLE "CompensationSetting" (
     "id" TEXT NOT NULL,
     "name" TEXT NOT NULL,
     "description" TEXT,
     "type" INTEGER NOT NULL,
+    "defaultValue" DOUBLE PRECISION NOT NULL,
     "branchId" TEXT NOT NULL,
     "isPublic" BOOLEAN DEFAULT true,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -796,7 +801,23 @@ CREATE TABLE "AllowanceDeduction" (
     "createdBy" TEXT,
     "updatedBy" TEXT,
 
-    CONSTRAINT "AllowanceDeduction_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "CompensationSetting_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "CompensationEmployee" (
+    "id" TEXT NOT NULL,
+    "employeeId" TEXT NOT NULL,
+    "compensationSettingId" TEXT NOT NULL,
+    "type" INTEGER NOT NULL,
+    "value" DOUBLE PRECISION NOT NULL,
+    "branchId" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "createdBy" TEXT,
+    "updatedBy" TEXT,
+
+    CONSTRAINT "CompensationEmployee_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -805,7 +826,6 @@ CREATE TABLE "EmployeeSalary" (
     "employeeId" TEXT NOT NULL,
     "baseSalary" DOUBLE PRECISION NOT NULL DEFAULT 0,
     "isFulltime" BOOLEAN NOT NULL DEFAULT true,
-    "salaryType" INTEGER,
     "isPublic" BOOLEAN DEFAULT true,
     "branchId" TEXT NOT NULL,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -825,6 +845,19 @@ CREATE TABLE "PhoneVerification" (
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "PhoneVerification_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "QRSetting" (
+    "shopId" TEXT NOT NULL,
+    "isShowLogo" BOOLEAN NOT NULL DEFAULT true,
+    "isShowWifi" BOOLEAN NOT NULL DEFAULT true,
+    "isShowTable" BOOLEAN NOT NULL DEFAULT true,
+    "description" TEXT,
+    "isShowShopName" BOOLEAN NOT NULL DEFAULT true,
+    "isShowBranchName" BOOLEAN NOT NULL DEFAULT true,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "updatedBy" TEXT
 );
 
 -- CreateTable
@@ -906,7 +939,13 @@ CREATE UNIQUE INDEX "PointSetting_shopId_key" ON "PointSetting"("shopId");
 CREATE UNIQUE INDEX "PointAccumulation_customerId_key" ON "PointAccumulation"("customerId");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "CompensationEmployee_compensationSettingId_employeeId_key" ON "CompensationEmployee"("compensationSettingId", "employeeId");
+
+-- CreateIndex
 CREATE UNIQUE INDEX "EmployeeSalary_employeeId_key" ON "EmployeeSalary"("employeeId");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "QRSetting_shopId_key" ON "QRSetting"("shopId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "AccountSocket_socketId_key" ON "AccountSocket"("socketId");
@@ -1332,6 +1371,9 @@ ALTER TABLE "TableSalary" ADD CONSTRAINT "TableSalary_createdBy_fkey" FOREIGN KE
 ALTER TABLE "TableSalary" ADD CONSTRAINT "TableSalary_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
+ALTER TABLE "TableSalary" ADD CONSTRAINT "TableSalary_confirmBy_fkey" FOREIGN KEY ("confirmBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
 ALTER TABLE "DetailTableSalary" ADD CONSTRAINT "DetailTableSalary_tableSalaryId_fkey" FOREIGN KEY ("tableSalaryId") REFERENCES "TableSalary"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -1347,13 +1389,28 @@ ALTER TABLE "DetailTableSalary" ADD CONSTRAINT "DetailTableSalary_updatedBy_fkey
 ALTER TABLE "DetailTableSalary" ADD CONSTRAINT "DetailTableSalary_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AllowanceDeduction" ADD CONSTRAINT "AllowanceDeduction_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "CompensationSetting" ADD CONSTRAINT "CompensationSetting_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AllowanceDeduction" ADD CONSTRAINT "AllowanceDeduction_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "CompensationSetting" ADD CONSTRAINT "CompensationSetting_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "AllowanceDeduction" ADD CONSTRAINT "AllowanceDeduction_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+ALTER TABLE "CompensationSetting" ADD CONSTRAINT "CompensationSetting_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CompensationEmployee" ADD CONSTRAINT "CompensationEmployee_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CompensationEmployee" ADD CONSTRAINT "CompensationEmployee_compensationSettingId_fkey" FOREIGN KEY ("compensationSettingId") REFERENCES "CompensationSetting"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CompensationEmployee" ADD CONSTRAINT "CompensationEmployee_branchId_fkey" FOREIGN KEY ("branchId") REFERENCES "Branch"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CompensationEmployee" ADD CONSTRAINT "CompensationEmployee_createdBy_fkey" FOREIGN KEY ("createdBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "CompensationEmployee" ADD CONSTRAINT "CompensationEmployee_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "EmployeeSalary" ADD CONSTRAINT "EmployeeSalary_employeeId_fkey" FOREIGN KEY ("employeeId") REFERENCES "User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -1366,6 +1423,12 @@ ALTER TABLE "EmployeeSalary" ADD CONSTRAINT "EmployeeSalary_createdBy_fkey" FORE
 
 -- AddForeignKey
 ALTER TABLE "EmployeeSalary" ADD CONSTRAINT "EmployeeSalary_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QRSetting" ADD CONSTRAINT "QRSetting_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "QRSetting" ADD CONSTRAINT "QRSetting_updatedBy_fkey" FOREIGN KEY ("updatedBy") REFERENCES "Account"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "_PermissionToRole" ADD CONSTRAINT "_PermissionToRole_A_fkey" FOREIGN KEY ("A") REFERENCES "Permission"("id") ON DELETE CASCADE ON UPDATE CASCADE;

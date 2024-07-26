@@ -27,6 +27,7 @@ export class TableSalaryController {
   @Post("")
   create(@Body() createTableSalaryDto: CreateTableSalaryDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
+
     return this.tableSalaryService.create(createTableSalaryDto, tokenPayload);
   }
 
@@ -45,12 +46,12 @@ export class TableSalaryController {
   findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    // return this.tableSalaryService.findUniq(
-    //   {
-    //     id,
-    //   },
-    //   tokenPayload,
-    // );
+    return this.tableSalaryService.findUniq(
+      {
+        id,
+      },
+      tokenPayload,
+    );
   }
 
   @Patch(":id")

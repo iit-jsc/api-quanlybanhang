@@ -131,6 +131,7 @@ model Account {
   updaterDetailTableSalary    DetailTableSalary[]    @relation("updater")
   creatorCompensationEmployee CompensationEmployee[] @relation("creator")
   updaterCompensationEmployee CompensationEmployee[] @relation("updater")
+  updaterQRSetting            QRSetting[]            @relation("updater")
 }
 
 model User {
@@ -208,6 +209,7 @@ model Shop {
   creator            Account?            @relation("creator", fields: [createdBy], references: [id])
   updater            Account?            @relation("updater", fields: [updatedBy], references: [id])
   printTemplates     PrintTemplate[]
+  qRSetting          QRSetting?
 }
 
 model PrintTemplate {
@@ -711,7 +713,7 @@ model Table {
   areaId            String
   name              String
   code              String?
-  photoURL          String?            @db.Text
+  photoURL          String?            @default("uploads/table.png") @db.Text
   description       String?            @db.Text
   orderDetails      OrderDetail[]
   isPublic          Boolean?           @default(true)
@@ -851,6 +853,7 @@ model Branch {
   updater                    Account?                @relation("updater", fields: [updatedBy], references: [id])
   createdAt                  DateTime                @default(now())
   updatedAt                  DateTime                @updatedAt
+  others                     Json?
   currencyUnits              CurrencyUnit[]
   measurementUnits           MeasurementUnit[]
   activityLogs               ActivityLog[]
@@ -913,6 +916,8 @@ model EmployeeSchedule {
   branchId    String
   employeeId  String
   workShiftId String
+  startTime   Int
+  endTime     Int
   date        DateTime
   isPublic    Boolean?  @default(true)
   createdBy   String?
@@ -955,8 +960,8 @@ model DetailTableSalary {
   allowanceValue Json?
   deductionValue Json?
   baseSalary     Float       @default(0)
-  salaryType     Int?
   workDay        Float
+  totalHours     Float?
   employeeId     String
   employee       User        @relation(fields: [employeeId], references: [id])
   isPublic       Boolean?    @default(true)
@@ -1031,6 +1036,20 @@ model PhoneVerification {
   phone     String
   isUsed    Boolean  @default(false)
   createdAt DateTime @default(now())
+}
+
+model QRSetting {
+  shopId           String   @unique
+  shop             Shop?    @relation(fields: [shopId], references: [id])
+  isShowLogo       Boolean  @default(true)
+  isShowWifi       Boolean  @default(true)
+  isShowTable      Boolean  @default(true)
+  description      String?
+  isShowShopName   Boolean  @default(true)
+  isShowBranchName Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+  updatedBy        String?
+  updater          Account? @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model AccountSocket {

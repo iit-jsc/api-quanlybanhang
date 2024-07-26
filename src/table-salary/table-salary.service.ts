@@ -5,6 +5,8 @@ import { CreateTableSalaryDto, UpdateTableSalaryDto } from "./dto/table-salary.d
 import { Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
 import { COMPENSATION_TYPE } from "enums/common.enum";
+import { FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class TableSalaryService {
@@ -49,6 +51,43 @@ export class TableSalaryService {
     });
   }
 
+  async getTotalHoursBySchedule(from: Date, to: Date, employeeId: string, isFulltime: boolean) {
+    if (isFulltime) return;
+
+    const workShifts = await this.prisma.employeeSchedule.findMany({
+      where: {
+        employeeId,
+        isPublic: true,
+        AND: [
+          {
+            date: {
+              gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+            },
+          },
+          {
+            date: {
+              lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+            },
+          },
+        ],
+      },
+      select: {
+        startTime: true,
+        endTime: true,
+      },
+    });
+
+    return workShifts.reduce((total, shift) => {
+      let workTime = 0;
+      if (shift.endTime >= shift.startTime) {
+        workTime = shift.endTime - shift.startTime;
+      } else {
+        workTime = 24 - shift.startTime + shift.endTime;
+      }
+      return total + workTime;
+    }, 0);
+  }
+
   async create(data: CreateTableSalaryDto, tokenPayload: TokenPayload) {
     const notValidIds = await this.getNotValidEmployees(data.isFulltime, data.employeeIds);
 
@@ -64,7 +103,7 @@ export class TableSalaryService {
       this.getCompensationLabels(COMPENSATION_TYPE.DEDUCTION, tokenPayload.branchId),
     ]);
 
-    await this.prisma.$transaction(async (prisma) => {
+    return await this.prisma.$transaction(async (prisma) => {
       const tableSalary = await prisma.tableSalary.create({
         data: {
           name: data.name,
@@ -72,28 +111,107 @@ export class TableSalaryService {
           isFulltime: data.isFulltime,
           allowanceLabel,
           deductionLabel,
+          createdBy: tokenPayload.accountId,
           branchId: tokenPayload.branchId,
         },
       });
 
-      const detailTableSalaryData = await data.employeeIds.map(async (employeeId) => {
-        const [allowanceValue, deductionValue] = await Promise.all([
-          this.getCompensationValues(COMPENSATION_TYPE.ALLOWANCE, employeeId),
-          this.getCompensationValues(COMPENSATION_TYPE.DEDUCTION, employeeId),
-        ]);
+      const notCompensationEmployees = [];
 
-        const employeeSalary = await this.getDetailSalaryByEmployeeId(employeeId);
+      const detailTableSalaryData: Prisma.DetailTableSalaryCreateManyInput[] = await Promise.all(
+        data.employeeIds.map(async (employeeId) => {
+          const [allowanceValue, deductionValue, employeeSalary, totalHours] = await Promise.all([
+            this.getCompensationValues(COMPENSATION_TYPE.ALLOWANCE, employeeId),
+            this.getCompensationValues(COMPENSATION_TYPE.DEDUCTION, employeeId),
+            this.getDetailSalaryByEmployeeId(employeeId),
+            this.getTotalHoursBySchedule(data.from, data.to, employeeId, data.isFulltime),
+          ]);
 
-        return {
-          tableSalaryId: tableSalary.id,
-          allowanceValue,
-          deductionValue,
-          baseSalary: employeeSalary.baseSalary,
-          workDay: data.workDay,
-          employeeId,
-          branchId: tokenPayload.branchId,
-        };
+          if (allowanceValue.length != allowanceLabel.length || deductionLabel.length != deductionValue.length)
+            notCompensationEmployees.push(employeeId);
+
+          return {
+            tableSalaryId: tableSalary.id,
+            allowanceValue,
+            deductionValue,
+            totalHours,
+            baseSalary: employeeSalary.baseSalary,
+            workDay: data.workDay,
+            employeeId,
+            branchId: tokenPayload.branchId,
+          };
+        }),
+      );
+
+      if (notCompensationEmployees.length > 0)
+        throw new CustomHttpException(
+          HttpStatus.CONFLICT,
+          "#2 create - Chưa thiết lập thông tin phụ cấp - khoản trừ!",
+          { employeeIds: notCompensationEmployees },
+        );
+
+      await prisma.detailTableSalary.createMany({
+        data: detailTableSalaryData,
       });
+
+      return tableSalary;
+    });
+  }
+
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+    let { skip, take } = params;
+
+    let where: Prisma.TableSalaryWhereInput = {
+      isPublic: true,
+      branchId: tokenPayload.branchId,
+    };
+
+    const [data, totalRecords] = await Promise.all([
+      this.prisma.tableSalary.findMany({
+        skip,
+        take,
+        orderBy: {
+          createdAt: "desc",
+        },
+        where,
+      }),
+      this.prisma.tableSalary.count({
+        where,
+      }),
+    ]);
+
+    return {
+      list: data,
+      pagination: calculatePagination(totalRecords, skip, take),
+    };
+  }
+
+  async findUniq(where: Prisma.TableSalaryWhereUniqueInput, tokenPayload: TokenPayload) {
+    return this.prisma.tableSalary.findUniqueOrThrow({
+      where: {
+        id: where.id,
+        isPublic: true,
+        branchId: tokenPayload.branchId,
+      },
+      include: {
+        detailTableSalaries: {
+          select: {
+            allowanceValue: true,
+            deductionValue: true,
+            totalHours: true,
+            baseSalary: true,
+            workDay: true,
+            employee: {
+              select: {
+                name: true,
+                code: true,
+                phone: true,
+                photoURL: true,
+              },
+            },
+          },
+        },
+      },
     });
   }
 
