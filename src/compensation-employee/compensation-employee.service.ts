@@ -1,35 +1,14 @@
 import { Injectable } from "@nestjs/common";
-import { CompensationSetting, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
-import { CreateCompensationEmployeeDto, UpdateCompensationEmployeeDto } from "./dto/compensation-employee.dto";
+import { UpdateCompensationEmployeeDto } from "./dto/compensation-employee.dto";
 import { TokenPayload } from "interfaces/common.interface";
-import { CommonService } from "src/common/common.service";
 import { FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class CompensationEmployeeService {
   constructor(private readonly prisma: PrismaService) {}
-
-  async create(data: CreateCompensationEmployeeDto, tokenPayload: TokenPayload) {
-    const compensationSettings = await this.prisma.compensationSetting.findMany({
-      where: { branchId: tokenPayload.branchId, isPublic: true },
-      select: { id: true, defaultValue: true, type: true },
-    });
-
-    const compensationSettingData = compensationSettings.map((compensationSetting: CompensationSetting) => ({
-      employeeId: data.employeeId,
-      compensationSettingId: compensationSetting.id,
-      type: compensationSetting.type,
-      value: compensationSetting.defaultValue,
-      createdBy: tokenPayload.accountId,
-      branchId: tokenPayload.branchId,
-    })) as Prisma.CompensationEmployeeCreateManyInput[];
-
-    return await this.prisma.$transaction(async (prisma) => {
-      return prisma.compensationEmployee.createMany({ data: compensationSettingData });
-    });
-  }
 
   async update(
     params: {
@@ -66,7 +45,7 @@ export class CompensationEmployeeService {
           value: true,
           employeeId: true,
           compensationSetting: {
-            select: { id: true, name: true, defaultValue: true, description: true },
+            select: { id: true, name: true, defaultValue: true, description: true, applyTo: true },
           },
           updatedBy: true,
         },

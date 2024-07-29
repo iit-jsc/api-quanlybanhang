@@ -37,7 +37,7 @@ export class TableSalaryController {
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    // return this.tableSalaryService.findAll(findManyDto, tokenPayload);
+    return this.tableSalaryService.findAll(findManyDto, tokenPayload);
   }
 
   @Get(":id")

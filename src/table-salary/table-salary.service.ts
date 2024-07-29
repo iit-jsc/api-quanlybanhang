@@ -4,7 +4,7 @@ import { PrismaService } from "nestjs-prisma";
 import { CreateTableSalaryDto, UpdateTableSalaryDto } from "./dto/table-salary.dto";
 import { Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
-import { COMPENSATION_TYPE } from "enums/common.enum";
+import { COMPENSATION_APPLY_TO, COMPENSATION_TYPE } from "enums/common.enum";
 import { FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 
@@ -28,9 +28,17 @@ export class TableSalaryService {
     return [];
   }
 
-  async getCompensationLabels(type: number, branchId: string) {
+  async getCompensationLabels(isFulltime: boolean, type: number, branchId: string) {
     return this.prisma.compensationSetting.findMany({
-      where: { type, isPublic: true, branchId },
+      where: {
+        type,
+        isPublic: true,
+        branchId,
+        OR: [
+          { applyTo: COMPENSATION_APPLY_TO.ALL },
+          { applyTo: isFulltime ? COMPENSATION_APPLY_TO.FULLTIME : COMPENSATION_APPLY_TO.PART_TIME },
+        ],
+      },
       select: { id: true, name: true, description: true },
     });
   }
@@ -99,8 +107,8 @@ export class TableSalaryService {
       );
 
     const [allowanceLabel, deductionLabel] = await Promise.all([
-      this.getCompensationLabels(COMPENSATION_TYPE.ALLOWANCE, tokenPayload.branchId),
-      this.getCompensationLabels(COMPENSATION_TYPE.DEDUCTION, tokenPayload.branchId),
+      this.getCompensationLabels(data.isFulltime, COMPENSATION_TYPE.ALLOWANCE, tokenPayload.branchId),
+      this.getCompensationLabels(data.isFulltime, COMPENSATION_TYPE.DEDUCTION, tokenPayload.branchId),
     ]);
 
     return await this.prisma.$transaction(async (prisma) => {
@@ -174,6 +182,15 @@ export class TableSalaryService {
           createdAt: "desc",
         },
         where,
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          isFulltime: true,
+          isConfirm: true,
+          confirmBy: true,
+          updatedAt: true,
+        },
       }),
       this.prisma.tableSalary.count({
         where,

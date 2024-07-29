@@ -1,6 +1,5 @@
 import { PartialType } from "@nestjs/swagger";
 import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsString } from "class-validator";
-import { SALARY_TYPE } from "enums/common.enum";
 
 export class CreateEmployeeSalaryDto {
   @IsNotEmpty({ message: "Không được để trống!" })

@@ -131,6 +131,12 @@ export class FindManyDto {
 
   @Transform(({ value }: TransformFnParams) => (value === undefined ? value : Boolean(+value)))
   isFulltime?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: number) => +id);
+  })
+  applyTos: number[];
 }
 
 export class FindBySlugDto {

@@ -2,15 +2,19 @@ import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CreateEmployeeSalaryDto, UpdateEmployeeSalaryDto } from "./dto/employee-salary.dto";
-import { Prisma } from "@prisma/client";
+import { CompensationSetting, Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
+import { CreateCompensationEmployeeDto } from "src/compensation-employee/dto/compensation-employee.dto";
+import { COMPENSATION_APPLY_TO } from "enums/common.enum";
 
 @Injectable()
 export class EmployeeSalaryService {
   constructor(private readonly prisma: PrismaService) {}
 
   async create(data: CreateEmployeeSalaryDto, tokenPayload: TokenPayload) {
+    await this.createCompensation(data.isFulltime, { employeeId: data.employeeId }, tokenPayload);
+
     return this.prisma.employeeSalary.create({
       data: {
         employeeId: data.employeeId,
@@ -19,6 +23,33 @@ export class EmployeeSalaryService {
         branchId: tokenPayload.branchId,
         createdBy: tokenPayload.accountId,
       },
+    });
+  }
+
+  async createCompensation(isFulltime: boolean, data: CreateCompensationEmployeeDto, tokenPayload: TokenPayload) {
+    const compensationSettings = await this.prisma.compensationSetting.findMany({
+      where: {
+        branchId: tokenPayload.branchId,
+        isPublic: true,
+        OR: [
+          { applyTo: COMPENSATION_APPLY_TO.ALL },
+          { applyTo: isFulltime ? COMPENSATION_APPLY_TO.FULLTIME : COMPENSATION_APPLY_TO.PART_TIME },
+        ],
+      },
+      select: { id: true, defaultValue: true, type: true },
+    });
+
+    const compensationSettingData = compensationSettings.map((compensationSetting: CompensationSetting) => ({
+      employeeId: data.employeeId,
+      compensationSettingId: compensationSetting.id,
+      type: compensationSetting.type,
+      value: compensationSetting.defaultValue,
+      createdBy: tokenPayload.accountId,
+      branchId: tokenPayload.branchId,
+    })) as Prisma.CompensationEmployeeCreateManyInput[];
+
+    return await this.prisma.$transaction(async (prisma) => {
+      return prisma.compensationEmployee.createMany({ data: compensationSettingData });
     });
   }
 

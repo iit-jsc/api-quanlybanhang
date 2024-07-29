@@ -1,12 +1,13 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { CompensationEmployee, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
-import { CreateCompensationSettingDto, UpdateCompensationSettingDto } from "./dto/compensation-setting.dto";
+import { CreateCompensationSettingDto } from "./dto/compensation-setting.dto";
 import { CommonService } from "src/common/common.service";
 import { ACCOUNT_TYPE } from "enums/user.enum";
+import { COMPENSATION_APPLY_TO } from "enums/common.enum";
 
 @Injectable()
 export class CompensationSettingService {
@@ -20,6 +21,11 @@ export class CompensationSettingService {
       account: {
         type: ACCOUNT_TYPE.STAFF,
       },
+      employeeSalary: {
+        ...(data.applyTo !== COMPENSATION_APPLY_TO.ALL && {
+          isFulltime: data.applyTo === COMPENSATION_APPLY_TO.FULLTIME ? true : false,
+        }),
+      },
     });
 
     return await this.prisma.$transaction(async (prisma) => {
@@ -29,6 +35,7 @@ export class CompensationSettingService {
           description: data.description,
           defaultValue: data.defaultValue,
           type: data.type,
+          applyTo: data.applyTo,
           branchId: tokenPayload.branchId,
           createdBy: tokenPayload.accountId,
         },
@@ -49,66 +56,8 @@ export class CompensationSettingService {
     });
   }
 
-  // async update(
-  //   params: {
-  //     where: Prisma.CompensationSettingWhereUniqueInput;
-  //     data: UpdateCompensationSettingDto;
-  //   },
-  //   tokenPayload: TokenPayload,
-  // ) {
-  //   const { where, data } = params;
-
-  //   return await this.prisma.$transaction(async (prisma) => {
-  //     const employeeIds = await this.commonService.findAllIdsInBranch("User", tokenPayload.branchId, {
-  //       account: {
-  //         type: ACCOUNT_TYPE.STAFF,
-  //       },
-  //     });
-
-  //     const compensationEmployeeData = employeeIds.map(async (employeeId: string) => {
-  //       return prisma.compensationEmployee.upsert({
-  //         where: {
-  //           compensationSettingId_employeeId: {
-  //             employeeId,
-  //             compensationSettingId: where.id,
-  //           },
-  //         },
-  //         create: {
-  //           employeeId,
-  //           compensationSettingId: where.id,
-  //           type: data.type,
-  //           value: data.defaultValue,
-  //           createdBy: tokenPayload.accountId,
-  //           branchId: tokenPayload.branchId,
-  //         },
-  //         update: {
-  //           value: data.defaultValue,
-  //           updatedBy: tokenPayload.accountId,
-  //         },
-  //       });
-  //     });
-
-  //     await Promise.all(compensationEmployeeData);
-
-  //     return await prisma.compensationSetting.update({
-  //       where: {
-  //         id: where.id,
-  //         branchId: tokenPayload.branchId,
-  //         isPublic: true,
-  //       },
-  //       data: {
-  //         name: data.name,
-  //         description: data.description,
-  //         type: data.type,
-  //         defaultValue: data.defaultValue,
-  //         updatedBy: tokenPayload.accountId,
-  //       },
-  //     });
-  //   });
-  // }
-
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, types } = params;
+    const { skip, take, keyword, types, applyTos } = params;
 
     const keySearch = ["name"];
 
@@ -120,6 +69,7 @@ export class CompensationSettingService {
         })),
       }),
       ...(types && { type: { in: types } }),
+      ...(applyTos && { applyTo: { in: applyTos } }),
       branchId: tokenPayload.branchId,
     };
 
@@ -136,6 +86,7 @@ export class CompensationSettingService {
           name: true,
           description: true,
           type: true,
+          applyTo: true,
           updatedAt: true,
         },
       }),

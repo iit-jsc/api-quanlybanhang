@@ -25,6 +25,7 @@ export class CreateTableSalaryDto {
   @IsBoolean()
   isFulltime: boolean;
 
+  @ValidateIf((o) => o.isFulltime == true)
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   workDay: number;

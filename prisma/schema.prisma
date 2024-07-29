@@ -845,6 +845,7 @@ model Branch {
   photoURL                   String?                 @db.Text
   name                       String
   address                    String?                 @db.Text
+  phone                      String?
   status                     Int?                    @default(1)
   isPublic                   Boolean?                @default(true)
   createdBy                  String?
@@ -960,7 +961,7 @@ model DetailTableSalary {
   allowanceValue Json?
   deductionValue Json?
   baseSalary     Float       @default(0)
-  workDay        Float
+  workDay        Float?
   totalHours     Float?
   employeeId     String
   employee       User        @relation(fields: [employeeId], references: [id])
@@ -981,6 +982,7 @@ model CompensationSetting {
   description           String?                @db.Text
   type                  Int
   defaultValue          Float
+  applyTo               Int                    @default(3)
   branchId              String
   branch                Branch                 @relation(fields: [branchId], references: [id])
   isPublic              Boolean?               @default(true)

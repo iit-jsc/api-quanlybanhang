@@ -1,9 +1,8 @@
 import * as bcrypt from "bcrypt";
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
-import { AnyObject, TokenPayload } from "interfaces/common.interface";
-import { CustomHttpException } from "utils/ApiErrors";
+import { TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
 import { FindManyDto } from "utils/Common.dto";

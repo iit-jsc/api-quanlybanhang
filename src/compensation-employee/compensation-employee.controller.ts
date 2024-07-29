@@ -9,15 +9,14 @@ import { FindManyDto } from "utils/Common.dto";
 export class CompensationEmployeeController {
   constructor(private readonly compensationEmployeeService: CompensationEmployeeService) {}
 
-  @Post("")
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  // @Roles("CREATE_EMPLOYEE_GROUP", SPECIAL_ROLE.MANAGER)
-  create(@Body() createCompensationEmployeeDto: CreateCompensationEmployeeDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  // @Post("")
+  // @HttpCode(HttpStatus.OK)
+  // @UseGuards(JwtAuthGuard)
+  // create(@Body() createCompensationEmployeeDto: CreateCompensationEmployeeDto, @Req() req: any) {
+  //   const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.compensationEmployeeService.create(createCompensationEmployeeDto, tokenPayload);
-  }
+  //   return this.compensationEmployeeService.create(createCompensationEmployeeDto, tokenPayload);
+  // }
 
   @Get("")
   @HttpCode(HttpStatus.OK)

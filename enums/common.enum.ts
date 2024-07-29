@@ -54,13 +54,13 @@ export const FIND_UNIQ_TYPE = {
   OTHER: 2,
 };
 
-export const SALARY_TYPE = {
-  DAY: 1,
-  WEEK: 2,
-  MONTH: 3,
-};
-
 export const COMPENSATION_TYPE = {
   ALLOWANCE: 1,
   DEDUCTION: 2,
+};
+
+export const COMPENSATION_APPLY_TO = {
+  FULLTIME: 1,
+  PART_TIME: 2,
+  ALL: 3
 };

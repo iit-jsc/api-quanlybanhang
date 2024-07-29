@@ -3,6 +3,7 @@ import { Transform, TransformFnParams, Type } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsOptional, IsString } from "class-validator";
 import { BRANCH_STATUS } from "enums/shop.enum";
 import { AnyObject } from "interfaces/common.interface";
+import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateBranchDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -25,6 +26,10 @@ export class CreateBranchDto {
 
   @IsOptional()
   others: AnyObject;
+
+  @IsOptional()
+  @IsVietnamesePhoneNumber()
+  phone: string;
 }
 
 export class UpdateBranchDto extends PartialType(CreateBranchDto) {}
