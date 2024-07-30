@@ -54,6 +54,22 @@ export class TableSalaryController {
     );
   }
 
+  @Patch(":id/confirm")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  confirm(@Param("id") id: string, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.tableSalaryService.confirm(
+      {
+        where: {
+          id,
+        },
+      },
+      tokenPayload,
+    );
+  }
+
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -75,14 +91,7 @@ export class TableSalaryController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    // const tokenPayload = req.tokenPayload as TokenPayload;
-    // return this.tableSalaryService.deleteMany(
-    //   {
-    //     id: {
-    //       in: deleteManyDto.ids,
-    //     },
-    //   },
-    //   tokenPayload,
-    // );
+    const tokenPayload = req.tokenPayload as TokenPayload;
+    return this.tableSalaryService.deleteMany(deleteManyDto, tokenPayload);
   }
 }

@@ -127,8 +127,6 @@ model Account {
   updaterEmployeeSalary       EmployeeSalary[]       @relation("updater")
   creatorCompensationSetting  CompensationSetting[]  @relation("creator")
   updaterCompensationSetting  CompensationSetting[]  @relation("updater")
-  creatorDetailTableSalary    DetailTableSalary[]    @relation("creator")
-  updaterDetailTableSalary    DetailTableSalary[]    @relation("updater")
   creatorCompensationEmployee CompensationEmployee[] @relation("creator")
   updaterCompensationEmployee CompensationEmployee[] @relation("updater")
   updaterQRSetting            QRSetting[]            @relation("updater")
@@ -965,15 +963,10 @@ model DetailTableSalary {
   totalHours     Float?
   employeeId     String
   employee       User        @relation(fields: [employeeId], references: [id])
-  isPublic       Boolean?    @default(true)
-  createdAt      DateTime    @default(now())
-  updatedAt      DateTime    @updatedAt
-  createdBy      String?
-  updatedBy      String?
-  creator        Account?    @relation("creator", fields: [createdBy], references: [id])
-  updater        Account?    @relation("updater", fields: [updatedBy], references: [id])
   branch         Branch?     @relation(fields: [branchId], references: [id])
   branchId       String?
+
+  @@unique([tableSalaryId, employeeId])
 }
 
 model CompensationSetting {

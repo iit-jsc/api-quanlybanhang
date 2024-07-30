@@ -46,6 +46,5 @@ export interface PromotionCountOrder extends Promotion {
 export interface DeleteManyResponse {
   count: number;
   ids: string[];
-  validIds?: string[];
   notValidIds?: string[];
 }

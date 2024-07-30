@@ -1,11 +1,11 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CreateTableSalaryDto, UpdateTableSalaryDto } from "./dto/table-salary.dto";
 import { Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
 import { COMPENSATION_APPLY_TO, COMPENSATION_TYPE } from "enums/common.enum";
-import { FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 
 @Injectable()
@@ -213,19 +213,20 @@ export class TableSalaryService {
       include: {
         detailTableSalaries: {
           select: {
-            allowanceValue: true,
-            deductionValue: true,
-            totalHours: true,
-            baseSalary: true,
-            workDay: true,
             employee: {
               select: {
+                id: true,
                 name: true,
                 code: true,
                 phone: true,
                 photoURL: true,
               },
             },
+            allowanceValue: true,
+            deductionValue: true,
+            totalHours: true,
+            baseSalary: true,
+            workDay: true,
           },
         },
       },
@@ -238,5 +239,122 @@ export class TableSalaryService {
       data: UpdateTableSalaryDto;
     },
     tokenPayload: TokenPayload,
-  ) {}
+  ) {
+    const { where, data } = params;
+
+    const ids = await this.filterTableSalaryConfirmByIds([where.id]);
+
+    if (ids.length > 0)
+      throw new CustomHttpException(
+        HttpStatus.UNAUTHORIZED,
+        "#1 update - Bảng lương đã được xác nhận không thể cập nhật!",
+      );
+
+    return await this.prisma.$transaction(async (prisma) => {
+      const tableSalary = await prisma.tableSalary.update({
+        where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId },
+        data: {
+          name: data.name,
+          description: data.description,
+          updatedBy: tokenPayload.accountId,
+        },
+      });
+
+      await Promise.all(
+        data.detailTableSalaries.map(async (detail) => {
+          const allowanceLabel = tableSalary.allowanceLabel;
+          const deductionLabel = tableSalary.deductionLabel;
+          const allowanceValue = detail.allowanceValue?.map((dto) => ({
+            id: dto.id,
+            value: dto.value,
+          }));
+          const deductionValue = detail.deductionValue?.map((dto) => ({
+            id: dto.id,
+            value: dto.value,
+          }));
+
+          if (Array.isArray(allowanceLabel) && Array.isArray(deductionLabel)) {
+            if (allowanceLabel.length !== allowanceValue.length || deductionLabel.length !== deductionValue.length)
+              throw new CustomHttpException(HttpStatus.CONFLICT, "#1 update - Phụ cấp khoản trừ không hợp lệ!");
+          }
+
+          await prisma.detailTableSalary.update({
+            where: {
+              tableSalaryId_employeeId: {
+                employeeId: detail.employeeId,
+                tableSalaryId: where.id,
+              },
+            },
+            data: {
+              totalHours: detail.totalHours,
+              baseSalary: detail.baseSalary,
+              workDay: detail.workDay,
+              allowanceValue: allowanceValue,
+              deductionValue: deductionValue,
+            },
+          });
+        }),
+      );
+      return tableSalary;
+    });
+  }
+
+  async confirm(
+    params: {
+      where: Prisma.TableSalaryWhereUniqueInput;
+    },
+    tokenPayload: TokenPayload,
+  ) {
+    const { where } = params;
+
+    const ids = await this.filterTableSalaryConfirmByIds([where.id]);
+
+    if (ids.length > 0)
+      throw new CustomHttpException(
+        HttpStatus.UNAUTHORIZED,
+        "#1 update - Bảng lương đã được xác nhận không thể cập nhật!",
+      );
+
+    return this.prisma.tableSalary.update({
+      where: { id: where.id, isPublic: true },
+      data: {
+        isConfirm: true,
+        confirmBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
+
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const notValidIds = await this.filterTableSalaryConfirmByIds(data.ids);
+    const validIds = data.ids.filter((id) => !notValidIds.includes(id));
+
+    const count = await this.prisma.tableSalary.updateMany({
+      where: {
+        id: {
+          in: validIds,
+        },
+        isPublic: true,
+        branchId: tokenPayload.branchId,
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+
+    return { ...count, ids: validIds, notValidIds } as DeleteManyResponse;
+  }
+
+  async filterTableSalaryConfirmByIds(ids: string[]) {
+    const tableSalaries = await this.prisma.tableSalary.findMany({
+      where: {
+        id: { in: ids },
+        isConfirm: true,
+      },
+      select: { id: true },
+    });
+
+    return tableSalaries.map((tableSalary) => tableSalary.id);
+  }
 }

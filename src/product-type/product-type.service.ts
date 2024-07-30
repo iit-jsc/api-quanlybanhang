@@ -79,7 +79,7 @@ export class ProductTypeService {
   async findUniq(where: Prisma.ProductTypeWhereInput) {
     return this.prisma.productType.findFirst({
       where: {
-        slug: where.slug,
+        ...where,
         branchId: where.branchId,
         isPublic: true,
       },

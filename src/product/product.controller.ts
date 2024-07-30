@@ -44,11 +44,13 @@ export class ProductController {
     return this.productService.findAll(findManyDto);
   }
 
-  @Get(":slug")
+  @Get(":keyword")
   @HttpCode(HttpStatus.OK)
-  findUniq(@Param("slug") slug: string, @Query() findBySlugDto: FindBySlugDto) {
+  findUniq(@Param("keyword") keyword: string, @Query() findBySlugDto: FindBySlugDto) {
+    const where = findBySlugDto.isSlug ? { slug: keyword } : { id: keyword };
+
     return this.productService.findUniq({
-      slug,
+      ...where,
       branchId: findBySlugDto.branchId,
     });
   }

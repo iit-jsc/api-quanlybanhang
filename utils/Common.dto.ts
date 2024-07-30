@@ -143,6 +143,12 @@ export class FindBySlugDto {
   @IsNotEmpty()
   @IsString()
   branchId: string;
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isSlug?: boolean = false;
 }
 
 export class DeleteManyDto {
