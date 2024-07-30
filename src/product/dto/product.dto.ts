@@ -13,6 +13,10 @@ export class CreateProductDto {
   @IsString()
   description?: string;
 
+  @IsOptional()
+  @IsString()
+  thumbnail?: string;
+
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   unitId: string;

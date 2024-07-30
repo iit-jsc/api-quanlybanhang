@@ -21,8 +21,6 @@ import { FindManyProductDto } from "./dto/find-many.dto";
 import { RolesGuard } from "guards/roles.guard";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";
-import { v4 as isUuid } from "uuid";
-import { equal } from "assert";
 
 @Controller("product")
 export class ProductController {

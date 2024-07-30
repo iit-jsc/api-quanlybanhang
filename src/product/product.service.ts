@@ -29,6 +29,7 @@ export class ProductService {
         slug: data.slug,
         code: data.code,
         price: data.price,
+        thumbnail: data.thumbnail,
         oldPrice: data.oldPrice,
         otherAttributes: data.otherAttributes,
         status: data.status,
@@ -59,7 +60,7 @@ export class ProductService {
 
   async findAll(params: FindManyProductDto) {
     let { skip, take, keyword, productTypeIds, measurementUnitIds, statuses, branchId } = params;
-    const keySearch = ["name", "code", "sku"];
+    const keySearch = ["name", "code", "slug"];
     let where: Prisma.ProductWhereInput = {
       isPublic: true,
       branchId,
@@ -96,6 +97,7 @@ export class ProductService {
           name: true,
           code: true,
           price: true,
+          thumbnail: true,
           oldPrice: true,
           description: true,
           photoURLs: true,
@@ -142,6 +144,7 @@ export class ProductService {
         name: true,
         code: true,
         price: true,
+        thumbnail: true,
         oldPrice: true,
         description: true,
         photoURLs: true,
@@ -198,6 +201,7 @@ export class ProductService {
         productTypeId: data.productTypeId,
         code: data.code,
         price: data.price,
+        thumbnail: data.thumbnail,
         oldPrice: data.oldPrice,
         photoURLs: data.photoURLs,
         otherAttributes: data.otherAttributes,

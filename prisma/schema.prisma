@@ -324,11 +324,12 @@ model Product {
   branchId                    String
   unitId                      String
   name                        String
-  slug                        String                       @unique
+  slug                        String
   code                        String?
   price                       Float                        @default(0)
   oldPrice                    Float?
   description                 String?                      @db.Text
+  thumbnail                   String?                      @default("uploads/product.png") @db.Text
   photoURLs                   Json?
   otherAttributes             Json?
   status                      Int?                         @default(1)
