@@ -32,16 +32,16 @@ export class PointAccumulationService {
   ) {
     prisma = prisma || this.prisma;
 
-    const settingPoint = await prisma.pointSetting.findFirst({
+    const pointSetting = await prisma.pointSetting.findFirst({
       where: {
         shopId: tokenPayload.shopId,
         active: true,
       },
     });
 
-    if (!settingPoint) return;
+    if (!pointSetting) return;
 
-    const point = Math.floor((totalOrder * settingPoint.point) / settingPoint.value);
+    const point = Math.floor((totalOrder * pointSetting.point) / pointSetting.value);
 
     await prisma.pointAccumulation.upsert({
       create: {
@@ -77,14 +77,14 @@ export class PointAccumulationService {
   ) {
     prisma = prisma || this.prisma;
 
-    const settingPoint = await prisma.pointSetting.findFirst({
+    const pointSetting = await prisma.pointSetting.findFirst({
       where: {
         shopId: tokenPayload.shopId,
         active: true,
       },
     });
 
-    if (!settingPoint || !exchangePoint) return;
+    if (!pointSetting || !exchangePoint) return;
 
     const currentPoint = await prisma.pointAccumulation.findUnique({
       where: { customerId },
@@ -118,15 +118,15 @@ export class PointAccumulationService {
   }
 
   async convertDiscountFromPoint(point: number, shopId: string) {
-    if (!point) return 0;
-
-    const settingPoint = await this.prisma.pointSetting.findFirst({
+    const pointSetting = await this.prisma.pointSetting.findFirst({
       where: {
         shopId: shopId,
         active: true,
       },
     });
 
-    return Math.floor((point * settingPoint.value) / settingPoint.point);
+    if (!point || !pointSetting) return null;
+
+    return Math.floor((point * pointSetting.value) / pointSetting.point);
   }
 }

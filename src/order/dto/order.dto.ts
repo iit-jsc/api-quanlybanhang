@@ -43,20 +43,11 @@ export class CreateOrderDto {
   @IsNumber()
   paymentMethod: number;
 
-  @IsOptional()
-  @IsBoolean()
-  isPaid: boolean = false;
-
   @IsNotEmpty({ message: "Không được để trống!" })
   @ArrayNotEmpty({ message: "Danh sách sản phẩm không được rỗng!" })
   @ValidateNested({ each: true })
   @Type(() => OrderProducts)
   orderProducts: OrderProducts[];
-
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  exchangePoint: number;
 }
 
 export class OrderProducts {
@@ -86,4 +77,15 @@ export class UpdateOrderDto extends PartialType(CreateOrderDto) {
   @IsDate()
   @Type(() => Date)
   cancelDate: Date;
+}
+
+export class PaymentOrderDto {
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsBoolean()
+  isPaid: boolean = false;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  exchangePoint: number;
 }

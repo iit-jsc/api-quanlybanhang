@@ -27,8 +27,8 @@ export class EmployeeSalaryController {
 
   @Post("")
   @HttpCode(HttpStatus.OK)
-  // @Roles("CREATE_EMPLOYEE_SCHEDULE", SPECIAL_ROLE.MANAGER)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("CREATE_SALARY", "UPDATE_SALARY", "DELETE_SALARY", "VIEW_SALARY", SPECIAL_ROLE.MANAGER)
   create(@Body() createEmployeeSalaryDto: CreateEmployeeSalaryDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -37,14 +37,8 @@ export class EmployeeSalaryController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  // @Roles(
-  //   "CREATE_EMPLOYEE_SCHEDULE",
-  //   "UPDATE_EMPLOYEE_SCHEDULE",
-  //   "DELETE_EMPLOYEE_SCHEDULE",
-  //   "VIEW_EMPLOYEE_SCHEDULE",
-  //   SPECIAL_ROLE.MANAGER,
-  // )
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("CREATE_SALARY", "UPDATE_SALARY", "DELETE_SALARY", "VIEW_SALARY", SPECIAL_ROLE.MANAGER)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -53,14 +47,8 @@ export class EmployeeSalaryController {
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  // @Roles(
-  //   "CREATE_EMPLOYEE_SCHEDULE",
-  //   "UPDATE_EMPLOYEE_SCHEDULE",
-  //   "DELETE_EMPLOYEE_SCHEDULE",
-  //   "VIEW_EMPLOYEE_SCHEDULE",
-  //   SPECIAL_ROLE.MANAGER,
-  // )
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("CREATE_SALARY", "UPDATE_SALARY", "DELETE_SALARY", "VIEW_SALARY", SPECIAL_ROLE.MANAGER)
   findUniq(@Param("id") id: string, @Req() req: any, @Query() findUniqDto: FindUniqDto) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -72,8 +60,8 @@ export class EmployeeSalaryController {
 
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
-  // @Roles("UPDATE_EMPLOYEE_SCHEDULE", SPECIAL_ROLE.MANAGER)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("UPDATE_SALARY", SPECIAL_ROLE.MANAGER)
   update(@Param("id") id: string, @Body() updateEmployeeSalaryDto: UpdateEmployeeSalaryDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

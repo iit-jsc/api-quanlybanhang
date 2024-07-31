@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { CreateOrderDto, OrderProducts, UpdateOrderDto } from "./dto/order.dto";
+import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "./dto/order.dto";
 import { PromotionCountOrder, TokenCustomerPayload, TokenPayload, AnyObject } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
@@ -230,11 +230,6 @@ export class OrderService {
           data: { isUsed: true, updatedBy: tokenPayload.accountId },
         });
 
-      const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
-        data.exchangePoint,
-        tokenPayload.shopId,
-      );
-
       const order = await prisma.order.create({
         data: {
           note: data.note,
@@ -242,11 +237,8 @@ export class OrderService {
           orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
           code: data.code || generateSortCode(),
           paymentMethod: data.paymentMethod,
-          isPaid: data.isPaid,
           promotionValue,
           discountValue,
-          convertedPointValue,
-          usedPoint: data.exchangePoint,
           ...(data.promotionId && {
             promotion: {
               connect: {
@@ -313,22 +305,6 @@ export class OrderService {
           },
         },
       });
-
-      // Xử lý tích điểm
-      if (data.customerId && data.isPaid) {
-        const totalInOrder = this.getTotalInOrder(orderDetails);
-
-        await Promise.all([
-          this.pointAccumulationService.handleAddPoint(data.customerId, order.id, totalInOrder, tokenPayload, prisma),
-          this.pointAccumulationService.handleExchangePoint(
-            data.customerId,
-            order.id,
-            data.exchangePoint,
-            tokenPayload,
-            prisma,
-          ),
-        ]);
-      }
 
       // Gửi socket
       await this.orderGateway.handleModifyOrder(order);
@@ -402,7 +378,6 @@ export class OrderService {
       {
         name: data.name,
         phone: data.phone,
-        email: data.email,
         address: data.address,
       },
       { phone: data.phone, branchId: data.branchId },
@@ -543,6 +518,10 @@ export class OrderService {
         },
       });
 
+      await this.passOrderDetailToOrder(orderDetails, order.id, prisma, tokenPayload);
+
+      await this.deleteTableTransaction(data.tableId, prisma, tokenPayload);
+
       // Xử lý tích điểm
       if (data.customerId) {
         const totalInOrder = this.getTotalInOrder(orderDetails);
@@ -558,10 +537,6 @@ export class OrderService {
           ),
         ]);
       }
-
-      await this.passOrderDetailToOrder(orderDetails, order.id, prisma, tokenPayload);
-
-      await this.deleteTableTransaction(data.tableId, prisma, tokenPayload);
 
       return order;
     });
@@ -580,11 +555,6 @@ export class OrderService {
 
     await this.commonService.checkOrderChange(where.id);
 
-    const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
-      data.exchangePoint,
-      tokenPayload.shopId,
-    );
-
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const order = await prisma.order.update({
         where: {
@@ -598,11 +568,8 @@ export class OrderService {
           orderStatus: data.orderStatus,
           note: data.note,
           paymentMethod: data.paymentMethod,
-          isPaid: data.isPaid,
           cancelReason: data.cancelReason,
           cancelDate: data.cancelDate,
-          convertedPointValue,
-          usedPoint: data.exchangePoint,
           updater: {
             connect: {
               id: tokenPayload.accountId,
@@ -614,22 +581,6 @@ export class OrderService {
           orderDetails: true,
         },
       });
-
-      // Xử lý tích điểm
-      if (order.customerId) {
-        const totalInOrder = this.getTotalInOrder(order.orderDetails);
-
-        await Promise.all([
-          this.pointAccumulationService.handleAddPoint(order.customerId, order.id, totalInOrder, tokenPayload, prisma),
-          this.pointAccumulationService.handleExchangePoint(
-            order.customerId,
-            order.id,
-            data.exchangePoint,
-            tokenPayload,
-            prisma,
-          ),
-        ]);
-      }
 
       return order;
     });
@@ -1111,5 +1062,54 @@ export class OrderService {
 
   async getOrderDetailsInTable(tableId: string, prisma: PrismaClient) {
     return prisma.orderDetail.findMany({ where: { tableId, isPublic: true } });
+  }
+
+  async paymentOrder(
+    params: {
+      where: Prisma.OrderWhereUniqueInput;
+      data: PaymentOrderDto;
+    },
+    tokenPayload: TokenPayload,
+  ) {
+    const { where, data } = params;
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
+        data.exchangePoint,
+        tokenPayload.shopId,
+      );
+
+      const order = await prisma.order.update({
+        where: { id: where.id, isPublic: true },
+        data: {
+          isPaid: true,
+          convertedPointValue,
+          usedPoint: data.exchangePoint,
+          updatedBy: tokenPayload.accountId,
+        },
+        include: {
+          orderDetails: true,
+        },
+      });
+
+      if (order.isPaid)
+        throw new CustomHttpException(HttpStatus.CONFLICT, "#1 paymentOrder - Đơn hàng này đã thành toán!");
+
+      // Xử lý tích điểm
+      if (order.customerId) {
+        const totalInOrder = this.getTotalInOrder(order.orderDetails);
+        await Promise.all([
+          this.pointAccumulationService.handleAddPoint(order.customerId, order.id, totalInOrder, tokenPayload, prisma),
+          this.pointAccumulationService.handleExchangePoint(
+            order.customerId,
+            order.id,
+            data.exchangePoint,
+            tokenPayload,
+            prisma,
+          ),
+        ]);
+      }
+
+      return order;
+    });
   }
 }

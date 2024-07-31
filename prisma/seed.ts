@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client";
-import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
 
@@ -171,6 +170,11 @@ async function main() {
         name: "Quản lý lịch làm việc",
         type: 1,
         code: "EMPLOYEE_SCHEDULE",
+      },
+      {
+        name: "Quản lý lương",
+        type: 1,
+        code: "SALARY",
       },
     ],
   });
@@ -606,6 +610,31 @@ async function main() {
         name: "Xóa lịch đăng ký",
         code: "DELETE_EMPLOYEE_SCHEDULE",
         groupCode: "EMPLOYEE_SCHEDULE",
+      },
+      {
+        name: "Xem danh sách thông tin lương",
+        code: "VIEW_SALARY",
+        groupCode: "SALARY",
+      },
+      {
+        name: "Tạo thông tin lương",
+        code: "CREATE_SALARY",
+        groupCode: "SALARY",
+      },
+      {
+        name: "Cập nhật thông tin lương",
+        code: "UPDATE_SALARY",
+        groupCode: "SALARY",
+      },
+      {
+        name: "Xóa thông tin lương",
+        code: "DELETE_SALARY",
+        groupCode: "SALARY",
+      },
+      {
+        name: "Xác nhận bảng lương",
+        code: "CONFIRM_SALARY",
+        groupCode: "SALARY",
       },
     ],
   });

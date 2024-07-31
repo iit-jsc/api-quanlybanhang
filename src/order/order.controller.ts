@@ -15,7 +15,7 @@ import {
 import { OrderService } from "./order.service";
 import { JwtAuthGuard, JwtCustomerAuthGuard } from "guards/jwt-auth.guard";
 import { TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
-import { CreateOrderDto, UpdateOrderDto } from "./dto/order.dto";
+import { PaymentOrderDto, CreateOrderDto, UpdateOrderDto } from "./dto/order.dto";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-customer.dto";
@@ -98,6 +98,24 @@ export class OrderController {
           id,
         },
         data: saveOrderDto,
+      },
+      tokenPayload,
+    );
+  }
+
+  @Patch("/:id/confirm")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("UPDATE_ORDER", SPECIAL_ROLE.MANAGER)
+  paymentOrder(@Body() paymentOrderDto: PaymentOrderDto, @Req() req: any, @Param("id") id: string) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderService.paymentOrder(
+      {
+        where: {
+          id,
+        },
+        data: paymentOrderDto,
       },
       tokenPayload,
     );

@@ -4,23 +4,18 @@ import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
 import { CreateCompensationEmployeeDto, UpdateCompensationEmployeeDto } from "./dto/compensation-employee.dto";
 import { FindManyDto } from "utils/Common.dto";
+import { RolesGuard } from "guards/roles.guard";
+import { SPECIAL_ROLE } from "enums/common.enum";
+import { Roles } from "guards/roles.decorator";
 
 @Controller("compensation-employee")
 export class CompensationEmployeeController {
   constructor(private readonly compensationEmployeeService: CompensationEmployeeService) {}
 
-  // @Post("")
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // create(@Body() createCompensationEmployeeDto: CreateCompensationEmployeeDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload;
-
-  //   return this.compensationEmployeeService.create(createCompensationEmployeeDto, tokenPayload);
-  // }
-
   @Get("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("CREATE_SALARY", "UPDATE_SALARY", "DELETE_SALARY", "VIEW_SALARY", SPECIAL_ROLE.MANAGER)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -29,8 +24,8 @@ export class CompensationEmployeeController {
 
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  // @Roles("UPDATE_EMPLOYEE_GROUP", SPECIAL_ROLE.MANAGER)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("UPDATE_SALARY", SPECIAL_ROLE.MANAGER)
   update(
     @Param("id") id: string,
     @Body() updateCompensationEmployeeDto: UpdateCompensationEmployeeDto,

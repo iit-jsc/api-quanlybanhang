@@ -1048,6 +1048,14 @@ model QRSetting {
   updater          Account? @relation("updater", fields: [updatedBy], references: [id])
 }
 
+model FutureUsageSetting {
+  shopId         String
+  futureShopCode String
+  isUsed         Boolean @default(true)
+
+  @@unique([shopId, futureShopCode])
+}
+
 model AccountSocket {
   socketId  String   @unique
   branchId  String

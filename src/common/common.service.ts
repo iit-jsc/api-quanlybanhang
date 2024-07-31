@@ -87,7 +87,7 @@ export class CommonService {
   }
 
   async findOrCreateCustomer(
-    data: { name: string; email: string; address: string; phone: string },
+    data: { name: string; address: string; phone: string },
     where: { phone: string; branchId: string },
   ) {
     const shop = await this.prisma.shop.findFirst({
