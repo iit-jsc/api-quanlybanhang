@@ -62,5 +62,17 @@ export const COMPENSATION_TYPE = {
 export const COMPENSATION_APPLY_TO = {
   FULLTIME: 1,
   PART_TIME: 2,
-  ALL: 3
+  ALL: 3,
+};
+
+export const REPORT_REVENUE_TYPE = {
+  TOTAL_ORDER: 1,
+  TOTAL_REVENUE: 2,
+};
+
+export const TIME_TYPE = {
+  YEAR: 1,
+  MONTH: 2,
+  DAY: 3,
+  HOUR: 4,
 };
