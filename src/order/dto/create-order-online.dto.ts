@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  Min,
   ValidateNested,
 } from "class-validator";
 import { PAYMENT_METHOD_TYPE } from "enums/common.enum";
@@ -60,4 +61,9 @@ export class CreateOrderOnlineDto {
   @IsOptional()
   @IsString()
   discountCode: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  exchangePoint: number;
 }

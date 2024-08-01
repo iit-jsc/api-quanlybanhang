@@ -329,6 +329,9 @@ export class OrderService {
   }
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
+    let promotionValue = 0;
+    let discountValue = 0;
+
     const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.WAITING, {
       branchId: data.branchId,
     });
@@ -343,7 +346,12 @@ export class OrderService {
     );
 
     return await this.prisma.$transaction(async (prisma) => {
-      if (data.discountCode)
+      if (data.promotionId)
+        promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, data.branchId);
+
+      if (data.discountCode) {
+        discountValue = await this.getDiscountValue(orderDetails, data.discountCode, data.branchId);
+
         await prisma.discountCode.update({
           where: {
             branchId_code: {
@@ -353,18 +361,21 @@ export class OrderService {
           },
           data: { isUsed: true },
         });
+      }
 
       const order = await this.prisma.order.create({
         data: {
           note: data.note,
+          promotionValue,
+          discountValue,
+          orderType: ORDER_TYPE.ONLINE,
+          orderStatus: ORDER_STATUS_COMMON.WAITING,
+          code: generateSortCode(),
           customer: {
             connect: {
               id: customer.id,
             },
           },
-          orderType: ORDER_TYPE.ONLINE,
-          orderStatus: ORDER_STATUS_COMMON.WAITING,
-          code: generateSortCode(),
           orderDetails: {
             createMany: {
               data: orderDetails,
@@ -378,28 +389,11 @@ export class OrderService {
           },
         },
         include: {
-          orderDetails: {
-            select: {
-              id: true,
-              amount: true,
-              note: true,
-              productPrice: true,
-              toppingPrice: true,
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  photoURLs: true,
-                  code: true,
-                },
-              },
-            },
-          },
+          orderDetails: true,
         },
       });
 
       // Gửi socket
-
       await this.orderGateway.handleModifyOrder(order);
 
       return order;
