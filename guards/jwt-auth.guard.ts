@@ -22,7 +22,7 @@ export class JwtAuthGuard implements CanActivate {
 
     const [_, token] = authHeader.split(" ");
 
-    if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 canActivate - Không tìm thấy token!");
+    if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy token!");
 
     try {
       const payload = (await this.jwtService.verifyAsync(token, {
@@ -47,8 +47,7 @@ export class JwtAuthGuard implements CanActivate {
         },
       });
 
-      if (!account)
-        throw new CustomHttpException(HttpStatus.CONFLICT, "#2 canActivate - Thông tin đăng nhập không hợp lệ!");
+      if (!account) throw new CustomHttpException(HttpStatus.CONFLICT, "Thông tin đăng nhập không hợp lệ!");
 
       request.tokenPayload = {
         branchId: payload.branchId,
@@ -58,7 +57,7 @@ export class JwtAuthGuard implements CanActivate {
         accountId: account.id,
       } as TokenPayload;
     } catch (error) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "#3 canActivate - Token hết hạn!");
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Token hết hạn!");
     }
 
     return true;
@@ -84,7 +83,7 @@ export class JwtCustomerAuthGuard implements CanActivate {
 
     const [_, token] = authHeader.split(" ");
 
-    if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 canActivate - Không tìm thấy token!");
+    if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy token!");
 
     const payload: TokenCustomerPayload = this.jwtService.decode(token);
 

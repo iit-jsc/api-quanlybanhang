@@ -22,7 +22,7 @@ export class InventoryTransactionService {
     });
 
     if (!stock || stock.quantity < quantity)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 checkQuantityValid - Số lượng không hợp lệ!");
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Số lượng không hợp lệ!");
   }
 
   async handleProcessedTransaction(
@@ -31,7 +31,7 @@ export class InventoryTransactionService {
     tokenPayload: TokenPayload,
   ) {
     if (!data.inventoryTransactionDetails)
-      throw new CustomHttpException(HttpStatus.BAD_REQUEST, "#1 handleProcessedTransaction - Không được để trống!", [
+      throw new CustomHttpException(HttpStatus.BAD_REQUEST, "Không được để trống!", [
         { inventoryTransactionDetails: "Không được để trống!" },
       ]);
 
@@ -123,7 +123,7 @@ export class InventoryTransactionService {
       });
 
       if (inventoryTransaction.status === INVENTORY_TRANSACTION_STATUS.PROCESSED)
-        throw new CustomHttpException(HttpStatus.CONFLICT, "#1 update - Không thể cập nhật vì đã được xử lý!");
+        throw new CustomHttpException(HttpStatus.CONFLICT, "Không thể cập nhật vì đã được xử lý!");
 
       if (data.status === INVENTORY_TRANSACTION_STATUS.PROCESSED)
         await this.handleProcessedTransaction(data, prisma, tokenPayload);

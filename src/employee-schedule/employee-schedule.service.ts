@@ -39,7 +39,7 @@ export class EmployeeScheduleService {
     const validIds = await this.filterValidRegisterSchedule([where.id], tokenPayload);
 
     if (tokenPayload.type === ACCOUNT_TYPE.STAFF && validIds.length == 0)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 update - Không thể cập nhật dữ liệu này!");
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Không thể cập nhật dữ liệu này!");
 
     return this.prisma.employeeSchedule.update({
       where: {
@@ -220,7 +220,7 @@ export class EmployeeScheduleService {
     });
 
     if (!workShift.isNotLimitEmployee && countEmployee >= workShift.limitEmployee)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 getAndCheckLimitWorkShift - Đã vượt quá số lượng!");
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Đã vượt quá số lượng!");
 
     return workShift;
   }

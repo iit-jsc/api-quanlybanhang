@@ -53,14 +53,11 @@ export class AuthService {
     });
 
     if (!account || !(await bcrypt.compare(data.password, account.password))) {
-      throw new CustomHttpException(
-        HttpStatus.UNAUTHORIZED,
-        "#1 loginForStaff - Tài khoản hoặc mật khẩu không chính xác!",
-      );
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Tài khoản hoặc mật khẩu không chính xác!");
     }
 
     if (account.status == ACCOUNT_STATUS.INACTIVE) {
-      throw new CustomHttpException(HttpStatus.FORBIDDEN, "#2 loginForStaff - Tài khoản đã bị khóa!");
+      throw new CustomHttpException(HttpStatus.FORBIDDEN, "Tài khoản đã bị khóa!");
     }
 
     const shops = await this.commonService.findManyShopByAccountId(account.id);
@@ -98,10 +95,7 @@ export class AuthService {
       });
 
       if (!account || !account.password || !(await bcrypt.compare(data.password, account.password))) {
-        throw new CustomHttpException(
-          HttpStatus.UNAUTHORIZED,
-          "#1 loginForManager - Tài khoản hoặc mật khẩu không chính xác!",
-        );
+        throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Tài khoản hoặc mật khẩu không chính xác!");
       }
     }
 
@@ -128,7 +122,7 @@ export class AuthService {
     // if (!account)
     //   throw new CustomHttpException(
     //     HttpStatus.NOT_FOUND,
-    //     "#2 loginForManager - Tài khoản không tồn tại hoặc đã bị khóa!",
+    //     "Tài khoản không tồn tại hoặc đã bị khóa!",
     //   );
 
     const shops = await this.commonService.findManyShopByAccountId(account.id);
@@ -177,7 +171,7 @@ export class AuthService {
     const account = await this.getAccountAccess(tokenPayload.accountId, accessBranchDto.branchId);
 
     if (!account) {
-      throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 accessBranch - Không tìm thấy tài nguyên!");
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên!");
     }
 
     const currentShop = await this.getCurrentShop(accessBranchDto.branchId);
@@ -239,7 +233,7 @@ export class AuthService {
       const currentShop = await this.getCurrentShop(payload.branchId);
 
       if (!account) {
-        throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 getMe - Không tìm thấy tài nguyên!");
+        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên!");
       }
       return { ...mapResponseLogin({ account, shops, currentShop }) };
     } catch (error) {

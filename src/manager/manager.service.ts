@@ -33,8 +33,7 @@ export class ManagerService {
       },
     });
 
-    if (ownerShopAccount)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 checkManagerExisting - Tài khoản đã tồn tại!");
+    if (ownerShopAccount) throw new CustomHttpException(HttpStatus.CONFLICT, "Tài khoản đã tồn tại!");
   }
 
   async checkBranchesInShop(branchIds: string[], shopId: string) {
@@ -50,8 +49,7 @@ export class ManagerService {
       },
     });
 
-    if (invalidBranch)
-      throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 checkBranchesInShop - Chi nhánh không tồn tại!");
+    if (invalidBranch) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Chi nhánh không tồn tại!");
   }
 
   async create(data: CreateManagerDto, tokenPayload: TokenPayload) {

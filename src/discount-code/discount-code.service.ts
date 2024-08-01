@@ -38,12 +38,10 @@ export class DiscountCodeService {
     });
 
     if (amount + currentAmount > discountIssue.amount)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        "#1 checkAmountValid - Số lượng vượt quá đợt khuyến mãi!",
-        [],
-        { currentAmount, maxAmount: discountIssue.amount },
-      );
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Số lượng vượt quá đợt khuyến mãi!", [], {
+        currentAmount,
+        maxAmount: discountIssue.amount,
+      });
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {

@@ -25,14 +25,6 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsString()
-  promotionId: string;
-
-  @IsOptional()
-  @IsString()
-  discountCode: string;
-
-  @IsOptional()
-  @IsString()
   note: string;
 
   @IsOptional()
@@ -88,4 +80,12 @@ export class PaymentOrderDto {
   @IsNumber()
   @Min(1)
   exchangePoint: number;
+
+  @IsOptional()
+  @IsString()
+  promotionId: string;
+
+  @IsOptional()
+  @IsString()
+  discountCode: string;
 }

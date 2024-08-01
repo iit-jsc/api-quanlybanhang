@@ -52,6 +52,7 @@ import { TableSalaryModule } from "./table-salary/table-salary.module";
 import { TransformInterceptor } from "utils/ApiResponse";
 import { CompensationEmployeeModule } from './compensation-employee/compensation-employee.module';
 import { QrSettingModule } from './qr-setting/qr-setting.module';
+import { FutureUsageSettingModule } from './future-usage-setting/future-usage-setting.module';
 
 @Module({
   imports: [
@@ -125,6 +126,7 @@ import { QrSettingModule } from './qr-setting/qr-setting.module';
     CompensationSettingModule,
     CompensationEmployeeModule,
     QrSettingModule,
+    FutureUsageSettingModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

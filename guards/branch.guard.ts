@@ -44,7 +44,7 @@
 
 //       if (branches.length !== branchIds.length)
 //         throw new UnauthorizedException(
-//           '#1 canActivate - Chi nhánh không tồn tại!',
+//           'Chi nhánh không tồn tại!',
 //         );
 //     }
 
@@ -63,7 +63,7 @@
 
 //     if (branches.length !== branchIds.length)
 //       throw new UnauthorizedException(
-//         '#2 canActivate - Chi nhánh không thuộc cửa hàng!',
+//         'Chi nhánh không thuộc cửa hàng!',
 //       );
 
 //     return true;

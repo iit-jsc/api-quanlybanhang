@@ -102,7 +102,7 @@ export class TableSalaryService {
     if (notValidIds.length > 0)
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        "#1 create - Nhân viên chưa thiết lập mức lương hoặc không hợp lệ!",
+        "Nhân viên chưa thiết lập mức lương hoặc không hợp lệ!",
         notValidIds,
       );
 
@@ -152,11 +152,9 @@ export class TableSalaryService {
       );
 
       if (notCompensationEmployees.length > 0)
-        throw new CustomHttpException(
-          HttpStatus.CONFLICT,
-          "#2 create - Chưa thiết lập thông tin phụ cấp - khoản trừ!",
-          { employeeIds: notCompensationEmployees },
-        );
+        throw new CustomHttpException(HttpStatus.CONFLICT, "Chưa thiết lập thông tin phụ cấp - khoản trừ!", {
+          employeeIds: notCompensationEmployees,
+        });
 
       await prisma.detailTableSalary.createMany({
         data: detailTableSalaryData,
@@ -245,10 +243,7 @@ export class TableSalaryService {
     const ids = await this.filterTableSalaryConfirmByIds([where.id]);
 
     if (ids.length > 0)
-      throw new CustomHttpException(
-        HttpStatus.UNAUTHORIZED,
-        "#1 update - Bảng lương đã được xác nhận không thể cập nhật!",
-      );
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Bảng lương đã được xác nhận không thể cập nhật!");
 
     return await this.prisma.$transaction(async (prisma) => {
       const tableSalary = await prisma.tableSalary.update({
@@ -275,7 +270,7 @@ export class TableSalaryService {
 
           if (Array.isArray(allowanceLabel) && Array.isArray(deductionLabel)) {
             if (allowanceLabel.length !== allowanceValue.length || deductionLabel.length !== deductionValue.length)
-              throw new CustomHttpException(HttpStatus.CONFLICT, "#1 update - Phụ cấp khoản trừ không hợp lệ!");
+              throw new CustomHttpException(HttpStatus.CONFLICT, "Phụ cấp khoản trừ không hợp lệ!");
           }
 
           await prisma.detailTableSalary.update({
@@ -310,10 +305,7 @@ export class TableSalaryService {
     const ids = await this.filterTableSalaryConfirmByIds([where.id]);
 
     if (ids.length > 0)
-      throw new CustomHttpException(
-        HttpStatus.UNAUTHORIZED,
-        "#1 update - Bảng lương đã được xác nhận không thể cập nhật!",
-      );
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Bảng lương đã được xác nhận không thể cập nhật!");
 
     return this.prisma.tableSalary.update({
       where: { id: where.id, isPublic: true },

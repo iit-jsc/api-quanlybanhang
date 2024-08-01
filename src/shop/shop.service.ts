@@ -36,7 +36,7 @@ export class ShopService {
         },
       });
 
-      if (ownerShopAccount) throw new CustomHttpException(HttpStatus.CONFLICT, "#1 create - Tài khoản đã tồn tại!");
+      if (ownerShopAccount) throw new CustomHttpException(HttpStatus.CONFLICT, "Tài khoản đã tồn tại!");
 
       let ownerShop = await prisma.user.create({
         data: {

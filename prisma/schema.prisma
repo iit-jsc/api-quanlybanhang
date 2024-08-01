@@ -130,6 +130,7 @@ model Account {
   creatorCompensationEmployee CompensationEmployee[] @relation("creator")
   updaterCompensationEmployee CompensationEmployee[] @relation("updater")
   updaterQRSetting            QRSetting[]            @relation("updater")
+  updaterFutureUsageSetting   FutureUsageSetting[]   @relation("updater")
 }
 
 model User {
@@ -1049,11 +1050,14 @@ model QRSetting {
 }
 
 model FutureUsageSetting {
-  shopId         String
-  futureShopCode String
-  isUsed         Boolean @default(true)
+  shopId     String
+  futureCode String
+  isUsed     Boolean  @default(true)
+  updatedAt  DateTime @updatedAt
+  updatedBy  String?
+  updater    Account? @relation("updater", fields: [updatedBy], references: [id])
 
-  @@unique([shopId, futureShopCode])
+  @@unique([shopId, futureCode])
 }
 
 model AccountSocket {

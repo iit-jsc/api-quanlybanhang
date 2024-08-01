@@ -72,6 +72,7 @@ export class PointAccumulationService {
     customerId: string,
     orderId: string,
     exchangePoint: number,
+    totalInOrder: number,
     tokenPayload: TokenPayload,
     prisma?: PrismaClient,
   ) {
@@ -94,8 +95,11 @@ export class PointAccumulationService {
       },
     });
 
-    if (!currentPoint || currentPoint.point < exchangePoint)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "#1 handleExchangePoint - Điểm đổi không hợp lệ!");
+    // Quy đổi số tiền
+    const convertedPointValue = (exchangePoint * pointSetting.value) / pointSetting.point;
+
+    if (!currentPoint || currentPoint.point < exchangePoint || convertedPointValue > totalInOrder)
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Điểm đổi không hợp lệ!");
 
     const t = await prisma.pointAccumulation.update({
       data: {

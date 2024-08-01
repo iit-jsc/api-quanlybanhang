@@ -147,7 +147,7 @@ export class CommonService {
       },
     });
 
-    if (!table) throw new CustomHttpException(HttpStatus.CONFLICT, "#1 checkTableIsReady - Bàn này không sẵn sàng!");
+    if (!table) throw new CustomHttpException(HttpStatus.CONFLICT, "Bàn này không sẵn sàng!");
   }
 
   async confirmOTP(data: ConfirmPhoneDto) {
@@ -162,7 +162,7 @@ export class CommonService {
       },
     });
 
-    if (!otp) throw new CustomHttpException(HttpStatus.BAD_REQUEST, "#1 confirmOTP - Mã OTP không hợp lệ!");
+    if (!otp) throw new CustomHttpException(HttpStatus.BAD_REQUEST, "Mã OTP không hợp lệ!");
 
     await this.prisma.phoneVerification.update({
       where: { id: otp.id },
@@ -193,7 +193,7 @@ export class CommonService {
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        "#1 checkDataExistingInBranch - Dữ liệu đã tồn tại!",
+        "Dữ liệu đã tồn tại!",
         conflictingKeys.map((key) => ({ [key]: "Dữ liệu đã được sử dụng!" })),
       );
     }
@@ -217,7 +217,7 @@ export class CommonService {
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        "#1 checkDataExistingInShop - Dữ liệu đã tồn tại!",
+        "Dữ liệu đã tồn tại!",
         conflictingKeys.map((key) => ({ [key]: "Dữ liệu đã được sử dụng!" })),
       );
     }
@@ -260,7 +260,7 @@ export class CommonService {
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        "#1 checkAccountExisting - Dữ liệu đã tồn tại!",
+        "Dữ liệu đã tồn tại!",
         conflictingKeys.map((key) => ({ [key]: "Dữ liệu đã được sử dụng!" })),
       );
     }
@@ -297,7 +297,7 @@ export class CommonService {
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
-        "#1 checkUserExisting - Dữ liệu đã tồn tại!",
+        "Dữ liệu đã tồn tại!",
         conflictingKeys.map((key) => ({ [key]: "Dữ liệu đã được sử dụng!" })),
       );
     }
@@ -312,11 +312,7 @@ export class CommonService {
       select: { id: true },
     });
 
-    if (order)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        "#1 checkOrderChange - Đơn hàng này không thể cập nhật vì đã thanh toán!",
-      );
+    if (order) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này không thể cập nhật vì đã thanh toán!");
   }
 
   async findAllIdsInBranch(model: Prisma.ModelName, branchId: string, condition?: AnyObject) {

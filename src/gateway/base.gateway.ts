@@ -1,4 +1,4 @@
-import { PrismaService } from 'nestjs-prisma';
+import { PrismaService } from "nestjs-prisma";
 import {
   WebSocketGateway,
   WebSocketServer,
@@ -7,29 +7,27 @@ import {
   OnGatewayDisconnect,
   ConnectedSocket,
   SubscribeMessage,
-} from '@nestjs/websockets';
-import { Server, Socket } from 'socket.io';
-import { AnyObject, TokenPayload } from 'interfaces/common.interface';
-import { Req } from '@nestjs/common';
+} from "@nestjs/websockets";
+import { Server, Socket } from "socket.io";
+import { AnyObject, TokenPayload } from "interfaces/common.interface";
+import { Req } from "@nestjs/common";
 
 @WebSocketGateway()
-export abstract class BaseGateway
-  implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
-{
+export abstract class BaseGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   constructor(protected readonly prisma: PrismaService) {}
 
   @WebSocketServer() server: Server;
 
   afterInit(server: Server) {
-    console.log('WebSocket server initialized');
+    console.log("WebSocket server initialized");
   }
 
   handleConnection(client: Socket) {
-    console.log('Client connected:', client.id);
+    console.log("Client connected:", client.id);
   }
 
   async handleDisconnect(client: Socket) {
-    console.log('Client disconnected:', client.id);
+    console.log("Client disconnected:", client.id);
 
     await this.prisma.accountSocket.deleteMany({
       where: {
@@ -38,11 +36,8 @@ export abstract class BaseGateway
     });
   }
 
-  @SubscribeMessage('joinBranch')
-  async handleJoinBranch(
-    @ConnectedSocket() client: Socket,
-    @Req() req: AnyObject,
-  ) {
+  @SubscribeMessage("joinBranch")
+  async handleJoinBranch(@ConnectedSocket() client: Socket, @Req() req: AnyObject) {
     const tokenPayload = req.handshake?.tokenPayload as TokenPayload;
 
     await this.prisma.accountSocket.upsert({
@@ -62,11 +57,9 @@ export abstract class BaseGateway
       },
     });
 
-    console.log(
-      `#1 handleJoinBranch - Người dùng ${client.id} đang join vào chi nhánh: ${tokenPayload.branchId}`,
-    );
+    console.log(`Người dùng ${client.id} đang join vào chi nhánh: ${tokenPayload.branchId}`);
 
-    client.emit('joinedBranch', { branchId: tokenPayload.branchId });
+    client.emit("joinedBranch", { branchId: tokenPayload.branchId });
   }
 
   async getAccountsOnline(branchId: string) {

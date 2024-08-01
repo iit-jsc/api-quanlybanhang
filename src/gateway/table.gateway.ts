@@ -1,10 +1,10 @@
-import { UseGuards } from '@nestjs/common';
-import { WebSocketGateway } from '@nestjs/websockets';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { Table } from '@prisma/client';
-import { BaseGateway } from './base.gateway'; // Import BaseGateway
+import { UseGuards } from "@nestjs/common";
+import { WebSocketGateway } from "@nestjs/websockets";
+import { JwtAuthGuard } from "guards/jwt-auth.guard";
+import { TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { Table } from "@prisma/client";
+import { BaseGateway } from "./base.gateway"; // Import BaseGateway
 
 @UseGuards(JwtAuthGuard)
 @WebSocketGateway()
@@ -19,11 +19,9 @@ export class TableGateway extends BaseGateway {
     const socketIds = accountOnline.map((account) => account.socketId);
 
     if (socketIds.length > 0) {
-      console.log(
-        `#1 handleModifyTable - Bàn ${payload.id} đã gửi socket cho: ${socketIds}`,
-      );
+      console.log(`Bàn ${payload.id} đã gửi socket cho: ${socketIds}`);
 
-      this.server.to(socketIds).emit('table', payload);
+      this.server.to(socketIds).emit("table", payload);
     }
   }
 }

@@ -103,7 +103,7 @@ export class OrderController {
     );
   }
 
-  @Patch("/:id/confirm")
+  @Post("/:id/confirm")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("UPDATE_ORDER", SPECIAL_ROLE.MANAGER)

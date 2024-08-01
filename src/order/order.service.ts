@@ -122,11 +122,10 @@ export class OrderService {
 
     const matchPromotion = matchPromotions.find((promotion) => promotion.id === promotionId);
 
-    if (!matchPromotion)
-      throw new CustomHttpException(HttpStatus.NOT_FOUND, "#1 getPromotionValue - Khuyến mãi không hợp lệ!");
+    if (!matchPromotion) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Khuyến mãi không hợp lệ!");
 
     if (matchPromotion._count.orders >= matchPromotion.amount)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "#2 getPromotionValue - Số lượng đã hết!");
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Số lượng đã hết!");
 
     return matchPromotion as PromotionCountOrder;
   }
@@ -185,15 +184,12 @@ export class OrderService {
     });
 
     if (!discountIssue)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        "#1 getDiscountValue - Mã giảm giá không tồn tại hoặc đã hết hạn!",
-      );
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Mã giảm giá không tồn tại hoặc đã hết hạn!");
 
     const total = this.getTotalInOrder(orderDetails);
 
     if (discountIssue.minTotalOrder && discountIssue.minTotalOrder > total)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "#2 getDiscountValue - Giá trị đơn hàng chưa đủ điều kiện!");
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Giá trị đơn hàng chưa đủ điều kiện!");
 
     if (discountIssue.type == DISCOUNT_TYPE.PERCENT) {
       const discountTotal = (this.getTotalInOrder(orderDetails) * discountIssue.value) / 100;
@@ -205,31 +201,11 @@ export class OrderService {
   }
 
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
-    let promotionValue = 0;
-    let discountValue = 0;
-
     await this.commonService.checkDataExistingInBranch({ code: data.code }, "Order", tokenPayload.branchId);
 
     const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.SUCCESS, tokenPayload);
 
-    if (data.promotionId)
-      promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, tokenPayload.branchId);
-
-    if (data.discountCode)
-      discountValue = await this.getDiscountValue(orderDetails, data.discountCode, tokenPayload.branchId);
-
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      if (data.discountCode)
-        await prisma.discountCode.update({
-          where: {
-            branchId_code: {
-              branchId: tokenPayload.branchId,
-              code: data.discountCode,
-            },
-          },
-          data: { isUsed: true, updatedBy: tokenPayload.accountId },
-        });
-
       const order = await prisma.order.create({
         data: {
           note: data.note,
@@ -237,15 +213,6 @@ export class OrderService {
           orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
           code: data.code || generateSortCode(),
           paymentMethod: data.paymentMethod,
-          promotionValue,
-          discountValue,
-          ...(data.promotionId && {
-            promotion: {
-              connect: {
-                id: data.promotionId,
-              },
-            },
-          }),
           ...(data.customerId && {
             customer: {
               connect: {
@@ -363,16 +330,9 @@ export class OrderService {
   }
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
-    let promotionValue = 0;
-    let discountValue = 0;
-
     const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.WAITING, {
       branchId: data.branchId,
     });
-
-    if (data.promotionId) promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, data.branchId);
-
-    if (data.discountCode) discountValue = await this.getDiscountValue(orderDetails, data.discountCode, data.branchId);
 
     const customer = await this.commonService.findOrCreateCustomer(
       {
@@ -397,8 +357,6 @@ export class OrderService {
 
       const order = await this.prisma.order.create({
         data: {
-          promotionValue,
-          discountValue,
           note: data.note,
           customer: {
             connect: {
@@ -459,10 +417,9 @@ export class OrderService {
       if (data.promotionId)
         promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, tokenPayload.branchId);
 
-      if (data.discountCode)
+      if (data.discountCode) {
         discountValue = await this.getDiscountValue(orderDetails, data.discountCode, tokenPayload.branchId);
 
-      if (data.discountCode)
         await prisma.discountCode.update({
           where: {
             branchId_code: {
@@ -472,6 +429,7 @@ export class OrderService {
           },
           data: { isUsed: true, updatedBy: tokenPayload.accountId },
         });
+      }
 
       const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
         data.exchangePoint,
@@ -532,6 +490,7 @@ export class OrderService {
             data.customerId,
             order.id,
             data.exchangePoint,
+            totalInOrder,
             tokenPayload,
             prisma,
           ),
@@ -1028,10 +987,7 @@ export class OrderService {
     tokenPayload: TokenPayload,
   ) {
     if (orderDetails.length <= 0)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        "#1 passOrderDetailToOrder - Không tìm thấy thông tin sản phẩm!",
-      );
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin sản phẩm!");
 
     const orderDetailIds = orderDetails?.map((orderDetail) => orderDetail.id);
 
@@ -1072,40 +1028,75 @@ export class OrderService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    let promotionValue = 0;
+    let discountValue = 0;
+
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const order = await this.prisma.order.findUnique({
+        where: { id: where.id, isPublic: true },
+        select: {
+          id: true,
+          customerId: true,
+          isPaid: true,
+          orderDetails: {
+            where: {
+              isPublic: true,
+            },
+          },
+        },
+      });
+
+      if (order.isPaid) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này đã thành toán!");
+
+      if (data.promotionId)
+        promotionValue = await this.getPromotionValue(data.promotionId, order.orderDetails, tokenPayload.branchId);
+
+      if (data.discountCode) {
+        discountValue = await this.getDiscountValue(order.orderDetails, data.discountCode, tokenPayload.branchId);
+
+        await prisma.discountCode.update({
+          where: {
+            branchId_code: {
+              branchId: tokenPayload.branchId,
+              code: data.discountCode,
+            },
+          },
+          data: { isUsed: true, updatedBy: tokenPayload.accountId },
+        });
+      }
+
       const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
         data.exchangePoint,
         tokenPayload.shopId,
       );
 
-      const order = await prisma.order.update({
+      await prisma.order.update({
         where: { id: where.id, isPublic: true },
         data: {
+          promotionValue,
+          discountValue,
           isPaid: true,
           convertedPointValue,
           usedPoint: data.exchangePoint,
           updatedBy: tokenPayload.accountId,
-        },
-        include: {
-          orderDetails: true,
+          promotionId: data.promotionId,
         },
       });
-
-      if (order.isPaid)
-        throw new CustomHttpException(HttpStatus.CONFLICT, "#1 paymentOrder - Đơn hàng này đã thành toán!");
 
       // Xử lý tích điểm
       if (order.customerId) {
         const totalInOrder = this.getTotalInOrder(order.orderDetails);
         await Promise.all([
-          this.pointAccumulationService.handleAddPoint(order.customerId, order.id, totalInOrder, tokenPayload, prisma),
           this.pointAccumulationService.handleExchangePoint(
             order.customerId,
             order.id,
             data.exchangePoint,
+            totalInOrder,
             tokenPayload,
             prisma,
           ),
+          this.pointAccumulationService.handleAddPoint(order.customerId, order.id, totalInOrder, tokenPayload, prisma),
         ]);
       }
 
