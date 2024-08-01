@@ -131,6 +131,8 @@ model Account {
   updaterCompensationEmployee CompensationEmployee[] @relation("updater")
   updaterQRSetting            QRSetting[]            @relation("updater")
   updaterFutureUsageSetting   FutureUsageSetting[]   @relation("updater")
+  creatorPaymentMethod        PaymentMethod[]        @relation("creator")
+  updaterPaymentMethod        PaymentMethod[]        @relation("updater")
 }
 
 model User {
@@ -623,7 +625,9 @@ model Order {
   convertedPointValue Float?            @default(0)
   usedPoint           Float?            @default(0)
   orderType           Int
-  paymentMethod       Int?
+  paymentMethodId     String?
+  bankingImages       Json?
+  paymentMethod       PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
   isPaid              Boolean?          @default(false)
   isSave              Boolean?          @default(false)
   orderStatus         Int
@@ -654,7 +658,7 @@ model OrderDetail {
   amount            Float
   note              String?
   status            Int?               @default(1)
-  productPrice      Float
+  productPrice      Float              @default(0)
   toppingPrice      Float?             @default(0)
   isPublic          Boolean?           @default(true)
   createdAt         DateTime           @default(now())
@@ -890,6 +894,7 @@ model Branch {
   compensationSettings       CompensationSetting[]
   detailTableSalaries        DetailTableSalary[]
   compensationEmployees      CompensationEmployee[]
+  paymentMethods             PaymentMethod[]
 }
 
 model WorkShift {
@@ -1066,4 +1071,25 @@ model AccountSocket {
   shopId    String
   accountId String
   createdAt DateTime @default(now())
+}
+
+model PaymentMethod {
+  id             String   @id @default(uuid())
+  branchId       String
+  branch         Branch   @relation(fields: [branchId], references: [id])
+  bankName       String?
+  bankCode       String?
+  representative String?
+  photoURL       String?
+  type           String
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdBy      String?
+  updatedBy      String?
+  creator        Account? @relation("creator", fields: [createdBy], references: [id])
+  updater        Account? @relation("updater", fields: [updatedBy], references: [id])
+  orders         Order[]
+
+  @@unique([type, branchId])
 }

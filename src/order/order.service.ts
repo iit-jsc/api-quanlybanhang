@@ -212,7 +212,6 @@ export class OrderService {
           orderType: ORDER_TYPE.OFFLINE,
           orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
           code: data.code || generateSortCode(),
-          paymentMethod: data.paymentMethod,
           ...(data.customerId && {
             customer: {
               connect: {
@@ -442,7 +441,7 @@ export class OrderService {
           note: data.note,
           orderType: ORDER_TYPE.OFFLINE,
           orderStatus: ORDER_STATUS_COMMON.SUCCESS,
-          paymentMethod: data.paymentMethod,
+          bankingImages: data.bankingImages,
           isPaid: true,
           promotionValue: promotionValue,
           discountValue: discountValue,
@@ -455,6 +454,11 @@ export class OrderService {
               },
             },
           }),
+          paymentMethod: {
+            connect: {
+              id: data.paymentMethodId,
+            },
+          },
           creator: {
             connect: {
               id: tokenPayload.accountId,
@@ -526,9 +530,14 @@ export class OrderService {
         data: {
           orderStatus: data.orderStatus,
           note: data.note,
-          paymentMethod: data.paymentMethod,
           cancelReason: data.cancelReason,
           cancelDate: data.cancelDate,
+          bankingImages: data.bankingImages,
+          paymentMethod: {
+            connect: {
+              id: data.paymentMethodId,
+            },
+          },
           updater: {
             connect: {
               id: tokenPayload.accountId,
@@ -1079,6 +1088,9 @@ export class OrderService {
           isPaid: true,
           convertedPointValue,
           usedPoint: data.exchangePoint,
+          orderStatus: ORDER_STATUS_COMMON.SUCCESS,
+          bankingImages: data.exchangePoint,
+          paymentMethodId: data.paymentMethodId,
           updatedBy: tokenPayload.accountId,
           promotionId: data.promotionId,
         },

@@ -83,20 +83,25 @@ export class ReportService {
       }
 
       const revenueData = await this.prisma.$queryRaw`
-        SELECT 
-          TO_CHAR("o"."createdAt", ${dateFormat}) AS period, 
-          SUM(("od"."productPrice" + COALESCE("od"."toppingPrice", 0)) * "od"."amount") AS revenue
-        FROM "Order" "o"
-        JOIN "OrderDetail" "od" ON "o"."id" = "od"."orderId"
-        WHERE "o"."isPaid" = true
-          AND "o"."isPublic" = true
-          AND "o"."branchId" = ${tokenPayload.branchId}
-          AND "o"."createdAt" >= ${startDateString}::timestamp
-          AND "o"."createdAt" <= ${endDateString}::timestamp
-          ${Prisma.sql([timeCondition])}
-        GROUP BY period
-        ORDER BY period;
-      `;
+      SELECT 
+        TO_CHAR("o"."createdAt", ${dateFormat}) AS period, 
+        SUM(
+          GREATEST(
+            ("od"."productPrice" + COALESCE("od"."toppingPrice", 0)) * "od"."amount" - "o"."promotionValue"  - "o"."discountValue" - "o"."convertedPointValue",
+            0
+          )
+        ) AS revenue
+      FROM "Order" "o"
+      JOIN "OrderDetail" "od" ON "o"."id" = "od"."orderId"
+      WHERE "o"."isPaid" = true
+        AND "o"."isPublic" = true
+        AND "o"."branchId" = ${tokenPayload.branchId}
+        AND "o"."createdAt" >= ${startDateString}::timestamp
+        AND "o"."createdAt" <= ${endDateString}::timestamp
+        ${Prisma.sql([timeCondition])}
+      GROUP BY period
+      ORDER BY period;
+    `;
 
       return revenueData;
     }

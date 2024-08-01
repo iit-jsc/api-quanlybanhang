@@ -1,138 +1,100 @@
-// import { Injectable } from '@nestjs/common';
-// import { CreatePaymentMethodDto } from './dto/create-payment-method.dto';
-// import { TokenPayload } from 'interfaces/common.interface';
-// import { Prisma } from '@prisma/client';
-// import { calculatePagination } from 'utils/Helps';
-// import { FindManyDto } from 'utils/Common.dto';
-// import { PrismaService } from 'nestjs-prisma';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { UpdatePaymentMethodDto } from "./dto/payment-method.dto";
+import { TokenPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { FindManyDto } from "utils/Common.dto";
+import { database } from "firebase-admin";
+import { calculatePagination } from "utils/Helps";
 
-// @Injectable()
-// export class PaymentMethodService {
-//   constructor(private readonly prisma: PrismaService) {}
+@Injectable()
+export class PaymentMethodService {
+  constructor(private readonly prisma: PrismaService) {}
 
-//   async create(data: CreatePaymentMethodDto, tokenPayload: TokenPayload) {
-//     return await this.prisma.paymentMethod.create({
-//       data: {
-//         name: data.name,
-//         description: data.description,
-//         status: data.status,
-//         logo: data.logo,
-//         createdBy: tokenPayload.accountId,
-//         updatedBy: tokenPayload.accountId,
-//         shop: {
-//           connect: {
-//             id: tokenPayload.shopId,
-//           },
-//         },
-//       },
-//     });
-//   }
+  async create(
+    params: {
+      data: UpdatePaymentMethodDto;
+    },
+    tokenPayload: TokenPayload,
+  ) {
+    const { data } = params;
 
-//   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-//     let { skip, take, keyword } = params;
-//     let where: Prisma.PaymentMethodWhereInput = {
-//       isPublic: true,
-//       ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
-//       shop: {
-//         id: tokenPayload.shopId,
-//         isPublic: true,
-//       },
-//     };
-//     const [data, totalRecords] = await Promise.all([
-//       this.prisma.paymentMethod.findMany({
-//         skip,
-//         take,
-//         orderBy: {
-//           createdAt: 'desc',
-//         },
-//         where,
-//         select: {
-//           id: true,
-//           name: true,
-//           description: true,
-//           logo: true,
-//           status: true,
-//           updatedAt: true,
-//         },
-//       }),
-//       this.prisma.paymentMethod.count({
-//         where,
-//       }),
-//     ]);
-//     return {
-//       list: data,
-//       pagination: calculatePagination(totalRecords, skip, take),
-//     };
-//   }
+    return this.prisma.paymentMethod.create({
+      data: {
+        active: data.active,
+        bankCode: data.bankCode,
+        bankName: data.bankName,
+        photoURL: data.photoURL,
+        createdBy: tokenPayload.accountId,
+        type: data.type,
+        branchId: tokenPayload.branchId,
+      },
+    });
+  }
 
-//   async findUniq(
-//     where: Prisma.PaymentMethodWhereUniqueInput,
-//     tokenPayload: TokenPayload,
-//   ) {
-//     return this.prisma.paymentMethod.findUniqueOrThrow({
-//       where: {
-//         ...where,
-//         isPublic: true,
-//         shop: {
-//           id: tokenPayload.shopId,
-//           isPublic: true,
-//         },
-//       },
-//       select: {
-//         id: true,
-//         name: true,
-//         description: true,
-//         logo: true,
-//         status: true,
-//         updatedAt: true,
-//       },
-//     });
-//   }
+  async update(
+    params: {
+      data: UpdatePaymentMethodDto;
+      where: Prisma.PaymentMethodWhereUniqueInput;
+    },
+    tokenPayload: TokenPayload,
+  ) {
+    const { data, where } = params;
 
-//   async update(
-//     params: {
-//       where: Prisma.PaymentMethodWhereUniqueInput;
-//       data: CreatePaymentMethodDto;
-//     },
-//     tokenPayload: TokenPayload,
-//   ) {
-//     const { where, data } = params;
-//     return this.prisma.paymentMethod.update({
-//       where: {
-//         id: where.id,
-//         isPublic: true,
-//         shop: {
-//           id: tokenPayload.shopId,
-//           isPublic: true,
-//         },
-//       },
-//       data: {
-//         name: data.name,
-//         description: data.description,
-//         status: data.status,
-//         logo: data.logo,
-//         updatedBy: tokenPayload.accountId,
-//       },
-//     });
-//   }
+    return this.prisma.paymentMethod.update({
+      where: {
+        id: where.id,
+        branchId: tokenPayload.branchId,
+      },
+      data: {
+        active: data.active,
+        bankCode: data.bankCode,
+        bankName: data.bankName,
+        photoURL: data.photoURL,
+        updatedBy: tokenPayload.accountId,
+      },
+    });
+  }
 
-//   async deleteMany(
-//     where: Prisma.PaymentMethodWhereInput,
-//     tokenPayload: TokenPayload,
-//   ) {
-//     return this.prisma.paymentMethod.updateMany({
-//       where: {
-//         ...where,
-//         isPublic: true,
-//         shop: {
-//           id: tokenPayload.shopId,
-//           isPublic: true,
-//         },
-//       },
-//       data: {
-//         isPublic: false,
-//         updatedBy: tokenPayload.accountId,
-//       },
-//     });
-//   }
-// }
+  async findUniq(where: Prisma.PaymentMethodWhereUniqueInput, tokenPayload: TokenPayload) {
+    return this.prisma.paymentMethod.findUniqueOrThrow({
+      where: {
+        id: where.id,
+        branchId: tokenPayload.branchId,
+      },
+    });
+  }
+
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+    let { skip, take, keyword } = params;
+    const keySearch = ["bankName", "bankCode", "representative", "type"];
+
+    let where: Prisma.PaymentMethodWhereInput = {
+      branchId: tokenPayload.branchId,
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword, mode: "insensitive" },
+        })),
+      }),
+    };
+
+    const [data, totalRecords] = await Promise.all([
+      this.prisma.paymentMethod.findMany({
+        skip,
+        take,
+        orderBy: {
+          createdAt: "desc",
+        },
+        where,
+      }),
+      this.prisma.paymentMethod.count({
+        where,
+      }),
+    ]);
+
+    return {
+      list: data,
+      pagination: calculatePagination(totalRecords, skip, take),
+    };
+  }
+}

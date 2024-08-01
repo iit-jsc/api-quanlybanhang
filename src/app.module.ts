@@ -53,6 +53,7 @@ import { TransformInterceptor } from "utils/ApiResponse";
 import { CompensationEmployeeModule } from './compensation-employee/compensation-employee.module';
 import { QrSettingModule } from './qr-setting/qr-setting.module';
 import { FutureUsageSettingModule } from './future-usage-setting/future-usage-setting.module';
+import { PaymentMethodModule } from './payment-method/payment-method.module';
 
 @Module({
   imports: [
@@ -127,6 +128,7 @@ import { FutureUsageSettingModule } from './future-usage-setting/future-usage-se
     CompensationEmployeeModule,
     QrSettingModule,
     FutureUsageSettingModule,
+    PaymentMethodModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

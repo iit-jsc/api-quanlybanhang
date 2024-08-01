@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
 
 export class PaymentFromTableDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -13,9 +13,13 @@ export class PaymentFromTableDto {
   @IsString()
   note: string;
 
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsString()
+  paymentMethodId: string;
+
   @IsOptional()
-  @IsNumber()
-  paymentMethod: number;
+  @IsArray()
+  bankingImages: string[];
 
   @IsOptional()
   @IsString()

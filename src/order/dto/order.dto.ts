@@ -2,8 +2,10 @@ import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   ArrayNotEmpty,
+  IsArray,
   IsBoolean,
   IsDate,
+  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -11,6 +13,7 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
+import { ORDER_STATUS_COMMON } from "enums/order.enum";
 
 export class CreateOrderDto {
   @IsOptional()
@@ -29,11 +32,8 @@ export class CreateOrderDto {
 
   @IsOptional()
   @IsNumber()
+  @IsEnum(ORDER_STATUS_COMMON, { message: "Trạng thái không hợp lệ!" })
   orderStatus: number;
-
-  @IsOptional()
-  @IsNumber()
-  paymentMethod: number;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @ArrayNotEmpty({ message: "Danh sách sản phẩm không được rỗng!" })
@@ -69,13 +69,17 @@ export class UpdateOrderDto extends PartialType(CreateOrderDto) {
   @IsDate()
   @Type(() => Date)
   cancelDate: Date;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsString()
+  paymentMethodId: string;
+
+  @IsOptional()
+  @IsArray()
+  bankingImages: string[];
 }
 
 export class PaymentOrderDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @IsBoolean()
-  isPaid: boolean = false;
-
   @IsOptional()
   @IsNumber()
   @Min(1)
@@ -88,4 +92,12 @@ export class PaymentOrderDto {
   @IsOptional()
   @IsString()
   discountCode: string;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsString()
+  paymentMethodId: string;
+
+  @IsOptional()
+  @IsArray()
+  bankingImages: string[];
 }

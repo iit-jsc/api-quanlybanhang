@@ -10,7 +10,7 @@ import {
   IsString,
   ValidateNested,
 } from "class-validator";
-import { PAYMENT_METHOD } from "enums/common.enum";
+import { PAYMENT_METHOD_TYPE } from "enums/common.enum";
 import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateOrderOnlineDto {
@@ -44,7 +44,7 @@ export class CreateOrderOnlineDto {
 
   @IsOptional()
   @IsNumber()
-  @IsEnum(PAYMENT_METHOD, { message: "Phương thức thanh toán không hợp lệ!" })
+  @IsEnum(PAYMENT_METHOD_TYPE, { message: "Phương thức thanh toán không hợp lệ!" })
   paymentMethod: number;
 
   @IsNotEmpty({ message: "Không được để trống!" })

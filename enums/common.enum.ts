@@ -13,11 +13,6 @@ export const PAYMENT_STATUS = {
   DISABLE: 2,
 };
 
-export const PAYMENT_METHOD = {
-  CASH: 1,
-  CARD: 2,
-};
-
 export const SPECIAL_ROLE = {
   STORE_OWNER: "STORE_OWNER",
   MANAGER: "MANAGER",
@@ -80,4 +75,10 @@ export const TIME_TYPE = {
 export const FUTURE_CODE = {
   QR_CODE: "QR_CODE",
   ONLINE_SELLING: "ONLINE_SELLING",
+};
+
+export const PAYMENT_METHOD_TYPE = {
+  QR_CODE: "QR_CODE",
+  BANKING: "BANKING",
+  CASH: "CASH",
 };
