@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "./dto/order.dto";
-import { PromotionCountOrder, TokenCustomerPayload, TokenPayload, AnyObject } from "interfaces/common.interface";
+import { PromotionCountOrder, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { OrderDetail, Prisma, PrismaClient, Product, Promotion, Topping } from "@prisma/client";
@@ -329,8 +329,8 @@ export class OrderService {
   }
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
-    let promotionValue = 0;
     let discountValue = 0;
+    let convertedPointValue = 0;
 
     const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.WAITING, {
       branchId: data.branchId,
@@ -345,10 +345,7 @@ export class OrderService {
       { phone: data.phone, branchId: data.branchId },
     );
 
-    return await this.prisma.$transaction(async (prisma) => {
-      if (data.promotionId)
-        promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, data.branchId);
-
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       if (data.discountCode) {
         discountValue = await this.getDiscountValue(orderDetails, data.discountCode, data.branchId);
 
@@ -363,10 +360,26 @@ export class OrderService {
         });
       }
 
+      if (data.exchangePoint) {
+        const totalInOrder = this.getTotalInOrder(orderDetails);
+
+        await this.pointAccumulationService.checkValidExchangePoint(
+          customer.id,
+          data.exchangePoint,
+          totalInOrder,
+          customer.shopId,
+        );
+
+        convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
+          data.exchangePoint,
+          customer.shopId,
+        );
+      }
+
       const order = await this.prisma.order.create({
         data: {
           note: data.note,
-          promotionValue,
+          convertedPointValue,
           discountValue,
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
@@ -483,13 +496,19 @@ export class OrderService {
         const totalInOrder = this.getTotalInOrder(orderDetails);
 
         await Promise.all([
-          this.pointAccumulationService.handleAddPoint(data.customerId, order.id, totalInOrder, tokenPayload, prisma),
+          this.pointAccumulationService.handleAddPoint(
+            data.customerId,
+            order.id,
+            totalInOrder,
+            tokenPayload.shopId,
+            prisma,
+          ),
           this.pointAccumulationService.handleExchangePoint(
             data.customerId,
             order.id,
             data.exchangePoint,
             totalInOrder,
-            tokenPayload,
+            tokenPayload.shopId,
             prisma,
           ),
         ]);
@@ -788,6 +807,12 @@ export class OrderService {
             isPublic: true,
           },
         },
+        paymentMethod: {
+          select: {
+            id: true,
+            type: true,
+          },
+        },
       },
     });
   }
@@ -1036,12 +1061,13 @@ export class OrderService {
     let discountValue = 0;
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const order = await this.prisma.order.findUnique({
+      const order = await this.prisma.order.findFirstOrThrow({
         where: { id: where.id, isPublic: true },
         select: {
           id: true,
           customerId: true,
           isPaid: true,
+          orderType: true,
           orderDetails: {
             where: {
               isPublic: true,
@@ -1074,7 +1100,29 @@ export class OrderService {
         tokenPayload.shopId,
       );
 
-      await prisma.order.update({
+      // Xử lý tích điểm
+      if (order.customerId) {
+        const totalInOrder = this.getTotalInOrder(order.orderDetails);
+        await Promise.all([
+          this.pointAccumulationService.handleExchangePoint(
+            order.customerId,
+            order.id,
+            data.exchangePoint,
+            totalInOrder,
+            tokenPayload.shopId,
+            prisma,
+          ),
+          this.pointAccumulationService.handleAddPoint(
+            order.customerId,
+            order.id,
+            totalInOrder,
+            tokenPayload.shopId,
+            prisma,
+          ),
+        ]);
+      }
+
+      return await prisma.order.update({
         where: { id: where.id, isPublic: true },
         data: {
           promotionValue,
@@ -1089,24 +1137,6 @@ export class OrderService {
           promotionId: data.promotionId,
         },
       });
-
-      // Xử lý tích điểm
-      if (order.customerId) {
-        const totalInOrder = this.getTotalInOrder(order.orderDetails);
-        await Promise.all([
-          this.pointAccumulationService.handleExchangePoint(
-            order.customerId,
-            order.id,
-            data.exchangePoint,
-            totalInOrder,
-            tokenPayload,
-            prisma,
-          ),
-          this.pointAccumulationService.handleAddPoint(order.customerId, order.id, totalInOrder, tokenPayload, prisma),
-        ]);
-      }
-
-      return order;
     });
   }
 }

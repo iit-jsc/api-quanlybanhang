@@ -56,10 +56,6 @@ export class CreateOrderOnlineDto {
 
   @IsOptional()
   @IsString()
-  promotionId: string;
-
-  @IsOptional()
-  @IsString()
   discountCode: string;
 
   @IsOptional()

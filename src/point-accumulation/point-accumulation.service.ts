@@ -23,38 +23,32 @@ export class PointAccumulationService {
     });
   }
 
-  async handleAddPoint(
-    customerId: string,
-    orderId: string,
-    totalOrder: number,
-    tokenPayload: TokenPayload,
-    prisma?: PrismaClient,
-  ) {
+  async handleAddPoint(customerId: string, orderId: string, totalOrder: number, shopId: string, prisma?: PrismaClient) {
     prisma = prisma || this.prisma;
 
     const pointSetting = await prisma.pointSetting.findFirst({
       where: {
-        shopId: tokenPayload.shopId,
+        shopId: shopId,
         active: true,
       },
     });
 
     if (!pointSetting) return;
 
-    const point = Math.floor((totalOrder * pointSetting.point) / pointSetting.value);
+    const point = Math.floor((totalOrder * pointSetting.point) / pointSetting.value) || 0;
 
     await prisma.pointAccumulation.upsert({
       create: {
         customerId,
         point,
-        shopId: tokenPayload.shopId,
+        shopId: shopId,
       },
       update: {
         point: {
           increment: point,
         },
       },
-      where: { shopId: tokenPayload.shopId, customerId: customerId },
+      where: { shopId: shopId, customerId: customerId },
     });
 
     await prisma.pointHistory.create({
@@ -63,7 +57,7 @@ export class PointAccumulationService {
         orderId,
         point,
         type: POINT_TYPE.ADD,
-        shopId: tokenPayload.shopId,
+        shopId: shopId,
       },
     });
   }
@@ -73,50 +67,29 @@ export class PointAccumulationService {
     orderId: string,
     exchangePoint: number,
     totalInOrder: number,
-    tokenPayload: TokenPayload,
+    shopId: string,
     prisma?: PrismaClient,
   ) {
     prisma = prisma || this.prisma;
 
-    const pointSetting = await prisma.pointSetting.findFirst({
-      where: {
-        shopId: tokenPayload.shopId,
-        active: true,
-      },
-    });
+    await this.checkValidExchangePoint(customerId, exchangePoint, totalInOrder, shopId);
 
-    if (!pointSetting || !exchangePoint) return;
-
-    const currentPoint = await prisma.pointAccumulation.findUnique({
-      where: { customerId },
-      select: {
-        id: true,
-        point: true,
-      },
-    });
-
-    // Quy đổi số tiền
-    const convertedPointValue = (exchangePoint * pointSetting.value) / pointSetting.point;
-
-    if (!currentPoint || currentPoint.point < exchangePoint || convertedPointValue > totalInOrder)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "Điểm đổi không hợp lệ!");
-
-    const t = await prisma.pointAccumulation.update({
+    await prisma.pointAccumulation.update({
       data: {
         point: {
-          decrement: exchangePoint,
+          decrement: exchangePoint || 0,
         },
       },
-      where: { shopId: tokenPayload.shopId, customerId: customerId },
+      where: { shopId: shopId, customerId: customerId },
     });
 
     await prisma.pointHistory.create({
       data: {
         customerId,
         orderId,
-        point: exchangePoint,
+        point: exchangePoint || 0,
         type: POINT_TYPE.EXCHANGE,
-        shopId: tokenPayload.shopId,
+        shopId: shopId,
       },
     });
   }
@@ -129,8 +102,33 @@ export class PointAccumulationService {
       },
     });
 
-    if (!point || !pointSetting) return null;
+    if (!point || !pointSetting) return 0;
 
     return Math.floor((point * pointSetting.value) / pointSetting.point);
+  }
+
+  async checkValidExchangePoint(customerId: string, exchangePoint: number, totalInOrder: number, shopId: string) {
+    const pointSetting = await this.prisma.pointSetting.findFirst({
+      where: {
+        shopId: shopId,
+        active: true,
+      },
+    });
+
+    if (!pointSetting || !exchangePoint) return;
+
+    const currentPoint = await this.prisma.pointAccumulation.findUnique({
+      where: { customerId },
+      select: {
+        id: true,
+        point: true,
+      },
+    });
+
+    // Quy đổi số tiền
+    const convertedPointValue = (exchangePoint * pointSetting.value) / pointSetting.point;
+
+    if (!currentPoint || currentPoint.point < exchangePoint || convertedPointValue > totalInOrder)
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Điểm đổi không hợp lệ!");
   }
 }
