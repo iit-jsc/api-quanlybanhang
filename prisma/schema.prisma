@@ -1093,3 +1093,14 @@ model PaymentMethod {
 
   @@unique([type, branchId])
 }
+
+model AuthToken {
+  accountId    String
+  ip           String?
+  userAgent    String?
+  lastLogin    DateTime?
+  refreshToken String
+  deviceId     String    @unique
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+}

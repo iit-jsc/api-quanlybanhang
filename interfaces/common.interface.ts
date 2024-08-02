@@ -6,6 +6,7 @@ export interface TokenPayload {
   userId?: string;
   branchId?: string;
   type?: number;
+  deviceId?: string;
 }
 
 export interface TokenCustomerPayload {

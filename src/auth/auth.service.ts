@@ -1,4 +1,10 @@
-import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto } from "./dto/login.dto";
+import {
+  CreateRefreshTokenDto,
+  LoginForCustomerDto,
+  LoginForManagerDto,
+  LoginForStaffDto,
+  LogoutDto,
+} from "./dto/login.dto";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import * as bcrypt from "bcrypt";
@@ -7,15 +13,13 @@ import { mapResponseLogin } from "map-responses/account.map-response";
 import { CustomHttpException } from "utils/ApiErrors";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
 import { AccessBranchDto } from "./dto/access-branch.dto";
-import { TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
+import { AnyObject, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
 import { VerifyPhoneDto } from "src/shop/dto/verify-phone.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { TransporterService } from "src/transporter/transporter.service";
-const https = require("https");
-const Buffer = require("buffer").Buffer;
-
+import { v4 as uuidv4 } from "uuid";
 @Injectable()
 export class AuthService {
   constructor(
@@ -167,7 +171,7 @@ export class AuthService {
     };
   }
 
-  async accessBranch(accessBranchDto: AccessBranchDto, tokenPayload: TokenPayload) {
+  async accessBranch(accessBranchDto: AccessBranchDto, tokenPayload: TokenPayload, req?: AnyObject) {
     const account = await this.getAccountAccess(tokenPayload.accountId, accessBranchDto.branchId);
 
     if (!account) {
@@ -177,6 +181,22 @@ export class AuthService {
     const currentShop = await this.getCurrentShop(accessBranchDto.branchId);
 
     const shops = await this.commonService.findManyShopByAccountId(account.id);
+
+    // Lưu thông tin thiết bị
+    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+
+    const userAgent = req.headers["user-agent"];
+
+    const deviceId = uuidv4();
+
+    const refreshToken = await this.createRefreshToken({
+      accountId: account.id,
+      branchId: accessBranchDto.branchId,
+      deviceId: deviceId,
+      ip,
+      userAgent,
+      lastLogin: new Date(),
+    });
 
     return {
       accessToken: await this.jwtService.signAsync(
@@ -188,6 +208,7 @@ export class AuthService {
           expiresIn: "96h",
         },
       ),
+      refreshToken,
       ...mapResponseLogin({ account, shops, currentShop }),
     };
   }
@@ -218,6 +239,8 @@ export class AuthService {
     return user.email;
   }
 
+  async checkValidSession() {}
+
   async getMe(token: string) {
     if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tim thấy token!");
 
@@ -235,6 +258,7 @@ export class AuthService {
       if (!account) {
         throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên!");
       }
+
       return { ...mapResponseLogin({ account, shops, currentShop }) };
     } catch (error) {
       throw new CustomHttpException(HttpStatus.UNAUTHORIZED, error);
@@ -265,7 +289,6 @@ export class AuthService {
             name: true,
             address: true,
             photoURL: true,
-            orders: true,
           },
           where: {
             isPublic: true,
@@ -343,5 +366,39 @@ export class AuthService {
         isPublic: true,
       },
     });
+  }
+
+  async createRefreshToken(data: CreateRefreshTokenDto) {
+    // Tạo refresh token
+    const refreshToken = await this.jwtService.signAsync(
+      {
+        accountId: data.accountId,
+        branchId: data.branchId,
+        deviceId: data.deviceId,
+        ip: data.ip,
+        userAgent: data.userAgent,
+        lastLogin: data.lastLogin,
+      } as TokenPayload,
+      {
+        expiresIn: "30d",
+      },
+    );
+
+    await this.prisma.authToken.create({
+      data: {
+        accountId: data.accountId,
+        deviceId: data.deviceId,
+        refreshToken,
+      },
+    });
+
+    return refreshToken;
+  }
+
+  async logout(logoutDto: LogoutDto, tokenPayload: TokenPayload) {
+    if (logoutDto.isAllDevices)
+      return this.prisma.authToken.deleteMany({ where: { accountId: tokenPayload.accountId } });
+
+    return this.prisma.authToken.delete({ where: { deviceId: tokenPayload.deviceId } });
   }
 }

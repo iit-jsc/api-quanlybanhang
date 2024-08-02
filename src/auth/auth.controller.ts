@@ -1,5 +1,5 @@
 import { Body, Controller, Headers, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
-import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto } from "./dto/login.dto";
+import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto, LogoutDto } from "./dto/login.dto";
 import { AuthService } from "./auth.service";
 import { AccessBranchDto } from "./dto/access-branch.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
@@ -9,7 +9,7 @@ import { VerifyPhoneDto } from "src/shop/dto/verify-phone.dto";
 import { CustomHttpException } from "utils/ApiErrors";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangeAvatarDto } from "./dto/change-information.dto";
-
+import axios from "axios";
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -35,16 +35,24 @@ export class AuthController {
   @Post("/access-branch")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  accessBranch(@Body() accessBranchDto: AccessBranchDto, @Req() req: any) {
+  async accessBranch(@Body() accessBranchDto: AccessBranchDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.authService.accessBranch(accessBranchDto, tokenPayload);
+    return this.authService.accessBranch({ ...accessBranchDto }, tokenPayload, req);
   }
 
   @Post("/verify-phone")
   @HttpCode(HttpStatus.OK)
   verifyPhone(@Body() verifyPhoneDto: VerifyPhoneDto) {
     return this.authService.verifyPhone(verifyPhoneDto);
+  }
+
+  @Post("/logout")
+  @HttpCode(HttpStatus.OK)
+  logout(@Body() logoutDto: LogoutDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.authService.logout(logoutDto, tokenPayload);
   }
 
   @Patch("/change-password")

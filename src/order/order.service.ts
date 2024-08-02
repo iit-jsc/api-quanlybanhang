@@ -152,6 +152,8 @@ export class OrderService {
   }
 
   async getDiscountValue(orderDetails: OrderDetail[], code: string, branchId: string) {
+    let discountValue = 0;
+
     const discountIssue = await this.prisma.discountIssue.findFirst({
       where: {
         isPublic: true,
@@ -194,10 +196,12 @@ export class OrderService {
     if (discountIssue.type == DISCOUNT_TYPE.PERCENT) {
       const discountTotal = (this.getTotalInOrder(orderDetails) * discountIssue.value) / 100;
 
-      return Math.min(discountTotal, discountIssue.maxValue);
+      discountValue = Math.min(discountTotal, discountIssue.maxValue);
     }
 
-    if (discountIssue.type == DISCOUNT_TYPE.VALUE) return discountIssue.value;
+    if (discountIssue.type == DISCOUNT_TYPE.VALUE) discountValue = discountIssue.value;
+
+    return Math.min(discountValue, total);
   }
 
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
