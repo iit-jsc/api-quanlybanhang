@@ -8,7 +8,7 @@ import { calculatePagination } from "utils/Helps";
 export class GroupRoleService {
   constructor(private readonly prisma: PrismaService) {}
   async findAll(params: FindManyDto) {
-    let { skip, take, types, orderBy } = params;
+    let { skip, take, types } = params;
     let where: Prisma.GroupRoleWhereInput = {
       type: {
         in: types,
@@ -18,7 +18,6 @@ export class GroupRoleService {
       this.prisma.groupRole.findMany({
         skip,
         take,
-        orderBy: orderBy || { createdAt: "desc" },
         where,
         include: {
           roles: true,

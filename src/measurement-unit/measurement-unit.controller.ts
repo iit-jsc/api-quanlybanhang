@@ -37,14 +37,7 @@ export class MeasurementUnitController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    "CREATE_MEASUREMENT_UNIT",
-    "UPDATE_MEASUREMENT_UNIT",
-    "DELETE_MEASUREMENT_UNIT",
-    "VIEW_MEASUREMENT_UNIT",
-    SPECIAL_ROLE.STORE_OWNER,
-  )
+  @UseGuards(JwtAuthGuard)
   findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -53,14 +46,7 @@ export class MeasurementUnitController {
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    "CREATE_MEASUREMENT_UNIT",
-    "UPDATE_MEASUREMENT_UNIT",
-    "DELETE_MEASUREMENT_UNIT",
-    "VIEW_MEASUREMENT_UNIT",
-    SPECIAL_ROLE.STORE_OWNER,
-  )
+  @UseGuards(JwtAuthGuard)
   findUniq(@Param("id") id: string, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

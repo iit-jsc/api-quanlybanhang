@@ -297,11 +297,6 @@ async function main() {
         groupCode: "MEASUREMENT_UNIT",
       },
       {
-        name: "Xem danh sách đơn vị tính",
-        code: "VIEW_MEASUREMENT_UNIT",
-        groupCode: "MEASUREMENT_UNIT",
-      },
-      {
         name: "Tạo đơn hàng",
         code: "CREATE_ORDER",
         groupCode: "ORDER",

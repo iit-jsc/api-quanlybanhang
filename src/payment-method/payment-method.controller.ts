@@ -17,6 +17,9 @@ import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { FindManyDto } from "utils/Common.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { UpdatePaymentMethodDto } from "./dto/payment-method.dto";
+import { Roles } from "guards/roles.decorator";
+import { SPECIAL_ROLE } from "enums/common.enum";
+import { RolesGuard } from "guards/roles.guard";
 
 @Controller("payment-method")
 export class PaymentMethodController {
@@ -47,7 +50,8 @@ export class PaymentMethodController {
 
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("UPDATE_PAYMENT_METHOD", SPECIAL_ROLE.MANAGER)
   update(@Param("id") id: string, @Body() updatePaymentMethodDto: UpdatePaymentMethodDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -64,7 +68,8 @@ export class PaymentMethodController {
 
   @Post("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles("CREATE_PAYMENT_METHOD", SPECIAL_ROLE.MANAGER)
   create(@Body() updatePaymentMethodDto: UpdatePaymentMethodDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

@@ -41,7 +41,7 @@ export class PrintTemplateController {
 
   @Patch("/")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @Roles("UPDATE_PRINT_TEMPLATE", SPECIAL_ROLE.STORE_OWNER)
   updateOrderDetail(@Body() updatePrintTemplateDto: UpdatePrintTemplateDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
