@@ -32,7 +32,7 @@ export class ToppingService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
 
     const keySearch = ["name"];
 
@@ -50,9 +50,7 @@ export class ToppingService {
       this.prisma.topping.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

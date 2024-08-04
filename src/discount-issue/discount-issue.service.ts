@@ -75,7 +75,7 @@ export class DiscountIssueService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
     let where: Prisma.DiscountIssueWhereInput = {
       isPublic: true,
       ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
@@ -85,9 +85,7 @@ export class DiscountIssueService {
       this.prisma.discountIssue.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
       }),
       this.prisma.discountIssue.count({

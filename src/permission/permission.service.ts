@@ -38,7 +38,7 @@ export class PermissionService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
 
     const where: Prisma.PermissionWhereInput = {
       isPublic: true,
@@ -50,9 +50,7 @@ export class PermissionService {
       this.prisma.permission.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

@@ -26,7 +26,7 @@ export class WorkShiftService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, from, to } = params;
+    let { skip, take, keyword, from, to, orderBy } = params;
 
     const keySearch = ["name"];
 
@@ -64,6 +64,7 @@ export class WorkShiftService {
         skip,
         take,
         where,
+        orderBy: orderBy || { createdAt: "desc" },
         select: {
           id: true,
           name: true,

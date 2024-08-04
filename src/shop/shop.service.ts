@@ -7,7 +7,7 @@ import { BRANCH_STATUS } from "enums/shop.enum";
 import { CommonService } from "src/common/common.service";
 import { CustomHttpException } from "utils/ApiErrors";
 import { AuthService } from "src/auth/auth.service";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
@@ -21,7 +21,7 @@ export class ShopService {
     private readonly authService: AuthService,
   ) {}
 
-  async registerShop(data: RegisterShopDto) {
+  async registerShop(data: RegisterShopDto, req: AnyObject) {
     const { user, branch } = data;
 
     const { newShop, accountId } = await this.prisma.$transaction(async (prisma) => {
@@ -91,7 +91,7 @@ export class ShopService {
       return { newShop, accountId: ownerShop.account.id };
     });
 
-    return await this.authService.accessBranch({ branchId: newShop?.branches?.[0]?.id }, { accountId });
+    return await this.authService.accessBranch({ branchId: newShop?.branches?.[0]?.id }, { accountId }, req);
   }
 
   async create(data: CreateShopDto, tokenPayload: TokenPayload) {

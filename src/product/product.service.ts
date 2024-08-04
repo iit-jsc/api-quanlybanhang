@@ -1,12 +1,11 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { calculatePagination, generateUniqueId } from "utils/Helps";
+import { calculatePagination } from "utils/Helps";
 import { CreateProductDto, UpdateProductDto } from "./dto/product.dto";
 import { CommonService } from "src/common/common.service";
 import { FindManyProductDto } from "./dto/find-many.dto";
-import * as slug from "slug";
 import { DeleteManyDto } from "utils/Common.dto";
 @Injectable()
 export class ProductService {
@@ -59,7 +58,7 @@ export class ProductService {
   }
 
   async findAll(params: FindManyProductDto) {
-    let { skip, take, keyword, productTypeIds, measurementUnitIds, statuses, branchId } = params;
+    let { skip, take, keyword, productTypeIds, measurementUnitIds, statuses, branchId, orderBy } = params;
     const keySearch = ["name", "code", "slug"];
     let where: Prisma.ProductWhereInput = {
       isPublic: true,
@@ -86,9 +85,7 @@ export class ProductService {
       this.prisma.product.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

@@ -1,6 +1,7 @@
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import { ArrayNotEmpty, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { FIND_UNIQ_TYPE } from "enums/common.enum";
+import { AnyObject } from "interfaces/common.interface";
 
 export class FindManyDto {
   @Type(() => Number)
@@ -23,6 +24,18 @@ export class FindManyDto {
     return Boolean(+value);
   })
   isSort?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value) {
+      const [field, direction] = value.split(",");
+      if (field && direction) {
+        return { [field]: direction };
+      }
+    }
+    return { createdAt: "desc" };
+  })
+  orderBy?: AnyObject;
 
   /* ====== group role filter  ====== */
 

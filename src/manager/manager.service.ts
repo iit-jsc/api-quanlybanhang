@@ -193,7 +193,7 @@ export class ManagerService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword } = params;
+    const { skip, take, keyword, orderBy } = params;
 
     const keySearch = ["name", "code", "email", "phone"];
 
@@ -218,9 +218,7 @@ export class ManagerService {
       this.prisma.user.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

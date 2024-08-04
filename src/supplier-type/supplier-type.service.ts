@@ -1,13 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import {
-  CreateSupplierTypeDto,
-  UpdateSupplierTypeDto,
-} from './dto/supplier-type.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { FindManyDto } from 'utils/Common.dto';
-import { PrismaService } from 'nestjs-prisma';
-import { calculatePagination } from 'utils/Helps';
+import { Injectable } from "@nestjs/common";
+import { CreateSupplierTypeDto, UpdateSupplierTypeDto } from "./dto/supplier-type.dto";
+import { TokenPayload } from "interfaces/common.interface";
+import { Prisma } from "@prisma/client";
+import { FindManyDto } from "utils/Common.dto";
+import { PrismaService } from "nestjs-prisma";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class SupplierTypeService {
@@ -49,16 +46,16 @@ export class SupplierTypeService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
 
-    const keySearch = ['name'];
+    const keySearch = ["name"];
 
     let where: Prisma.SupplierTypeWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
     };
@@ -67,9 +64,7 @@ export class SupplierTypeService {
       this.prisma.supplierType.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,
@@ -88,10 +83,7 @@ export class SupplierTypeService {
     };
   }
 
-  findUniq(
-    where: Prisma.SupplierTypeWhereUniqueInput,
-    tokenPayload: TokenPayload,
-  ) {
+  findUniq(where: Prisma.SupplierTypeWhereUniqueInput, tokenPayload: TokenPayload) {
     return this.prisma.supplierType.findUniqueOrThrow({
       where: {
         ...where,

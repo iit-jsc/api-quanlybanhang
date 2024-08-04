@@ -28,8 +28,8 @@ export class ShopController {
 
   @Post("register")
   @HttpCode(HttpStatus.OK)
-  registerShop(@Body() createShopDto: RegisterShopDto) {
-    return this.shopService.registerShop(createShopDto);
+  registerShop(@Body() createShopDto: RegisterShopDto, @Req() req: any) {
+    return this.shopService.registerShop(createShopDto, req);
   }
 
   @Post("")

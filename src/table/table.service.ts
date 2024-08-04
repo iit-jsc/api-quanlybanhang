@@ -6,7 +6,6 @@ import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
 import { calculatePagination } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
-import { DETAIL_ORDER_STATUS } from "enums/order.enum";
 
 @Injectable()
 export class TableService {
@@ -49,7 +48,7 @@ export class TableService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, areaIds, statusOrderDetails } = params;
+    const { skip, take, keyword, areaIds, orderBy } = params;
 
     const keySearch = ["name", "code"];
 
@@ -76,6 +75,7 @@ export class TableService {
         skip,
         take,
         where,
+        orderBy: orderBy || { createdAt: "desc" },
         select: {
           id: true,
           name: true,

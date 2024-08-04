@@ -32,7 +32,7 @@ export class CustomerTypeService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
     let where: Prisma.CustomerTypeWhereInput = {
       isPublic: true,
       ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
@@ -45,9 +45,7 @@ export class CustomerTypeService {
       this.prisma.customerType.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

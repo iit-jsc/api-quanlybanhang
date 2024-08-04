@@ -45,7 +45,7 @@ export class WarehouseService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
 
     const keySearch = ["name"];
 
@@ -62,6 +62,7 @@ export class WarehouseService {
     const [data, totalRecords] = await Promise.all([
       this.prisma.warehouse.findMany({
         skip,
+        orderBy: orderBy || { createdAt: "desc" },
         take,
         where,
       }),

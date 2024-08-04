@@ -50,7 +50,7 @@ export class JwtAuthGuard implements CanActivate {
       if (!account) throw new CustomHttpException(HttpStatus.CONFLICT, "Thông tin đăng nhập không hợp lệ!");
 
       request.tokenPayload = {
-        branchId: payload.branchId,
+        ...payload,
         type: account.type,
         userId: account.userId,
         shopId: account.branches?.[0]?.shopId,

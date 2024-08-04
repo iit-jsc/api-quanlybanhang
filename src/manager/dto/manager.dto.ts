@@ -2,12 +2,10 @@ import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   ArrayNotEmpty,
-  IsArray,
   IsDate,
   IsEmail,
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   MaxDate,
@@ -83,7 +81,6 @@ export class CreateManagerDto {
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @ArrayNotEmpty({ message: "Danh sách chi nhánh không được rỗng!" })
-  @ValidateNested({ each: true })
   branchIds: string[];
 }
 

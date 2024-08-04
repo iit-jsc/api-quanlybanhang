@@ -58,7 +58,7 @@ export class EmployeeScheduleService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, from, to, employeeIds, workShiftIds, keyword } = params;
+    let { skip, take, from, to, employeeIds, workShiftIds, keyword, orderBy } = params;
     const keySearch = ["name"];
 
     let where: Prisma.EmployeeScheduleWhereInput = {
@@ -99,9 +99,7 @@ export class EmployeeScheduleService {
       this.prisma.employeeSchedule.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

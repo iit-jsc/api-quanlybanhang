@@ -4,7 +4,6 @@ import { UpdatePaymentMethodDto } from "./dto/payment-method.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { FindManyDto } from "utils/Common.dto";
-import { database } from "firebase-admin";
 import { calculatePagination } from "utils/Helps";
 
 @Injectable()
@@ -66,7 +65,7 @@ export class PaymentMethodService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
     const keySearch = ["bankName", "bankCode", "representative", "type"];
 
     let where: Prisma.PaymentMethodWhereInput = {
@@ -82,9 +81,7 @@ export class PaymentMethodService {
       this.prisma.paymentMethod.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
       }),
       this.prisma.paymentMethod.count({

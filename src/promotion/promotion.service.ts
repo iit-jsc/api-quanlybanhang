@@ -68,7 +68,7 @@ export class PromotionService {
   }
 
   async findAll(params: FindManyPromotionDto, body: ProductsOrderDto) {
-    const { skip, take, keyword, isSort, branchId } = params;
+    const { skip, take, keyword, isSort, branchId, orderBy } = params;
     const { orderProducts } = body;
 
     const where: Prisma.PromotionWhereInput = {
@@ -120,9 +120,7 @@ export class PromotionService {
       this.prisma.promotion.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         include: {
           ...(!isSort && {

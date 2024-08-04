@@ -167,7 +167,7 @@ export class InventoryTransactionService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, types, from, to } = params;
+    let { skip, take, keyword, types, from, to, orderBy } = params;
     let where: Prisma.InventoryTransactionWhereInput = {
       isPublic: true,
       ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
@@ -197,9 +197,7 @@ export class InventoryTransactionService {
       this.prisma.inventoryTransaction.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

@@ -81,7 +81,7 @@ export class OrderRatingService {
   }
 
   async findAll(params: FindManyOrderRatings, tokenPayload: TokenCustomerPayload) {
-    const { skip, take, orderId } = params;
+    const { skip, take, orderId, orderBy } = params;
 
     const where: Prisma.OrderRatingWhereInput = {
       isPublic: true,
@@ -95,9 +95,7 @@ export class OrderRatingService {
       this.prisma.orderRating.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
       }),
       this.prisma.orderRating.count({

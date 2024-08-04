@@ -1,10 +1,10 @@
-import { Injectable } from '@nestjs/common';
-import { CreateSupplierDto, UpdateSupplierDto } from './dto/supplier.dto';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { FindManyDto } from 'utils/Common.dto';
-import { PrismaService } from 'nestjs-prisma';
-import { calculatePagination } from 'utils/Helps';
+import { Injectable } from "@nestjs/common";
+import { CreateSupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
+import { Prisma } from "@prisma/client";
+import { TokenPayload } from "interfaces/common.interface";
+import { FindManyDto } from "utils/Common.dto";
+import { PrismaService } from "nestjs-prisma";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class SupplierService {
@@ -54,16 +54,16 @@ export class SupplierService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
 
-    const keySearch = ['name'];
+    const keySearch = ["name"];
 
     let where: Prisma.SupplierWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: 'insensitive' },
+          [key]: { contains: keyword, mode: "insensitive" },
         })),
       }),
     };
@@ -72,9 +72,7 @@ export class SupplierService {
       this.prisma.supplier.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: 'desc',
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

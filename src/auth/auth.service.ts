@@ -20,6 +20,7 @@ import { ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { TransporterService } from "src/transporter/transporter.service";
 import { v4 as uuidv4 } from "uuid";
+import { refreshToken } from "firebase-admin/app";
 @Injectable()
 export class AuthService {
   constructor(
@@ -70,7 +71,7 @@ export class AuthService {
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: "96h",
+        expiresIn: "24h",
       }),
       shops,
     };
@@ -103,39 +104,13 @@ export class AuthService {
       }
     }
 
-    // if (!data.password) {
-    //   account = await this.prisma.account.findFirst({
-    //     where: {
-    //       isPublic: true,
-    //       username: {
-    //         equals: data.phone,
-    //       },
-    //       status: ACCOUNT_STATUS.ACTIVE,
-    //       OR: [
-    //         {
-    //           type: ACCOUNT_TYPE.MANAGER,
-    //         },
-    //         {
-    //           type: ACCOUNT_TYPE.STORE_OWNER,
-    //         },
-    //       ],
-    //     },
-    //   });
-    // }
-
-    // if (!account)
-    //   throw new CustomHttpException(
-    //     HttpStatus.NOT_FOUND,
-    //     "Tài khoản không tồn tại hoặc đã bị khóa!",
-    //   );
-
     const shops = await this.commonService.findManyShopByAccountId(account.id);
 
     const payload = { accountId: account.id };
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: "96h",
+        expiresIn: "24h",
       }),
       shops,
     };
@@ -164,7 +139,7 @@ export class AuthService {
           customerId: customer.id,
         } as TokenCustomerPayload,
         {
-          expiresIn: "96h",
+          expiresIn: "48h",
         },
       ),
       customer,
@@ -182,33 +157,25 @@ export class AuthService {
 
     const shops = await this.commonService.findManyShopByAccountId(account.id);
 
-    // Lưu thông tin thiết bị
-    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
-
-    const userAgent = req.headers["user-agent"];
-
-    const deviceId = uuidv4();
-
-    const refreshToken = await this.createRefreshToken({
-      accountId: account.id,
-      branchId: accessBranchDto.branchId,
-      deviceId: deviceId,
-      ip,
-      userAgent,
-      lastLogin: new Date(),
-    });
+    const data = await this.createRefreshTokenAndDevice(
+      account.id,
+      accessBranchDto.branchId,
+      tokenPayload.deviceId,
+      req,
+    );
 
     return {
       accessToken: await this.jwtService.signAsync(
         {
           accountId: tokenPayload.accountId,
           branchId: accessBranchDto.branchId,
+          deviceId: data.deviceId,
         } as TokenPayload,
         {
-          expiresIn: "96h",
+          expiresIn: "48h",
         },
       ),
-      refreshToken,
+      refreshToken: data.refreshToken,
       ...mapResponseLogin({ account, shops, currentShop }),
     };
   }
@@ -239,15 +206,31 @@ export class AuthService {
     return user.email;
   }
 
-  async checkValidSession() {}
+  async checkValidDeviceAndUpdateLastLogin(deviceId: string) {
+    try {
+      await this.prisma.authToken.update({
+        where: { deviceId: deviceId },
+        data: { lastLogin: new Date() },
+      });
+    } catch (error) {
+      if (error.code === "P2025") {
+        throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Phiên bản đăng nhập đã hết hạn!");
+      }
+      throw error;
+    }
+  }
 
   async getMe(token: string) {
-    if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tim thấy token!");
+    if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy token!");
 
     try {
       const payload = (await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY,
       })) as TokenPayload;
+
+      // Nếu đã truy cập vào chi nhánh thì kiểm tra có device hay không
+
+      if (payload.branchId) await this.checkValidDeviceAndUpdateLastLogin(payload.deviceId);
 
       const shops = await this.commonService.findManyShopByAccountId(payload.accountId);
 
@@ -261,7 +244,7 @@ export class AuthService {
 
       return { ...mapResponseLogin({ account, shops, currentShop }) };
     } catch (error) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, error);
+      throw error;
     }
   }
 
@@ -368,37 +351,104 @@ export class AuthService {
     });
   }
 
-  async createRefreshToken(data: CreateRefreshTokenDto) {
+  async createRefreshTokenAndDevice(accountId: string, branchId: string, deviceId: string, req: AnyObject) {
+    // Lưu thông tin thiết bị
+    const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
+
+    const userAgent = req.headers["user-agent"];
+
+    const validDeviceId = deviceId || uuidv4();
+
     // Tạo refresh token
     const refreshToken = await this.jwtService.signAsync(
       {
-        accountId: data.accountId,
-        branchId: data.branchId,
-        deviceId: data.deviceId,
-        ip: data.ip,
-        userAgent: data.userAgent,
-        lastLogin: data.lastLogin,
+        accountId: accountId,
+        branchId: branchId,
+        deviceId: validDeviceId,
       } as TokenPayload,
       {
         expiresIn: "30d",
       },
     );
 
-    await this.prisma.authToken.create({
-      data: {
-        accountId: data.accountId,
-        deviceId: data.deviceId,
+    return await this.prisma.authToken.upsert({
+      where: { deviceId: validDeviceId },
+      create: {
+        accountId: accountId,
+        deviceId: validDeviceId,
         refreshToken,
+        ip: ip,
+        userAgent: userAgent,
+        lastLogin: new Date(),
       },
+      update: { refreshToken },
     });
-
-    return refreshToken;
   }
 
   async logout(logoutDto: LogoutDto, tokenPayload: TokenPayload) {
     if (logoutDto.isAllDevices)
-      return this.prisma.authToken.deleteMany({ where: { accountId: tokenPayload.accountId } });
+      return this.prisma.authToken.deleteMany({
+        where: {
+          accountId: tokenPayload.accountId,
+          deviceId: {
+            not: tokenPayload.deviceId,
+          },
+        },
+      });
+  }
 
-    return this.prisma.authToken.delete({ where: { deviceId: tokenPayload.deviceId } });
+  async getDevice(tokenPayload: TokenPayload) {
+    return this.prisma.authToken.findMany({
+      where: { accountId: tokenPayload.accountId },
+      select: {
+        ip: true,
+        deviceId: true,
+        lastLogin: true,
+        userAgent: true,
+      },
+    });
+  }
+
+  async refreshToken(refreshToken: string) {
+    const device = await this.prisma.authToken.findFirst({ where: { refreshToken } });
+
+    if (!refreshToken || !device)
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy token hoặc đã hết hạn!");
+
+    try {
+      const payload = (await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.SECRET_KEY,
+      })) as TokenPayload;
+
+      // Nếu đã truy cập vào chi nhánh thì kiểm tra có device hay không
+
+      if (payload.branchId) await this.checkValidDeviceAndUpdateLastLogin(payload.deviceId);
+
+      const shops = await this.commonService.findManyShopByAccountId(payload.accountId);
+
+      const account = await this.getAccountAccess(payload.accountId, payload.branchId);
+
+      const currentShop = await this.getCurrentShop(payload.branchId);
+
+      if (!account) {
+        throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy tài nguyên!");
+      }
+
+      return {
+        accessToken: await this.jwtService.signAsync(
+          {
+            accountId: payload.accountId,
+            branchId: payload.branchId,
+            deviceId: payload.deviceId,
+          } as TokenPayload,
+          {
+            expiresIn: "48h",
+          },
+        ),
+        ...mapResponseLogin({ account, shops, currentShop }),
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 }

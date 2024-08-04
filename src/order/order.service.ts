@@ -130,25 +130,27 @@ export class OrderService {
     return matchPromotion as PromotionCountOrder;
   }
 
-  async getPromotionValue(promotionId: string, orderDetails: OrderDetail[], branchId: string) {
-    const matchPromotion = await this.getMatchPromotion(promotionId, orderDetails, branchId);
-
-    if (matchPromotion.type == PROMOTION_TYPE.GIFT) return 0;
-
-    if (matchPromotion.typeValue == DISCOUNT_TYPE.PERCENT) {
-      return (this.getTotalInOrder(orderDetails) * matchPromotion.value) / 100;
-    }
-
-    if (matchPromotion.typeValue == DISCOUNT_TYPE.VALUE) {
-      return matchPromotion.value;
-    }
-  }
-
   getTotalInOrder(orderDetails: OrderDetail[]) {
     return orderDetails.reduce(
       (total, order) => total + order.amount * (order.productPrice + (order.toppingPrice || 0)),
       0,
     );
+  }
+
+  async getPromotionValue(promotionId: string, orderDetails: OrderDetail[], branchId: string) {
+    const matchPromotion = await this.getMatchPromotion(promotionId, orderDetails, branchId);
+
+    if (matchPromotion.type == PROMOTION_TYPE.GIFT) return 0;
+
+    const totalOrder = this.getTotalInOrder(orderDetails);
+
+    if (matchPromotion.typeValue == DISCOUNT_TYPE.PERCENT) {
+      return (totalOrder * matchPromotion.value) / 100;
+    }
+
+    if (matchPromotion.typeValue == DISCOUNT_TYPE.VALUE) {
+      return Math.min(matchPromotion.value, totalOrder);
+    }
   }
 
   async getDiscountValue(orderDetails: OrderDetail[], code: string, branchId: string) {
@@ -660,7 +662,7 @@ export class OrderService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, customerId, from, to, orderTypes, isPaid } = params;
+    let { skip, take, keyword, customerId, from, to, orderTypes, isPaid, orderBy } = params;
 
     const keySearch = ["code"];
 
@@ -707,9 +709,7 @@ export class OrderService {
         where,
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         select: {
           id: true,
           code: true,

@@ -59,7 +59,7 @@ export class CustomerService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, customerTypeIds, from, to } = params;
+    const { skip, take, keyword, customerTypeIds, from, to, orderBy } = params;
 
     const keySearch = ["name", "code", "email", "phone"];
 
@@ -105,9 +105,7 @@ export class CustomerService {
       this.prisma.customer.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

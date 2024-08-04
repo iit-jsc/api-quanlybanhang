@@ -30,7 +30,7 @@ export class EmployeeGroupService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
 
     let where: Prisma.EmployeeGroupWhereInput = {
       isPublic: true,
@@ -42,9 +42,7 @@ export class EmployeeGroupService {
       this.prisma.employeeGroup.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

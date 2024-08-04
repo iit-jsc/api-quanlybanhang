@@ -75,7 +75,7 @@ export class EmployeeSalaryService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, employeeIds, isFulltime } = params;
+    let { skip, take, employeeIds, isFulltime, orderBy } = params;
 
     let where: Prisma.EmployeeSalaryWhereInput = {
       isPublic: true,
@@ -88,9 +88,7 @@ export class EmployeeSalaryService {
       this.prisma.employeeSalary.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

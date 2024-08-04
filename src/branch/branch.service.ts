@@ -1,8 +1,7 @@
 import { CreateBranchDto, UpdateBranchDto } from "src/branch/dto/create-branch.dto";
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { UserService } from "src/user/user.service";
-import { calculatePagination, roleBasedBranchFilter } from "utils/Helps";
+import { calculatePagination } from "utils/Helps";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -10,10 +9,7 @@ import { CommonService } from "src/common/common.service";
 
 @Injectable()
 export class BranchService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private commonService: CommonService,
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   async create(createBranchDto: CreateBranchDto, tokenPayload: TokenPayload) {
     return this.prisma.branch.create({
@@ -44,7 +40,7 @@ export class BranchService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
 
     let where: Prisma.BranchWhereInput = {
       isPublic: true,
@@ -59,9 +55,7 @@ export class BranchService {
       this.prisma.branch.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
 import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto, LogoutDto } from "./dto/login.dto";
 import { AuthService } from "./auth.service";
 import { AccessBranchDto } from "./dto/access-branch.dto";
@@ -49,6 +49,7 @@ export class AuthController {
 
   @Post("/logout")
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   logout(@Body() logoutDto: LogoutDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -85,5 +86,29 @@ export class AuthController {
     }
 
     return this.authService.getMe(token);
+  }
+
+  @Post("/refresh-token")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  refreshToken(@Headers("authorization") authHeader: string) {
+    if (!authHeader) {
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Không tìm thấy auth header!");
+    }
+
+    const [_, token] = authHeader.split(" ");
+
+    if (!token) {
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Không tìm thấy token!");
+    }
+    return this.authService.refreshToken(token);
+  }
+
+  @Get("/device")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  getDevice(@Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+    return this.authService.getDevice(tokenPayload);
   }
 }

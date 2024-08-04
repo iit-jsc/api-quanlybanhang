@@ -57,7 +57,7 @@ export class CompensationSettingService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, types, applyTos } = params;
+    const { skip, take, keyword, types, applyTos, orderBy } = params;
 
     const keySearch = ["name"];
 
@@ -77,9 +77,7 @@ export class CompensationSettingService {
       this.prisma.compensationSetting.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

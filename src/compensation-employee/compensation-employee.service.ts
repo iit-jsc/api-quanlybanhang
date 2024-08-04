@@ -26,7 +26,7 @@ export class CompensationEmployeeService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, employeeIds } = params;
+    let { skip, take, employeeIds, orderBy } = params;
     let where: Prisma.CompensationEmployeeWhereInput = {
       ...(employeeIds && { employeeId: { in: employeeIds } }),
       branchId: tokenPayload.branchId,
@@ -35,9 +35,7 @@ export class CompensationEmployeeService {
       this.prisma.compensationEmployee.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

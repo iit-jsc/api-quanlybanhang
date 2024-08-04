@@ -47,7 +47,7 @@ export class AreaService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword } = params;
+    const { skip, take, keyword, orderBy } = params;
 
     const keySearch = ["name", "code"];
 
@@ -68,9 +68,7 @@ export class AreaService {
       this.prisma.area.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

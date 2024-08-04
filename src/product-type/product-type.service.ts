@@ -38,7 +38,7 @@ export class ProductTypeService {
   }
 
   async findAll(params: FindManyProductTypeDto) {
-    let { skip, take, keyword, branchId } = params;
+    let { skip, take, keyword, branchId, orderBy } = params;
     let where: Prisma.ProductTypeWhereInput = {
       isPublic: true,
       branchId: branchId,
@@ -48,9 +48,7 @@ export class ProductTypeService {
       this.prisma.productType.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,

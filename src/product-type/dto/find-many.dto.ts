@@ -1,8 +1,9 @@
-import { Transform, TransformFnParams, Type } from 'class-transformer';
-import { IsNotEmpty, IsString } from 'class-validator';
+import { Transform, TransformFnParams, Type } from "class-transformer";
+import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { AnyObject } from "interfaces/common.interface";
 
 export class FindManyProductTypeDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   branchId: string;
 
@@ -15,4 +16,16 @@ export class FindManyProductTypeDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @Type(() => String)
   keyword?: string;
+
+  @IsOptional()
+  @Transform(({ value }) => {
+    if (value) {
+      const [field, direction] = value.split(",");
+      if (field && direction) {
+        return { [field]: direction };
+      }
+    }
+    return { createdAt: "desc" };
+  })
+  orderBy?: AnyObject;
 }

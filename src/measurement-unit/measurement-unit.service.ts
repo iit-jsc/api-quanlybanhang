@@ -37,7 +37,7 @@ export class MeasurementUnitService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { skip, take, keyword, orderBy } = params;
 
     let where: Prisma.MeasurementUnitWhereInput = {
       isPublic: true,
@@ -49,9 +49,7 @@ export class MeasurementUnitService {
       this.prisma.measurementUnit.findMany({
         skip,
         take,
-        orderBy: {
-          createdAt: "desc",
-        },
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
           id: true,
