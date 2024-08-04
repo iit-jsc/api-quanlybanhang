@@ -2,40 +2,50 @@ import { CreateBranchDto, UpdateBranchDto } from "src/branch/dto/create-branch.d
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { calculatePagination } from "utils/Helps";
-import { Prisma } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
+import { ShopService } from "src/shop/shop.service";
 
 @Injectable()
 export class BranchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private shopService: ShopService,
+  ) {}
 
   async create(createBranchDto: CreateBranchDto, tokenPayload: TokenPayload) {
-    return this.prisma.branch.create({
-      data: {
-        name: createBranchDto.name,
-        address: createBranchDto.address,
-        photoURL: createBranchDto.photoURL,
-        status: createBranchDto.status,
-        phone: createBranchDto.phone,
-        others: createBranchDto.others,
-        creator: {
-          connect: {
-            id: tokenPayload.accountId,
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const branch = await this.prisma.branch.create({
+        data: {
+          name: createBranchDto.name,
+          address: createBranchDto.address,
+          photoURL: createBranchDto.photoURL,
+          status: createBranchDto.status,
+          phone: createBranchDto.phone,
+          others: createBranchDto.others,
+          creator: {
+            connect: {
+              id: tokenPayload.accountId,
+            },
+          },
+          shop: {
+            connect: {
+              id: tokenPayload.shopId,
+            },
+          },
+          accounts: {
+            connect: {
+              id: tokenPayload.accountId,
+            },
           },
         },
-        shop: {
-          connect: {
-            id: tokenPayload.shopId,
-          },
-        },
-        accounts: {
-          connect: {
-            id: tokenPayload.accountId,
-          },
-        },
-      },
+      });
+
+      await this.shopService.createSampleData(branch.id, null, prisma);
+
+      return branch;
     });
   }
 

@@ -8,10 +8,11 @@ import { CommonService } from "src/common/common.service";
 import { CustomHttpException } from "utils/ApiErrors";
 import { AuthService } from "src/auth/auth.service";
 import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { Prisma } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
 import { calculatePagination } from "utils/Helps";
+import { DISCOUNT_TYPE, FUTURE_CODE, PAYMENT_METHOD_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class ShopService {
@@ -24,7 +25,7 @@ export class ShopService {
   async registerShop(data: RegisterShopDto, req: AnyObject) {
     const { user, branch } = data;
 
-    const { newShop, accountId } = await this.prisma.$transaction(async (prisma) => {
+    const { newShop, accountId } = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       // Kiểm tra tài khoản tồn tại chưa
       let ownerShopAccount = await this.prisma.account.findFirst({
         where: {
@@ -87,6 +88,8 @@ export class ShopService {
           branches: true,
         },
       });
+
+      await this.createSampleData(newShop.branches[0].id, newShop.id, prisma);
 
       return { newShop, accountId: ownerShop.account.id };
     });
@@ -271,5 +274,294 @@ export class ShopService {
         code: data.code,
       },
     });
+  }
+
+  async createSampleData(branchId: string, shopId: string | null, prisma: PrismaClient) {
+    const area = prisma.area.create({
+      data: {
+        name: "Khu vực A",
+        code: "KVA",
+        branchId: branchId,
+        tables: {
+          createMany: {
+            data: [
+              {
+                name: "Bàn 01",
+                code: "01",
+                branchId: branchId,
+              },
+              {
+                name: "Bàn 02",
+                code: "02",
+                branchId: branchId,
+              },
+            ],
+          },
+        },
+      },
+    });
+
+    let customerType = null;
+    let futureUsageSettings = null;
+    let pointSetting = null;
+    let qRSetting = null;
+
+    if (shopId) {
+      customerType = prisma.customerType.create({
+        data: {
+          name: "Khách thường",
+          discount: 0,
+          discountType: DISCOUNT_TYPE.VALUE,
+          shopId: shopId,
+        },
+      });
+
+      futureUsageSettings = prisma.futureUsageSetting.createMany({
+        data: [
+          {
+            futureCode: FUTURE_CODE.ONLINE_SELLING,
+            shopId: shopId,
+            isUsed: false,
+          },
+          {
+            futureCode: FUTURE_CODE.QR_CODE,
+            shopId: shopId,
+            isUsed: false,
+          },
+        ],
+      });
+
+      pointSetting = prisma.pointSetting.create({
+        data: {
+          active: false,
+          point: 0,
+          value: 0,
+          shopId: shopId,
+        },
+      });
+
+      qRSetting = prisma.qRSetting.createMany({
+        data: {
+          shopId: shopId,
+          isShowBranchName: true,
+          isShowTable: true,
+          isShowLogo: true,
+          isShowShopName: true,
+          isShowWifi: false,
+          description: "Chúc bạn có một ngày tốt lành!",
+        },
+      });
+    }
+
+    const employeeGroups = prisma.employeeGroup.createMany({
+      data: [
+        {
+          name: "Phục vụ",
+          branchId,
+        },
+        {
+          name: "Bảo vệ",
+          branchId,
+        },
+      ],
+    });
+
+    const measurementUnits = prisma.measurementUnit.createMany({
+      data: [
+        {
+          name: "Cái",
+          code: "c",
+          branchId,
+        },
+        {
+          name: "Bộ",
+          code: "b",
+          branchId,
+        },
+        {
+          name: "Kilogram",
+          code: "kg",
+          branchId,
+        },
+      ],
+    });
+
+    const paymentMethods = prisma.paymentMethod.createMany({
+      data: [
+        {
+          branchId,
+          type: PAYMENT_METHOD_TYPE.CASH,
+          active: true,
+        },
+        {
+          branchId,
+          type: PAYMENT_METHOD_TYPE.BANKING,
+          bankCode: "123456789",
+          bankName: "HD Bank",
+          representative: "Nguyen Van A",
+          active: false,
+        },
+        {
+          branchId,
+          type: PAYMENT_METHOD_TYPE.QR_CODE,
+          active: false,
+        },
+      ],
+    });
+
+    const warehouse = prisma.warehouse.create({
+      data: {
+        name: "Kho 01",
+        branchId,
+      },
+    });
+
+    const roleCodes = [
+      "CREATE_AREA",
+      "UPDATE_AREA",
+      "DELETE_AREA",
+      "VIEW_AREA",
+      "CREATE_CUSTOMER",
+      "UPDATE_CUSTOMER",
+      "DELETE_CUSTOMER",
+      "VIEW_CUSTOMER",
+      "CREATE_CUSTOMER_TYPE",
+      "UPDATE_CUSTOMER_TYPE",
+      "DELETE_CUSTOMER_TYPE",
+      "VIEW_CUSTOMER_TYPE",
+      "CREATE_EMPLOYEE_GROUP",
+      "UPDATE_EMPLOYEE_GROUP",
+      "DELETE_EMPLOYEE_GROUP",
+      "VIEW_EMPLOYEE_GROUP",
+      "CREATE_MEASUREMENT_UNIT",
+      "UPDATE_MEASUREMENT_UNIT",
+      "DELETE_MEASUREMENT_UNIT",
+      "CREATE_ORDER",
+      "UPDATE_ORDER",
+      "DELETE_ORDER",
+      "VIEW_ORDER",
+      "CREATE_PERMISSION",
+      "UPDATE_PERMISSION",
+      "DELETE_PERMISSION",
+      "VIEW_PERMISSION",
+      "CREATE_PRODUCT",
+      "UPDATE_PRODUCT",
+      "DELETE_PRODUCT",
+      "VIEW_PRODUCT",
+      "CREATE_PRODUCT_TYPE",
+      "UPDATE_PRODUCT_TYPE",
+      "DELETE_PRODUCT_TYPE",
+      "CREATE_TABLE",
+      "UPDATE_TABLE",
+      "DELETE_TABLE",
+      "VIEW_TABLE",
+      "CREATE_TOPPING",
+      "UPDATE_TOPPING",
+      "DELETE_TOPPING",
+      "VIEW_TOPPING",
+      "CREATE_EMPLOYEE",
+      "UPDATE_EMPLOYEE",
+      "DELETE_EMPLOYEE",
+      "VIEW_EMPLOYEE",
+      "CREATE_ACCOUNT",
+      "UPDATE_ACCOUNT",
+      "DELETE_ACCOUNT",
+      "VIEW_SUPPLIER_TYPE",
+      "CREATE_SUPPLIER_TYPE",
+      "UPDATE_SUPPLIER_TYPE",
+      "DELETE_SUPPLIER_TYPE",
+      "VIEW_SUPPLIER",
+      "CREATE_SUPPLIER",
+      "UPDATE_SUPPLIER",
+      "DELETE_SUPPLIER",
+      "VIEW_PROMOTION",
+      "CREATE_PROMOTION",
+      "UPDATE_PROMOTION",
+      "DELETE_PROMOTION",
+      "VIEW_DISCOUNT_ISSUE",
+      "CREATE_DISCOUNT_ISSUE",
+      "UPDATE_DISCOUNT_ISSUE",
+      "DELETE_DISCOUNT_ISSUE",
+      "VIEW_WAREHOUSE",
+      "UPDATE_WAREHOUSE",
+      "VIEW_WORK_SHIFT",
+      "CREATE_WORK_SHIFT",
+      "UPDATE_WORK_SHIFT",
+      "DELETE_WORK_SHIFT",
+      "VIEW_EMPLOYEE_SCHEDULE",
+      "CREATE_EMPLOYEE_SCHEDULE",
+      "UPDATE_EMPLOYEE_SCHEDULE",
+      "DELETE_EMPLOYEE_SCHEDULE",
+      "VIEW_SALARY",
+      "CREATE_SALARY",
+      "UPDATE_SALARY",
+      "DELETE_SALARY",
+      "CONFIRM_SALARY",
+    ];
+
+    const employeeRoleCodes = [
+      "VIEW_AREA",
+      "CREATE_CUSTOMER",
+      "UPDATE_CUSTOMER",
+      "DELETE_CUSTOMER",
+      "VIEW_CUSTOMER",
+      "VIEW_CUSTOMER_TYPE",
+      "CREATE_ORDER",
+      "UPDATE_ORDER",
+      "DELETE_ORDER",
+      "VIEW_ORDER",
+      "VIEW_PRODUCT",
+      "VIEW_TABLE",
+      "VIEW_TOPPING",
+      "VIEW_SUPPLIER_TYPE",
+      "VIEW_SUPPLIER",
+      "VIEW_PROMOTION",
+      "VIEW_DISCOUNT_ISSUE",
+      "VIEW_WAREHOUSE",
+      "VIEW_WORK_SHIFT",
+      "VIEW_EMPLOYEE_SCHEDULE",
+      "CREATE_EMPLOYEE_SCHEDULE",
+      "UPDATE_EMPLOYEE_SCHEDULE",
+      "DELETE_EMPLOYEE_SCHEDULE",
+      "VIEW_SALARY",
+    ];
+
+    const permissionAdmin = prisma.permission.create({
+      data: {
+        name: "Quản trị viên",
+        branchId,
+        roles: {
+          connect: roleCodes.map((code) => ({
+            code,
+          })),
+        },
+      },
+    });
+
+    const permissionEmployee = prisma.permission.create({
+      data: {
+        name: "Nhân viên",
+        branchId,
+        roles: {
+          connect: employeeRoleCodes.map((code) => ({
+            code,
+          })),
+        },
+      },
+    });
+
+    await Promise.all([
+      area,
+      customerType,
+      employeeGroups,
+      futureUsageSettings,
+      measurementUnits,
+      paymentMethods,
+      pointSetting,
+      warehouse,
+      permissionAdmin,
+      permissionEmployee,
+      qRSetting,
+    ]);
   }
 }

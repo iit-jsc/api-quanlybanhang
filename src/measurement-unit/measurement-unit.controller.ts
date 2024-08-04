@@ -28,7 +28,7 @@ export class MeasurementUnitController {
   @Post("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_MEASUREMENT_UNIT", SPECIAL_ROLE.STORE_OWNER)
+  @Roles("CREATE_MEASUREMENT_UNIT", SPECIAL_ROLE.MANAGER)
   create(@Body() createMeasurementUnitDto: CreateMeasurementUnitDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -61,7 +61,7 @@ export class MeasurementUnitController {
   @Patch(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("UPDATE_MEASUREMENT_UNIT", SPECIAL_ROLE.STORE_OWNER)
+  @Roles("UPDATE_MEASUREMENT_UNIT", SPECIAL_ROLE.MANAGER)
   update(@Param("id") id: string, @Body() UpdateMeasurementUnitDto: UpdateMeasurementUnitDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
@@ -79,7 +79,7 @@ export class MeasurementUnitController {
   @Delete("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("DELETE_MEASUREMENT_UNIT", SPECIAL_ROLE.STORE_OWNER)
+  @Roles("DELETE_MEASUREMENT_UNIT", SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 

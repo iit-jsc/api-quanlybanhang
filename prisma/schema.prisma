@@ -8,7 +8,6 @@ datasource db {
 }
 
 model GroupRole {
-  id    String @id @default(uuid())
   name  String
   code  String @unique
   type  Int
@@ -16,9 +15,8 @@ model GroupRole {
 }
 
 model Role {
-  id          String       @id @default(uuid())
   name        String
-  code        String       @unique
+  code        String       @id @unique
   groupCode   String
   groupRole   GroupRole    @relation(fields: [groupCode], references: [code])
   permissions Permission[]

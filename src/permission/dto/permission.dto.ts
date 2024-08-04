@@ -14,7 +14,7 @@ export class CreatePermissionDto {
 
   @IsArray()
   @IsOptional()
-  roleIds: string[];
+  roleCodes: string[];
 }
 
 export class UpdatePermissionDto extends PartialType(CreatePermissionDto) {}

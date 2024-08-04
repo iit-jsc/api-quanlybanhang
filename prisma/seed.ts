@@ -6,44 +6,36 @@ async function main() {
   await prisma.businessType.createMany({
     data: [
       {
-        name: "Quán cà phê",
+        name: "Quán cà phê phục vụ tại bàn",
         icon: null,
-        code: "COF",
-        description: "Quán cà phê phục vụ đồ uống và đồ ăn nhẹ.",
+        code: "ca-phe-tai-ban",
+        description: "Quán cà phê phục vụ đồ uống và đồ ăn nhẹ tại chỗ.",
         isPublic: true,
         type: 1,
       },
       {
-        name: "Kinh doanh quần áo",
+        name: "Quán cà phê mang đi",
         icon: null,
-        code: "CLS",
+        code: "ca-phe-mang-di",
+        description: "Quán cà phê phục vụ đồ uống và đồ ăn nhẹ mang đi.",
+        isPublic: true,
+        type: 1,
+      },
+      {
+        name: "Cửa hàng quần áo",
+        icon: null,
+        code: "quan-ao",
         description: "Kinh doanh quần áo thời trang.",
         isPublic: true,
-        type: 1,
-      },
-      {
-        name: "Nhà hàng",
-        icon: null,
-        code: "RST",
-        description: "Nhà hàng cung cấp dịch vụ ăn uống.",
-        isPublic: true,
         type: 2,
       },
       {
-        name: "Cửa hàng tiện lợi",
+        name: "Cửa hàng điện thoại",
         icon: null,
-        code: "CVS",
-        description: "Cửa hàng bán các loại thực phẩm và hàng hóa thông dụng.",
+        code: "dien-thoai",
+        description: "Kinh doanh điện thoại đồ điện tử.",
         isPublic: true,
         type: 2,
-      },
-      {
-        name: "Dịch vụ du lịch",
-        icon: null,
-        code: "TRV",
-        description: "Dịch vụ cung cấp các tour du lịch, khách sạn, và các dịch vụ khác liên quan đến du lịch.",
-        isPublic: true,
-        type: 1,
       },
     ],
   });
@@ -64,11 +56,6 @@ async function main() {
         name: "Quản lý topping",
         type: 2,
         code: "TOPPING",
-      },
-      {
-        name: "Quản lý chi nhánh",
-        type: 1,
-        code: "BRANCH",
       },
       {
         name: "Quản lý khách hàng",
@@ -96,16 +83,6 @@ async function main() {
         code: "ORDER",
       },
       {
-        name: "Quản lý đánh giá đơn hàng",
-        type: 1,
-        code: "ORDER_RATING",
-      },
-      {
-        name: "Quản lý trạng thái đơn hàng",
-        type: 1,
-        code: "ORDER_STATUS",
-      },
-      {
         name: "Quản lý phân quyền",
         type: 1,
         code: "PERMISSION",
@@ -125,7 +102,6 @@ async function main() {
         type: 1,
         code: "REPORT",
       },
-
       {
         name: "Quản lý nhân viên",
         type: 1,
@@ -200,26 +176,6 @@ async function main() {
         name: "Xem danh sách khu vực",
         code: "VIEW_AREA",
         groupCode: "AREA",
-      },
-      {
-        name: "Tạo chi nhánh",
-        code: "CREATE_BRANCH",
-        groupCode: "BRANCH",
-      },
-      {
-        name: "Cập nhật chi nhánh",
-        code: "UPDATE_BRANCH",
-        groupCode: "BRANCH",
-      },
-      {
-        name: "Xóa chi nhánh",
-        code: "DELETE_BRANCH",
-        groupCode: "BRANCH",
-      },
-      {
-        name: "Xem danh sách chi nhánh",
-        code: "VIEW_BRANCH",
-        groupCode: "BRANCH",
       },
       {
         name: "Tạo khách hàng",
@@ -315,26 +271,6 @@ async function main() {
         name: "Xem danh sách đơn hàng",
         code: "VIEW_ORDER",
         groupCode: "ORDER",
-      },
-      {
-        name: "Tạo trạng thái đơn hàng",
-        code: "CREATE_ORDER_STATUS",
-        groupCode: "ORDER_STATUS",
-      },
-      {
-        name: "Cập nhật trạng thái đơn hàng",
-        code: "UPDATE_ORDER_STATUS",
-        groupCode: "ORDER_STATUS",
-      },
-      {
-        name: "Xóa trạng thái đơn hàng",
-        code: "DELETE_ORDER_STATUS",
-        groupCode: "ORDER_STATUS",
-      },
-      {
-        name: "Xem danh sách trạng thái đơn hàng",
-        code: "VIEW_ORDER_STATUS",
-        groupCode: "ORDER_STATUS",
       },
       {
         name: "Tạo nhóm quyền",
@@ -552,18 +488,8 @@ async function main() {
         groupCode: "WAREHOUSE",
       },
       {
-        name: "Tạo kho",
-        code: "CREATE_WAREHOUSE",
-        groupCode: "WAREHOUSE",
-      },
-      {
         name: "Cập nhật kho",
         code: "UPDATE_WAREHOUSE",
-        groupCode: "WAREHOUSE",
-      },
-      {
-        name: "Xóa kho",
-        code: "DELETE_WAREHOUSE",
         groupCode: "WAREHOUSE",
       },
       {

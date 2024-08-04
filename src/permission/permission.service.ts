@@ -20,11 +20,13 @@ export class PermissionService {
             id: tokenPayload.branchId,
           },
         },
-        roles: {
-          connect: data.roleIds.map((id) => ({
-            id,
-          })),
-        },
+        ...(data.roleCodes && {
+          roles: {
+            connect: data.roleCodes.map((code) => ({
+              code,
+            })),
+          },
+        }),
         creator: {
           connect: {
             id: tokenPayload.accountId,
@@ -68,7 +70,6 @@ export class PermissionService {
           },
           roles: {
             select: {
-              id: true,
               name: true,
               code: true,
             },
@@ -100,10 +101,10 @@ export class PermissionService {
       data: {
         name: data.name,
         description: data.description,
-        ...(data.roleIds && {
+        ...(data.roleCodes && {
           roles: {
-            set: data.roleIds.map((id) => ({
-              id,
+            set: data.roleCodes.map((code) => ({
+              code,
             })),
           },
         }),
@@ -140,7 +141,6 @@ export class PermissionService {
         },
         roles: {
           select: {
-            id: true,
             name: true,
             code: true,
           },
