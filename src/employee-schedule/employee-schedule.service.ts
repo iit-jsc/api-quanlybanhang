@@ -64,7 +64,7 @@ export class EmployeeScheduleService {
     let where: Prisma.EmployeeScheduleWhereInput = {
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: "insensitive" },
+          [key]: { contains: keyword },
         })),
       }),
       ...(employeeIds?.length > 0 && {

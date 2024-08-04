@@ -58,7 +58,7 @@ export class BranchService {
         id: tokenPayload.shopId,
         isPublic: true,
       },
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
     };
 
     const [data, totalRecords] = await Promise.all([

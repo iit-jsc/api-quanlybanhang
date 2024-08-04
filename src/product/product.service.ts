@@ -65,7 +65,7 @@ export class ProductService {
       branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: "insensitive" },
+          [key]: { contains: keyword },
         })),
       }),
       ...(productTypeIds?.length > 0 && {

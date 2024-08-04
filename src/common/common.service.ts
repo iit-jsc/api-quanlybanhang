@@ -183,7 +183,7 @@ export class CommonService {
         isPublic: true,
         branchId: branchId,
         OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: "insensitive" },
+          [key]: { equals: data[key] },
         })),
       },
     });
@@ -207,7 +207,7 @@ export class CommonService {
         isPublic: true,
         shopId: shopId,
         OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: "insensitive" },
+          [key]: { equals: data[key] },
         })),
       },
     });
@@ -245,7 +245,7 @@ export class CommonService {
       where: {
         isPublic: true,
         OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: "insensitive" },
+          [key]: { equals: data[key] },
         })),
         branches: {
           some: {
@@ -273,7 +273,7 @@ export class CommonService {
       where: {
         isPublic: true,
         OR: Object.keys(data).map((key) => ({
-          [key]: { equals: data[key], mode: "insensitive" },
+          [key]: { equals: data[key] },
         })),
         account: {
           branches: {

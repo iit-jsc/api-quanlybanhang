@@ -704,7 +704,7 @@ export class OrderService {
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: "insensitive" },
+          [key]: { contains: keyword },
         })),
       }),
       ...(customerId && {
@@ -915,7 +915,7 @@ export class OrderService {
       customerId: tokenCustomerPayload.customerId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: "insensitive" },
+          [key]: { contains: keyword },
         })),
       }),
       ...(from &&

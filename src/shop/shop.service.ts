@@ -225,7 +225,7 @@ export class ShopService {
       },
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: "insensitive" },
+          [key]: { contains: keyword },
         })),
       }),
     };

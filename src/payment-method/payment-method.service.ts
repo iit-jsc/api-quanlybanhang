@@ -72,7 +72,7 @@ export class PaymentMethodService {
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: "insensitive" },
+          [key]: { contains: keyword },
         })),
       }),
     };

@@ -74,7 +74,7 @@ export class PromotionService {
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
       branchId: branchId,
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
       ...(orderProducts && {
         startDate: {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),

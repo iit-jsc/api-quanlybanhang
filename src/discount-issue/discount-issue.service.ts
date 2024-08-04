@@ -78,7 +78,7 @@ export class DiscountIssueService {
     let { skip, take, keyword, orderBy } = params;
     let where: Prisma.DiscountIssueWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
       branchId: tokenPayload.branchId,
     };
     const [data, totalRecords] = await Promise.all([

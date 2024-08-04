@@ -71,7 +71,7 @@ export class CustomerService {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: "insensitive" },
+          [key]: { contains: keyword },
         })),
       }),
       ...(customerTypeIds?.length > 0 && {

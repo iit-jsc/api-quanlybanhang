@@ -42,7 +42,7 @@ export class MeasurementUnitService {
     let where: Prisma.MeasurementUnitWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
     };
 
     const [data, totalRecords] = await Promise.all([

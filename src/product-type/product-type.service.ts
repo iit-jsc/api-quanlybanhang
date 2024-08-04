@@ -42,7 +42,7 @@ export class ProductTypeService {
     let where: Prisma.ProductTypeWhereInput = {
       isPublic: true,
       branchId: branchId,
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
     };
     const [data, totalRecords] = await Promise.all([
       this.prisma.productType.findMany({

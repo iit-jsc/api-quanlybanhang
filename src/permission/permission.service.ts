@@ -45,7 +45,7 @@ export class PermissionService {
     const where: Prisma.PermissionWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
     };
 
     const [data, totalRecords] = await Promise.all([

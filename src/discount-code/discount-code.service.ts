@@ -67,7 +67,7 @@ export class DiscountCodeService {
     let where: Prisma.DiscountCodeWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
     };
     const [data, totalRecords] = await Promise.all([
       this.prisma.discountCode.findMany({

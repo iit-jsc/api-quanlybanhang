@@ -170,7 +170,7 @@ export class InventoryTransactionService {
     let { skip, take, keyword, types, from, to, orderBy } = params;
     let where: Prisma.InventoryTransactionWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
       ...(types && { type: { in: types } }),
       ...(from &&
         to && {

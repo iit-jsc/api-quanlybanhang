@@ -35,7 +35,7 @@ export class CustomerTypeService {
     let { skip, take, keyword, orderBy } = params;
     let where: Prisma.CustomerTypeWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword, mode: "insensitive" } }),
+      ...(keyword && { name: { contains: keyword } }),
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,

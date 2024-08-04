@@ -56,7 +56,7 @@ export class TableService {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword, mode: "insensitive" },
+          [key]: { contains: keyword },
         })),
       }),
       ...(areaIds?.length > 0 && {
