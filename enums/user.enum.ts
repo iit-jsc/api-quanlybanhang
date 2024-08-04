@@ -17,5 +17,5 @@ export const SEX_TYPE = {
 
 export const ENDOW_TYPE = {
   BY_GROUP: 1,
-  ONLINE: 2,
+  BY_CUSTOMER: 2,
 };

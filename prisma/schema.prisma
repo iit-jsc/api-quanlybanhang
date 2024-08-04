@@ -612,41 +612,42 @@ model PromotionProduct {
 }
 
 model Order {
-  id                  String            @id @default(uuid())
-  branchId            String
-  customerId          String?
-  code                String
-  cancelReason        String?
-  cancelDate          DateTime?
-  transactionId       String?
-  note                String?
-  promotionValue      Float?            @default(0)
-  discountValue       Float?            @default(0)
-  convertedPointValue Float?            @default(0)
-  usedPoint           Float?            @default(0)
-  orderType           Int
-  paymentMethodId     String?
-  bankingImages       Json?
-  paymentMethod       PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
-  isPaid              Boolean?          @default(false)
-  isSave              Boolean?          @default(false)
-  orderStatus         Int
-  isPublic            Boolean?          @default(true)
-  createdBy           String?
-  updatedBy           String?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  branch              Branch            @relation(fields: [branchId], references: [id])
-  customer            Customer?         @relation(fields: [customerId], references: [id])
-  orderDetails        OrderDetail[]
-  deals               Deal[]
-  customerRequests    CustomerRequest[]
-  orderRatings        OrderRating[]
-  creator             Account?          @relation("creator", fields: [createdBy], references: [id])
-  updater             Account?          @relation("updater", fields: [updatedBy], references: [id])
-  pointHistories      PointHistory[]
-  promotion           Promotion?        @relation(fields: [promotionId], references: [id])
-  promotionId         String?
+  id                    String            @id @default(uuid())
+  branchId              String
+  customerId            String?
+  code                  String
+  cancelReason          String?
+  cancelDate            DateTime?
+  transactionId         String?
+  note                  String?
+  promotionValue        Float?            @default(0)
+  discountValue         Float?            @default(0)
+  convertedPointValue   Float?            @default(0)
+  customerDiscountValue Float?            @default(0)
+  usedPoint             Float?            @default(0)
+  orderType             Int
+  paymentMethodId       String?
+  bankingImages         Json?
+  paymentMethod         PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
+  isPaid                Boolean?          @default(false)
+  isSave                Boolean?          @default(false)
+  orderStatus           Int
+  isPublic              Boolean?          @default(true)
+  createdBy             String?
+  updatedBy             String?
+  createdAt             DateTime          @default(now())
+  updatedAt             DateTime          @updatedAt
+  branch                Branch            @relation(fields: [branchId], references: [id])
+  customer              Customer?         @relation(fields: [customerId], references: [id])
+  orderDetails          OrderDetail[]
+  deals                 Deal[]
+  customerRequests      CustomerRequest[]
+  orderRatings          OrderRating[]
+  creator               Account?          @relation("creator", fields: [createdBy], references: [id])
+  updater               Account?          @relation("updater", fields: [updatedBy], references: [id])
+  pointHistories        PointHistory[]
+  promotion             Promotion?        @relation(fields: [promotionId], references: [id])
+  promotionId           String?
 }
 
 model OrderDetail {

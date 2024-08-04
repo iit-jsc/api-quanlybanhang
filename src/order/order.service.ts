@@ -1,9 +1,9 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "./dto/order.dto";
-import { PromotionCountOrder, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
+import { CustomerShape, PromotionCountOrder, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
-import { OrderDetail, Prisma, PrismaClient, Product, Promotion, Topping } from "@prisma/client";
+import { Customer, OrderDetail, Prisma, PrismaClient, Product, Promotion, Topping } from "@prisma/client";
 import { PaymentFromTableDto } from "./dto/payment-order-from-table.dto";
 import { FindManyDto, DeleteManyDto } from "utils/Common.dto";
 import { SeparateTableDto } from "./dto/separate-table.dto";
@@ -18,6 +18,7 @@ import { DISCOUNT_TYPE, PROMOTION_TYPE } from "enums/common.enum";
 import { OrderGateway } from "src/gateway/order.gateway";
 import { TableGateway } from "src/gateway/table.gateway";
 import { PointAccumulationService } from "src/point-accumulation/point-accumulation.service";
+import { ENDOW_TYPE } from "enums/user.enum";
 
 @Injectable()
 export class OrderService {
@@ -153,7 +154,7 @@ export class OrderService {
     }
   }
 
-  async getDiscountValue(orderDetails: OrderDetail[], code: string, branchId: string) {
+  async getDiscountValue(totalOrder: number, code: string, branchId: string) {
     let discountValue = 0;
 
     const discountIssue = await this.prisma.discountIssue.findFirst({
@@ -190,20 +191,18 @@ export class OrderService {
     if (!discountIssue)
       throw new CustomHttpException(HttpStatus.NOT_FOUND, "Mã giảm giá không tồn tại hoặc đã hết hạn!");
 
-    const total = this.getTotalInOrder(orderDetails);
-
-    if (discountIssue.minTotalOrder && discountIssue.minTotalOrder > total)
+    if (discountIssue.minTotalOrder && discountIssue.minTotalOrder > totalOrder)
       throw new CustomHttpException(HttpStatus.CONFLICT, "Giá trị đơn hàng chưa đủ điều kiện!");
 
     if (discountIssue.type == DISCOUNT_TYPE.PERCENT) {
-      const discountTotal = (this.getTotalInOrder(orderDetails) * discountIssue.value) / 100;
+      const discountTotal = (totalOrder * discountIssue.value) / 100;
 
       discountValue = Math.min(discountTotal, discountIssue.maxValue);
     }
 
     if (discountIssue.type == DISCOUNT_TYPE.VALUE) discountValue = discountIssue.value;
 
-    return Math.min(discountValue, total);
+    return Math.min(discountValue, totalOrder);
   }
 
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
@@ -342,6 +341,8 @@ export class OrderService {
       branchId: data.branchId,
     });
 
+    const totalOrder = this.getTotalInOrder(orderDetails);
+
     const customer = await this.commonService.findOrCreateCustomer(
       {
         name: data.name,
@@ -353,7 +354,7 @@ export class OrderService {
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       if (data.discountCode) {
-        discountValue = await this.getDiscountValue(orderDetails, data.discountCode, data.branchId);
+        discountValue = await this.getDiscountValue(totalOrder, data.discountCode, data.branchId);
 
         await prisma.discountCode.update({
           where: {
@@ -422,15 +423,18 @@ export class OrderService {
   async paymentFromTable(data: PaymentFromTableDto, tokenPayload: TokenPayload) {
     let promotionValue = 0;
     let discountValue = 0;
+    let customerDiscountValue = 0;
 
     const newOrder = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const orderDetails = await this.getOrderDetailsInTable(data.tableId, prisma);
+
+      const totalOrder = this.getTotalInOrder(orderDetails);
 
       if (data.promotionId)
         promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, tokenPayload.branchId);
 
       if (data.discountCode) {
-        discountValue = await this.getDiscountValue(orderDetails, data.discountCode, tokenPayload.branchId);
+        discountValue = await this.getDiscountValue(totalOrder, data.discountCode, tokenPayload.branchId);
 
         await prisma.discountCode.update({
           where: {
@@ -443,10 +447,38 @@ export class OrderService {
         });
       }
 
+      if (data.customerId) {
+        const customer = await this.prisma.customer.findFirstOrThrow({
+          where: { id: data.customerId },
+          select: {
+            id: true,
+            discount: true,
+            discountType: true,
+            endow: true,
+            customerType: {
+              select: {
+                id: true,
+                discount: true,
+                discountType: true,
+              },
+              where: {
+                isPublic: true,
+              },
+            },
+          },
+        });
+
+        customerDiscountValue = await this.getDiscountCustomer(totalOrder, customer);
+      }
+
       const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
         data.exchangePoint,
         tokenPayload.shopId,
       );
+
+      // Kiểm tra giảm giá hợp lệ
+      if (promotionValue + discountValue + convertedPointValue + customerDiscountValue > totalOrder)
+        throw new CustomHttpException(HttpStatus.CONFLICT, "Giảm giá vượt quá tổng số tiền của đơn hàng!");
 
       const order = await prisma.order.create({
         data: {
@@ -460,6 +492,7 @@ export class OrderService {
           discountValue: discountValue,
           convertedPointValue,
           usedPoint: data.exchangePoint,
+          customerDiscountValue,
           ...(data.customerId && {
             customer: {
               connect: {
@@ -1052,6 +1085,30 @@ export class OrderService {
     return prisma.orderDetail.findMany({ where: { tableId, isPublic: true } });
   }
 
+  async getDiscountCustomer(totalOrder: number, customer: CustomerShape) {
+    if (customer && customer.endow === ENDOW_TYPE.BY_CUSTOMER) {
+      if (customer.discountType == DISCOUNT_TYPE.PERCENT) {
+        return (totalOrder * customer.discount) / 100;
+      }
+
+      if (customer.discountType == DISCOUNT_TYPE.VALUE) {
+        return Math.min(customer.discount, totalOrder);
+      }
+    }
+
+    if (customer.customerType && customer.endow === ENDOW_TYPE.BY_GROUP) {
+      if (customer.customerType.discountType == DISCOUNT_TYPE.PERCENT) {
+        return (totalOrder * customer.customerType.discount) / 100;
+      }
+
+      if (customer.customerType.discountType == DISCOUNT_TYPE.VALUE) {
+        return Math.min(customer.customerType.discount, totalOrder);
+      }
+    }
+
+    return 0;
+  }
+
   async paymentOrder(
     params: {
       where: Prisma.OrderWhereUniqueInput;
@@ -1063,13 +1120,32 @@ export class OrderService {
 
     let promotionValue = 0;
     let discountValue = 0;
+    let customerDiscountValue = 0;
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const order = await this.prisma.order.findFirstOrThrow({
+      const order = await prisma.order.findFirstOrThrow({
         where: { id: where.id, isPublic: true },
         select: {
           id: true,
           customerId: true,
+          customer: {
+            select: {
+              id: true,
+              discount: true,
+              discountType: true,
+              endow: true,
+              customerType: {
+                select: {
+                  id: true,
+                  discount: true,
+                  discountType: true,
+                },
+                where: {
+                  isPublic: true,
+                },
+              },
+            },
+          },
           isPaid: true,
           orderType: true,
           orderDetails: {
@@ -1080,13 +1156,17 @@ export class OrderService {
         },
       });
 
+      const totalOrder = this.getTotalInOrder(order.orderDetails);
+
       if (order.isPaid) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này đã thành toán!");
+
+      if (order.customer) customerDiscountValue = await this.getDiscountCustomer(totalOrder, order.customer);
 
       if (data.promotionId)
         promotionValue = await this.getPromotionValue(data.promotionId, order.orderDetails, tokenPayload.branchId);
 
       if (data.discountCode) {
-        discountValue = await this.getDiscountValue(order.orderDetails, data.discountCode, tokenPayload.branchId);
+        discountValue = await this.getDiscountValue(totalOrder, data.discountCode, tokenPayload.branchId);
 
         await prisma.discountCode.update({
           where: {
@@ -1103,6 +1183,10 @@ export class OrderService {
         data.exchangePoint,
         tokenPayload.shopId,
       );
+
+      // Kiểm tra giảm giá hợp lệ
+      if (promotionValue + discountValue + convertedPointValue + customerDiscountValue > totalOrder)
+        throw new CustomHttpException(HttpStatus.CONFLICT, "Giảm giá vượt quá tổng số tiền của đơn hàng!");
 
       // Xử lý tích điểm
       if (order.customerId) {
@@ -1133,6 +1217,7 @@ export class OrderService {
           discountValue,
           isPaid: true,
           convertedPointValue,
+          customerDiscountValue,
           usedPoint: data.exchangePoint,
           orderStatus: ORDER_STATUS_COMMON.SUCCESS,
           bankingImages: data.exchangePoint,

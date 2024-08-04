@@ -72,7 +72,9 @@ export class PointAccumulationService {
   ) {
     prisma = prisma || this.prisma;
 
-    await this.checkValidExchangePoint(customerId, exchangePoint, totalInOrder, shopId);
+    const isValid = await this.checkValidExchangePoint(customerId, exchangePoint, totalInOrder, shopId);
+
+    if (!isValid) return 0;
 
     await prisma.pointAccumulation.update({
       data: {
@@ -115,7 +117,7 @@ export class PointAccumulationService {
       },
     });
 
-    if (!pointSetting || !exchangePoint) return;
+    if (!pointSetting || !exchangePoint) return false;
 
     const currentPoint = await this.prisma.pointAccumulation.findUnique({
       where: { customerId },

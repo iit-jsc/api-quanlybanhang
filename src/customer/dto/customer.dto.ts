@@ -62,17 +62,17 @@ export class CreateCustomerDto {
   @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
   birthDay: Date;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @IsEnum(ENDOW_TYPE, { message: "Endow không hợp lệ!" })
   endow: number;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @Validate(DiscountConstraint)
   discount: number;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @IsEnum(DISCOUNT_TYPE, { message: "Loại giảm giá không hợp lệ!" })
   discountType: number;

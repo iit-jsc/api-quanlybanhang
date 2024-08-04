@@ -49,3 +49,15 @@ export interface DeleteManyResponse {
   ids: string[];
   notValidIds?: string[];
 }
+
+export interface CustomerShape {
+  id: string;
+  discount: number;
+  discountType: number;
+  endow: number;
+  customerType?: {
+    id: string;
+    discount: number;
+    discountType: number;
+  };
+}

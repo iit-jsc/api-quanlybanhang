@@ -14,12 +14,12 @@ export class CreateCustomerTypeDto {
   @IsString()
   description: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @IsEnum(DISCOUNT_TYPE, { message: "Loại giảm giá không hợp lệ!" })
   discountType: number;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @Validate(DiscountConstraint)
   discount: number;
