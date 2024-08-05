@@ -6,6 +6,7 @@ import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { CreateAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class AreaService {
@@ -17,7 +18,7 @@ export class AreaService {
   async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
     await this.commonService.checkDataExistingInBranch({ code: data.code }, "Area", tokenPayload.branchId);
 
-    return await this.prisma.area.create({
+    const area = await this.prisma.area.create({
       data: {
         ...(data.code && {
           code: data.code,
@@ -44,6 +45,10 @@ export class AreaService {
         },
       },
     });
+
+    this.commonService.createActivityLog([area.id], "Area", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return area;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -146,7 +151,7 @@ export class AreaService {
 
     await this.commonService.checkDataExistingInBranch({ code: data.code }, "Area", tokenPayload.branchId, where.id);
 
-    return this.prisma.area.update({
+    const area = await this.prisma.area.update({
       where: {
         id: where.id,
         isPublic: true,
@@ -163,6 +168,10 @@ export class AreaService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([area.id], "Area", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return area;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -182,6 +191,8 @@ export class AreaService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Area", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

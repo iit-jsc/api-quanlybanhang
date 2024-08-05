@@ -6,7 +6,7 @@ import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { calculatePagination } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
-import { PROMOTION_TYPE } from "enums/common.enum";
+import { ACTIVITY_LOG_TYPE, PROMOTION_TYPE } from "enums/common.enum";
 import { FindManyPromotionDto } from "./dto/find-many.dto";
 
 @Injectable()
@@ -19,7 +19,7 @@ export class PromotionService {
   async create(data: CreatePromotionDto, tokenPayload: TokenPayload) {
     await this.commonService.checkDataExistingInBranch({ code: data.code }, "Promotion", tokenPayload.branchId);
 
-    return this.prisma.promotion.create({
+    const result = await this.prisma.promotion.create({
       data: {
         name: data.name,
         code: data.code,
@@ -65,6 +65,10 @@ export class PromotionService {
         promotionProducts: true,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Promotion", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyPromotionDto, body: ProductsOrderDto) {
@@ -193,7 +197,7 @@ export class PromotionService {
   ) {
     const { where, data } = params;
 
-    return this.prisma.promotion.update({
+    const result = await this.prisma.promotion.update({
       data: {
         name: data.name,
         code: data.code,
@@ -249,6 +253,10 @@ export class PromotionService {
         promotionProducts: true,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Promotion", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -297,6 +305,8 @@ export class PromotionService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Promotion", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

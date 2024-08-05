@@ -2,15 +2,15 @@ import { Injectable } from "@nestjs/common";
 import { TokenPayload } from "interfaces/common.interface";
 import { UpdateQRSettingDto } from "./dto/qr-setting.dto";
 import { PrismaService } from "nestjs-prisma";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class QrSettingService {
   constructor(private readonly prisma: PrismaService) {}
 
   async update(data: UpdateQRSettingDto, tokenPayload: TokenPayload) {
-    console.log(tokenPayload.shopId);
-
-    return this.prisma.qRSetting.upsert({
+    const result = await this.prisma.qRSetting.upsert({
       where: { shopId: tokenPayload.shopId },
       create: {
         isShowLogo: data.isShowLogo,
@@ -32,6 +32,8 @@ export class QrSettingService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    return result;
   }
 
   async findUniq(tokenPayload: TokenPayload) {

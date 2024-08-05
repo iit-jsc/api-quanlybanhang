@@ -6,6 +6,7 @@ import { CreateDiscountIssueDto, UpdateDiscountIssueDto } from "./dto/discount-i
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class DiscountIssueService {
@@ -17,7 +18,7 @@ export class DiscountIssueService {
   async create(data: CreateDiscountIssueDto, tokenPayload: TokenPayload) {
     await this.commonService.checkDataExistingInBranch({ code: data.code }, "DiscountIssue", tokenPayload.branchId);
 
-    return await this.prisma.discountIssue.create({
+    const discountIssue = await this.prisma.discountIssue.create({
       data: {
         name: data.name,
         code: data.code,
@@ -35,6 +36,10 @@ export class DiscountIssueService {
         createdBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([discountIssue.id], "DiscountIssue", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return discountIssue;
   }
 
   async update(
@@ -53,7 +58,7 @@ export class DiscountIssueService {
       where.id,
     );
 
-    return await this.prisma.discountIssue.update({
+    const discountIssue = await this.prisma.discountIssue.update({
       data: {
         name: data.name,
         code: data.code,
@@ -72,6 +77,10 @@ export class DiscountIssueService {
       },
       where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId },
     });
+
+    this.commonService.createActivityLog([discountIssue.id], "DiscountIssue", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return discountIssue;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -122,6 +131,8 @@ export class DiscountIssueService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "DiscountIssue", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

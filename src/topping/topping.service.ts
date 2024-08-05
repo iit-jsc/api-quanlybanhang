@@ -5,13 +5,18 @@ import { PrismaService } from "nestjs-prisma";
 import { calculatePagination, generateUniqueId } from "utils/Helps";
 import { CreateToppingDto, UpdateToppingDto } from "./dto/topping.dto";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class ToppingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateToppingDto, tokenPayload: TokenPayload) {
-    return this.prisma.topping.create({
+    const result = await this.prisma.topping.create({
       data: {
         name: data.name,
         description: data.description,
@@ -29,6 +34,10 @@ export class ToppingService {
         },
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Topping", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -96,7 +105,7 @@ export class ToppingService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-    return this.prisma.topping.update({
+    const result = await this.prisma.topping.update({
       where: {
         id: where.id,
         isPublic: true,
@@ -114,6 +123,10 @@ export class ToppingService {
         },
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Topping", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -130,6 +143,8 @@ export class ToppingService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Topping", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

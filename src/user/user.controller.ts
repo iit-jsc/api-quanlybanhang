@@ -84,13 +84,6 @@ export class UserController {
   @Roles("DELETE_EMPLOYEE", SPECIAL_ROLE.MANAGER)
   deleteManyEmployee(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.userService.deleteManyEmployee(
-      {
-        id: {
-          in: deleteManyDto.ids,
-        },
-      },
-      tokenPayload,
-    );
+    return this.userService.deleteManyEmployee(deleteManyDto, tokenPayload);
   }
 }

@@ -6,6 +6,7 @@ import { calculatePagination } from "utils/Helps";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class MeasurementUnitService {
@@ -18,7 +19,7 @@ export class MeasurementUnitService {
     if (data.code)
       await this.commonService.checkDataExistingInBranch({ code: data.code }, "MeasurementUnit", tokenPayload.branchId);
 
-    return await this.prisma.measurementUnit.create({
+    const result = await this.prisma.measurementUnit.create({
       data: {
         name: data.name,
         code: data.code,
@@ -34,6 +35,10 @@ export class MeasurementUnitService {
         },
       },
     });
+
+    this.commonService.createActivityLog([result.id], "MeasurementUnit", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -101,7 +106,7 @@ export class MeasurementUnitService {
         where.id,
       );
 
-    return this.prisma.measurementUnit.update({
+    const result = await this.prisma.measurementUnit.update({
       data: {
         name: data.name,
         code: data.code,
@@ -117,6 +122,10 @@ export class MeasurementUnitService {
         branchId: tokenPayload.branchId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "MeasurementUnit", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -133,6 +142,8 @@ export class MeasurementUnitService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "MeasurementUnit", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

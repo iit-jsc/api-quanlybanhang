@@ -1,9 +1,9 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { TokenPayload } from 'interfaces/common.interface';
-import { FindManyDto } from 'utils/Common.dto';
-import { Prisma } from '@prisma/client';
-import { calculatePagination } from 'utils/Helps';
+import { Injectable } from "@nestjs/common";
+import { PrismaService } from "nestjs-prisma";
+import { TokenPayload } from "interfaces/common.interface";
+import { FindManyDto } from "utils/Common.dto";
+import { Prisma } from "@prisma/client";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class StockService {

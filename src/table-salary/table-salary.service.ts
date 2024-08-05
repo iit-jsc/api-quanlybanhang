@@ -4,13 +4,17 @@ import { PrismaService } from "nestjs-prisma";
 import { CreateTableSalaryDto, UpdateTableSalaryDto } from "./dto/table-salary.dto";
 import { Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
-import { COMPENSATION_APPLY_TO, COMPENSATION_TYPE } from "enums/common.enum";
+import { ACTIVITY_LOG_TYPE, COMPENSATION_APPLY_TO, COMPENSATION_TYPE } from "enums/common.enum";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
 
 @Injectable()
 export class TableSalaryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async getNotValidEmployees(isFulltime: boolean, employeeIds: string[]) {
     const employeeSalaries = await this.prisma.employeeSalary.findMany({
@@ -160,6 +164,8 @@ export class TableSalaryService {
         data: detailTableSalaryData,
       });
 
+      this.commonService.createActivityLog([tableSalary.id], "TableSalary", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
       return tableSalary;
     });
   }
@@ -288,6 +294,9 @@ export class TableSalaryService {
           });
         }),
       );
+
+      this.commonService.createActivityLog([tableSalary.id], "TableSalary", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
       return tableSalary;
     });
   }
@@ -305,7 +314,7 @@ export class TableSalaryService {
     if (ids.length > 0)
       throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Bảng lương đã được xác nhận không thể cập nhật!");
 
-    return this.prisma.tableSalary.update({
+    const result = await this.prisma.tableSalary.update({
       where: { id: where.id, isPublic: true },
       data: {
         isConfirm: true,
@@ -313,6 +322,10 @@ export class TableSalaryService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "TableSalary", ACTIVITY_LOG_TYPE.CONFIRM, tokenPayload);
+
+    return result;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -332,6 +345,8 @@ export class TableSalaryService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(validIds, "TableSalary", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: validIds, notValidIds } as DeleteManyResponse;
   }

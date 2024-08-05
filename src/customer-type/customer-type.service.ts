@@ -5,13 +5,18 @@ import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination, generateUniqueId } from "utils/Helps";
 import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from "./dto/create-customer-type";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class CustomerTypeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateCustomerTypeDto, tokenPayload: TokenPayload) {
-    return await this.prisma.customerType.create({
+    const customerType = await this.prisma.customerType.create({
       data: {
         name: data.name,
         description: data.description,
@@ -29,6 +34,10 @@ export class CustomerTypeService {
         },
       },
     });
+
+    this.commonService.createActivityLog([customerType.id], "CustomerType", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return customerType;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -94,7 +103,7 @@ export class CustomerTypeService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-    return this.prisma.customerType.update({
+    const customerType = await this.prisma.customerType.update({
       where: {
         id: where.id,
         isPublic: true,
@@ -111,6 +120,10 @@ export class CustomerTypeService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([customerType.id], "CustomerType", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return customerType;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -130,6 +143,8 @@ export class CustomerTypeService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "CustomerType", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

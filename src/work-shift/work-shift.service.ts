@@ -5,13 +5,18 @@ import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class WorkShiftService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateWorkShiftDto, tokenPayload: TokenPayload) {
-    return this.prisma.workShift.create({
+    const result = await this.prisma.workShift.create({
       data: {
         name: data.name,
         startTime: data.startTime,
@@ -23,6 +28,10 @@ export class WorkShiftService {
         branchId: tokenPayload.branchId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "WorkShift", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -105,7 +114,7 @@ export class WorkShiftService {
   ) {
     const { where, data } = params;
 
-    return this.prisma.workShift.update({
+    const result = await this.prisma.workShift.update({
       where: {
         id: where.id,
         branchId: tokenPayload.branchId,
@@ -121,6 +130,10 @@ export class WorkShiftService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "WorkShift", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -137,6 +150,8 @@ export class WorkShiftService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "WorkShift", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

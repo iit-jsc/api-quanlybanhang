@@ -5,13 +5,18 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { calculatePagination } from "utils/Helps";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class EmployeeGroupService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateEmployeeGroupDto, tokenPayload: TokenPayload) {
-    return this.prisma.employeeGroup.create({
+    const employeeGroup = await this.prisma.employeeGroup.create({
       data: {
         name: data.name,
         description: data.description,
@@ -27,6 +32,10 @@ export class EmployeeGroupService {
         },
       },
     });
+
+    this.commonService.createActivityLog([employeeGroup.id], "EmployeeGroup", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return employeeGroup;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -86,7 +95,7 @@ export class EmployeeGroupService {
   ) {
     const { where, data } = params;
 
-    return this.prisma.employeeGroup.update({
+    const employeeGroup = await this.prisma.employeeGroup.update({
       data: {
         name: data.name,
         description: data.description,
@@ -98,6 +107,8 @@ export class EmployeeGroupService {
         branchId: tokenPayload.branchId,
       },
     });
+
+    this.commonService.createActivityLog([employeeGroup.id], "EmployeeGroup", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -114,6 +125,8 @@ export class EmployeeGroupService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "EmployeeGroup", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

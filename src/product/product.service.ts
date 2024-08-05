@@ -7,6 +7,7 @@ import { CreateProductDto, UpdateProductDto } from "./dto/product.dto";
 import { CommonService } from "src/common/common.service";
 import { FindManyProductDto } from "./dto/find-many.dto";
 import { DeleteManyDto } from "utils/Common.dto";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 @Injectable()
 export class ProductService {
   constructor(
@@ -21,7 +22,7 @@ export class ProductService {
       tokenPayload.branchId,
     );
 
-    return this.prisma.product.create({
+    const result = await this.prisma.product.create({
       data: {
         name: data.name,
         description: data.description,
@@ -55,6 +56,10 @@ export class ProductService {
         },
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Product", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyProductDto) {
@@ -181,7 +186,7 @@ export class ProductService {
       where.id,
     );
 
-    return this.prisma.product.update({
+    const result = await this.prisma.product.update({
       where: {
         ...where,
         branch: {
@@ -205,6 +210,10 @@ export class ProductService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Product", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -223,6 +232,8 @@ export class ProductService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Product", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

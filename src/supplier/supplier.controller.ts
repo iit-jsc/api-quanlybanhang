@@ -85,9 +85,7 @@ export class SupplierController {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.supplierService.deleteMany(
       {
-        id: {
-          in: deleteManyDto.ids,
-        },
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );

@@ -10,16 +10,13 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from "@nestjs/common";
 import { BranchService } from "./branch.service";
 import { CreateBranchDto, UpdateBranchDto } from "./dto/create-branch.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { CustomFileInterceptor } from "utils/Helps";
 import { RolesGuard } from "guards/roles.guard";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";

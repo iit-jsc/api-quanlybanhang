@@ -5,10 +5,15 @@ import { TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class PaymentMethodService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(
     params: {
@@ -40,7 +45,7 @@ export class PaymentMethodService {
   ) {
     const { data, where } = params;
 
-    return this.prisma.paymentMethod.update({
+    const result = await this.prisma.paymentMethod.update({
       where: {
         id: where.id,
         branchId: tokenPayload.branchId,
@@ -53,6 +58,10 @@ export class PaymentMethodService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "PaymentMethod", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async findUniq(where: Prisma.PaymentMethodWhereUniqueInput, tokenPayload: TokenPayload) {

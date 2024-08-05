@@ -6,16 +6,20 @@ import { CompensationSetting, Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { CreateCompensationEmployeeDto } from "src/compensation-employee/dto/compensation-employee.dto";
-import { COMPENSATION_APPLY_TO } from "enums/common.enum";
+import { ACTIVITY_LOG_TYPE, COMPENSATION_APPLY_TO } from "enums/common.enum";
+import { CommonService } from "src/common/common.service";
 
 @Injectable()
 export class EmployeeSalaryService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateEmployeeSalaryDto, tokenPayload: TokenPayload) {
     await this.createCompensation(data.isFulltime, { employeeId: data.employeeId }, tokenPayload);
 
-    return this.prisma.employeeSalary.create({
+    const result = await this.prisma.employeeSalary.create({
       data: {
         employeeId: data.employeeId,
         baseSalary: data.baseSalary,
@@ -24,6 +28,10 @@ export class EmployeeSalaryService {
         createdBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "EmployeeSalary", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async createCompensation(isFulltime: boolean, data: CreateCompensationEmployeeDto, tokenPayload: TokenPayload) {
@@ -59,7 +67,7 @@ export class EmployeeSalaryService {
   ) {
     const { where, data } = params;
 
-    return this.prisma.employeeSalary.update({
+    const result = await this.prisma.employeeSalary.update({
       data: {
         employeeId: data.employeeId,
         baseSalary: data.baseSalary,
@@ -72,6 +80,10 @@ export class EmployeeSalaryService {
         branchId: tokenPayload.branchId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "EmployeeSalary", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {

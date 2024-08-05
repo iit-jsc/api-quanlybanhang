@@ -6,10 +6,15 @@ import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { calculatePagination, generateSortCode } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class DiscountCodeService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreateDiscountCodeDto, tokenPayload: TokenPayload) {
     const discountCodeData = [];
@@ -25,7 +30,16 @@ export class DiscountCodeService {
       });
     }
 
-    return this.prisma.discountCode.createMany({ data: discountCodeData });
+    const discountCodes = await this.prisma.discountCode.createMany({ data: discountCodeData });
+
+    this.commonService.createActivityLog(
+      [data.discountIssueId],
+      "DiscountCode",
+      ACTIVITY_LOG_TYPE.CREATE,
+      tokenPayload,
+    );
+
+    return discountCodes;
   }
 
   async checkAmountValid(amount: number, discountIssueId: string) {
@@ -58,6 +72,8 @@ export class DiscountCodeService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "DiscountCode", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

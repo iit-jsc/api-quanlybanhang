@@ -1,17 +1,22 @@
 import { Injectable } from "@nestjs/common";
 import { CreateSupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
 import { Prisma } from "@prisma/client";
-import { TokenPayload } from "interfaces/common.interface";
-import { FindManyDto } from "utils/Common.dto";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class SupplierService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly commonService: CommonService,
+  ) {}
 
-  create(data: CreateSupplierDto, tokenPayload: TokenPayload) {
-    return this.prisma.supplier.create({
+  async create(data: CreateSupplierDto, tokenPayload: TokenPayload) {
+    const result = await this.prisma.supplier.create({
       data: {
         name: data.name,
         phone: data.phone,
@@ -25,9 +30,13 @@ export class SupplierService {
         branchId: tokenPayload.branchId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Supplier", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
-  update(
+  async update(
     params: {
       where: Prisma.SupplierWhereUniqueInput;
       data: UpdateSupplierDto;
@@ -36,7 +45,7 @@ export class SupplierService {
   ) {
     const { where, data } = params;
 
-    return this.prisma.supplier.update({
+    const result = await this.prisma.supplier.update({
       where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId },
       data: {
         name: data.name,
@@ -51,6 +60,10 @@ export class SupplierService {
         createdBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Supplier", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -130,10 +143,12 @@ export class SupplierService {
     });
   }
 
-  deleteMany(where: Prisma.SupplierWhereInput, tokenPayload: TokenPayload) {
-    return this.prisma.supplier.updateMany({
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+    const count = await this.prisma.supplier.updateMany({
       where: {
-        id: where.id,
+        id: {
+          in: data.ids,
+        },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -142,5 +157,9 @@ export class SupplierService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Supplier", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

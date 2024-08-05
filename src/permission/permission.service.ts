@@ -5,13 +5,18 @@ import { CreatePermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
 import { calculatePagination, roleBasedBranchFilter } from "utils/Helps";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class PermissionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async create(data: CreatePermissionDto, tokenPayload: TokenPayload) {
-    return this.prisma.permission.create({
+    const result = await this.prisma.permission.create({
       data: {
         name: data.name,
         description: data.description,
@@ -37,6 +42,10 @@ export class PermissionService {
         roles: true,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Permission", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -97,7 +106,7 @@ export class PermissionService {
   ) {
     const { where, data } = params;
 
-    return this.prisma.permission.update({
+    const result = await this.prisma.permission.update({
       data: {
         name: data.name,
         description: data.description,
@@ -116,6 +125,10 @@ export class PermissionService {
         branchId: tokenPayload.branchId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Permission", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async findUniq(where: Prisma.PermissionWhereUniqueInput, tokenPayload: TokenPayload) {
@@ -163,6 +176,8 @@ export class PermissionService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Permission", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

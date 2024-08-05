@@ -2,12 +2,13 @@ import * as bcrypt from "bcrypt";
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
-import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
-import { FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class UserService {
@@ -66,6 +67,8 @@ export class UserService {
           },
         },
       });
+
+      this.commonService.createActivityLog([user.id], "User", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
       return user;
     });
@@ -204,7 +207,7 @@ export class UserService {
         where.id,
       );
 
-    return this.prisma.user.update({
+    const result = await this.prisma.user.update({
       data: {
         name: data.name,
         code: data.code,
@@ -238,14 +241,18 @@ export class UserService {
         branchId: tokenPayload.branchId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "User", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
-  async deleteManyEmployee(where: Prisma.UserWhereInput, tokenPayload: TokenPayload) {
+  async deleteManyEmployee(data: DeleteManyDto, tokenPayload: TokenPayload) {
     await this.prisma.account.updateMany({
       where: {
         isPublic: true,
         user: {
-          ...where,
+          id: { in: data.ids },
           isPublic: true,
           branchId: tokenPayload.branchId,
         },
@@ -256,9 +263,9 @@ export class UserService {
       },
     });
 
-    return this.prisma.user.updateMany({
+    const count = await this.prisma.user.updateMany({
       where: {
-        ...where,
+        id: { in: data.ids },
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
@@ -267,5 +274,9 @@ export class UserService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "User", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

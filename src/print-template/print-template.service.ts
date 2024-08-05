@@ -3,10 +3,15 @@ import { Prisma } from "@prisma/client";
 import { TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { UpdatePrintTemplateDto } from "./dto/print-template.dto";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class PrintTemplateService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async update(
     params: {
@@ -16,7 +21,7 @@ export class PrintTemplateService {
   ) {
     const { data } = params;
 
-    return await this.prisma.printTemplate.upsert({
+    const result = await this.prisma.printTemplate.upsert({
       where: {
         shopId_type: {
           shopId: tokenPayload.shopId,
@@ -33,6 +38,10 @@ export class PrintTemplateService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "PrintTemplate", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async findUniq(where: Prisma.PrintTemplateWhereInput, tokenPayload: TokenPayload) {

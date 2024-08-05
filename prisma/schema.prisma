@@ -256,16 +256,15 @@ model MeasurementUnit {
 }
 
 model ActivityLog {
-  id               String   @id @default(uuid())
-  tableName        String
-  accountId        String
-  type             Int
-  affectedRecordId Int?
-  branchId         String
-  createdBy        String?
-  createdAt        DateTime @default(now())
-  account          Account  @relation(fields: [accountId], references: [id])
-  branch           Branch   @relation(fields: [branchId], references: [id])
+  id        String   @id @default(uuid())
+  tableName String
+  accountId String
+  type      String
+  recordIds Json?
+  branchId  String
+  createdAt DateTime @default(now())
+  account   Account  @relation(fields: [accountId], references: [id])
+  branch    Branch   @relation(fields: [branchId], references: [id])
 }
 
 model ProductType {

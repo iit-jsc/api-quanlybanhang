@@ -7,7 +7,7 @@ import { calculatePagination } from "utils/Helps";
 import { CreateCompensationSettingDto } from "./dto/compensation-setting.dto";
 import { CommonService } from "src/common/common.service";
 import { ACCOUNT_TYPE } from "enums/user.enum";
-import { COMPENSATION_APPLY_TO } from "enums/common.enum";
+import { ACTIVITY_LOG_TYPE, COMPENSATION_APPLY_TO } from "enums/common.enum";
 
 @Injectable()
 export class CompensationSettingService {
@@ -51,6 +51,13 @@ export class CompensationSettingService {
       })) as Prisma.CompensationEmployeeCreateManyInput[];
 
       await prisma.compensationEmployee.createMany({ data: compensationEmployeeData, skipDuplicates: true });
+
+      this.commonService.createActivityLog(
+        [compensationSetting.id],
+        "CompensationSetting",
+        ACTIVITY_LOG_TYPE.CREATE,
+        tokenPayload,
+      );
 
       return compensationSetting;
     });
@@ -133,6 +140,8 @@ export class CompensationSettingService {
           updatedBy: tokenPayload.accountId,
         },
       });
+
+      this.commonService.createActivityLog(data.ids, "CompensationSetting", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
       return { ...count, ids: data.ids } as DeleteManyResponse;
     });

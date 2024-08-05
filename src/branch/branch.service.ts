@@ -7,12 +7,14 @@ import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
 import { ShopService } from "src/shop/shop.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class BranchService {
   constructor(
     private readonly prisma: PrismaService,
     private shopService: ShopService,
+    private commonService: CommonService,
   ) {}
 
   async create(createBranchDto: CreateBranchDto, tokenPayload: TokenPayload) {
@@ -110,7 +112,7 @@ export class BranchService {
   ) {
     const { where, data } = params;
 
-    return this.prisma.branch.update({
+    const branch = await this.prisma.branch.update({
       data: {
         name: data.name,
         address: data.address,
@@ -138,6 +140,10 @@ export class BranchService {
         },
       },
     });
+
+    this.commonService.createActivityLog([branch.id], "Branch", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return branch;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {

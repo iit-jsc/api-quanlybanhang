@@ -1,6 +1,7 @@
+import { ACTIVITY_LOG_TYPE } from "./../../enums/common.enum";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { AnyObject } from "interfaces/common.interface";
+import { AnyObject, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { ConfirmPhoneDto } from "src/shop/dto/confirm-phone.dto";
 import { CustomHttpException } from "utils/ApiErrors";
@@ -328,5 +329,22 @@ export class CommonService {
     });
 
     return list.map((item) => item.id);
+  }
+
+  async createActivityLog(
+    recordIds: string[],
+    tableName: Prisma.ModelName,
+    type: ACTIVITY_LOG_TYPE,
+    tokenPayload: TokenPayload,
+  ) {
+    return this.prisma.activityLog.create({
+      data: {
+        tableName,
+        type,
+        accountId: tokenPayload.accountId,
+        recordIds,
+        branchId: tokenPayload.branchId,
+      },
+    });
   }
 }

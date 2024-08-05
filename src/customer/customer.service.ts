@@ -6,6 +6,7 @@ import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class CustomerService {
@@ -24,7 +25,7 @@ export class CustomerService {
     if (data.customerTypeId)
       await this.commonService.findByIdWithShop(data.customerTypeId, "CustomerType", tokenPayload.shopId);
 
-    return await this.prisma.customer.create({
+    const customer = await this.prisma.customer.create({
       data: {
         name: data.name,
         endow: data.endow,
@@ -60,6 +61,10 @@ export class CustomerService {
         },
       },
     });
+
+    this.commonService.createActivityLog([customer.id], "Customer", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return customer;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -209,7 +214,7 @@ export class CustomerService {
     if (data.customerTypeId)
       await this.commonService.findByIdWithShop(data.customerTypeId, "CustomerType", tokenPayload.shopId);
 
-    return this.prisma.customer.update({
+    const customer = await this.prisma.customer.update({
       where: {
         ...where,
         isPublic: true,
@@ -247,6 +252,10 @@ export class CustomerService {
         },
       },
     });
+
+    this.commonService.createActivityLog([customer.id], "Customer", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return customer;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -266,6 +275,8 @@ export class CustomerService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Customer", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

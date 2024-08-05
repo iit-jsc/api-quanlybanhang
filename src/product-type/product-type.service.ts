@@ -7,6 +7,7 @@ import { calculatePagination } from "utils/Helps";
 import { CreateProductTypeDto, UpdateProductTypeDto } from "./dto/product-type.dto";
 import { FindManyProductTypeDto } from "./dto/find-many.dto";
 import { DeleteManyDto } from "utils/Common.dto";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class ProductTypeService {
@@ -18,7 +19,7 @@ export class ProductTypeService {
   async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
     await this.commonService.checkDataExistingInBranch({ slug: data.slug }, "ProductType", tokenPayload.branchId);
 
-    return this.prisma.productType.create({
+    const result = await this.prisma.productType.create({
       data: {
         branch: {
           connect: {
@@ -35,6 +36,10 @@ export class ProductTypeService {
         },
       },
     });
+
+    this.commonService.createActivityLog([result.id], "ProductType", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyProductTypeDto) {
@@ -112,7 +117,7 @@ export class ProductTypeService {
       where.id,
     );
 
-    return this.prisma.productType.update({
+    const result = await this.prisma.productType.update({
       where: {
         ...where,
         isPublic: true,
@@ -129,6 +134,10 @@ export class ProductTypeService {
         },
       },
     });
+
+    this.commonService.createActivityLog([result.id], "ProductType", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -144,6 +153,8 @@ export class ProductTypeService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "ProductType", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

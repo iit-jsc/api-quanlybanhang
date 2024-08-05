@@ -1,12 +1,17 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
-import { UpdatePointSettingDto } from './dto/point-setting.dto';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { TokenPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
+import { UpdatePointSettingDto } from "./dto/point-setting.dto";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class PointSettingService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async update(
     params: {
@@ -16,7 +21,7 @@ export class PointSettingService {
   ) {
     const { data } = params;
 
-    return this.prisma.pointSetting.upsert({
+    const result = await this.prisma.pointSetting.upsert({
       where: {
         shopId: tokenPayload.shopId,
       },
@@ -34,6 +39,10 @@ export class PointSettingService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "PointSetting", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async findUniq(tokenPayload: TokenPayload) {

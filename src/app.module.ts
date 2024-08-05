@@ -54,6 +54,7 @@ import { CompensationEmployeeModule } from './compensation-employee/compensation
 import { QrSettingModule } from './qr-setting/qr-setting.module';
 import { FutureUsageSettingModule } from './future-usage-setting/future-usage-setting.module';
 import { PaymentMethodModule } from './payment-method/payment-method.module';
+import { ActivityLogModule } from './activity-log/activity-log.module';
 
 @Module({
   imports: [
@@ -129,6 +130,7 @@ import { PaymentMethodModule } from './payment-method/payment-method.module';
     QrSettingModule,
     FutureUsageSettingModule,
     PaymentMethodModule,
+    ActivityLogModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

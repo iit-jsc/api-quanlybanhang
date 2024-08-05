@@ -7,15 +7,20 @@ import { PrismaService } from "nestjs-prisma";
 import { ACCOUNT_TYPE } from "enums/user.enum";
 import { CustomHttpException } from "utils/ApiErrors";
 import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class EmployeeScheduleService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async registerSchedule(data: RegisterScheduleDto, tokenPayload: TokenPayload) {
     const workShift = await this.getAndCheckLimitWorkShift(data.workShiftId);
 
-    return this.prisma.employeeSchedule.create({
+    const result = await this.prisma.employeeSchedule.create({
       data: {
         startTime: workShift.startTime,
         endTime: workShift.endTime,
@@ -26,6 +31,10 @@ export class EmployeeScheduleService {
         createdBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "EmployeeSchedule", ACTIVITY_LOG_TYPE.REGISTER, tokenPayload);
+
+    return result;
   }
 
   async update(
@@ -41,7 +50,7 @@ export class EmployeeScheduleService {
     if (tokenPayload.type === ACCOUNT_TYPE.STAFF && validIds.length == 0)
       throw new CustomHttpException(HttpStatus.CONFLICT, "Không thể cập nhật dữ liệu này!");
 
-    return this.prisma.employeeSchedule.update({
+    const result = await this.prisma.employeeSchedule.update({
       where: {
         id: where.id,
         isPublic: true,
@@ -55,6 +64,10 @@ export class EmployeeScheduleService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog([result.id], "EmployeeSchedule", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -183,6 +196,8 @@ export class EmployeeScheduleService {
       },
     });
 
+    this.commonService.createActivityLog(validIds, "EmployeeSchedule", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+
     return isStaff ? { ...count, ids: validIds, notValidIds } : { ...count, ids: data.ids };
   }
 
@@ -198,8 +213,6 @@ export class EmployeeScheduleService {
         id: true,
       },
     });
-
-    console.log(employeeSchedules);
 
     return employeeSchedules.map((employeeSchedule) => employeeSchedule.id);
   }

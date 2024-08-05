@@ -16,7 +16,7 @@ import { ToppingService } from "./topping.service";
 import { TokenPayload } from "interfaces/common.interface";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { CreateToppingDto, UpdateToppingDto } from "./dto/topping.dto";
-import { DeleteManyDto, DeleteManyWithIdentifierDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";

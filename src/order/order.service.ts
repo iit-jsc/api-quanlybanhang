@@ -14,7 +14,7 @@ import { DETAIL_ORDER_STATUS, ORDER_STATUS_COMMON, ORDER_TYPE, TRANSACTION_TYPE 
 import { calculatePagination, generateSortCode } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 import { SaveOrderDto } from "./dto/save-order.dto";
-import { DISCOUNT_TYPE, PROMOTION_TYPE } from "enums/common.enum";
+import { ACTIVITY_LOG_TYPE, DISCOUNT_TYPE, PROMOTION_TYPE } from "enums/common.enum";
 import { OrderGateway } from "src/gateway/order.gateway";
 import { TableGateway } from "src/gateway/table.gateway";
 import { PointAccumulationService } from "src/point-accumulation/point-accumulation.service";
@@ -280,6 +280,8 @@ export class OrderService {
       // Gửi socket
       await this.orderGateway.handleModifyOrder(order);
 
+      this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
       return order;
     });
   }
@@ -303,6 +305,8 @@ export class OrderService {
 
     // Bắn socket cho các người dùng
     await this.tableGateway.handleModifyTable(table);
+
+    this.commonService.createActivityLog([table.id], "Table", ACTIVITY_LOG_TYPE.CREATE_TO_TABLE, tokenPayload);
 
     return table;
   }
@@ -553,6 +557,8 @@ export class OrderService {
         ]);
       }
 
+      this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
+
       return order;
     });
 
@@ -601,6 +607,8 @@ export class OrderService {
           orderDetails: true,
         },
       });
+
+      this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
       return order;
     });
@@ -896,6 +904,8 @@ export class OrderService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Order", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return {
       ...count,
@@ -1209,6 +1219,8 @@ export class OrderService {
           ),
         ]);
       }
+
+      this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
 
       return await prisma.order.update({
         where: { id: where.id, isPublic: true },

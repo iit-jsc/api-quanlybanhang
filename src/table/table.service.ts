@@ -1,11 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { CreateTableDto, UpdateTableDto } from "./dto/table.dto";
 import { PrismaService } from "nestjs-prisma";
-import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
 import { calculatePagination } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
+import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class TableService {
@@ -19,7 +20,7 @@ export class TableService {
 
     await this.commonService.findByIdWithBranch(data.areaId, "Area", tokenPayload.branchId);
 
-    return await this.prisma.table.create({
+    const result = await this.prisma.table.create({
       data: {
         ...(data.code && {
           code: data.code,
@@ -45,6 +46,10 @@ export class TableService {
         },
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Table", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
@@ -215,7 +220,7 @@ export class TableService {
 
     if (data.areaId) await this.commonService.findByIdWithBranch(data.areaId, "Area", tokenPayload.branchId);
 
-    return this.prisma.table.update({
+    const result = await this.prisma.table.update({
       where: {
         id: where.id,
         isPublic: true,
@@ -241,10 +246,14 @@ export class TableService {
         },
       },
     });
+
+    this.commonService.createActivityLog([result.id], "Table", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+
+    return result;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    return this.prisma.table.updateMany({
+    const count = await this.prisma.table.updateMany({
       where: {
         id: {
           in: data.ids,
@@ -260,5 +269,9 @@ export class TableService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(data.ids, "Table", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+
+    return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 }

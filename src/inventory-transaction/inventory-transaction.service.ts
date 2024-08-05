@@ -2,15 +2,19 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { CreateInventoryTransactionDto, UpdateInventoryTransactionDto } from "./dto/inventory-transaction.dto";
 import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { INVENTORY_TRANSACTION_STATUS, INVENTORY_TRANSACTION_TYPE } from "enums/common.enum";
+import { ACTIVITY_LOG_TYPE, INVENTORY_TRANSACTION_STATUS, INVENTORY_TRANSACTION_TYPE } from "enums/common.enum";
 import { InventoryTransactionDetail, Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
+import { CommonService } from "src/common/common.service";
 
 @Injectable()
 export class InventoryTransactionService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private commonService: CommonService,
+  ) {}
 
   async checkQuantityValid(quantity: number, productId: string, warehouseId: string) {
     const stock = await this.prisma.stock.findUnique({
@@ -68,7 +72,7 @@ export class InventoryTransactionService {
   }
 
   async create(data: CreateInventoryTransactionDto, tokenPayload: TokenPayload) {
-    return await this.prisma.$transaction(async (prisma) => {
+    const result = await this.prisma.$transaction(async (prisma) => {
       const inventoryTransaction = await prisma.inventoryTransaction.create({
         data: {
           status: data.status,
@@ -99,6 +103,10 @@ export class InventoryTransactionService {
 
       return inventoryTransaction;
     });
+
+    this.commonService.createActivityLog([result.id], "InventoryTransaction", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+
+    return result;
   }
 
   async update(
@@ -128,7 +136,7 @@ export class InventoryTransactionService {
       if (data.status === INVENTORY_TRANSACTION_STATUS.PROCESSED)
         await this.handleProcessedTransaction(data, prisma, tokenPayload);
 
-      return await prisma.inventoryTransaction.update({
+      const result = await prisma.inventoryTransaction.update({
         where: {
           id: params.where.id,
           branchId: tokenPayload.branchId,
@@ -163,6 +171,8 @@ export class InventoryTransactionService {
           updatedBy: tokenPayload.accountId,
         },
       });
+
+      this.commonService.createActivityLog([result.id], "InventoryTransaction", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
     });
   }
 
@@ -346,6 +356,8 @@ export class InventoryTransactionService {
         updatedBy: tokenPayload.accountId,
       },
     });
+
+    this.commonService.createActivityLog(idsToDelete, "InventoryTransaction", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: idsToDelete, notValidIds: notDeletedIds } as DeleteManyResponse;
   }
