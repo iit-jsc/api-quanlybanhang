@@ -1,19 +1,13 @@
-import {
-  IsEmail,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-} from 'class-validator';
-import { PartialType } from '@nestjs/swagger';
-import { IsVietnamesePhoneNumber } from 'utils/CustomValidates';
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { PartialType } from "@nestjs/swagger";
+import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateSupplierDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   name: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsVietnamesePhoneNumber()
   phone: string;
 
@@ -37,7 +31,7 @@ export class CreateSupplierDto {
   @IsVietnamesePhoneNumber()
   representativePhone: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   supplierTypeId: string;
 }

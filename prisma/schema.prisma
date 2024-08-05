@@ -131,6 +131,7 @@ model Account {
   updaterFutureUsageSetting   FutureUsageSetting[]   @relation("updater")
   creatorPaymentMethod        PaymentMethod[]        @relation("creator")
   updaterPaymentMethod        PaymentMethod[]        @relation("updater")
+  authTokens                  AuthToken[]
 }
 
 model User {
@@ -1094,6 +1095,7 @@ model PaymentMethod {
 
 model AuthToken {
   accountId    String
+  account      Account?  @relation(fields: [accountId], references: [id])
   ip           String?
   userAgent    String?
   lastLogin    DateTime?
