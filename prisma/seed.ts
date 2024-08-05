@@ -6,18 +6,10 @@ async function main() {
   await prisma.businessType.createMany({
     data: [
       {
-        name: "Quán cà phê phục vụ tại bàn",
+        name: "Quán cà phê",
         icon: null,
-        code: "ca-phe-tai-ban",
-        description: "Quán cà phê phục vụ đồ uống và đồ ăn nhẹ tại chỗ.",
-        isPublic: true,
-        type: 1,
-      },
-      {
-        name: "Quán cà phê mang đi",
-        icon: null,
-        code: "ca-phe-mang-di",
-        description: "Quán cà phê phục vụ đồ uống và đồ ăn nhẹ mang đi.",
+        code: "ca-phe",
+        description: "Quán cà phê",
         isPublic: true,
         type: 1,
       },

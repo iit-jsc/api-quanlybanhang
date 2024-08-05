@@ -143,7 +143,7 @@ model User {
   address               String?                @db.Text
   cardId                String?
   cardDate              DateTime?
-  cardAddress           String?
+  cardAddress           String?                @db.Text
   birthday              DateTime?
   sex                   Int?
   startDate             DateTime?
@@ -191,7 +191,7 @@ model Shop {
   name               String
   phone              String?
   email              String?
-  address            String?
+  address            String?             @db.Text
   photoURL           String?             @db.Text
   domain             Json?
   isPublic           Boolean?            @default(true)

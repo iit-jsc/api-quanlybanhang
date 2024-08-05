@@ -63,19 +63,19 @@ export class ReportService {
 
       switch (timeType) {
         case TIME_TYPE.DAY:
-          dateFormat = "YYYY-MM-DD";
+          dateFormat = "%Y-%m-%d";
           break;
         case TIME_TYPE.MONTH:
-          dateFormat = "YYYY-MM";
+          dateFormat = "%Y-%m";
           break;
         case TIME_TYPE.YEAR:
-          dateFormat = "YYYY";
+          dateFormat = "%Y";
           break;
         case TIME_TYPE.HOUR:
-          dateFormat = "YYYY-MM-DD";
+          dateFormat = "%Y-%m-%d";
           timeCondition = `
-              AND EXTRACT(HOUR FROM "o"."createdAt") >= ${hourStart}
-              AND EXTRACT(HOUR FROM "o"."createdAt") <= ${hourEnd}
+              AND HOUR(o.createdAt) >= ${hourStart}
+              AND HOUR(o.createdAt) <= ${hourEnd}
             `;
           break;
         default:
@@ -84,20 +84,20 @@ export class ReportService {
 
       const revenueData = await this.prisma.$queryRaw`
       SELECT 
-        TO_CHAR("o"."createdAt", ${dateFormat}) AS period, 
+        DATE_FORMAT(o.createdAt, ${dateFormat}) AS period, 
         SUM(
           GREATEST(
-            ("od"."productPrice" + COALESCE("od"."toppingPrice", 0)) * "od"."amount" - "o"."promotionValue"  - "o"."discountValue" - "o"."convertedPointValue",
+            (od.productPrice + COALESCE(od.toppingPrice, 0)) * od.amount - o.promotionValue - o.discountValue - o.convertedPointValue - o.customerDiscountValue,
             0
           )
         ) AS revenue
-      FROM "Order" "o"
-      JOIN "OrderDetail" "od" ON "o"."id" = "od"."orderId"
-      WHERE "o"."isPaid" = true
-        AND "o"."isPublic" = true
-        AND "o"."branchId" = ${tokenPayload.branchId}
-        AND "o"."createdAt" >= ${startDateString}::timestamp
-        AND "o"."createdAt" <= ${endDateString}::timestamp
+      FROM \`Order\` o
+      JOIN \`OrderDetail\` od ON o.id = od.orderId
+      WHERE o.isPaid = true
+        AND o.isPublic = true
+        AND o.branchId = ${tokenPayload.branchId}
+        AND o.createdAt >= ${startDateString}
+        AND o.createdAt <= ${endDateString}
         ${Prisma.sql([timeCondition])}
       GROUP BY period
       ORDER BY period;
