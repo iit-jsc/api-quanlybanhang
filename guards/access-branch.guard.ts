@@ -7,7 +7,7 @@ import { PrismaService } from "nestjs-prisma";
 import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
-export class JwtAuthGuard implements CanActivate {
+export class AccessBranchGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
@@ -47,8 +47,7 @@ export class JwtAuthGuard implements CanActivate {
         },
       });
 
-      if (!account || !payload.branchId || !account.branches?.[0]?.shopId)
-        throw new CustomHttpException(HttpStatus.CONFLICT, "Thông tin đăng nhập không hợp lệ!");
+      if (!account) throw new CustomHttpException(HttpStatus.CONFLICT, "Thông tin đăng nhập không hợp lệ!");
 
       request.tokenPayload = {
         ...payload,

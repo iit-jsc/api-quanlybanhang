@@ -52,7 +52,7 @@ export class CompensationSettingService {
 
       await prisma.compensationEmployee.createMany({ data: compensationEmployeeData, skipDuplicates: true });
 
-      this.commonService.createActivityLog(
+      await this.commonService.createActivityLog(
         [compensationSetting.id],
         "CompensationSetting",
         ACTIVITY_LOG_TYPE.CREATE,
@@ -141,7 +141,12 @@ export class CompensationSettingService {
         },
       });
 
-      this.commonService.createActivityLog(data.ids, "CompensationSetting", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+      await this.commonService.createActivityLog(
+        data.ids,
+        "CompensationSetting",
+        ACTIVITY_LOG_TYPE.DELETE,
+        tokenPayload,
+      );
 
       return { ...count, ids: data.ids } as DeleteManyResponse;
     });

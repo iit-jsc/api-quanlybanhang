@@ -33,7 +33,12 @@ export class EmployeeGroupService {
       },
     });
 
-    this.commonService.createActivityLog([employeeGroup.id], "EmployeeGroup", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [employeeGroup.id],
+      "EmployeeGroup",
+      ACTIVITY_LOG_TYPE.CREATE,
+      tokenPayload,
+    );
 
     return employeeGroup;
   }
@@ -108,7 +113,12 @@ export class EmployeeGroupService {
       },
     });
 
-    this.commonService.createActivityLog([employeeGroup.id], "EmployeeGroup", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [employeeGroup.id],
+      "EmployeeGroup",
+      ACTIVITY_LOG_TYPE.UPDATE,
+      tokenPayload,
+    );
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -126,7 +136,7 @@ export class EmployeeGroupService {
       },
     });
 
-    this.commonService.createActivityLog(data.ids, "EmployeeGroup", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(data.ids, "EmployeeGroup", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

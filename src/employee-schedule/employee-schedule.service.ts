@@ -32,7 +32,12 @@ export class EmployeeScheduleService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "EmployeeSchedule", ACTIVITY_LOG_TYPE.REGISTER, tokenPayload);
+    await this.commonService.createActivityLog(
+      [result.id],
+      "EmployeeSchedule",
+      ACTIVITY_LOG_TYPE.REGISTER,
+      tokenPayload,
+    );
 
     return result;
   }
@@ -65,7 +70,7 @@ export class EmployeeScheduleService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "EmployeeSchedule", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "EmployeeSchedule", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return result;
   }
@@ -196,7 +201,7 @@ export class EmployeeScheduleService {
       },
     });
 
-    this.commonService.createActivityLog(validIds, "EmployeeSchedule", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(validIds, "EmployeeSchedule", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return isStaff ? { ...count, ids: validIds, notValidIds } : { ...count, ids: data.ids };
   }

@@ -3,7 +3,7 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { AnyObject, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { ConfirmPhoneDto } from "src/shop/dto/confirm-phone.dto";
+import { ConfirmEmailDto } from "src/shop/dto/confirm-email.dto";
 import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
@@ -151,21 +151,21 @@ export class CommonService {
     if (!table) throw new CustomHttpException(HttpStatus.CONFLICT, "Bàn này không sẵn sàng!");
   }
 
-  async confirmOTP(data: ConfirmPhoneDto) {
-    const otp = await this.prisma.phoneVerification.findFirst({
+  async confirmOTP(data: ConfirmEmailDto) {
+    const otp = await this.prisma.contactVerification.findFirst({
       where: {
         code: data.code,
-        phone: data.phone,
+        email: data.email,
         isUsed: false,
         createdAt: {
-          gt: new Date(Date.now() - 120 * 1000),
+          gt: new Date(Date.now() - 240 * 1000),
         },
       },
     });
 
     if (!otp) throw new CustomHttpException(HttpStatus.BAD_REQUEST, "Mã OTP không hợp lệ!");
 
-    await this.prisma.phoneVerification.update({
+    await this.prisma.contactVerification.update({
       where: { id: otp.id },
       data: { isUsed: true },
     });
@@ -341,9 +341,17 @@ export class CommonService {
       data: {
         tableName,
         type,
-        accountId: tokenPayload.accountId,
         recordIds,
-        branchId: tokenPayload.branchId,
+        account: {
+          connect: {
+            id: tokenPayload.accountId,
+          },
+        },
+        branch: {
+          connect: {
+            id: tokenPayload.branchId,
+          },
+        },
       },
     });
   }

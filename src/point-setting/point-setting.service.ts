@@ -40,7 +40,7 @@ export class PointSettingService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "PointSetting", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "PointSetting", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return result;
   }

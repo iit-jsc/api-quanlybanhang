@@ -31,7 +31,7 @@ export class SupplierService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "Supplier", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "Supplier", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
     return result;
   }
@@ -61,7 +61,7 @@ export class SupplierService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "Supplier", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "Supplier", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return result;
   }
@@ -158,7 +158,7 @@ export class SupplierService {
       },
     });
 
-    this.commonService.createActivityLog(data.ids, "Supplier", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(data.ids, "Supplier", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

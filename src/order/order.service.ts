@@ -280,7 +280,7 @@ export class OrderService {
       // Gửi socket
       await this.orderGateway.handleModifyOrder(order);
 
-      this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+      await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
       return order;
     });
@@ -306,7 +306,7 @@ export class OrderService {
     // Bắn socket cho các người dùng
     await this.tableGateway.handleModifyTable(table);
 
-    this.commonService.createActivityLog([table.id], "Table", ACTIVITY_LOG_TYPE.CREATE_TO_TABLE, tokenPayload);
+    await this.commonService.createActivityLog([table.id], "Table", ACTIVITY_LOG_TYPE.CREATE_TO_TABLE, tokenPayload);
 
     return table;
   }
@@ -557,7 +557,7 @@ export class OrderService {
         ]);
       }
 
-      this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
+      await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
 
       return order;
     });
@@ -608,7 +608,7 @@ export class OrderService {
         },
       });
 
-      this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+      await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
       return order;
     });
@@ -905,7 +905,7 @@ export class OrderService {
       },
     });
 
-    this.commonService.createActivityLog(data.ids, "Order", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(data.ids, "Order", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return {
       ...count,
@@ -1220,7 +1220,7 @@ export class OrderService {
         ]);
       }
 
-      this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
+      await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
 
       return await prisma.order.update({
         where: { id: where.id, isPublic: true },

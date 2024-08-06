@@ -164,7 +164,12 @@ export class TableSalaryService {
         data: detailTableSalaryData,
       });
 
-      this.commonService.createActivityLog([tableSalary.id], "TableSalary", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+      await this.commonService.createActivityLog(
+        [tableSalary.id],
+        "TableSalary",
+        ACTIVITY_LOG_TYPE.CREATE,
+        tokenPayload,
+      );
 
       return tableSalary;
     });
@@ -295,7 +300,12 @@ export class TableSalaryService {
         }),
       );
 
-      this.commonService.createActivityLog([tableSalary.id], "TableSalary", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+      await this.commonService.createActivityLog(
+        [tableSalary.id],
+        "TableSalary",
+        ACTIVITY_LOG_TYPE.UPDATE,
+        tokenPayload,
+      );
 
       return tableSalary;
     });
@@ -323,7 +333,7 @@ export class TableSalaryService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "TableSalary", ACTIVITY_LOG_TYPE.CONFIRM, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "TableSalary", ACTIVITY_LOG_TYPE.CONFIRM, tokenPayload);
 
     return result;
   }
@@ -346,7 +356,7 @@ export class TableSalaryService {
       },
     });
 
-    this.commonService.createActivityLog(validIds, "TableSalary", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(validIds, "TableSalary", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: validIds, notValidIds } as DeleteManyResponse;
   }

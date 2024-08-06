@@ -4,12 +4,11 @@ import { AuthService } from "./auth.service";
 import { AccessBranchDto } from "./dto/access-branch.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
-import { ConfirmPhoneDto } from "src/shop/dto/confirm-phone.dto";
-import { VerifyPhoneDto } from "src/shop/dto/verify-phone.dto";
+import { VerifyContactDto } from "src/shop/dto/verify-contact.dto";
 import { CustomHttpException } from "utils/ApiErrors";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangeAvatarDto } from "./dto/change-information.dto";
-import axios from "axios";
+import { AccessBranchGuard } from "guards/access-branch.guard";
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -34,17 +33,17 @@ export class AuthController {
 
   @Post("/access-branch")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(AccessBranchGuard)
   async accessBranch(@Body() accessBranchDto: AccessBranchDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.authService.accessBranch({ ...accessBranchDto }, tokenPayload, req);
   }
 
-  @Post("/verify-phone")
+  @Post("/verify-contact")
   @HttpCode(HttpStatus.OK)
-  verifyPhone(@Body() verifyPhoneDto: VerifyPhoneDto) {
-    return this.authService.verifyPhone(verifyPhoneDto);
+  verifyContact(@Body() verifyContactDto: VerifyContactDto) {
+    return this.authService.verifyContact(verifyContactDto);
   }
 
   @Post("/logout")

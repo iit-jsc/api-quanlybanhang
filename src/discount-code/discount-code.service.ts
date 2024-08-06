@@ -32,7 +32,7 @@ export class DiscountCodeService {
 
     const discountCodes = await this.prisma.discountCode.createMany({ data: discountCodeData });
 
-    this.commonService.createActivityLog(
+    await this.commonService.createActivityLog(
       [data.discountIssueId],
       "DiscountCode",
       ACTIVITY_LOG_TYPE.CREATE,
@@ -73,7 +73,7 @@ export class DiscountCodeService {
       },
     });
 
-    this.commonService.createActivityLog(data.ids, "DiscountCode", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(data.ids, "DiscountCode", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

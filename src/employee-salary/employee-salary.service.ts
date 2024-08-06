@@ -29,7 +29,7 @@ export class EmployeeSalaryService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "EmployeeSalary", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "EmployeeSalary", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
     return result;
   }
@@ -81,7 +81,7 @@ export class EmployeeSalaryService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "EmployeeSalary", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "EmployeeSalary", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return result;
   }

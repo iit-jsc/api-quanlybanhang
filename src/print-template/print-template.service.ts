@@ -39,7 +39,7 @@ export class PrintTemplateService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "PrintTemplate", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "PrintTemplate", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return result;
   }

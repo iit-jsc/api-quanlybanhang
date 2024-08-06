@@ -59,7 +59,7 @@ export class PaymentMethodService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "PaymentMethod", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "PaymentMethod", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return result;
   }

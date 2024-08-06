@@ -37,7 +37,12 @@ export class DiscountIssueService {
       },
     });
 
-    this.commonService.createActivityLog([discountIssue.id], "DiscountIssue", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [discountIssue.id],
+      "DiscountIssue",
+      ACTIVITY_LOG_TYPE.CREATE,
+      tokenPayload,
+    );
 
     return discountIssue;
   }
@@ -78,7 +83,12 @@ export class DiscountIssueService {
       where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId },
     });
 
-    this.commonService.createActivityLog([discountIssue.id], "DiscountIssue", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [discountIssue.id],
+      "DiscountIssue",
+      ACTIVITY_LOG_TYPE.UPDATE,
+      tokenPayload,
+    );
 
     return discountIssue;
   }
@@ -132,7 +142,7 @@ export class DiscountIssueService {
       },
     });
 
-    this.commonService.createActivityLog(data.ids, "DiscountIssue", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(data.ids, "DiscountIssue", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

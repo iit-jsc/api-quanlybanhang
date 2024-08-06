@@ -36,7 +36,7 @@ export class MeasurementUnitService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "MeasurementUnit", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "MeasurementUnit", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
     return result;
   }
@@ -123,7 +123,7 @@ export class MeasurementUnitService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "MeasurementUnit", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "MeasurementUnit", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return result;
   }
@@ -143,7 +143,7 @@ export class MeasurementUnitService {
       },
     });
 
-    this.commonService.createActivityLog(data.ids, "MeasurementUnit", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog(data.ids, "MeasurementUnit", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

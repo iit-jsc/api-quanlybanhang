@@ -264,8 +264,8 @@ model ActivityLog {
   recordIds Json?
   branchId  String
   createdAt DateTime @default(now())
-  account   Account  @relation(fields: [accountId], references: [id])
-  branch    Branch   @relation(fields: [branchId], references: [id])
+  account   Account? @relation(fields: [accountId], references: [id])
+  branch    Branch?  @relation(fields: [branchId], references: [id])
 }
 
 model ProductType {
@@ -1031,10 +1031,11 @@ model EmployeeSalary {
   updater    Account? @relation("updater", fields: [updatedBy], references: [id])
 }
 
-model PhoneVerification {
+model ContactVerification {
   id        String   @id @default(uuid())
   code      String
-  phone     String
+  phone     String?
+  email     String?
   isUsed    Boolean  @default(false)
   createdAt DateTime @default(now())
 }

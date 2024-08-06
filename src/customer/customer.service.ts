@@ -62,7 +62,7 @@ export class CustomerService {
       },
     });
 
-    this.commonService.createActivityLog([customer.id], "Customer", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog([customer.id], "Customer", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
     return customer;
   }
@@ -253,7 +253,7 @@ export class CustomerService {
       },
     });
 
-    this.commonService.createActivityLog([customer.id], "Customer", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([customer.id], "Customer", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return customer;
   }
@@ -276,7 +276,7 @@ export class CustomerService {
       },
     });
 
-    this.commonService.createActivityLog(data.ids, "Customer", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(data.ids, "Customer", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

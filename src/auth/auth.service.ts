@@ -15,7 +15,7 @@ import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
 import { AccessBranchDto } from "./dto/access-branch.dto";
 import { AnyObject, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
-import { VerifyPhoneDto } from "src/shop/dto/verify-phone.dto";
+import { VerifyContactDto } from "src/shop/dto/verify-contact.dto";
 import { ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { TransporterService } from "src/transporter/transporter.service";
@@ -119,12 +119,12 @@ export class AuthService {
   async loginForCustomer(data: LoginForCustomerDto) {
     await this.commonService.confirmOTP({
       code: data.code,
-      phone: data.phone,
+      email: data.email,
     });
 
     const customer = await this.prisma.customer.findFirstOrThrow({
       where: {
-        phone: data.phone,
+        email: data.email,
         isPublic: true,
         shop: {
           id: data.shopId,
@@ -180,14 +180,14 @@ export class AuthService {
     };
   }
 
-  async verifyPhone(data: VerifyPhoneDto) {
+  async verifyContact(data: VerifyContactDto) {
     const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
 
     let user = null;
 
     if (data.isCustomer) {
       user = await this.prisma.customer.findFirst({
-        where: { phone: data.phone, email: { not: null } },
+        where: { OR: [{ phone: data.phone }, { email: data.email }], email: { not: null } },
         select: { id: true, email: true },
       });
     } else {
@@ -197,10 +197,12 @@ export class AuthService {
       });
     }
 
+    if (!user) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin người dùng!");
+
     await this.transporterService.sendOTP(user?.email, otp);
 
-    await this.prisma.phoneVerification.create({
-      data: { code: otp, phone: data.phone },
+    await this.prisma.contactVerification.create({
+      data: { code: otp, ...(data.phone && { phone: data.phone }), ...(data.email && { email: data.email }) },
     });
 
     return user.email;

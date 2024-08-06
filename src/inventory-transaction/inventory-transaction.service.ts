@@ -104,7 +104,12 @@ export class InventoryTransactionService {
       return inventoryTransaction;
     });
 
-    this.commonService.createActivityLog([result.id], "InventoryTransaction", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [result.id],
+      "InventoryTransaction",
+      ACTIVITY_LOG_TYPE.CREATE,
+      tokenPayload,
+    );
 
     return result;
   }
@@ -172,7 +177,12 @@ export class InventoryTransactionService {
         },
       });
 
-      this.commonService.createActivityLog([result.id], "InventoryTransaction", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+      await this.commonService.createActivityLog(
+        [result.id],
+        "InventoryTransaction",
+        ACTIVITY_LOG_TYPE.UPDATE,
+        tokenPayload,
+      );
     });
   }
 
@@ -357,7 +367,12 @@ export class InventoryTransactionService {
       },
     });
 
-    this.commonService.createActivityLog(idsToDelete, "InventoryTransaction", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(
+      idsToDelete,
+      "InventoryTransaction",
+      ACTIVITY_LOG_TYPE.DELETE,
+      tokenPayload,
+    );
 
     return { ...count, ids: idsToDelete, notValidIds: notDeletedIds } as DeleteManyResponse;
   }

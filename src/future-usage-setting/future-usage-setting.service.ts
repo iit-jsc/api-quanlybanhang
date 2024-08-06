@@ -40,7 +40,7 @@ export class FutureUsageSettingService {
       },
     });
 
-    this.commonService.createActivityLog(
+    await this.commonService.createActivityLog(
       [result.futureCode],
       "FutureUsageSetting",
       ACTIVITY_LOG_TYPE.UPDATE,

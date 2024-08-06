@@ -29,7 +29,7 @@ export class WorkShiftService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "WorkShift", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "WorkShift", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
 
     return result;
   }
@@ -131,7 +131,7 @@ export class WorkShiftService {
       },
     });
 
-    this.commonService.createActivityLog([result.id], "WorkShift", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([result.id], "WorkShift", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return result;
   }
@@ -151,7 +151,7 @@ export class WorkShiftService {
       },
     });
 
-    this.commonService.createActivityLog(data.ids, "WorkShift", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(data.ids, "WorkShift", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }

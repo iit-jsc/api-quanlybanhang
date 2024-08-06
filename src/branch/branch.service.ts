@@ -141,7 +141,7 @@ export class BranchService {
       },
     });
 
-    this.commonService.createActivityLog([branch.id], "Branch", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog([branch.id], "Branch", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
 
     return branch;
   }

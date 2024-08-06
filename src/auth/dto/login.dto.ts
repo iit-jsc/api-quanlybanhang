@@ -1,5 +1,5 @@
 import { Transform, TransformFnParams } from "class-transformer";
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsEnum, IsBoolean, IsDate } from "class-validator";
+import { IsString, IsNotEmpty, IsNumber, IsOptional, IsEnum, IsBoolean, IsDate, IsEmail } from "class-validator";
 import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class LoginDto {
@@ -39,9 +39,9 @@ export class LoginForCustomerDto {
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsVietnamesePhoneNumber()
+  @IsEmail()
   @IsString()
-  phone: string;
+  email: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()

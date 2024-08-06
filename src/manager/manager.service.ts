@@ -113,7 +113,7 @@ export class ManagerService {
     return this.prisma.user.update({
       data: {
         name: data.name,
-        phone: data.phone,
+        // phone: data.phone,
         email: data.email,
         sex: data.sex,
         birthday: data.birthday,
