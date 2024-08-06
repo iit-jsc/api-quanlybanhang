@@ -10,6 +10,11 @@ export class VerifyContactDto {
   @IsString()
   phone: string;
 
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsString()
+  shopCode: string;
+
   @ValidateIf((o) => !o.phone)
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())

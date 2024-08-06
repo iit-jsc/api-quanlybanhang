@@ -187,12 +187,30 @@ export class AuthService {
 
     if (data.isCustomer) {
       user = await this.prisma.customer.findFirst({
-        where: { OR: [{ phone: data.phone }, { email: data.email }], email: { not: null } },
+        where: {
+          OR: [{ phone: data.phone }, { email: data.email }],
+          email: { not: null },
+          isPublic: true,
+          shop: {
+            code: data.shopCode,
+            isPublic: true,
+          },
+        },
         select: { id: true, email: true },
       });
     } else {
       user = await this.prisma.user.findFirst({
-        where: { email: { not: null }, account: { username: data.phone } },
+        where: {
+          email: { not: null },
+          account: { username: data.phone },
+          isPublic: true,
+          branch: {
+            shop: {
+              code: data.shopCode,
+              isPublic: true,
+            },
+          },
+        },
         select: { id: true, email: true },
       });
     }
