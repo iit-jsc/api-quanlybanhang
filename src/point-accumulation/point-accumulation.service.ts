@@ -23,21 +23,8 @@ export class PointAccumulationService {
     });
   }
 
-  async handleAddPoint(customerId: string, orderId: string, totalOrder: number, shopId: string, prisma?: PrismaClient) {
-    prisma = prisma || this.prisma;
-
-    const pointSetting = await prisma.pointSetting.findFirst({
-      where: {
-        shopId: shopId,
-        active: true,
-      },
-    });
-
-    if (!pointSetting) return;
-
-    const point = Math.floor((totalOrder * pointSetting.point) / pointSetting.value) || 0;
-
-    await prisma.pointAccumulation.upsert({
+  async handleAddPoint(customerId: string, orderId: string, point: number, shopId: string, prisma?: PrismaClient) {
+    const pointAccumulation = prisma.pointAccumulation.upsert({
       create: {
         customerId,
         point,
@@ -51,7 +38,7 @@ export class PointAccumulationService {
       where: { shopId: shopId, customerId: customerId },
     });
 
-    await prisma.pointHistory.create({
+    const pointHistory = prisma.pointHistory.create({
       data: {
         customerId,
         orderId,
@@ -60,23 +47,20 @@ export class PointAccumulationService {
         shopId: shopId,
       },
     });
+
+    await Promise.all([pointAccumulation, pointHistory]);
   }
 
   async handleExchangePoint(
     customerId: string,
     orderId: string,
     exchangePoint: number,
-    totalInOrder: number,
     shopId: string,
     prisma?: PrismaClient,
   ) {
     prisma = prisma || this.prisma;
 
-    const isValid = await this.checkValidExchangePoint(customerId, exchangePoint, totalInOrder, shopId);
-
-    if (!isValid) return 0;
-
-    await prisma.pointAccumulation.update({
+    const pointAccumulation = prisma.pointAccumulation.update({
       data: {
         point: {
           decrement: exchangePoint || 0,
@@ -85,7 +69,7 @@ export class PointAccumulationService {
       where: { shopId: shopId, customerId: customerId },
     });
 
-    await prisma.pointHistory.create({
+    const pointHistory = prisma.pointHistory.create({
       data: {
         customerId,
         orderId,
@@ -94,9 +78,18 @@ export class PointAccumulationService {
         shopId: shopId,
       },
     });
+
+    await Promise.all([pointAccumulation, pointHistory]);
   }
 
-  async convertDiscountFromPoint(point: number, shopId: string) {
+  async handlePoint(
+    customerId: string,
+    orderId: string,
+    exchangePoint: number,
+    totalInOrder: number,
+    shopId: string,
+    prisma: PrismaClient,
+  ) {
     const pointSetting = await this.prisma.pointSetting.findFirst({
       where: {
         shopId: shopId,
@@ -104,9 +97,31 @@ export class PointAccumulationService {
       },
     });
 
-    if (!point || !pointSetting) return 0;
+    if (!pointSetting) return;
 
-    return Math.floor((point * pointSetting.value) / pointSetting.point);
+    // Xử lý đổi điểm
+    if (exchangePoint) {
+      // Quy đổi số tiền
+      const convertedPointValue = (exchangePoint * pointSetting.value) / pointSetting.point;
+
+      const currentPoint = await this.prisma.pointAccumulation.findUnique({
+        where: { customerId },
+        select: {
+          id: true,
+          point: true,
+        },
+      });
+
+      if (!currentPoint || currentPoint.point < exchangePoint || convertedPointValue > totalInOrder)
+        throw new CustomHttpException(HttpStatus.CONFLICT, "Điểm đổi không hợp lệ!");
+
+      await this.handleExchangePoint(customerId, orderId, exchangePoint, shopId, prisma);
+    }
+
+    //  Xử lý cộng điểm
+    const point = Math.floor((totalInOrder * pointSetting.point) / pointSetting.value) || 0;
+
+    await this.handleAddPoint(customerId, orderId, point, shopId, prisma);
   }
 
   async checkValidExchangePoint(customerId: string, exchangePoint: number, totalInOrder: number, shopId: string) {
@@ -132,5 +147,18 @@ export class PointAccumulationService {
 
     if (!currentPoint || currentPoint.point < exchangePoint || convertedPointValue > totalInOrder)
       throw new CustomHttpException(HttpStatus.CONFLICT, "Điểm đổi không hợp lệ!");
+  }
+
+  async convertDiscountFromPoint(point: number, shopId: string) {
+    const pointSetting = await this.prisma.pointSetting.findFirst({
+      where: {
+        shopId: shopId,
+        active: true,
+      },
+    });
+
+    if (!point || !pointSetting) return 0;
+
+    return Math.floor((point * pointSetting.value) / pointSetting.point);
   }
 }

@@ -540,25 +540,14 @@ export class OrderService {
 
       // Xử lý tích điểm
       if (data.customerId) {
-        const totalInOrder = this.getTotalInOrder(orderDetails);
-
-        await Promise.all([
-          this.pointAccumulationService.handleAddPoint(
-            data.customerId,
-            order.id,
-            totalInOrder,
-            tokenPayload.shopId,
-            prisma,
-          ),
-          this.pointAccumulationService.handleExchangePoint(
-            data.customerId,
-            order.id,
-            data.exchangePoint,
-            totalInOrder,
-            tokenPayload.shopId,
-            prisma,
-          ),
-        ]);
+        await this.pointAccumulationService.handlePoint(
+          data.customerId,
+          order.id,
+          data.exchangePoint,
+          totalOrder,
+          tokenPayload.shopId,
+          prisma,
+        );
       }
 
       await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
@@ -1199,29 +1188,20 @@ export class OrderService {
       );
 
       // Kiểm tra giảm giá hợp lệ
+
       if (promotionValue + discountValue + convertedPointValue + customerDiscountValue > totalOrder)
         throw new CustomHttpException(HttpStatus.CONFLICT, "Giảm giá vượt quá tổng số tiền của đơn hàng!");
 
       // Xử lý tích điểm
       if (order.customerId) {
-        const totalInOrder = this.getTotalInOrder(order.orderDetails);
-        await Promise.all([
-          this.pointAccumulationService.handleExchangePoint(
-            order.customerId,
-            order.id,
-            data.exchangePoint,
-            totalInOrder,
-            tokenPayload.shopId,
-            prisma,
-          ),
-          this.pointAccumulationService.handleAddPoint(
-            order.customerId,
-            order.id,
-            totalInOrder,
-            tokenPayload.shopId,
-            prisma,
-          ),
-        ]);
+        await this.pointAccumulationService.handlePoint(
+          order.customerId,
+          order.id,
+          data.exchangePoint,
+          totalOrder,
+          tokenPayload.shopId,
+          prisma,
+        );
       }
 
       await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
