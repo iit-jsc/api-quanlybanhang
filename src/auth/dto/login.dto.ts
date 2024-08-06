@@ -45,7 +45,7 @@ export class LoginForCustomerDto {
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
-  shopId: string;
+  shopCode: string;
 }
 
 export class LoginForStaffDto {

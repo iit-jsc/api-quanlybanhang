@@ -127,7 +127,7 @@ export class AuthService {
         email: data.email,
         isPublic: true,
         shop: {
-          id: data.shopId,
+          code: data.shopCode,
           isPublic: true,
         },
       },

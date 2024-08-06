@@ -33,4 +33,9 @@ export class PaymentFromTableDto {
   @IsNumber()
   @Min(1)
   exchangePoint: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  moneyReceived: number;
 }

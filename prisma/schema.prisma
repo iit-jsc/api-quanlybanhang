@@ -623,6 +623,7 @@ model Order {
   convertedPointValue   Float?            @default(0)
   customerDiscountValue Float?            @default(0)
   usedPoint             Float?            @default(0)
+  moneyReceived         Float?
   orderType             Int
   paymentMethodId       String?
   bankingImages         Json?

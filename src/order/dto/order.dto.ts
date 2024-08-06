@@ -100,4 +100,9 @@ export class PaymentOrderDto {
   @IsOptional()
   @IsArray()
   bankingImages: string[];
+
+  @IsOptional()
+  @IsNumber()
+  @Min(1)
+  moneyReceived: number;
 }

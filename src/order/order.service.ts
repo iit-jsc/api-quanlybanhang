@@ -484,6 +484,9 @@ export class OrderService {
       if (promotionValue + discountValue + convertedPointValue + customerDiscountValue > totalOrder)
         throw new CustomHttpException(HttpStatus.CONFLICT, "Giảm giá vượt quá tổng số tiền của đơn hàng!");
 
+      if (data.moneyReceived < totalOrder)
+        throw new CustomHttpException(HttpStatus.CONFLICT, "Tiền nhận không hợp lệ!");
+
       const order = await prisma.order.create({
         data: {
           code: generateSortCode(),
@@ -496,6 +499,7 @@ export class OrderService {
           discountValue: discountValue,
           convertedPointValue,
           usedPoint: data.exchangePoint,
+          moneyReceived: data.moneyReceived,
           customerDiscountValue,
           ...(data.customerId && {
             customer: {
@@ -1222,6 +1226,9 @@ export class OrderService {
 
       await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
 
+      if (data.moneyReceived < totalOrder)
+        throw new CustomHttpException(HttpStatus.CONFLICT, "Tiền nhận không hợp lệ!");
+
       return await prisma.order.update({
         where: { id: where.id, isPublic: true },
         data: {
@@ -1231,6 +1238,7 @@ export class OrderService {
           convertedPointValue,
           customerDiscountValue,
           usedPoint: data.exchangePoint,
+          moneyReceived: data.moneyReceived,
           orderStatus: ORDER_STATUS_COMMON.SUCCESS,
           bankingImages: data.exchangePoint,
           paymentMethodId: data.paymentMethodId,
