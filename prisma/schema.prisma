@@ -465,6 +465,7 @@ model Customer {
   customerTypeId      String?
   email               String?
   phone               String
+  isOrganize          Boolean             @default(false)
   address             String?             @db.Text
   description         String?             @db.Text
   representativeName  String?

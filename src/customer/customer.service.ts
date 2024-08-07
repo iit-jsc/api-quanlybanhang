@@ -30,6 +30,7 @@ export class CustomerService {
         name: data.name,
         endow: data.endow,
         phone: data.phone,
+        isOrganize: data.isOrganize,
         address: data.address,
         birthDay: data.birthDay,
         ...(data.customerTypeId && {
@@ -122,6 +123,7 @@ export class CustomerService {
           endow: true,
           phone: true,
           address: true,
+          isOrganize: true,
           birthDay: true,
           customerType: {
             select: {
@@ -165,13 +167,7 @@ export class CustomerService {
           isPublic: true,
         },
       },
-      select: {
-        id: true,
-        name: true,
-        endow: true,
-        phone: true,
-        address: true,
-        birthDay: true,
+      include: {
         customerType: {
           select: {
             id: true,
@@ -181,16 +177,6 @@ export class CustomerService {
             discountType: true,
           },
         },
-        description: true,
-        discount: true,
-        discountType: true,
-        email: true,
-        fax: true,
-        tax: true,
-        sex: true,
-        representativeName: true,
-        representativePhone: true,
-        createdAt: true,
       },
     });
   }
@@ -226,6 +212,7 @@ export class CustomerService {
       data: {
         name: data.name,
         endow: data.endow,
+        isOrganize: data.isOrganize,
         phone: data.phone,
         address: data.address,
         birthDay: data.birthDay,

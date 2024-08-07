@@ -1,6 +1,7 @@
 import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams } from "class-transformer";
 import {
+  IsBoolean,
   IsDate,
   IsEmail,
   IsEnum,
@@ -10,6 +11,7 @@ import {
   IsString,
   MaxDate,
   Validate,
+  ValidateIf,
 } from "class-validator";
 import { DISCOUNT_TYPE } from "enums/common.enum";
 import { ENDOW_TYPE, SEX_TYPE } from "enums/user.enum";
@@ -21,7 +23,7 @@ export class CreateCustomerDto {
   @IsString()
   name: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
   @IsString()
   customerTypeId: string;
 
@@ -43,6 +45,10 @@ export class CreateCustomerDto {
   @IsOptional()
   @IsString()
   address: string;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsBoolean()
+  isOrganize: boolean;
 
   @IsOptional()
   @IsString()
@@ -67,11 +73,13 @@ export class CreateCustomerDto {
   @IsEnum(ENDOW_TYPE, { message: "Endow không hợp lệ!" })
   endow: number;
 
+  @ValidateIf((o) => o.endow === ENDOW_TYPE.BY_CUSTOMER)
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @Validate(DiscountConstraint)
   discount: number;
 
+  @ValidateIf((o) => o.endow === ENDOW_TYPE.BY_CUSTOMER)
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @IsEnum(DISCOUNT_TYPE, { message: "Loại giảm giá không hợp lệ!" })
