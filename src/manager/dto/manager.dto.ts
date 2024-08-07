@@ -25,6 +25,10 @@ export class CreateManagerDto {
   @IsVietnamesePhoneNumber()
   phone: string;
 
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  code: string;
+
   @IsOptional()
   @IsEmail(
     {},

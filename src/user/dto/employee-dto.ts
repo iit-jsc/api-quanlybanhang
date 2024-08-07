@@ -80,7 +80,7 @@ export class CreateEmployeeDto {
   @IsString()
   cardAddress: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
   code: string;

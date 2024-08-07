@@ -57,6 +57,8 @@ export class JwtAuthGuard implements CanActivate {
         shopId: account.branches?.[0]?.shopId,
         accountId: account.id,
       } as TokenPayload;
+
+      console.log(request.tokenPayload);
     } catch (error) {
       throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Thông tin đăng nhập không hợp lệ!");
     }

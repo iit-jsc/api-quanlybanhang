@@ -53,6 +53,11 @@ export class ManagerService {
   }
 
   async create(data: CreateManagerDto, tokenPayload: TokenPayload) {
+    await this.commonService.checkUserExisting(
+      { phone: data.phone, email: data.email, code: data.code },
+      tokenPayload.shopId,
+    );
+
     await this.checkManagerExisting(data.phone);
 
     // Kiểm tra chi nhánh thuộc shop không
@@ -63,6 +68,7 @@ export class ManagerService {
         data: {
           name: data.name,
           phone: data.phone,
+          code: data.code,
           email: data.email,
           sex: data.sex,
           birthday: data.birthday,
@@ -108,12 +114,19 @@ export class ManagerService {
     if (data.branchIds && data.branchIds?.length > 0)
       await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
 
+    await this.commonService.checkUserExisting(
+      { phone: data.phone, email: data.email, code: data.code },
+      tokenPayload.shopId,
+      where.id,
+    );
+
     await this.checkManagerExisting(data.phone, where.id);
 
     return this.prisma.user.update({
       data: {
         name: data.name,
         // phone: data.phone,
+        code: data.code,
         email: data.email,
         sex: data.sex,
         birthday: data.birthday,
