@@ -71,7 +71,7 @@ export class CustomerService {
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
     const { skip, take, keyword, customerTypeIds, from, to, orderBy } = params;
 
-    const keySearch = ["name", "code", "email", "phone"];
+    const keySearch = ["name", "email", "phone"];
 
     const where: Prisma.CustomerWhereInput = {
       isPublic: true,
