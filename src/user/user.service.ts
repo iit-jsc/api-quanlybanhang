@@ -118,6 +118,7 @@ export class UserService {
           sex: true,
           startDate: true,
           photoURL: true,
+          updatedAt: true,
           employeeGroup: {
             select: {
               id: true,
@@ -157,20 +158,7 @@ export class UserService {
           type: ACCOUNT_TYPE.STAFF,
         },
       },
-      select: {
-        id: true,
-        name: true,
-        code: true,
-        phone: true,
-        email: true,
-        address: true,
-        cardId: true,
-        cardDate: true,
-        cardAddress: true,
-        birthday: true,
-        sex: true,
-        startDate: true,
-        photoURL: true,
+      include: {
         employeeGroup: {
           select: {
             id: true,
