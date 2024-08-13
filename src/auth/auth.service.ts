@@ -72,6 +72,7 @@ export class AuthService {
     return {
       accountToken: await this.jwtService.signAsync(payload, {
         expiresIn: "24h",
+        secret: process.env.SECRET_KEY,
       }),
       shops,
     };
@@ -111,6 +112,7 @@ export class AuthService {
     return {
       accountToken: await this.jwtService.signAsync(payload, {
         expiresIn: "24h",
+        secret: process.env.SECRET_KEY,
       }),
       shops,
     };
@@ -388,6 +390,7 @@ export class AuthService {
       } as TokenPayload,
       {
         expiresIn: "30d",
+        secret: process.env.SECRET_KEY,
       },
     );
 
