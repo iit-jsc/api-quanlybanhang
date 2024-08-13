@@ -133,6 +133,13 @@ export class UserService {
               type: true,
               username: true,
               status: true,
+              permissions: {
+                where: { isPublic: true },
+                select: {
+                  id: true,
+                  name: true,
+                },
+              },
             },
           },
         },
@@ -173,6 +180,9 @@ export class UserService {
             type: true,
             username: true,
             status: true,
+            permissions: {
+              where: { isPublic: true },
+            },
           },
         },
       },
