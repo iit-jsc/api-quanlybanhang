@@ -9,7 +9,6 @@ export class LoginDto {
   username: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   password: string;
 
@@ -55,7 +54,6 @@ export class LoginForStaffDto {
   username: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   password: string;
 
