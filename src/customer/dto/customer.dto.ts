@@ -66,7 +66,7 @@ export class CreateCustomerDto {
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: "Ngày tháng không hợp lệ!" })
   @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
-  birthDay: Date;
+  birthday: Date;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()

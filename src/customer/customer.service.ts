@@ -32,7 +32,7 @@ export class CustomerService {
         phone: data.phone,
         isOrganize: data.isOrganize,
         address: data.address,
-        birthDay: data.birthDay,
+        birthday: data.birthday,
         ...(data.customerTypeId && {
           customerType: {
             connect: {
@@ -124,7 +124,7 @@ export class CustomerService {
           phone: true,
           address: true,
           isOrganize: true,
-          birthDay: true,
+          birthday: true,
           customerType: {
             select: {
               id: true,
@@ -215,7 +215,7 @@ export class CustomerService {
         isOrganize: data.isOrganize,
         phone: data.phone,
         address: data.address,
-        birthDay: data.birthDay,
+        birthday: data.birthday,
         description: data.description,
         discount: data.discount,
         discountType: data.discountType,

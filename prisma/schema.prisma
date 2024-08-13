@@ -470,7 +470,7 @@ model Customer {
   description         String?             @db.Text
   representativeName  String?
   representativePhone String?
-  birthDay            DateTime?
+  birthday            DateTime?
   endow               Int?                @default(1)
   discount            Float?
   discountType        Int?

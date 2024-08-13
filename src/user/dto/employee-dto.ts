@@ -50,12 +50,6 @@ export class CreateEmployeeDto {
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: "Ngày tháng không hợp lệ!" })
   @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
-  cardDate: Date;
-
-  @IsOptional()
-  @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: "Ngày tháng không hợp lệ!" })
-  @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
   startDate: Date;
 
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -75,11 +69,16 @@ export class CreateEmployeeDto {
   @IsString()
   address: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsDate({ message: "Ngày tháng không hợp lệ!" })
+  @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
+  cardDate: Date;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   cardId: string;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   cardAddress: string;
 
