@@ -11,7 +11,7 @@ async function main() {
         code: "ca-phe",
         description: "Quán cà phê",
         isPublic: true,
-        type: 1,
+        type: 2,
       },
       {
         name: "Cửa hàng quần áo",
@@ -19,7 +19,7 @@ async function main() {
         code: "quan-ao",
         description: "Kinh doanh quần áo thời trang.",
         isPublic: true,
-        type: 2,
+        type: 1,
       },
       {
         name: "Cửa hàng điện thoại",
@@ -27,7 +27,7 @@ async function main() {
         code: "dien-thoai",
         description: "Kinh doanh điện thoại đồ điện tử.",
         isPublic: true,
-        type: 2,
+        type: 1,
       },
     ],
   });

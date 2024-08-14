@@ -201,7 +201,7 @@ export class ManagerService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, orderBy } = params;
+    const { skip, take, keyword, orderBy, branchIds } = params;
 
     const keySearch = ["name", "code", "email", "phone"];
 
@@ -219,6 +219,13 @@ export class ManagerService {
             shopId: tokenPayload.shopId,
           },
         },
+        ...(branchIds?.length > 0 && {
+          branches: {
+            some: {
+              id: { in: branchIds },
+            },
+          },
+        }),
       },
     };
 
@@ -247,6 +254,16 @@ export class ManagerService {
               type: true,
               username: true,
               status: true,
+              branches: {
+                where: {
+                  isPublic: true,
+                },
+                select: {
+                  id: true,
+                  name: true,
+                  photoURL: true,
+                },
+              },
             },
           },
           updatedAt: true,
@@ -296,6 +313,16 @@ export class ManagerService {
             type: true,
             username: true,
             status: true,
+            branches: {
+              where: {
+                isPublic: true,
+              },
+              select: {
+                id: true,
+                name: true,
+                photoURL: true,
+              },
+            },
           },
         },
       },
