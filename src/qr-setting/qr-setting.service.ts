@@ -37,8 +37,6 @@ export class QrSettingService {
   }
 
   async findUniq(tokenPayload: TokenPayload) {
-    console.log(tokenPayload.shopId);
-
     return this.prisma.qRSetting.findFirstOrThrow({
       where: {
         shopId: tokenPayload.shopId,

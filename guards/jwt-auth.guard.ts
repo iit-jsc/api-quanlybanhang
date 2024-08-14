@@ -25,9 +25,9 @@ export class JwtAuthGuard implements CanActivate {
     if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy token!");
 
     try {
-      const payload = (await this.jwtService.verifyAsync(token, {
+      const payload: TokenPayload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY,
-      })) as TokenPayload;
+      });
 
       const account = await this.prisma.account.findUniqueOrThrow({
         where: {

@@ -16,12 +16,9 @@ export class TransporterService {
         html: "<span>Đây là mã xác minh của bạn: </span>" + `<strong>${otp}</strong>`,
       })
       .then((success) => {
-        console.log("!11");
-
         console.log(success);
       })
       .catch((err) => {
-        console.log("!22");
         console.log(err);
       });
   }
