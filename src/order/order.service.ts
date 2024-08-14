@@ -3,7 +3,7 @@ import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "
 import { CustomerShape, PromotionCountOrder, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
-import { Customer, OrderDetail, Prisma, PrismaClient, Product, Promotion, Topping } from "@prisma/client";
+import { OrderDetail, Prisma, PrismaClient, Product, Promotion, Topping } from "@prisma/client";
 import { PaymentFromTableDto } from "./dto/payment-order-from-table.dto";
 import { FindManyDto, DeleteManyDto } from "utils/Common.dto";
 import { SeparateTableDto } from "./dto/separate-table.dto";
