@@ -302,7 +302,7 @@ export class ShopService {
     });
 
     let customerType = null;
-    let futureUsageSettings = null;
+    let featureUsageSettings = null;
     let pointSetting = null;
     let qRSetting = null;
 
@@ -316,15 +316,15 @@ export class ShopService {
         },
       });
 
-      futureUsageSettings = prisma.futureUsageSetting.createMany({
+      featureUsageSettings = prisma.featureUsageSetting.createMany({
         data: [
           {
-            futureCode: FUTURE_CODE.ONLINE_SELLING,
+            featureCode: FUTURE_CODE.ONLINE_SELLING,
             shopId: shopId,
             isUsed: false,
           },
           {
-            futureCode: FUTURE_CODE.QR_CODE,
+            featureCode: FUTURE_CODE.QR_CODE,
             shopId: shopId,
             isUsed: false,
           },
@@ -554,7 +554,7 @@ export class ShopService {
       area,
       customerType,
       employeeGroups,
-      futureUsageSettings,
+      featureUsageSettings,
       measurementUnits,
       paymentMethods,
       pointSetting,

@@ -246,9 +246,9 @@ export class AuthService {
     if (!token) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy token!");
 
     try {
-      const payload = (await this.jwtService.verifyAsync(token, {
+      const payload: TokenPayload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY,
-      })) as TokenPayload;
+      });
 
       // Nếu đã truy cập vào chi nhánh thì kiểm tra có device hay không
 
@@ -294,6 +294,7 @@ export class AuthService {
             name: true,
             address: true,
             photoURL: true,
+            others: true,
           },
           where: {
             isPublic: true,

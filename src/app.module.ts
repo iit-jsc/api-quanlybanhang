@@ -50,11 +50,11 @@ import { EmployeeScheduleModule } from "./employee-schedule/employee-schedule.mo
 import { EmployeeSalaryModule } from "./employee-salary/employee-salary.module";
 import { TableSalaryModule } from "./table-salary/table-salary.module";
 import { TransformInterceptor } from "utils/ApiResponse";
-import { CompensationEmployeeModule } from './compensation-employee/compensation-employee.module';
-import { QrSettingModule } from './qr-setting/qr-setting.module';
-import { FutureUsageSettingModule } from './future-usage-setting/future-usage-setting.module';
-import { PaymentMethodModule } from './payment-method/payment-method.module';
-import { ActivityLogModule } from './activity-log/activity-log.module';
+import { CompensationEmployeeModule } from "./compensation-employee/compensation-employee.module";
+import { QrSettingModule } from "./qr-setting/qr-setting.module";
+import { FeatureUsageSettingModule } from "./feature-usage-setting/feature-usage-setting.module";
+import { PaymentMethodModule } from "./payment-method/payment-method.module";
+import { ActivityLogModule } from "./activity-log/activity-log.module";
 
 @Module({
   imports: [
@@ -128,7 +128,7 @@ import { ActivityLogModule } from './activity-log/activity-log.module';
     CompensationSettingModule,
     CompensationEmployeeModule,
     QrSettingModule,
-    FutureUsageSettingModule,
+    FeatureUsageSettingModule,
     PaymentMethodModule,
     ActivityLogModule,
   ],

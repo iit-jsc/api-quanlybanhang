@@ -1,35 +1,35 @@
 import { Injectable } from "@nestjs/common";
-import { UpdateFutureUsageSettingDto } from "./dto/update-future-usage-setting.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { UpdateFeatureUsageSettingDto } from "./dto/update-future-usage-setting.dto";
 
 @Injectable()
-export class FutureUsageSettingService {
+export class FeatureUsageSettingService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
   ) {}
 
-  async findUniq(where: Prisma.FutureUsageSettingWhereUniqueInput, tokenPayload: TokenPayload) {
-    return this.prisma.futureUsageSetting.findUnique({
+  async findUniq(where: Prisma.FeatureUsageSettingWhereUniqueInput, tokenPayload: TokenPayload) {
+    return this.prisma.featureUsageSetting.findUnique({
       where,
     });
   }
 
-  async update(params: { data: UpdateFutureUsageSettingDto }, tokenPayload: TokenPayload) {
+  async update(params: { data: UpdateFeatureUsageSettingDto }, tokenPayload: TokenPayload) {
     const { data } = params;
-    const result = await this.prisma.futureUsageSetting.upsert({
+    const result = await this.prisma.featureUsageSetting.upsert({
       where: {
-        shopId_futureCode: {
-          futureCode: data.futureCode,
+        shopId_featureCode: {
+          featureCode: data.featureCode,
           shopId: tokenPayload.shopId,
         },
       },
       create: {
-        futureCode: data.futureCode,
+        featureCode: data.featureCode,
         shopId: tokenPayload.shopId,
         isUsed: data.isUsed,
         updatedBy: tokenPayload.accountId,
@@ -41,8 +41,8 @@ export class FutureUsageSettingService {
     });
 
     await this.commonService.createActivityLog(
-      [result.futureCode],
-      "FutureUsageSetting",
+      [result.featureCode],
+      "FeatureUsageSetting",
       ACTIVITY_LOG_TYPE.UPDATE,
       tokenPayload,
     );

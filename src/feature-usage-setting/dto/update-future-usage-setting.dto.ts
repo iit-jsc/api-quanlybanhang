@@ -1,11 +1,11 @@
 import { IsBoolean, IsEnum, IsNotEmpty, IsString } from "class-validator";
 import { FUTURE_CODE } from "enums/common.enum";
 
-export class UpdateFutureUsageSettingDto {
+export class UpdateFeatureUsageSettingDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   @IsEnum(FUTURE_CODE, { message: "Chức năng không hợp lệ!" })
-  futureCode: string;
+  featureCode: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsBoolean()
