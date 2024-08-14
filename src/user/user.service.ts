@@ -224,7 +224,7 @@ export class UserService {
         account: {
           update: {
             status: data.accountStatus,
-            ...(data.accountStatus && { password: bcrypt.hashSync(data.newPassword, 10) }),
+            ...(data.newPassword && { password: bcrypt.hashSync(data.newPassword, 10) }),
             ...(data.permissionIds && {
               permissions: {
                 set: data.permissionIds?.map((id) => ({ id })),
