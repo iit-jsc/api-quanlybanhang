@@ -3,7 +3,7 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { CreateManagerDto, UpdateManagerDto } from "./dto/manager.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
-import { FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
@@ -164,11 +164,13 @@ export class ManagerService {
     });
   }
 
-  async delete(where: Prisma.UserWhereUniqueInput, tokenPayload: TokenPayload) {
+  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     return await this.prisma.$transaction(async (prisma) => {
-      const user = await prisma.user.update({
+      await prisma.user.updateMany({
         where: {
-          ...where,
+          id: {
+            in: data.ids,
+          },
           account: {
             branches: {
               some: {
@@ -182,14 +184,15 @@ export class ManagerService {
           isPublic: false,
           updatedBy: tokenPayload.accountId,
         },
-        select: {
-          account: true,
-        },
       });
 
-      await prisma.account.update({
+      await prisma.account.updateMany({
         where: {
-          userId: where.id,
+          user: {
+            id: {
+              in: data.ids,
+            },
+          },
           isPublic: true,
         },
         data: {

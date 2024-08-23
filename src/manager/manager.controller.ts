@@ -75,15 +75,15 @@ export class ManagerController {
     );
   }
 
-  @Delete(":id")
+  @Delete("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  delete(@Req() req: any, @Param("id") id: string) {
+  deleteMany(@Req() req: any, @Body() deleteManyDto: DeleteManyDto) {
     const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.managerService.delete(
+    return this.managerService.deleteMany(
       {
-        id,
+        ids: deleteManyDto.ids,
       },
       tokenPayload,
     );
