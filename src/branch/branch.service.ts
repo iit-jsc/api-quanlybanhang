@@ -90,13 +90,12 @@ export class BranchService {
     };
   }
 
-  async findUniq(where: Prisma.BranchWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(where: Prisma.BranchWhereUniqueInput) {
     return await this.prisma.branch.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
         shop: {
-          id: tokenPayload.shopId,
           isPublic: true,
         },
       },

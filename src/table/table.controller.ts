@@ -72,17 +72,10 @@ export class TableController {
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_TABLE", "UPDATE_TABLE", "DELETE_TABLE", "VIEW_TABLE", SPECIAL_ROLE.MANAGER)
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.tableService.findUniq(
-      {
-        id,
-      },
-      tokenPayload,
-    );
+  findUniq(@Param("id") id: string) {
+    return this.tableService.findUniq({
+      id,
+    });
   }
 
   @Delete("")

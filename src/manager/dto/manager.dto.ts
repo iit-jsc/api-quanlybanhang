@@ -66,7 +66,6 @@ export class CreateManagerDto {
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: "Ngày tháng không hợp lệ!" })
-  @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
   startDate: Date;
 
   @IsOptional()

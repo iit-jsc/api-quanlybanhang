@@ -266,7 +266,7 @@ export class AuthService {
 
       return { ...mapResponseLogin({ account, shops, currentShop }) };
     } catch (error) {
-      throw error;
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Token không hợp lệ!");
     }
   }
 

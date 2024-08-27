@@ -12,7 +12,7 @@ import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
 import { calculatePagination } from "utils/Helps";
-import { DISCOUNT_TYPE, FUTURE_CODE, PAYMENT_METHOD_TYPE } from "enums/common.enum";
+import { DISCOUNT_TYPE, FEATURE_CODE, PAYMENT_METHOD_TYPE } from "enums/common.enum";
 
 @Injectable()
 export class ShopService {
@@ -189,20 +189,11 @@ export class ShopService {
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 
-  async findUniq(where: Prisma.ShopWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(where: Prisma.ShopWhereUniqueInput) {
     return this.prisma.shop.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branches: {
-          some: {
-            accounts: {
-              some: {
-                id: tokenPayload.accountId,
-              },
-            },
-          },
-        },
       },
     });
   }
@@ -319,12 +310,12 @@ export class ShopService {
       featureUsageSettings = prisma.featureUsageSetting.createMany({
         data: [
           {
-            featureCode: FUTURE_CODE.ONLINE_SELLING,
+            featureCode: FEATURE_CODE.ONLINE_SELLING,
             shopId: shopId,
             isUsed: false,
           },
           {
-            featureCode: FUTURE_CODE.QR_CODE,
+            featureCode: FEATURE_CODE.QR_CODE,
             shopId: shopId,
             isUsed: false,
           },

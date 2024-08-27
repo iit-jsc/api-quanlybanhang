@@ -112,15 +112,11 @@ export class TableService {
     };
   }
 
-  async findUniq(where: Prisma.TableWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(where: Prisma.TableWhereUniqueInput) {
     return this.prisma.table.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branch: {
-          isPublic: true,
-          id: tokenPayload.branchId,
-        },
       },
       select: {
         id: true,

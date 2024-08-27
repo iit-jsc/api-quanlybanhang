@@ -114,18 +114,19 @@ export class ManagerService {
     if (data.branchIds && data.branchIds?.length > 0)
       await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
 
-    await this.commonService.checkUserExisting(
-      { phone: data.phone, email: data.email, code: data.code },
-      tokenPayload.shopId,
-      where.id,
-    );
+    if (data.phone || data.email || data.code)
+      await this.commonService.checkUserExisting(
+        { phone: data.phone, email: data.email, code: data.code },
+        tokenPayload.shopId,
+        where.id,
+      );
 
-    await this.checkManagerExisting(data.phone, where.id);
+    if (data.phone) await this.checkManagerExisting(data.phone);
 
     return this.prisma.user.update({
       data: {
         name: data.name,
-        // phone: data.phone,
+        phone: data.phone,
         code: data.code,
         email: data.email,
         sex: data.sex,
@@ -140,6 +141,7 @@ export class ManagerService {
         account: {
           update: {
             status: data.accountStatus,
+            username: data.phone,
             ...(data.newPassword && { password: data.newPassword ? bcrypt.hashSync(data.newPassword, 10) : undefined }),
             ...(data.branchIds &&
               data.branchIds?.length > 0 && {

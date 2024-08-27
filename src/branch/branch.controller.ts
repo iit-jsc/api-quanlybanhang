@@ -47,17 +47,10 @@ export class BranchController {
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_BRANCH", "UPDATE_BRANCH", "DELETE_BRANCH", "VIEW_BRANCH", SPECIAL_ROLE.STORE_OWNER)
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.branchService.findUniq(
-      {
-        id,
-      },
-      tokenPayload,
-    );
+  findUniq(@Param("id") id: string) {
+    return this.branchService.findUniq({
+      id,
+    });
   }
 
   @Patch(":id")

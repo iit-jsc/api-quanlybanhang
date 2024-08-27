@@ -81,17 +81,10 @@ export class ShopController {
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(SPECIAL_ROLE.STORE_OWNER)
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.shopService.findUniq(
-      {
-        id,
-      },
-      tokenPayload,
-    );
+  findUniq(@Param("id") id: string) {
+    return this.shopService.findUniq({
+      id,
+    });
   }
 
   @Get("")

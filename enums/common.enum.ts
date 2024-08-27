@@ -72,7 +72,7 @@ export const TIME_TYPE = {
   HOUR: 4,
 };
 
-export const FUTURE_CODE = {
+export const FEATURE_CODE = {
   QR_CODE: "QR_CODE",
   ONLINE_SELLING: "ONLINE_SELLING",
 };
