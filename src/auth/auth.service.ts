@@ -287,6 +287,7 @@ export class AuthService {
             name: true,
             address: true,
             photoURL: true,
+            bannerURL: true,
             others: true,
           },
           where: {
