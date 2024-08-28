@@ -24,6 +24,7 @@ export class BranchService {
           name: createBranchDto.name,
           address: createBranchDto.address,
           photoURL: createBranchDto.photoURL,
+          bannerURL: createBranchDto.bannerURL,
           status: createBranchDto.status,
           phone: createBranchDto.phone,
           others: createBranchDto.others,
@@ -72,6 +73,7 @@ export class BranchService {
         select: {
           id: true,
           photoURL: true,
+          bannerURL: true,
           name: true,
           phone: true,
           address: true,
@@ -116,6 +118,7 @@ export class BranchService {
         name: data.name,
         address: data.address,
         photoURL: data.photoURL,
+        bannerURL: data.bannerURL,
         status: data.status,
         phone: data.phone,
         others: data.others,

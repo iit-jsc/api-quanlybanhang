@@ -1,4 +1,4 @@
-import { Permission, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { AnyObject } from "interfaces/common.interface";
 
 export function mapResponseLogin(data: AnyObject) {

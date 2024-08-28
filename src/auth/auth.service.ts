@@ -1,10 +1,4 @@
-import {
-  CreateRefreshTokenDto,
-  LoginForCustomerDto,
-  LoginForManagerDto,
-  LoginForStaffDto,
-  LogoutDto,
-} from "./dto/login.dto";
+import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto, LogoutDto } from "./dto/login.dto";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import * as bcrypt from "bcrypt";
@@ -20,7 +14,6 @@ import { ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { TransporterService } from "src/transporter/transporter.service";
 import { v4 as uuidv4 } from "uuid";
-import { refreshToken } from "firebase-admin/app";
 @Injectable()
 export class AuthService {
   constructor(
@@ -388,9 +381,9 @@ export class AuthService {
         accountId: accountId,
         branchId: branchId,
         deviceId: validDeviceId,
-      } as TokenPayload,
+      },
       {
-        expiresIn: "30d",
+        expiresIn: "48h",
         secret: process.env.SECRET_KEY,
       },
     );
@@ -440,9 +433,9 @@ export class AuthService {
       throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy token hoặc đã hết hạn!");
 
     try {
-      const payload = (await this.jwtService.verifyAsync(refreshToken, {
+      const payload: TokenPayload = await this.jwtService.verifyAsync(refreshToken, {
         secret: process.env.SECRET_KEY,
-      })) as TokenPayload;
+      });
 
       // Nếu đã truy cập vào chi nhánh thì kiểm tra có device hay không
 
@@ -472,6 +465,7 @@ export class AuthService {
         ...mapResponseLogin({ account, shops, currentShop }),
       };
     } catch (error) {
+      console.log(error);
       throw error;
     }
   }

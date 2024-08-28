@@ -848,6 +848,7 @@ model Branch {
   shopId                     String
   shop                       Shop?                   @relation(fields: [shopId], references: [id])
   photoURL                   String?                 @db.Text
+  bannerURL                  String?                 @db.Text
   name                       String
   address                    String?                 @db.Text
   phone                      String?
@@ -1102,7 +1103,7 @@ model AuthToken {
   ip           String?
   userAgent    String?
   lastLogin    DateTime?
-  refreshToken String
+  refreshToken String    @db.Text
   deviceId     String    @unique
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
