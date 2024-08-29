@@ -26,6 +26,7 @@ export class ProductService {
       data: {
         name: data.name,
         description: data.description,
+        content: data.content,
         slug: data.slug,
         code: data.code,
         price: data.price,
@@ -98,6 +99,7 @@ export class ProductService {
           unitId: true,
           name: true,
           code: true,
+          content: true,
           price: true,
           thumbnail: true,
           oldPrice: true,
@@ -138,20 +140,7 @@ export class ProductService {
         ...where,
         isPublic: true,
       },
-      select: {
-        id: true,
-        branchId: true,
-        unitId: true,
-        name: true,
-        code: true,
-        price: true,
-        thumbnail: true,
-        oldPrice: true,
-        description: true,
-        photoURLs: true,
-        otherAttributes: true,
-        status: true,
-        slug: true,
+      include: {
         measurementUnit: {
           select: {
             id: true,
@@ -165,7 +154,6 @@ export class ProductService {
             name: true,
           },
         },
-        updatedAt: true,
       },
     });
   }
@@ -197,6 +185,7 @@ export class ProductService {
       data: {
         name: data.name,
         description: data.description,
+        content: data.content,
         slug: data.slug,
         unitId: data.unitId,
         thumbnail: data.thumbnail,

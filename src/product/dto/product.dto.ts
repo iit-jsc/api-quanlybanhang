@@ -15,6 +15,10 @@ export class CreateProductDto {
 
   @IsOptional()
   @IsString()
+  content?: string;
+
+  @IsOptional()
+  @IsString()
   thumbnail?: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })

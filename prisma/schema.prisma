@@ -331,6 +331,7 @@ model Product {
   price                       Float                        @default(0)
   oldPrice                    Float?
   description                 String?                      @db.Text
+  content                     String?                      @db.Text
   thumbnail                   String?                      @default("uploads/product.png") @db.Text
   photoURLs                   Json?
   otherAttributes             Json?
