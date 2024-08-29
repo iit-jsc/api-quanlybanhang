@@ -187,4 +187,8 @@ export class FindUniqDto {
     return +value;
   })
   type: number = FIND_UNIQ_TYPE.ID;
+
+  @IsOptional()
+  @IsString()
+  shopId: string;
 }

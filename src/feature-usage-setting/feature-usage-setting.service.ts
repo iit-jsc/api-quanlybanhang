@@ -13,7 +13,7 @@ export class FeatureUsageSettingService {
     private commonService: CommonService,
   ) {}
 
-  async findUniq(where: Prisma.FeatureUsageSettingWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(where: Prisma.FeatureUsageSettingWhereUniqueInput) {
     return this.prisma.featureUsageSetting.findUnique({
       where,
     });

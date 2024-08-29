@@ -184,32 +184,33 @@ model EmployeeGroup {
 }
 
 model Shop {
-  id                 String              @id @default(uuid())
-  code               String              @unique
-  businessTypeCode   String
-  status             Int                 @default(1)
-  businessType       BusinessType?       @relation(fields: [businessTypeCode], references: [code])
-  name               String
-  phone              String?
-  email              String?
-  address            String?             @db.Text
-  photoURL           String?             @db.Text
-  domain             Json?
-  isPublic           Boolean?            @default(true)
-  createdAt          DateTime            @default(now())
-  updatedAt          DateTime            @updatedAt
-  branches           Branch[]
-  pointSettings      PointSetting[]
-  customerTypes      CustomerType[]
-  customers          Customer[]
-  pointAccumulations PointAccumulation[]
-  pointHistories     PointHistory[]
-  createdBy          String?
-  updatedBy          String?
-  creator            Account?            @relation("creator", fields: [createdBy], references: [id])
-  updater            Account?            @relation("updater", fields: [updatedBy], references: [id])
-  printTemplates     PrintTemplate[]
-  qRSetting          QRSetting?
+  id                  String                @id @default(uuid())
+  code                String                @unique
+  businessTypeCode    String
+  status              Int                   @default(1)
+  businessType        BusinessType?         @relation(fields: [businessTypeCode], references: [code])
+  name                String
+  phone               String?
+  email               String?
+  address             String?               @db.Text
+  photoURL            String?               @db.Text
+  domain              Json?
+  isPublic            Boolean?              @default(true)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  branches            Branch[]
+  pointSettings       PointSetting[]
+  customerTypes       CustomerType[]
+  customers           Customer[]
+  pointAccumulations  PointAccumulation[]
+  pointHistories      PointHistory[]
+  createdBy           String?
+  updatedBy           String?
+  creator             Account?              @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?              @relation("updater", fields: [updatedBy], references: [id])
+  printTemplates      PrintTemplate[]
+  qRSetting           QRSetting?
+  FeatureUsageSetting FeatureUsageSetting[]
 }
 
 model PrintTemplate {
@@ -1059,6 +1060,7 @@ model QRSetting {
 
 model FeatureUsageSetting {
   shopId      String
+  shop        Shop?    @relation(fields: [shopId], references: [id])
   featureCode String
   isUsed      Boolean  @default(true)
   updatedAt   DateTime @updatedAt
