@@ -62,12 +62,6 @@ export class LoginForStaffDto {
   shopCode: string;
 }
 
-export class LogoutDto {
-  @IsOptional()
-  @IsBoolean()
-  isAllDevices: boolean;
-}
-
 export class CreateRefreshTokenDto {
   @IsOptional()
   @IsString()

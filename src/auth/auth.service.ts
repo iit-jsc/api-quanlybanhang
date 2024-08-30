@@ -1,4 +1,4 @@
-import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto, LogoutDto } from "./dto/login.dto";
+import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto } from "./dto/login.dto";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import * as bcrypt from "bcrypt";
@@ -10,7 +10,7 @@ import { AccessBranchDto } from "./dto/access-branch.dto";
 import { AnyObject, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
 import { VerifyContactDto } from "src/shop/dto/verify-contact.dto";
-import { ChangePasswordDto } from "./dto/change-password.dto";
+import { ChangeMyPasswordDto, ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { TransporterService } from "src/transporter/transporter.service";
 import { v4 as uuidv4 } from "uuid";
@@ -259,7 +259,7 @@ export class AuthService {
 
       return { ...mapResponseLogin({ account, shops, currentShop }) };
     } catch (error) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Token không hợp lệ!");
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Phiên bản đăng nhập hết hạn!");
     }
   }
 
@@ -349,6 +349,36 @@ export class AuthService {
     });
   }
 
+  async changeMyPassword(data: ChangeMyPasswordDto, tokenPayload: TokenPayload) {
+    const account = await this.prisma.account.findFirst({
+      where: {
+        id: tokenPayload.accountId,
+      },
+    });
+
+    if (!account || !bcrypt.compareSync(data.oldPassword, account.password))
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Mật khẩu cũ không chính xác!");
+
+    if (data.isLoggedOutAll)
+      await this.prisma.authToken.deleteMany({
+        where: {
+          accountId: tokenPayload.accountId,
+          deviceId: {
+            not: tokenPayload.deviceId,
+          },
+        },
+      });
+
+    return await this.prisma.account.update({
+      where: {
+        id: tokenPayload.accountId,
+      },
+      data: {
+        password: bcrypt.hashSync(data.newPassword, 10),
+      },
+    });
+  }
+
   async changeInformation(data: ChangeAvatarDto, tokenPayload: TokenPayload) {
     const user = await this.prisma.user.findFirst({
       where: {
@@ -403,16 +433,12 @@ export class AuthService {
     });
   }
 
-  async logout(logoutDto: LogoutDto, tokenPayload: TokenPayload) {
-    if (logoutDto.isAllDevices)
-      return this.prisma.authToken.deleteMany({
-        where: {
-          accountId: tokenPayload.accountId,
-          deviceId: {
-            not: tokenPayload.deviceId,
-          },
-        },
-      });
+  async logout(tokenPayload: TokenPayload) {
+    return this.prisma.authToken.deleteMany({
+      where: {
+        deviceId: tokenPayload.deviceId,
+      },
+    });
   }
 
   async getDevice(tokenPayload: TokenPayload) {

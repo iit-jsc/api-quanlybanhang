@@ -1,14 +1,16 @@
 import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
-import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto, LogoutDto } from "./dto/login.dto";
+import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto } from "./dto/login.dto";
 import { AuthService } from "./auth.service";
 import { AccessBranchDto } from "./dto/access-branch.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
 import { VerifyContactDto } from "src/shop/dto/verify-contact.dto";
 import { CustomHttpException } from "utils/ApiErrors";
-import { ChangePasswordDto } from "./dto/change-password.dto";
+import { ChangeMyPasswordDto, ChangePasswordDto } from "./dto/change-password.dto";
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { AccessBranchGuard } from "guards/access-branch.guard";
+import { SPECIAL_ROLE } from "enums/common.enum";
+import { Roles } from "guards/roles.decorator";
 @Controller("auth")
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
@@ -49,18 +51,27 @@ export class AuthController {
   @Post("/logout")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  logout(@Body() logoutDto: LogoutDto, @Req() req: any) {
+  logout(@Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.authService.logout(logoutDto, tokenPayload);
+    return this.authService.logout(tokenPayload);
   }
 
   @Patch("/change-password")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
+  @Roles("UPDATE_EMPLOYEE", SPECIAL_ROLE.MANAGER)
   changePassword(@Body() changePasswordDto: ChangePasswordDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
     return this.authService.changePassword(changePasswordDto, tokenPayload);
+  }
+
+  @Patch("/change-my-password")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  changeMyPassword(@Body() changeMyPasswordDto: ChangeMyPasswordDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+    return this.authService.changeMyPassword(changeMyPasswordDto, tokenPayload);
   }
 
   @Patch("/change-information")
