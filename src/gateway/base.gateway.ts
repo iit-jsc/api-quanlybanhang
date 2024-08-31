@@ -69,6 +69,7 @@ export abstract class BaseGateway implements OnGatewayInit, OnGatewayConnection,
       },
       select: {
         socketId: true,
+        accountId: true,
       },
     });
   }

@@ -1,7 +1,6 @@
 import { UseGuards } from "@nestjs/common";
 import { WebSocketGateway } from "@nestjs/websockets";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { Table } from "@prisma/client";
 import { BaseGateway } from "./base.gateway"; // Import BaseGateway
@@ -16,7 +15,9 @@ export class TableGateway extends BaseGateway {
   async handleModifyTable(payload: Table) {
     const accountOnline = await this.getAccountsOnline(payload.branchId);
 
-    const socketIds = accountOnline.map((account) => account.socketId);
+    const socketIds = accountOnline
+      .filter((account) => account.accountId !== payload.updatedBy)
+      .map((account) => account.socketId);
 
     if (socketIds.length > 0) {
       console.log(`Bàn ${payload.id} đã gửi socket cho: ${socketIds}`);

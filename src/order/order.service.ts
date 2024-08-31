@@ -297,6 +297,7 @@ export class OrderService {
             data: orderDetails,
           },
         },
+        updatedBy: tokenPayload.accountId,
       },
       include: {
         orderDetails: true,
