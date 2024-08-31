@@ -164,6 +164,11 @@ model User {
   employeeSalary        EmployeeSalary?
   detailTableSalaries   DetailTableSalary[]
   compensationEmployees CompensationEmployee[]
+
+  @@unique([branchId, code])
+  @@unique([branchId, cardId])
+  @@unique([branchId, phone])
+  @@unique([branchId, email])
 }
 
 model EmployeeGroup {
