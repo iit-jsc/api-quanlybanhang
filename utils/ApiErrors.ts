@@ -1,8 +1,4 @@
-import { HttpException, HttpStatus } from "@nestjs/common";
-import { ValidationError } from "@nestjs/common";
-
-import { ExceptionFilter, Catch, ArgumentsHost } from "@nestjs/common";
-import { error } from "console";
+import { ExceptionFilter, Catch, ArgumentsHost, ValidationError, HttpException, HttpStatus } from "@nestjs/common";
 import { Response } from "express";
 import { AnyObject } from "interfaces/common.interface";
 interface ErrorResponse {
@@ -52,14 +48,9 @@ export class PrismaExceptionFilter implements ExceptionFilter {
     console.log(exception);
 
     if (exception.code === "P2002") {
-      let failedField = exception.meta.target;
-
-      if (exception.meta?.target?.length > 1) failedField = failedField[0];
-
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.CONFLICT,
-        message: "Validation failed",
-        errors: { [failedField]: `Dữ liệu đã tồn tại!` },
+        message: "Dữ liệu đã tồn tại!",
       });
     }
 

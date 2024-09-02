@@ -1,6 +1,5 @@
-import { Transform, TransformFnParams, Type } from "class-transformer";
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString, MinLength } from "class-validator";
-import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
+import { Transform, TransformFnParams } from "class-transformer";
+import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsPhoneNumber, IsString } from "class-validator";
 
 export class CreateUserDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -9,8 +8,7 @@ export class CreateUserDto {
   name: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
-  @IsVietnamesePhoneNumber()
-  phone: string;
+  username: string;
 
   @IsEmail(
     {},
@@ -20,6 +18,9 @@ export class CreateUserDto {
   )
   @IsOptional()
   email?: string;
+
+  @IsPhoneNumber("VN")
+  phone?: string;
 
   @IsOptional()
   @IsNumber()

@@ -53,13 +53,6 @@ export class ManagerService {
   }
 
   async create(data: CreateManagerDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkUserExisting(
-      { phone: data.phone, email: data.email, code: data.code },
-      tokenPayload.shopId,
-    );
-
-    await this.checkManagerExisting(data.phone);
-
     // Kiểm tra chi nhánh thuộc shop không
     await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
 
@@ -84,7 +77,7 @@ export class ManagerService {
 
       await prisma.account.create({
         data: {
-          username: data.phone,
+          username: data.username,
           password: bcrypt.hashSync(data.password, 10),
           status: ACCOUNT_STATUS.ACTIVE,
           type: ACCOUNT_TYPE.MANAGER,
@@ -114,15 +107,6 @@ export class ManagerService {
     if (data.branchIds && data.branchIds?.length > 0)
       await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
 
-    if (data.phone || data.email || data.code)
-      await this.commonService.checkUserExisting(
-        { phone: data.phone, email: data.email, code: data.code },
-        tokenPayload.shopId,
-        where.id,
-      );
-
-    if (data.phone) await this.checkManagerExisting(data.phone);
-
     return this.prisma.user.update({
       data: {
         name: data.name,
@@ -141,7 +125,6 @@ export class ManagerService {
         account: {
           update: {
             status: data.accountStatus,
-            username: data.phone,
             ...(data.newPassword && { password: data.newPassword ? bcrypt.hashSync(data.newPassword, 10) : undefined }),
             ...(data.branchIds &&
               data.branchIds?.length > 0 && {

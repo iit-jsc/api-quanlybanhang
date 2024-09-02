@@ -1,21 +1,6 @@
 import { Transform, TransformFnParams } from "class-transformer";
-import { IsString, IsNotEmpty, IsNumber, IsOptional, IsEnum, IsBoolean, IsDate, IsEmail } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional, IsDate, IsEmail } from "class-validator";
 import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
-
-export class LoginDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
-  username: string;
-
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @IsString()
-  password: string;
-
-  @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  shopCode?: string;
-}
 
 export class LoginForManagerDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -39,7 +24,6 @@ export class LoginForCustomerDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsEmail()
-  @IsString()
   email: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -47,7 +31,7 @@ export class LoginForCustomerDto {
   shopCode: string;
 }
 
-export class LoginForStaffDto {
+export class LoginDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
@@ -56,10 +40,6 @@ export class LoginForStaffDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   password: string;
-
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  shopCode: string;
 }
 
 export class CreateRefreshTokenDto {

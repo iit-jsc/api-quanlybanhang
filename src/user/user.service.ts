@@ -1,7 +1,7 @@
 import * as bcrypt from "bcrypt";
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
+import { CheckUniqDto, CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
@@ -18,13 +18,6 @@ export class UserService {
   ) {}
 
   async createEmployee(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkUserExisting(
-      { phone: data.phone, email: data.email, code: data.code },
-      tokenPayload.shopId,
-    );
-
-    await this.commonService.checkAccountExisting({ username: data.username }, tokenPayload.shopId);
-
     return await this.prisma.$transaction(async (prisma) => {
       const user = await prisma.user.create({
         data: {
@@ -198,13 +191,6 @@ export class UserService {
   ) {
     const { where, data } = params;
 
-    if (!data.phone || data.email)
-      await this.commonService.checkUserExisting(
-        { phone: data.phone, email: data.email, code: data.code },
-        tokenPayload.shopId,
-        where.id,
-      );
-
     const result = await this.prisma.user.update({
       data: {
         name: data.name,
@@ -276,5 +262,29 @@ export class UserService {
     await this.commonService.createActivityLog(data.ids, "User", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
+  }
+
+  async checkUniq(data: CheckUniqDto) {
+    const { field, id, value } = data;
+
+    let record = null;
+
+    if (field === "username") {
+      record = await this.prisma.account.findFirst({
+        where: {
+          username: value,
+          user: { id: { not: id } },
+        },
+      });
+    } else {
+      record = await this.prisma.user.findFirst({
+        where: {
+          [field]: value,
+          id: { not: id },
+        },
+      });
+    }
+
+    return record === null;
   }
 }

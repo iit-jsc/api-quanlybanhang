@@ -1,11 +1,11 @@
-import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto } from "./dto/login.dto";
+import { LoginForCustomerDto, LoginDto } from "./dto/login.dto";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { mapResponseLogin } from "map-responses/account.map-response";
 import { CustomHttpException } from "utils/ApiErrors";
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
+import { ACCOUNT_STATUS } from "enums/user.enum";
 import { AccessBranchDto } from "./dto/access-branch.dto";
 import { AnyObject, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
@@ -23,22 +23,13 @@ export class AuthService {
     private transporterService: TransporterService,
   ) {}
 
-  async loginForStaff(data: LoginForStaffDto) {
+  async login(data: LoginDto) {
     const account = await this.prisma.account.findFirst({
       where: {
         isPublic: true,
         username: {
           contains: data.username,
         },
-        branches: {
-          some: {
-            shop: {
-              code: data.shopCode,
-              isPublic: true,
-            },
-          },
-        },
-        type: ACCOUNT_TYPE.STAFF,
       },
       include: {
         user: {
@@ -56,46 +47,6 @@ export class AuthService {
 
     if (account.status == ACCOUNT_STATUS.INACTIVE) {
       throw new CustomHttpException(HttpStatus.FORBIDDEN, "Tài khoản đã bị khóa!");
-    }
-
-    const shops = await this.commonService.findManyShopByAccountId(account.id);
-
-    const payload = { accountId: account.id };
-
-    return {
-      accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: "24h",
-        secret: process.env.SECRET_KEY,
-      }),
-      shops,
-    };
-  }
-
-  async loginForManager(data: LoginForManagerDto) {
-    let account = null;
-
-    if (data.password) {
-      account = await this.prisma.account.findFirst({
-        where: {
-          isPublic: true,
-          username: {
-            equals: data.phone,
-          },
-          status: ACCOUNT_STATUS.ACTIVE,
-          OR: [
-            {
-              type: ACCOUNT_TYPE.MANAGER,
-            },
-            {
-              type: ACCOUNT_TYPE.STORE_OWNER,
-            },
-          ],
-        },
-      });
-
-      if (!account || !account.password || !(await bcrypt.compare(data.password, account.password))) {
-        throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Tài khoản hoặc mật khẩu không chính xác!");
-      }
     }
 
     const shops = await this.commonService.findManyShopByAccountId(account.id);

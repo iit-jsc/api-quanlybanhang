@@ -97,7 +97,6 @@ export class CreateEmployeeDto {
   @MinLength(6, { message: "Mật khẩu phải có ít nhất 6 kí tự." })
   password: string;
 }
-
 export class UpdateEmployeeDto extends PartialType(CreateEmployeeDto) {
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
@@ -109,4 +108,15 @@ export class UpdateEmployeeDto extends PartialType(CreateEmployeeDto) {
   @Type(() => Number)
   @IsEnum(ACCOUNT_STATUS, { message: "Trạng thái không hợp lệ!" })
   accountStatus: number;
+}
+
+export class CheckUniqDto {
+  @IsNotEmpty({ message: "Không được để trống!" })
+  field: string;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  value: string;
+
+  @IsOptional()
+  id: string;
 }

@@ -13,7 +13,7 @@ import {
   Get,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
+import { CheckUniqDto, CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -33,6 +33,12 @@ export class UserController {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.userService.createEmployee(createEmployeeDto, tokenPayload);
+  }
+
+  @Post("/check-unique")
+  @HttpCode(HttpStatus.OK)
+  checkUniq(@Body() checkUniqDto: CheckUniqDto, @Req() req: any) {
+    return this.userService.checkUniq(checkUniqDto);
   }
 
   @Get("/employee")

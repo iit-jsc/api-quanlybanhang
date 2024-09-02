@@ -53,7 +53,7 @@ model Account {
   id                          String                 @id @default(uuid())
   status                      Int                    @default(1)
   type                        Int?                   @default(3)
-  username                    String
+  username                    String                 @unique
   password                    String?
   userId                      String                 @unique
   user                        User                   @relation(fields: [userId], references: [id])
@@ -137,12 +137,12 @@ model Account {
 model User {
   id                    String                 @id @default(uuid())
   name                  String
-  code                  String?
-  phone                 String
-  email                 String?
+  code                  String?                @unique
+  phone                 String                 @unique
+  email                 String?                @unique
   photoURL              String?                @db.Text
   address               String?                @db.Text
-  cardId                String?
+  cardId                String?                @unique
   cardDate              DateTime?
   cardAddress           String?                @db.Text
   birthday              DateTime?
@@ -164,11 +164,6 @@ model User {
   employeeSalary        EmployeeSalary?
   detailTableSalaries   DetailTableSalary[]
   compensationEmployees CompensationEmployee[]
-
-  @@unique([branchId, code])
-  @@unique([branchId, cardId])
-  @@unique([branchId, phone])
-  @@unique([branchId, email])
 }
 
 model EmployeeGroup {

@@ -10,7 +10,6 @@ import {
   IsString,
   MaxDate,
   MinLength,
-  ValidateNested,
 } from "class-validator";
 import { ACCOUNT_STATUS, SEX_TYPE } from "enums/user.enum";
 import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
@@ -75,6 +74,10 @@ export class CreateManagerDto {
   @IsOptional()
   @IsString()
   address: string;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsString()
+  username: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())

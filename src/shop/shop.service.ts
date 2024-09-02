@@ -26,19 +26,6 @@ export class ShopService {
     const { user, branch } = data;
 
     const { newShop, accountId } = await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      // Kiểm tra tài khoản tồn tại chưa
-      let ownerShopAccount = await this.prisma.account.findFirst({
-        where: {
-          isPublic: true,
-          OR: [{ type: ACCOUNT_TYPE.MANAGER }, { type: ACCOUNT_TYPE.STORE_OWNER }],
-          username: {
-            equals: user.phone,
-          },
-        },
-      });
-
-      if (ownerShopAccount) throw new CustomHttpException(HttpStatus.CONFLICT, "Tài khoản đã tồn tại!");
-
       let ownerShop = await prisma.user.create({
         data: {
           name: user.name,
@@ -46,7 +33,7 @@ export class ShopService {
           email: user.email,
           account: {
             create: {
-              username: user.phone,
+              username: user.username,
               password: bcrypt.hashSync(data.user.password, 10),
               status: ACCOUNT_STATUS.ACTIVE,
               type: ACCOUNT_TYPE.STORE_OWNER,

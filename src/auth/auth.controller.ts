@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
-import { LoginForCustomerDto, LoginForManagerDto, LoginForStaffDto } from "./dto/login.dto";
+import { LoginForCustomerDto, LoginForManagerDto, LoginDto } from "./dto/login.dto";
 import { AuthService } from "./auth.service";
 import { AccessBranchDto } from "./dto/access-branch.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
@@ -15,22 +15,10 @@ import { Roles } from "guards/roles.decorator";
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("/login-for-staff")
+  @Post("/login")
   @HttpCode(HttpStatus.OK)
-  loginForStaff(@Body() loginForStaffDto: LoginForStaffDto) {
-    return this.authService.loginForStaff(loginForStaffDto);
-  }
-
-  @Post("/login-for-manager")
-  @HttpCode(HttpStatus.OK)
-  loginForManager(@Body() loginForManagerDto: LoginForManagerDto) {
-    return this.authService.loginForManager(loginForManagerDto);
-  }
-
-  @Post("/login-for-customer")
-  @HttpCode(HttpStatus.OK)
-  loginForCustomer(@Body() loginDto: LoginForCustomerDto) {
-    return this.authService.loginForCustomer(loginDto);
+  login(@Body() loginDto: LoginDto) {
+    return this.authService.login(loginDto);
   }
 
   @Post("/access-branch")
