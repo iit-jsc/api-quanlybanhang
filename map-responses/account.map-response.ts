@@ -11,6 +11,7 @@ export function mapResponseLogin(data: AnyObject) {
 
   return {
     type: account.type,
+    username: account.username,
     user: currentShop ? account.user : undefined,
     permissions: currentShop ? uniqueRoles : undefined,
     currentShop: currentShop,
