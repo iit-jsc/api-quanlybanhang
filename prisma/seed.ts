@@ -555,7 +555,7 @@ async function main() {
 
 main()
   .then(() => {
-    console.log("Seeding completed!");
+    // console.log("Seeding completed!");
   })
   .catch((e) => {
     console.error(e);

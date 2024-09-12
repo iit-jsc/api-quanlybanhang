@@ -19,15 +19,15 @@ export abstract class BaseGateway implements OnGatewayInit, OnGatewayConnection,
   @WebSocketServer() server: Server;
 
   afterInit(server: Server) {
-    console.log("WebSocket server initialized");
+    // console.log("WebSocket server initialized");
   }
 
   handleConnection(client: Socket) {
-    console.log("Client connected:", client.id);
+    // console.log("Client connected:", client.id);
   }
 
   async handleDisconnect(client: Socket) {
-    console.log("Client disconnected:", client.id);
+    // console.log("Client disconnected:", client.id);
 
     await this.prisma.accountSocket.deleteMany({
       where: {

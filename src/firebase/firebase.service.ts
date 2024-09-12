@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common';
-import * as admin from 'firebase-admin';
+import { Injectable } from "@nestjs/common";
+import * as admin from "firebase-admin";
 
 @Injectable()
 export class FirebaseService {
@@ -13,13 +13,11 @@ export class FirebaseService {
 
   async verifyIdToken(idToken: string) {
     try {
-      const decodedToken = await this.adminApp
-        .auth()
-        .verifyIdToken(idToken, true);
+      const decodedToken = await this.adminApp.auth().verifyIdToken(idToken, true);
 
       return { success: true, uid: decodedToken.uid };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       return { success: false, error: error.message };
     }
   }

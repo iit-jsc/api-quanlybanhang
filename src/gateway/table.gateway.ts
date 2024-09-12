@@ -20,7 +20,7 @@ export class TableGateway extends BaseGateway {
       .map((account) => account.socketId);
 
     if (socketIds.length > 0) {
-      console.log(`Bàn ${payload.id} đã gửi socket cho: ${socketIds}`);
+      // console.log(`Bàn ${payload.id} đã gửi socket cho: ${socketIds}`);
 
       this.server.to(socketIds).emit("table", payload);
     }

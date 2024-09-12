@@ -19,7 +19,7 @@ export class OrderGateway extends BaseGateway {
       .map((account) => account.socketId);
 
     if (socketIds.length > 0) {
-      console.log(`Đơn hàng ${payload.id} đã gửi socket cho: ${socketIds}`);
+      // console.log(`Đơn hàng ${payload.id} đã gửi socket cho: ${socketIds}`);
 
       this.server.to(socketIds).emit("order", payload);
     }

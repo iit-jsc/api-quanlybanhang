@@ -443,7 +443,7 @@ export class AuthService {
         ...mapResponseLogin({ account, shops, currentShop }),
       };
     } catch (error) {
-      console.log(error);
+      // console.log(error);
       throw error;
     }
   }

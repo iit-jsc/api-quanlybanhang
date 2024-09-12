@@ -45,7 +45,6 @@ export class PrismaExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    console.log(exception);
 
     if (exception.code === "P2002") {
       return response.status(HttpStatus.BAD_REQUEST).json({
