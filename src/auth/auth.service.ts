@@ -118,7 +118,7 @@ export class AuthService {
           deviceId: data.deviceId,
         } as TokenPayload,
         {
-          expiresIn: "48h",
+          expiresIn: "30d",
         },
       ),
       refreshToken: data.refreshToken,
