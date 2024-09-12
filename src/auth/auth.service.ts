@@ -118,7 +118,7 @@ export class AuthService {
           deviceId: data.deviceId,
         } as TokenPayload,
         {
-          expiresIn: "30d",
+          expiresIn: "48h",
         },
       ),
       refreshToken: data.refreshToken,
@@ -365,7 +365,7 @@ export class AuthService {
         deviceId: validDeviceId,
       },
       {
-        expiresIn: "48h",
+        expiresIn: "30d",
         secret: process.env.SECRET_KEY,
       },
     );
