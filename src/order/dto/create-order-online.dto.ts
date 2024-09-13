@@ -43,11 +43,6 @@ export class CreateOrderOnlineDto {
   @IsString()
   note: string;
 
-  @IsOptional()
-  @IsNumber()
-  @IsEnum(PAYMENT_METHOD_TYPE, { message: "Phương thức thanh toán không hợp lệ!" })
-  paymentMethod: number;
-
   @IsNotEmpty({ message: "Không được để trống!" })
   @ArrayNotEmpty({ message: "Danh sách sản phẩm không được rỗng!" })
   @ValidateNested({ each: true })
