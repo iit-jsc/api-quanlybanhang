@@ -17,8 +17,6 @@ export class PromotionService {
   ) {}
 
   async create(data: CreatePromotionDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Promotion", tokenPayload.branchId);
-
     const result = await this.prisma.promotion.create({
       data: {
         name: data.name,

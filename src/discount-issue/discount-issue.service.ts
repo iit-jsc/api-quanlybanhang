@@ -16,8 +16,6 @@ export class DiscountIssueService {
   ) {}
 
   async create(data: CreateDiscountIssueDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch({ code: data.code }, "DiscountIssue", tokenPayload.branchId);
-
     const discountIssue = await this.prisma.discountIssue.create({
       data: {
         name: data.name,
@@ -55,13 +53,6 @@ export class DiscountIssueService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-
-    await this.commonService.checkDataExistingInBranch(
-      { code: data.code },
-      "DiscountIssue",
-      tokenPayload.branchId,
-      where.id,
-    );
 
     const discountIssue = await this.prisma.discountIssue.update({
       data: {

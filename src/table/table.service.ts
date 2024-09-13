@@ -16,10 +16,6 @@ export class TableService {
   ) {}
 
   async create(data: CreateTableDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Table", tokenPayload.branchId);
-
-    await this.commonService.findByIdWithBranch(data.areaId, "Area", tokenPayload.branchId);
-
     const result = await this.prisma.table.create({
       data: {
         ...(data.code && {
@@ -176,10 +172,6 @@ export class TableService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-
-    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Table", tokenPayload.branchId, where.id);
-
-    if (data.areaId) await this.commonService.findByIdWithBranch(data.areaId, "Area", tokenPayload.branchId);
 
     const result = await this.prisma.table.update({
       where: {

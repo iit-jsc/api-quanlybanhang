@@ -177,8 +177,6 @@ export class OrderService {
   }
 
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Order", tokenPayload.branchId);
-
     const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.SUCCESS, tokenPayload);
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {

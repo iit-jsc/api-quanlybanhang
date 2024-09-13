@@ -16,9 +16,6 @@ export class MeasurementUnitService {
   ) {}
 
   async create(data: CreateMeasurementUnitDto, tokenPayload: TokenPayload) {
-    if (data.code)
-      await this.commonService.checkDataExistingInBranch({ code: data.code }, "MeasurementUnit", tokenPayload.branchId);
-
     const result = await this.prisma.measurementUnit.create({
       data: {
         name: data.name,
@@ -97,14 +94,6 @@ export class MeasurementUnitService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-
-    if (data.code)
-      await this.commonService.checkDataExistingInBranch(
-        { code: data.code },
-        "MeasurementUnit",
-        tokenPayload.branchId,
-        where.id,
-      );
 
     const result = await this.prisma.measurementUnit.update({
       data: {

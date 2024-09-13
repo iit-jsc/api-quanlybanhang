@@ -16,8 +16,6 @@ export class AreaService {
   ) {}
 
   async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Area", tokenPayload.branchId);
-
     const area = await this.prisma.area.create({
       data: {
         ...(data.code && {
@@ -148,8 +146,6 @@ export class AreaService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-
-    await this.commonService.checkDataExistingInBranch({ code: data.code }, "Area", tokenPayload.branchId, where.id);
 
     const area = await this.prisma.area.update({
       where: {
