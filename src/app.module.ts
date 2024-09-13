@@ -20,7 +20,6 @@ import { CustomerTypeModule } from "./customer-type/customer-type.module";
 import { CustomerModule } from "./customer/customer.module";
 import { AreaModule } from "./area/area.module";
 import { TableModule } from "./table/table.module";
-import { ToppingModule } from "./topping/topping.module";
 import { OrderStatusModule } from "./order-status/order-status.module";
 import { OrderModule } from "./order/order.module";
 import { OrderRatingModule } from "./order-rating/order-rating.module";
@@ -97,7 +96,6 @@ import { ActivityLogModule } from "./activity-log/activity-log.module";
     CustomerModule,
     AreaModule,
     TableModule,
-    ToppingModule,
     OrderStatusModule,
     OrderModule,
     OrderRatingModule,

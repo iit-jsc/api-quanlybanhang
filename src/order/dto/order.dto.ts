@@ -53,10 +53,6 @@ export class OrderProducts {
 
   @IsOptional()
   @IsString()
-  toppingId: string;
-
-  @IsOptional()
-  @IsString()
   note: string;
 }
 

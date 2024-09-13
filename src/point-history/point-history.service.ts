@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
-import { TokenCustomerPayload } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
+import { Injectable } from "@nestjs/common";
+import { Prisma } from "@prisma/client";
+import { TokenCustomerPayload } from "interfaces/common.interface";
+import { PrismaService } from "nestjs-prisma";
 
 @Injectable()
 export class PointHistoryService {
@@ -37,23 +37,8 @@ export class PointHistoryService {
                 id: true,
                 amount: true,
                 note: true,
-                productPrice: true,
-                toppingPrice: true,
-                product: {
-                  select: {
-                    id: true,
-                    name: true,
-                    photoURLs: true,
-                    code: true,
-                  },
-                },
-                topping: {
-                  select: {
-                    id: true,
-                    name: true,
-                    photoURLs: true,
-                  },
-                },
+                product: true,
+                productOptions: true,
               },
               where: {
                 isPublic: true,
@@ -67,10 +52,7 @@ export class PointHistoryService {
     });
   }
 
-  async findUniqPointerHistory(
-    where: Prisma.PointHistoryWhereUniqueInput,
-    tokenPayload: TokenCustomerPayload,
-  ) {
+  async findUniqPointerHistory(where: Prisma.PointHistoryWhereUniqueInput, tokenPayload: TokenCustomerPayload) {
     return this.prisma.pointHistory.findUniqueOrThrow({
       where: {
         id: where.id,
@@ -80,23 +62,6 @@ export class PointHistoryService {
         order: {
           include: {
             orderDetails: {
-              include: {
-                product: {
-                  select: {
-                    id: true,
-                    name: true,
-                    photoURLs: true,
-                    code: true,
-                  },
-                },
-                topping: {
-                  select: {
-                    id: true,
-                    name: true,
-                    photoURLs: true,
-                  },
-                },
-              },
               where: {
                 isPublic: true,
               },

@@ -72,8 +72,6 @@ model Account {
   updaterBranches             Branch[]               @relation("updater")
   creatorMeasurementUnits     MeasurementUnit[]      @relation("creator")
   updaterMeasurementUnits     MeasurementUnit[]      @relation("updater")
-  creatorToppings             Topping[]              @relation("creator")
-  updaterToppings             Topping[]              @relation("updater")
   creatorProductTypes         ProductType[]          @relation("creator")
   updaterProductTypes         ProductType[]          @relation("updater")
   creatorProducts             Product[]              @relation("creator")
@@ -133,6 +131,10 @@ model Account {
   creatorPaymentMethod        PaymentMethod[]        @relation("creator")
   updaterPaymentMethod        PaymentMethod[]        @relation("updater")
   authTokens                  AuthToken[]
+  creatorProductOption        ProductOption[]        @relation("creator")
+  updaterProductOption        ProductOption[]        @relation("updater")
+  creatorProductGroupOption   ProductGroupOption[]   @relation("creator")
+  updaterProductGroupOption   ProductGroupOption[]   @relation("updater")
 }
 
 model User {
@@ -282,6 +284,7 @@ model ProductType {
   updatedAt              DateTime                @updatedAt
   otherAttributePatterns OtherAttributePattern[]
   products               Product[]
+  productGroupOptions    ProductGroupOption[]
   createdBy              String?
   updatedBy              String?
   creator                Account?                @relation("creator", fields: [createdBy], references: [id])
@@ -302,24 +305,6 @@ model OtherAttributePattern {
   updatedAt     DateTime    @updatedAt
   branch        Branch      @relation(fields: [branchId], references: [id])
   productType   ProductType @relation(fields: [productTypeId], references: [id])
-}
-
-model Topping {
-  id           String        @id @default(uuid())
-  name         String
-  description  String?       @db.Text
-  photoURLs    Json?
-  price        Float         @default(0)
-  branchId     String
-  branch       Branch        @relation(fields: [branchId], references: [id])
-  isPublic     Boolean?      @default(true)
-  createdBy    String?
-  updatedBy    String?
-  creator      Account?      @relation("creator", fields: [createdBy], references: [id])
-  updater      Account?      @relation("updater", fields: [updatedBy], references: [id])
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
-  orderDetails OrderDetail[]
 }
 
 model Product {
@@ -346,7 +331,6 @@ model Product {
   deals                       Deal[]
   promotionConditionProducts  PromotionCondition[]
   promotionProducts           PromotionProduct[]
-  orderDetails                OrderDetail[]
   productTypeId               String
   productType                 ProductType                  @relation(fields: [productTypeId], references: [id])
   createdBy                   String?
@@ -356,19 +340,36 @@ model Product {
   inventoryTransactionDetails InventoryTransactionDetail[]
 }
 
-// model ComboProductItem {
-//   id        String   @id @default(uuid())
-//   branchId  String
-//   productId String
-//   amount    Boolean
-//   isPublic  Boolean? @default(true)
-//   createdBy String?
-//   updatedBy String?
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   branch    Branch   @relation(fields: [branchId], references: [id])
-//   product   Product  @relation(fields: [productId], references: [id])
-// }
+model ProductOption {
+  id                  String               @id @default(uuid())
+  name                String
+  price               Float                @default(0)
+  isMultiple          Boolean?             @default(false)
+  photoURL            String?              @db.Text
+  branchId            String
+  branch              Branch               @relation(fields: [branchId], references: [id])
+  productGroupOptions ProductGroupOption[]
+  isPublic            Boolean?             @default(true)
+  createdBy           String?
+  updatedBy           String?
+  creator             Account?             @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?             @relation("updater", fields: [updatedBy], references: [id])
+}
+
+model ProductGroupOption {
+  id              String        @id @default(uuid())
+  name            String
+  productOption   ProductOption @relation(fields: [productOptionId], references: [id])
+  productOptionId String
+  branchId        String
+  branch          Branch        @relation(fields: [branchId], references: [id])
+  isPublic        Boolean?      @default(true)
+  createdBy       String?
+  updatedBy       String?
+  creator         Account?      @relation("creator", fields: [createdBy], references: [id])
+  updater         Account?      @relation("updater", fields: [updatedBy], references: [id])
+  productTypes    ProductType[]
+}
 
 model Warehouse {
   id                    String                 @id @default(uuid())
@@ -574,7 +575,6 @@ model Promotion {
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
   branch              Branch               @relation(fields: [branchId], references: [id])
-  orders              Order[]
   promotionConditions PromotionCondition[]
   promotionProducts   PromotionProduct[]
   createdBy           String?
@@ -614,63 +614,57 @@ model PromotionProduct {
 }
 
 model Order {
-  id                    String            @id @default(uuid())
-  branchId              String
-  customerId            String?
-  code                  String
-  cancelReason          String?
-  cancelDate            DateTime?
-  transactionId         String?
-  note                  String?
-  promotionValue        Float?            @default(0)
-  discountValue         Float?            @default(0)
-  convertedPointValue   Float?            @default(0)
-  customerDiscountValue Float?            @default(0)
-  usedPoint             Float?            @default(0)
-  moneyReceived         Float?
-  orderType             Int
-  paymentMethodId       String?
-  bankingImages         Json?
-  paymentMethod         PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
-  isPaid                Boolean?          @default(false)
-  isSave                Boolean?          @default(false)
-  orderStatus           Int
-  isPublic              Boolean?          @default(true)
-  createdBy             String?
-  updatedBy             String?
-  createdAt             DateTime          @default(now())
-  updatedAt             DateTime          @updatedAt
-  branch                Branch            @relation(fields: [branchId], references: [id])
-  customer              Customer?         @relation(fields: [customerId], references: [id])
-  orderDetails          OrderDetail[]
-  deals                 Deal[]
-  customerRequests      CustomerRequest[]
-  orderRatings          OrderRating[]
-  creator               Account?          @relation("creator", fields: [createdBy], references: [id])
-  updater               Account?          @relation("updater", fields: [updatedBy], references: [id])
-  pointHistories        PointHistory[]
-  promotion             Promotion?        @relation(fields: [promotionId], references: [id])
-  promotionId           String?
+  id                  String            @id @default(uuid())
+  branchId            String
+  customerId          String?
+  code                String
+  cancelReason        String?
+  cancelDate          DateTime?
+  transactionId       String?
+  note                String?
+  convertedPointValue Float?            @default(0)
+  promotion           Json?
+  discount            Json?
+  customerDiscount    Json?
+  usedPoint           Float?            @default(0)
+  moneyReceived       Float?
+  orderType           Int
+  paymentMethodId     String?
+  bankingImages       Json?
+  paymentMethod       PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
+  isPaid              Boolean?          @default(false)
+  isSave              Boolean?          @default(false)
+  orderStatus         Int
+  isPublic            Boolean?          @default(true)
+  createdBy           String?
+  updatedBy           String?
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  branch              Branch            @relation(fields: [branchId], references: [id])
+  customer            Customer?         @relation(fields: [customerId], references: [id])
+  orderDetails        OrderDetail[]
+  deals               Deal[]
+  customerRequests    CustomerRequest[]
+  orderRatings        OrderRating[]
+  creator             Account?          @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?          @relation("updater", fields: [updatedBy], references: [id])
+  pointHistories      PointHistory[]
 }
 
 model OrderDetail {
   id                String             @id @default(uuid())
   branchId          String
   orderId           String?
-  productId         String
-  toppingId         String?
   amount            Float
   note              String?
   status            Int?               @default(1)
-  productPrice      Float              @default(0)
-  toppingPrice      Float?             @default(0)
+  productOptions    Json?
+  product           Json?
   isPublic          Boolean?           @default(true)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
   branch            Branch             @relation(fields: [branchId], references: [id])
-  topping           Topping?           @relation(fields: [toppingId], references: [id])
   order             Order?             @relation(fields: [orderId], references: [id])
-  product           Product            @relation(fields: [productId], references: [id])
   table             Table?             @relation(fields: [tableId], references: [id])
   tableId           String?
   createdBy         String?
@@ -889,7 +883,6 @@ model Branch {
   tables                     Table[]
   permissions                Permission[]
   employeeGroups             EmployeeGroup[]
-  toppings                   Topping[]
   accounts                   Account[]
   users                      User[]
   warehouses                 Warehouse[]
@@ -900,6 +893,8 @@ model Branch {
   detailTableSalaries        DetailTableSalary[]
   compensationEmployees      CompensationEmployee[]
   paymentMethods             PaymentMethod[]
+  productGroupOptions        ProductGroupOption[]
+  productOptions             ProductOption[]
 }
 
 model WorkShift {

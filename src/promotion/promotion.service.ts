@@ -159,9 +159,6 @@ export class PromotionService {
               },
             },
           }),
-          _count: {
-            select: { orders: true },
-          },
         },
       }),
       this.prisma.promotion.count({

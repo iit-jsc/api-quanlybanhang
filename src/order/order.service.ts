@@ -3,7 +3,7 @@ import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "
 import { CustomerShape, PromotionCountOrder, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
-import { OrderDetail, Prisma, PrismaClient, Product, Promotion, Topping } from "@prisma/client";
+import { OrderDetail, Prisma, PrismaClient, Product, Promotion } from "@prisma/client";
 import { PaymentFromTableDto } from "./dto/payment-order-from-table.dto";
 import { FindManyDto, DeleteManyDto } from "utils/Common.dto";
 import { SeparateTableDto } from "./dto/separate-table.dto";
@@ -39,21 +39,7 @@ export class OrderService {
           tokenPayload.branchId,
         )) as Product;
 
-        const toppingExist = product.toppingId
-          ? ((await this.commonService.findByIdWithBranch(
-              product.toppingId,
-              "Topping",
-              tokenPayload.branchId,
-            )) as Topping)
-          : null;
-
         return {
-          ...(product.toppingId && {
-            toppingId: product.toppingId,
-            toppingPrice: toppingExist.price,
-          }),
-          productPrice: productExist.price,
-          productId: product.productId,
           amount: product.amount,
           status,
           branchId: tokenPayload.branchId,
@@ -115,9 +101,6 @@ export class OrderService {
         typeValue: true,
         isLimit: true,
         amount: true,
-        _count: {
-          select: { orders: true },
-        },
       },
     });
 
@@ -125,33 +108,30 @@ export class OrderService {
 
     if (!matchPromotion) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Khuyến mãi không hợp lệ!");
 
-    if (matchPromotion._count.orders >= matchPromotion.amount)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "Số lượng đã hết!");
+    // if (matchPromotion._count.orders >= matchPromotion.amount)
+    //   throw new CustomHttpException(HttpStatus.CONFLICT, "Số lượng đã hết!");
 
     return matchPromotion as PromotionCountOrder;
   }
 
   getTotalInOrder(orderDetails: OrderDetail[]) {
-    return orderDetails.reduce(
-      (total, order) => total + order.amount * (order.productPrice + (order.toppingPrice || 0)),
-      0,
-    );
+    return 0;
+    // return orderDetails.reduce(
+    //   (total, order) => total + order.amount * (order.productPrice + (order.toppingPrice || 0)),
+    //   0,
+    // );
   }
 
   async getPromotionValue(promotionId: string, orderDetails: OrderDetail[], branchId: string) {
-    const matchPromotion = await this.getMatchPromotion(promotionId, orderDetails, branchId);
-
-    if (matchPromotion.type == PROMOTION_TYPE.GIFT) return 0;
-
-    const totalOrder = this.getTotalInOrder(orderDetails);
-
-    if (matchPromotion.typeValue == DISCOUNT_TYPE.PERCENT) {
-      return (totalOrder * matchPromotion.value) / 100;
-    }
-
-    if (matchPromotion.typeValue == DISCOUNT_TYPE.VALUE) {
-      return Math.min(matchPromotion.value, totalOrder);
-    }
+    // const matchPromotion = await this.getMatchPromotion(promotionId, orderDetails, branchId);
+    // if (matchPromotion.type == PROMOTION_TYPE.GIFT) return 0;
+    // const totalOrder = this.getTotalInOrder(orderDetails);
+    // if (matchPromotion.typeValue == DISCOUNT_TYPE.PERCENT) {
+    //   return (totalOrder * matchPromotion.value) / 100;
+    // }
+    // if (matchPromotion.typeValue == DISCOUNT_TYPE.VALUE) {
+    //   return Math.min(matchPromotion.value, totalOrder);
+    // }
   }
 
   async getDiscountValue(totalOrder: number, code: string, branchId: string) {
@@ -255,23 +235,8 @@ export class OrderService {
               id: true,
               amount: true,
               note: true,
-              productPrice: true,
-              toppingPrice: true,
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  photoURLs: true,
-                  code: true,
-                },
-              },
-              topping: {
-                select: {
-                  id: true,
-                  name: true,
-                  photoURLs: true,
-                },
-              },
+              product: true,
+              productOptions: true,
             },
           },
         },
@@ -392,7 +357,6 @@ export class OrderService {
         data: {
           note: data.note,
           convertedPointValue,
-          discountValue,
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
           code: generateSortCode(),
@@ -435,8 +399,8 @@ export class OrderService {
 
       const totalOrder = this.getTotalInOrder(orderDetails);
 
-      if (data.promotionId)
-        promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, tokenPayload.branchId);
+      // if (data.promotionId)
+      //   promotionValue = await this.getPromotionValue(data.promotionId, orderDetails, tokenPayload.branchId);
 
       if (data.discountCode) {
         discountValue = await this.getDiscountValue(totalOrder, data.discountCode, tokenPayload.branchId);
@@ -496,12 +460,9 @@ export class OrderService {
           orderStatus: ORDER_STATUS_COMMON.SUCCESS,
           bankingImages: data.bankingImages,
           isPaid: true,
-          promotionValue: promotionValue,
-          discountValue: discountValue,
           convertedPointValue,
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,
-          customerDiscountValue,
           ...(data.customerId && {
             customer: {
               connect: {
@@ -764,23 +725,8 @@ export class OrderService {
               id: true,
               amount: true,
               note: true,
-              productPrice: true,
-              toppingPrice: true,
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  photoURLs: true,
-                  code: true,
-                },
-              },
-              topping: {
-                select: {
-                  id: true,
-                  name: true,
-                  photoURLs: true,
-                },
-              },
+              product: true,
+              productOptions: true,
             },
             where: {
               isPublic: true,
@@ -809,7 +755,6 @@ export class OrderService {
         isPublic: true,
       },
       include: {
-        promotion: true,
         customer: {
           select: {
             id: true,
@@ -824,23 +769,8 @@ export class OrderService {
             id: true,
             amount: true,
             note: true,
-            productPrice: true,
-            toppingPrice: true,
-            product: {
-              select: {
-                id: true,
-                name: true,
-                photoURLs: true,
-                code: true,
-              },
-            },
-            topping: {
-              select: {
-                id: true,
-                name: true,
-                photoURLs: true,
-              },
-            },
+            product: true,
+            productOptions: true,
           },
           where: {
             isPublic: true,
@@ -970,23 +900,8 @@ export class OrderService {
               id: true,
               amount: true,
               note: true,
-              productPrice: true,
-              toppingPrice: true,
-              product: {
-                select: {
-                  id: true,
-                  name: true,
-                  photoURLs: true,
-                  code: true,
-                },
-              },
-              topping: {
-                select: {
-                  id: true,
-                  name: true,
-                  photoURLs: true,
-                },
-              },
+              product: true,
+              productOptions: true,
             },
           },
           createdAt: true,
@@ -1011,7 +926,6 @@ export class OrderService {
         customerId: tokenCustomerPayload.customerId,
       },
       include: {
-        promotion: true,
         customer: {
           select: {
             id: true,
@@ -1026,23 +940,8 @@ export class OrderService {
             id: true,
             amount: true,
             note: true,
-            productPrice: true,
-            toppingPrice: true,
-            product: {
-              select: {
-                id: true,
-                name: true,
-                photoURLs: true,
-                code: true,
-              },
-            },
-            topping: {
-              select: {
-                id: true,
-                name: true,
-                photoURLs: true,
-              },
-            },
+            product: true,
+            productOptions: true,
           },
         },
       },
@@ -1166,8 +1065,8 @@ export class OrderService {
 
       if (order.customer) customerDiscountValue = await this.getDiscountCustomer(totalOrder, order.customer);
 
-      if (data.promotionId)
-        promotionValue = await this.getPromotionValue(data.promotionId, order.orderDetails, tokenPayload.branchId);
+      // if (data.promotionId)
+      // promotionValue = await this.getPromotionValue(data.promotionId, order.orderDetails, tokenPayload.branchId);
 
       if (data.discountCode) {
         discountValue = await this.getDiscountValue(totalOrder, data.discountCode, tokenPayload.branchId);
@@ -1213,18 +1112,14 @@ export class OrderService {
       return await prisma.order.update({
         where: { id: where.id, isPublic: true },
         data: {
-          promotionValue,
-          discountValue,
           isPaid: true,
           convertedPointValue,
-          customerDiscountValue,
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,
           orderStatus: ORDER_STATUS_COMMON.SUCCESS,
           bankingImages: data.exchangePoint,
           paymentMethodId: data.paymentMethodId,
           updatedBy: tokenPayload.accountId,
-          promotionId: data.promotionId,
         },
       });
     });

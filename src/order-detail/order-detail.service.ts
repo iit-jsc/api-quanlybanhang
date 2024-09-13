@@ -49,8 +49,7 @@ export class OrderDetailService {
         },
       },
       data: {
-        productId: data.productId,
-        toppingId: data.toppingId,
+        // productId: data.productId,
         amount: data.amount,
         note: data.note,
         status: data.status,
@@ -62,7 +61,7 @@ export class OrderDetailService {
     });
 
     // Gửi socket
-    await this.orderGateway.handleModifyOrder(orderDetail.order);
+    // await this.orderGateway.handleModifyOrder(orderDetail.order);
 
     return orderDetail;
   }

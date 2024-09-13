@@ -139,28 +139,8 @@ export class TableService {
             amount: true,
             note: true,
             status: true,
-            productPrice: true,
-            toppingPrice: true,
-            topping: {
-              select: {
-                id: true,
-                name: true,
-              },
-            },
-            product: {
-              select: {
-                id: true,
-                code: true,
-                name: true,
-                measurementUnit: {
-                  select: {
-                    id: true,
-                    code: true,
-                    name: true,
-                  },
-                },
-              },
-            },
+            product: true,
+            productOptions: true,
           },
         },
         tableTransactions: {
@@ -176,25 +156,10 @@ export class TableService {
               select: {
                 id: true,
                 status: true,
-                productPrice: true,
-                toppingPrice: true,
                 amount: true,
                 note: true,
-                product: {
-                  select: {
-                    id: true,
-                    name: true,
-                    code: true,
-                    photoURLs: true,
-                  },
-                },
-                topping: {
-                  select: {
-                    id: true,
-                    name: true,
-                    photoURLs: true,
-                  },
-                },
+                product: true,
+                productOptions: true,
               },
             },
           },
