@@ -133,8 +133,8 @@ model Account {
   authTokens                  AuthToken[]
   creatorProductOption        ProductOption[]        @relation("creator")
   updaterProductOption        ProductOption[]        @relation("updater")
-  creatorProductGroupOption   ProductGroupOption[]   @relation("creator")
-  updaterProductGroupOption   ProductGroupOption[]   @relation("updater")
+  creatorProductOptionGroup   ProductOptionGroup[]   @relation("creator")
+  updaterProductOptionGroup   ProductOptionGroup[]   @relation("updater")
 }
 
 model User {
@@ -242,6 +242,8 @@ model CurrencyUnit {
   updatedBy  String?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
+
+  @@unique([branchId, code])
 }
 
 model MeasurementUnit {
@@ -258,6 +260,8 @@ model MeasurementUnit {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
   products  Product[]
+
+  @@unique([branchId, code])
 }
 
 model ActivityLog {
@@ -284,11 +288,13 @@ model ProductType {
   updatedAt              DateTime                @updatedAt
   otherAttributePatterns OtherAttributePattern[]
   products               Product[]
-  productGroupOptions    ProductGroupOption[]
+  productOptionGroups    ProductOptionGroup[]
   createdBy              String?
   updatedBy              String?
   creator                Account?                @relation("creator", fields: [createdBy], references: [id])
   updater                Account?                @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, slug])
 }
 
 model OtherAttributePattern {
@@ -328,7 +334,6 @@ model Product {
   branch                      Branch                       @relation(fields: [branchId], references: [id])
   measurementUnit             MeasurementUnit              @relation(fields: [unitId], references: [id])
   stocks                      Stock[]
-  deals                       Deal[]
   promotionConditionProducts  PromotionCondition[]
   promotionProducts           PromotionProduct[]
   productTypeId               String
@@ -338,6 +343,9 @@ model Product {
   creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])
   updater                     Account?                     @relation("updater", fields: [updatedBy], references: [id])
   inventoryTransactionDetails InventoryTransactionDetail[]
+
+  @@unique([branchId, slug])
+  @@unique([branchId, code])
 }
 
 model ProductOption {
@@ -348,7 +356,7 @@ model ProductOption {
   photoURL            String?              @db.Text
   branchId            String
   branch              Branch               @relation(fields: [branchId], references: [id])
-  productGroupOptions ProductGroupOption[]
+  productOptionGroups ProductOptionGroup[]
   isPublic            Boolean?             @default(true)
   createdBy           String?
   updatedBy           String?
@@ -356,7 +364,7 @@ model ProductOption {
   updater             Account?             @relation("updater", fields: [updatedBy], references: [id])
 }
 
-model ProductGroupOption {
+model ProductOptionGroup {
   id              String        @id @default(uuid())
   name            String
   productOption   ProductOption @relation(fields: [productOptionId], references: [id])
@@ -429,6 +437,8 @@ model InventoryTransaction {
   creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])
   updater                     Account?                     @relation("updater", fields: [updatedBy], references: [id])
   inventoryTransactionDetails InventoryTransactionDetail[]
+
+  @@unique([branchId, code])
 }
 
 model InventoryTransactionDetail {
@@ -494,6 +504,9 @@ model Customer {
   pointHistories      PointHistory[]
   creator             Account?            @relation("creator", fields: [createdBy], references: [id])
   updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([shopId, phone])
+  @@unique([shopId, email])
 }
 
 model SupplierType {
@@ -533,28 +546,9 @@ model Supplier {
   creator               Account?               @relation("creator", fields: [createdBy], references: [id])
   updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
   inventoryTransactions InventoryTransaction[]
-}
 
-model Deal {
-  id                 String    @id @default(uuid())
-  branchId           String
-  identifier         String
-  name               String
-  code               String?
-  description        String?   @db.Text
-  type               Int
-  value              Float
-  noEndDate          Boolean?
-  discountAllProduct Boolean
-  unlimitedNumber    Boolean
-  isPublic           Boolean?  @default(true)
-  createdBy          String?
-  updatedBy          String?
-  createdAt          DateTime  @default(now())
-  updatedAt          DateTime  @updatedAt
-  branch             Branch    @relation(fields: [branchId], references: [id])
-  products           Product[]
-  orders             Order[]
+  @@unique([branchId, email])
+  @@unique([branchId, phone])
 }
 
 model Promotion {
@@ -581,6 +575,8 @@ model Promotion {
   updatedBy           String?
   creator             Account?             @relation("creator", fields: [createdBy], references: [id])
   updater             Account?             @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, code])
 }
 
 model PromotionCondition {
@@ -620,7 +616,6 @@ model Order {
   code                String
   cancelReason        String?
   cancelDate          DateTime?
-  transactionId       String?
   note                String?
   convertedPointValue Float?            @default(0)
   promotion           Json?
@@ -643,12 +638,13 @@ model Order {
   branch              Branch            @relation(fields: [branchId], references: [id])
   customer            Customer?         @relation(fields: [customerId], references: [id])
   orderDetails        OrderDetail[]
-  deals               Deal[]
   customerRequests    CustomerRequest[]
   orderRatings        OrderRating[]
   creator             Account?          @relation("creator", fields: [createdBy], references: [id])
   updater             Account?          @relation("updater", fields: [updatedBy], references: [id])
   pointHistories      PointHistory[]
+
+  @@unique([branchId, code])
 }
 
 model OrderDetail {
@@ -707,6 +703,8 @@ model Area {
   updatedBy   String?
   creator     Account? @relation("creator", fields: [createdBy], references: [id])
   updater     Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, code])
 }
 
 model Table {
@@ -728,6 +726,8 @@ model Table {
   updatedBy         String?
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
   updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, code])
 }
 
 model DiscountIssue {
@@ -754,6 +754,8 @@ model DiscountIssue {
   updatedBy         String?
   creator           Account?       @relation("creator", fields: [createdBy], references: [id])
   updater           Account?       @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, code])
 }
 
 model DiscountCode {
@@ -866,7 +868,6 @@ model Branch {
   stocks                     Stock[]
   supplierTypes              SupplierType[]
   suppliers                  Supplier[]
-  deals                      Deal[]
   promotions                 Promotion[]
   promotionConditionProducts PromotionCondition[]
   promotionProducts          PromotionProduct[]
@@ -893,7 +894,7 @@ model Branch {
   detailTableSalaries        DetailTableSalary[]
   compensationEmployees      CompensationEmployee[]
   paymentMethods             PaymentMethod[]
-  productGroupOptions        ProductGroupOption[]
+  productOptionGroups        ProductOptionGroup[]
   productOptions             ProductOption[]
 }
 
