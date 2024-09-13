@@ -1,4 +1,5 @@
 import { PartialType } from "@nestjs/swagger";
+import { Product } from "@prisma/client";
 import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   ArrayNotEmpty,
@@ -14,6 +15,7 @@ import {
   ValidateNested,
 } from "class-validator";
 import { ORDER_STATUS_COMMON } from "enums/order.enum";
+import { CreateProductOptionDto } from "src/product-option-group/dto/product-option-group.dto";
 
 export class CreateOrderDto {
   @IsOptional()
@@ -54,6 +56,9 @@ export class OrderProducts {
   @IsOptional()
   @IsString()
   note: string;
+
+  @IsOptional()
+  productOptionIds: string[];
 }
 
 export class UpdateOrderDto extends PartialType(CreateOrderDto) {

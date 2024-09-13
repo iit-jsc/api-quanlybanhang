@@ -87,54 +87,6 @@ export class CommonService {
     });
   }
 
-  async findOrCreateCustomer(
-    data: { name: string; address: string; phone: string },
-    where: { phone: string; branchId: string },
-  ) {
-    const shop = await this.prisma.shop.findFirst({
-      where: {
-        branches: {
-          some: {
-            id: where.branchId,
-            isPublic: true,
-          },
-        },
-        isPublic: true,
-      },
-    });
-
-    const existingCustomer = await this.prisma.customer.findFirst({
-      where: {
-        isPublic: true,
-        phone: where.phone,
-        shop: {
-          branches: {
-            some: {
-              id: where.branchId,
-              isPublic: true,
-            },
-          },
-          isPublic: true,
-        },
-      },
-    });
-
-    return existingCustomer
-      ? this.prisma.customer.update({
-          where: { id: existingCustomer.id },
-          data,
-        })
-      : this.prisma.customer.create({
-          data: {
-            ...data,
-            isPublic: true,
-            shop: {
-              connect: { id: shop.id },
-            },
-          },
-        });
-  }
-
   async checkTableIsReady(id: string) {
     const table = await this.prisma.table.findFirst({
       where: {

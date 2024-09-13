@@ -623,7 +623,7 @@ model Order {
   note                String?
   convertedPointValue Float?            @default(0)
   promotion           Json?
-  discount            Json?
+  discountIssue       Json?
   customerDiscount    Json?
   usedPoint           Float?            @default(0)
   moneyReceived       Float?

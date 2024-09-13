@@ -1,4 +1,14 @@
-import { Promotion } from "@prisma/client";
+import {
+  Account,
+  Branch,
+  Order,
+  OrderDetail,
+  Product,
+  ProductOption,
+  Promotion,
+  Table,
+  TableTransaction,
+} from "@prisma/client";
 
 export interface TokenPayload {
   accountId?: string;
@@ -60,4 +70,27 @@ export interface CustomerShape {
     discount: number;
     discountType: number;
   };
+}
+
+export interface IOrderDetail {
+  id: string;
+  branchId: string;
+  orderId?: string | null;
+  amount: number;
+  note?: string | null;
+  status?: number;
+  productOptions?: ProductOption[] | null;
+  product?: Product | null;
+  isPublic?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  branch: Branch;
+  order?: Order | null;
+  table?: Table | null;
+  tableId?: string | null;
+  createdBy?: string | null;
+  updatedBy?: string | null;
+  creator?: Account | null;
+  updater?: Account | null;
+  tableTransactions: TableTransaction[];
 }
