@@ -121,7 +121,6 @@ export class OrderService {
         type: true,
         value: true,
         typeValue: true,
-        isLimit: true,
         amount: true,
       },
     });

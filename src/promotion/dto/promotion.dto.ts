@@ -1,5 +1,5 @@
-import { PartialType } from '@nestjs/swagger';
-import { Transform, TransformFnParams, Type } from 'class-transformer';
+import { PartialType } from "@nestjs/swagger";
+import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   ArrayMinSize,
   IsBoolean,
@@ -14,11 +14,11 @@ import {
   Validate,
   ValidateIf,
   ValidateNested,
-} from 'class-validator';
-import { DISCOUNT_TYPE, PROMOTION_TYPE } from 'enums/common.enum';
+} from "class-validator";
+import { DISCOUNT_TYPE, PROMOTION_TYPE } from "enums/common.enum";
 
 export class CreatePromotionDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   name: string;
@@ -27,23 +27,23 @@ export class CreatePromotionDto {
   @IsString()
   code: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
+  @IsDate({ message: "Ngày tháng không hợp lệ!" })
   @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
-    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!',
+    message: "Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!",
   })
   startDate: Date;
 
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
+  @IsDate({ message: "Ngày tháng không hợp lệ!" })
   @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
-    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!',
+    message: "Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!",
   })
   endDate: Date;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   amount: number;
 
@@ -52,29 +52,25 @@ export class CreatePromotionDto {
   isEndDateDisabled: boolean;
 
   @IsOptional()
-  @IsBoolean()
-  isLimit: boolean;
-
-  @IsOptional()
   @IsString()
   description: string;
 
   @ValidateIf((o) => o.type === PROMOTION_TYPE.VALUE)
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @ValidateIf((o) => o.typeValue === DISCOUNT_TYPE.PERCENT)
   @Max(100)
   value: number;
 
   @ValidateIf((o) => o.type === PROMOTION_TYPE.VALUE)
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
-  @IsEnum(DISCOUNT_TYPE, { message: 'Giá trị không hợp lệ!' })
+  @IsEnum(DISCOUNT_TYPE, { message: "Giá trị không hợp lệ!" })
   typeValue: number;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
-  @IsEnum(PROMOTION_TYPE, { message: 'Giá trị không hợp lệ!' })
+  @IsEnum(PROMOTION_TYPE, { message: "Giá trị không hợp lệ!" })
   type: number;
 
   @IsOptional()
@@ -90,11 +86,11 @@ export class CreatePromotionDto {
 }
 
 class PromotionConditionDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   productId: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   amount: number;
 }
@@ -104,7 +100,7 @@ class PromotionProductDto {
   @IsString()
   productId: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   amount: number;
 
@@ -121,16 +117,16 @@ export class ProductsOrderDto {
   @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => PromotionProductDto)
-  @ArrayMinSize(1, { message: 'Danh sách không được rỗng!' })
+  @ArrayMinSize(1, { message: "Danh sách không được rỗng!" })
   orderProducts: OrderProductDto[];
 }
 
 export class OrderProductDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   productId: string;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   amount: number;
 }
