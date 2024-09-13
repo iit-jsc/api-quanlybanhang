@@ -150,6 +150,13 @@ export class FindManyDto {
     return value?.split(",").map((id: number) => +id);
   })
   applyTos: number[];
+
+  /* ====== product option group filter  ====== */
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => id.trim());
+  })
+  productTypeIds: string[];
 }
 
 export class FindBySlugDto {

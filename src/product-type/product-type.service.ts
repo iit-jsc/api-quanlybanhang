@@ -17,8 +17,6 @@ export class ProductTypeService {
   ) {}
 
   async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
-    await this.commonService.checkDataExistingInBranch({ slug: data.slug }, "ProductType", tokenPayload.branchId);
-
     const result = await this.prisma.productType.create({
       data: {
         branch: {
@@ -109,13 +107,6 @@ export class ProductTypeService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-
-    await this.commonService.checkDataExistingInBranch(
-      { slug: data.slug },
-      "ProductType",
-      tokenPayload.branchId,
-      where.id,
-    );
 
     const result = await this.prisma.productType.update({
       where: {

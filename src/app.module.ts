@@ -54,6 +54,7 @@ import { QrSettingModule } from "./qr-setting/qr-setting.module";
 import { FeatureUsageSettingModule } from "./feature-usage-setting/feature-usage-setting.module";
 import { PaymentMethodModule } from "./payment-method/payment-method.module";
 import { ActivityLogModule } from "./activity-log/activity-log.module";
+import { ProductOptionGroupModule } from './product-option-group/product-option-group.module';
 
 @Module({
   imports: [
@@ -129,6 +130,7 @@ import { ActivityLogModule } from "./activity-log/activity-log.module";
     FeatureUsageSettingModule,
     PaymentMethodModule,
     ActivityLogModule,
+    ProductOptionGroupModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],

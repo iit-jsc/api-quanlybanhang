@@ -45,9 +45,9 @@ async function main() {
         code: "TABLE",
       },
       {
-        name: "Quản lý topping",
+        name: "Quản lý các tùy chọn sản phẩm",
         type: 2,
-        code: "TOPPING",
+        code: "PRODUCT_OPTION_GROUP",
       },
       {
         name: "Quản lý khách hàng",
@@ -340,24 +340,24 @@ async function main() {
         groupCode: "TABLE",
       },
       {
-        name: "Tạo topping",
-        code: "CREATE_TOPPING",
-        groupCode: "TOPPING",
+        name: "Tạo các tùy chọn sản phẩm",
+        code: "CREATE_PRODUCT_OPTION_GROUP",
+        groupCode: "PRODUCT_OPTION_GROUP",
       },
       {
-        name: "Cập nhật topping",
-        code: "UPDATE_TOPPING",
-        groupCode: "TOPPING",
+        name: "Cập nhật các tùy chọn sản phẩm",
+        code: "UPDATE_PRODUCT_OPTION_GROUP",
+        groupCode: "PRODUCT_OPTION_GROUP",
       },
       {
-        name: "Xóa topping",
-        code: "DELETE_TOPPING",
-        groupCode: "TOPPING",
+        name: "Xóa các tùy chọn sản phẩm",
+        code: "DELETE_PRODUCT_OPTION_GROUP",
+        groupCode: "PRODUCT_OPTION_GROUP",
       },
       {
-        name: "Xem danh sách topping",
-        code: "VIEW_TOPPING",
-        groupCode: "TOPPING",
+        name: "Xem danh sách các tùy chọn sản phẩm",
+        code: "VIEW_PRODUCT_OPTION_GROUP",
+        groupCode: "PRODUCT_OPTION_GROUP",
       },
       {
         name: "Tạo nhân viên",
