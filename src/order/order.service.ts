@@ -622,34 +622,9 @@ export class OrderService {
         skip,
         take,
         orderBy: orderBy || { createdAt: "desc" },
-        select: {
-          id: true,
-          code: true,
-          isPaid: true,
-          orderStatus: true,
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              phone: true,
-              address: true,
-              email: true,
-            },
-          },
-          orderDetails: {
-            select: {
-              id: true,
-              amount: true,
-              note: true,
-              product: true,
-              productOptions: true,
-            },
-            where: {
-              isPublic: true,
-            },
-          },
-          createdAt: true,
-          updatedAt: true,
+        include: {
+          paymentMethod: true,
+          creator: true,
         },
       }),
       this.prisma.order.count({
@@ -658,7 +633,6 @@ export class OrderService {
     ]);
     return {
       list: data,
-
       pagination: calculatePagination(totalRecords, skip, take),
     };
   }
@@ -671,33 +645,8 @@ export class OrderService {
         isPublic: true,
       },
       include: {
-        customer: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            address: true,
-            email: true,
-          },
-        },
-        orderDetails: {
-          select: {
-            id: true,
-            amount: true,
-            note: true,
-            product: true,
-            productOptions: true,
-          },
-          where: {
-            isPublic: true,
-          },
-        },
-        paymentMethod: {
-          select: {
-            id: true,
-            type: true,
-          },
-        },
+        paymentMethod: true,
+        creator: true,
       },
     });
   }
@@ -797,30 +746,9 @@ export class OrderService {
         orderBy: {
           createdAt: "desc",
         },
-        select: {
-          id: true,
-          code: true,
-          isPaid: true,
-          orderStatus: true,
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              phone: true,
-              address: true,
-              email: true,
-            },
-          },
-          orderDetails: {
-            select: {
-              id: true,
-              amount: true,
-              note: true,
-              product: true,
-              productOptions: true,
-            },
-          },
-          createdAt: true,
+        include: {
+          paymentMethod: true,
+          creator: true,
         },
       }),
       this.prisma.order.count({
@@ -842,24 +770,8 @@ export class OrderService {
         customerId: tokenCustomerPayload.customerId,
       },
       include: {
-        customer: {
-          select: {
-            id: true,
-            name: true,
-            phone: true,
-            address: true,
-            email: true,
-          },
-        },
-        orderDetails: {
-          select: {
-            id: true,
-            amount: true,
-            note: true,
-            product: true,
-            productOptions: true,
-          },
-        },
+        paymentMethod: true,
+        creator: true,
       },
     });
   }

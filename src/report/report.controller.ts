@@ -13,14 +13,6 @@ import {
 @Controller("report")
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
-  @Get("/revenue")
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  reportRevenue(@Req() req: any, @Query() reportRevenueDto: reportRevenueDto) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.reportService.reportRevenue(reportRevenueDto, tokenPayload);
-  }
 
   @Get("/customer")
   @HttpCode(HttpStatus.OK)
