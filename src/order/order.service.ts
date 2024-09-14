@@ -1,12 +1,6 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "./dto/order.dto";
-import {
-  AnyObject,
-  CustomerShape,
-  IOrderDetail,
-  TokenCustomerPayload,
-  TokenPayload,
-} from "interfaces/common.interface";
+import { AnyObject, CustomerShape, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { OrderDetail, Prisma, PrismaClient } from "@prisma/client";
@@ -20,7 +14,7 @@ import { DETAIL_ORDER_STATUS, ORDER_STATUS_COMMON, ORDER_TYPE, TRANSACTION_TYPE 
 import { calculatePagination, generateSortCode } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 import { SaveOrderDto } from "./dto/save-order.dto";
-import { ACTIVITY_LOG_TYPE, DISCOUNT_TYPE, PROMOTION_TYPE } from "enums/common.enum";
+import { ACTIVITY_LOG_TYPE, DISCOUNT_TYPE } from "enums/common.enum";
 import { OrderGateway } from "src/gateway/order.gateway";
 import { TableGateway } from "src/gateway/table.gateway";
 import { PointAccumulationService } from "src/point-accumulation/point-accumulation.service";
