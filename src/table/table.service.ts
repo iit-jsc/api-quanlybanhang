@@ -92,7 +92,13 @@ export class TableService {
             },
           },
           _count: {
-            select: { orderDetails: true },
+            select: {
+              orderDetails: {
+                where: {
+                  isPublic: true,
+                },
+              },
+            },
           },
           updatedAt: true,
         },

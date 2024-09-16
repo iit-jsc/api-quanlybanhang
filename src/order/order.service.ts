@@ -33,13 +33,37 @@ export class OrderService {
   async getOrderDetails(orderProducts: OrderProducts[], status?: number, tokenPayload?: TokenPayload) {
     return await Promise.all(
       orderProducts.map(async (item) => {
-        const product = await this.prisma.product.findUniqueOrThrow({ where: { id: item.productId } });
+        const product = await this.prisma.product.findUniqueOrThrow({
+          where: { id: item.productId },
+          select: {
+            id: true,
+            branchId: true,
+            unitId: true,
+            name: true,
+            slug: true,
+            code: true,
+            price: true,
+            oldPrice: true,
+            thumbnail: true,
+            otherAttributes: true,
+            productTypeId: true,
+          },
+        });
 
         const productOptions = await this.prisma.productOption.findMany({
           where: {
             id: {
               in: item.productOptionIds,
             },
+            isPublic: true,
+          },
+          select: {
+            id: true,
+            name: true,
+            price: true,
+            isMultiple: true,
+            photoURL: true,
+            branchId: true,
           },
         });
 

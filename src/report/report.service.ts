@@ -62,7 +62,11 @@ export class ReportService {
         description: true,
         _count: {
           select: {
-            products: true,
+            products: {
+              where: {
+                isPublic: true,
+              },
+            },
           },
         },
       },

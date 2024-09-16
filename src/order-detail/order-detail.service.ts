@@ -1,10 +1,11 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { OrderGateway } from "src/gateway/order.gateway";
 import { UpdateOrderProductDto } from "src/order/dto/update-order-detail.dto";
+import { CustomHttpException } from "utils/ApiErrors";
 import { DeleteManyDto } from "utils/Common.dto";
 
 @Injectable()
@@ -15,7 +16,7 @@ export class OrderDetailService {
     private commonService: CommonService,
   ) {}
 
-  async updateOrderDetail(
+  async update(
     params: {
       where: Prisma.OrderDetailWhereUniqueInput;
       data: UpdateOrderProductDto;
@@ -24,21 +25,16 @@ export class OrderDetailService {
   ) {
     const { where, data } = params;
 
-    const order = await this.prisma.order.findFirst({
+    await this.checkOrderPaidByDetailIds([where.id]);
+
+    const productOptions = await this.prisma.productOption.findMany({
       where: {
-        orderDetails: {
-          some: {
-            id: where.id,
-            isPublic: true,
-          },
+        id: {
+          in: data.productOptionIds,
         },
-      },
-      select: {
-        id: true,
+        isPublic: true,
       },
     });
-
-    await this.commonService.checkOrderChange(order.id);
 
     const orderDetail = await this.prisma.orderDetail.update({
       where: {
@@ -49,10 +45,10 @@ export class OrderDetailService {
         },
       },
       data: {
-        // productId: data.productId,
         amount: data.amount,
-        note: data.note,
         status: data.status,
+        note: data.note,
+        ...(productOptions && { productOptions: productOptions }),
         updatedBy: tokenPayload.accountId,
       },
       include: {
@@ -60,29 +56,11 @@ export class OrderDetailService {
       },
     });
 
-    // Gửi socket
-    // await this.orderGateway.handleModifyOrder(orderDetail.order);
-
     return orderDetail;
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const order = await this.prisma.order.findFirst({
-      where: {
-        orderDetails: {
-          some: {
-            id: { in: data.ids },
-            isPublic: true,
-          },
-        },
-        branchId: tokenPayload.branchId,
-      },
-      select: {
-        id: true,
-      },
-    });
-
-    await this.commonService.checkOrderChange(order.id);
+    await this.checkOrderPaidByDetailIds(data.ids);
 
     const count = await this.prisma.orderDetail.updateMany({
       where: {
@@ -99,5 +77,26 @@ export class OrderDetailService {
     });
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
+  }
+
+  async checkOrderPaidByDetailIds(orderDetailIds: string[]) {
+    const order = await this.prisma.order.findFirst({
+      where: {
+        orderDetails: {
+          some: {
+            id: {
+              in: orderDetailIds,
+            },
+            isPublic: true,
+          },
+        },
+        isPaid: true,
+      },
+      select: {
+        id: true,
+      },
+    });
+
+    if (order) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này không thể cập nhật vì đã thanh toán!");
   }
 }
