@@ -47,6 +47,7 @@ export class OrderService {
           amount: item.amount,
           status,
           product: product,
+          note: item.note,
           productOptions: productOptions,
           branchId: tokenPayload.branchId,
           createdBy: tokenPayload.accountId,
