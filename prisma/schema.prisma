@@ -351,8 +351,8 @@ model Product {
 model ProductOption {
   id                   String              @id @default(uuid())
   name                 String
+  isDefault            Boolean?            @default(false)
   price                Float?              @default(0)
-  isMultiple           Boolean?            @default(false)
   photoURL             String?             @db.Text
   branchId             String
   branch               Branch              @relation(fields: [branchId], references: [id])
@@ -370,6 +370,7 @@ model ProductOption {
 model ProductOptionGroup {
   id             String          @id @default(uuid())
   name           String
+  isMultiple     Boolean?        @default(false)
   productOptions ProductOption[]
   branchId       String
   branch         Branch          @relation(fields: [branchId], references: [id])
