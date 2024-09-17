@@ -61,7 +61,6 @@ export class OrderService {
             id: true,
             name: true,
             price: true,
-            isMultiple: true,
             photoURL: true,
             branchId: true,
           },
