@@ -37,25 +37,17 @@ export class ProductOptionGroupController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.productOptionGroupService.findAll(findManyDto, tokenPayload);
+  findAll(@Query() findManyDto: FindManyDto) {
+    return this.productOptionGroupService.findAll(findManyDto, findManyDto.branchId);
   }
 
   @Get(":id")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-
-    return this.productOptionGroupService.findUniq(
-      {
-        id,
-      },
-      tokenPayload,
-    );
+  findUniq(@Param("id") id: string) {
+    return this.productOptionGroupService.findUniq({
+      id,
+    });
   }
 
   @Patch(":id")

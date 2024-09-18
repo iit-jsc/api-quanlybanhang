@@ -1,15 +1,20 @@
 import { ProductOptionGroupController } from "./product-option-group.controller";
 import { ProductOptionGroupModule } from "./product-option-group.module";
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { CreateSupplierTypeDto } from "src/supplier-type/dto/supplier-type.dto";
-import { CreateProductOptionGroupDto, UpdateProductOptionGroupDto } from "./dto/product-option-group.dto";
+import {
+  CreateProductOptionDto,
+  CreateProductOptionGroupDto,
+  UpdateProductOptionGroupDto,
+} from "./dto/product-option-group.dto";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
+import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
 export class ProductOptionGroupService {
@@ -19,6 +24,8 @@ export class ProductOptionGroupService {
   ) {}
 
   async create(data: CreateProductOptionGroupDto, tokenPayload: TokenPayload) {
+    this.validateDefaultProductOptions(data.productOptions);
+
     const result = await this.prisma.productOptionGroup.create({
       data: {
         name: data.name,
@@ -27,13 +34,14 @@ export class ProductOptionGroupService {
             data: data.productOptions.map((option) => ({
               name: option.name,
               price: option.price,
+              isDefault: option.isDefault,
               branchId: tokenPayload.branchId,
-              isMultiple: option.isMultiple,
               photoURL: option.photoURL,
               createdBy: tokenPayload.accountId,
             })),
           },
         },
+        isMultiple: data.isMultiple,
         productTypes: {
           connect: data.productTypeIds.map((id) => ({ id })),
         },
@@ -55,12 +63,12 @@ export class ProductOptionGroupService {
     return result;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyDto, branchId: string) {
     let { skip, take, keyword, orderBy, productTypeIds } = params;
 
     let where: Prisma.ProductOptionGroupWhereInput = {
       isPublic: true,
-      branchId: tokenPayload.branchId,
+      branchId: branchId,
       ...(productTypeIds && {
         productTypes: {
           some: { id: { in: productTypeIds } },
@@ -90,12 +98,11 @@ export class ProductOptionGroupService {
     };
   }
 
-  async findUniq(where: Prisma.ProductOptionGroupWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(where: Prisma.ProductOptionGroupWhereUniqueInput) {
     return this.prisma.productOptionGroup.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
       },
       include: {
         productOptions: true,
@@ -105,13 +112,12 @@ export class ProductOptionGroupService {
   }
 
   async update(
-    params: {
-      where: Prisma.ProductOptionGroupWhereUniqueInput;
-      data: UpdateProductOptionGroupDto;
-    },
+    params: { where: Prisma.ProductOptionGroupWhereUniqueInput; data: UpdateProductOptionGroupDto },
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    this.validateDefaultProductOptions(data.productOptions);
 
     const productOptionGroup = await this.prisma.productOptionGroup.update({
       data: {
@@ -124,8 +130,8 @@ export class ProductOptionGroupService {
                 name: option.name,
                 price: option.price,
                 branchId: tokenPayload.branchId,
-                isMultiple: option.isMultiple,
                 photoURL: option.photoURL,
+                isDefault: option.isDefault,
                 updatedBy: tokenPayload.accountId,
               })),
             },
@@ -136,12 +142,17 @@ export class ProductOptionGroupService {
             set: data.productTypeIds.map((id) => ({ id })),
           },
         }),
+        isMultiple: data.isMultiple,
         updatedBy: tokenPayload.accountId,
       },
       where: {
         id: where.id,
         isPublic: true,
         branchId: tokenPayload.branchId,
+      },
+      include: {
+        productOptions: true,
+        productTypes: true,
       },
     });
 
@@ -173,5 +184,11 @@ export class ProductOptionGroupService {
     await this.commonService.createActivityLog(data.ids, "ProductOptionGroup", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
+  }
+
+  validateDefaultProductOptions(productOptions: CreateProductOptionDto[]) {
+    const defaultCount = productOptions.filter((option) => option.isDefault === true).length;
+
+    if (defaultCount > 1) throw new CustomHttpException(HttpStatus.CONFLICT, "Chỉ có duy nhất dữ liệu là mặc định!");
   }
 }

@@ -528,6 +528,32 @@ export class ShopService {
       },
     });
 
+    const productGroupOption = prisma.productOptionGroup.create({
+      data: {
+        name: "Size",
+        branchId,
+        isMultiple: false,
+        productOptions: {
+          createMany: {
+            data: [
+              {
+                name: "M",
+                branchId,
+              },
+              {
+                name: "L",
+                branchId,
+              },
+              {
+                name: "XL",
+                branchId,
+              },
+            ],
+          },
+        },
+      },
+    });
+
     await Promise.all([
       area,
       customerType,
@@ -540,6 +566,7 @@ export class ShopService {
       permissionAdmin,
       permissionEmployee,
       qRSetting,
+      productGroupOption,
     ]);
   }
 }

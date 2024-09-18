@@ -1,16 +1,6 @@
 import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams } from "class-transformer";
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsBoolean,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Min,
-  ValidateNested,
-} from "class-validator";
+import { ArrayNotEmpty, IsBoolean, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from "class-validator";
 
 export class CreateProductOptionGroupDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -25,6 +15,9 @@ export class CreateProductOptionGroupDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @ArrayNotEmpty({ message: "Không được để mảng rỗng!" })
   productTypeIds: string[];
+
+  @IsOptional()
+  isMultiple: boolean;
 }
 
 export class CreateProductOptionDto {
@@ -37,9 +30,8 @@ export class CreateProductOptionDto {
   @Min(0)
   price: number;
 
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @IsBoolean()
-  isMultiple: boolean;
+  @IsOptional()
+  isDefault: boolean;
 
   @IsOptional()
   photoURL: string;

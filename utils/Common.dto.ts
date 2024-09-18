@@ -20,6 +20,10 @@ export class FindManyDto {
   })
   branchIds: string[];
 
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Type(() => String)
+  branchId?: string;
+
   @Transform(({ value }: TransformFnParams) => {
     return Boolean(+value);
   })
