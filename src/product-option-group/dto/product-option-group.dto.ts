@@ -18,6 +18,9 @@ export class CreateProductOptionGroupDto {
 
   @IsOptional()
   isMultiple: boolean;
+
+  @IsOptional()
+  isRequired: boolean;
 }
 
 export class CreateProductOptionDto {

@@ -42,6 +42,7 @@ export class ProductOptionGroupService {
           },
         },
         isMultiple: data.isMultiple,
+        isRequired: data.isRequired,
         productTypes: {
           connect: data.productTypeIds.map((id) => ({ id })),
         },
@@ -143,6 +144,7 @@ export class ProductOptionGroupService {
           },
         }),
         isMultiple: data.isMultiple,
+        isRequired: data.isRequired,
         updatedBy: tokenPayload.accountId,
       },
       where: {

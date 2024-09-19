@@ -371,6 +371,7 @@ model ProductOptionGroup {
   id             String          @id @default(uuid())
   name           String
   isMultiple     Boolean?        @default(false)
+  isRequired     Boolean?        @default(false)
   productOptions ProductOption[]
   branchId       String
   branch         Branch          @relation(fields: [branchId], references: [id])
