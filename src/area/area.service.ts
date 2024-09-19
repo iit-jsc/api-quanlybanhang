@@ -188,6 +188,20 @@ export class AreaService {
       },
     });
 
+    await this.prisma.table.updateMany({
+      where: {
+        area: {
+          id: {
+            in: data.ids,
+          },
+        },
+        isPublic: true,
+      },
+      data: {
+        isPublic: false,
+      },
+    });
+
     await this.commonService.createActivityLog(data.ids, "Area", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
