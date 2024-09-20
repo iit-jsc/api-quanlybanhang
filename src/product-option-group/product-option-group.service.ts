@@ -118,7 +118,7 @@ export class ProductOptionGroupService {
   ) {
     const { where, data } = params;
 
-    this.validateDefaultProductOptions(data.productOptions);
+    if (data.productOptions) this.validateDefaultProductOptions(data.productOptions);
 
     const productOptionGroup = await this.prisma.productOptionGroup.update({
       data: {
