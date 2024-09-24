@@ -86,6 +86,7 @@ export class ProductOptionGroupService {
         where,
         include: {
           productOptions: true,
+          productTypes: true
         },
       }),
       this.prisma.productOptionGroup.count({
