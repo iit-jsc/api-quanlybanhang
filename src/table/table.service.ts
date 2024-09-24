@@ -91,14 +91,10 @@ export class TableService {
               photoURL: true,
             },
           },
-          _count: {
-            select: {
-              orderDetails: {
-                where: {
-                  isPublic: true,
-                },
-              },
-            },
+          orderDetails: {
+            where: {
+              isPublic: true,
+            }
           },
           updatedAt: true,
         },
