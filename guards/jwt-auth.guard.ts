@@ -11,7 +11,7 @@ export class JwtAuthGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = this.getRequest(context);
@@ -35,6 +35,11 @@ export class JwtAuthGuard implements CanActivate {
           isPublic: true,
           status: ACCOUNT_STATUS.ACTIVE,
           branches: { some: { id: payload.branchId, isPublic: true, status: BRANCH_STATUS.ACTIVE } },
+          authTokens: {
+            some: {
+              deviceId: payload.deviceId
+            }
+          }
         },
         select: {
           id: true,
@@ -48,7 +53,7 @@ export class JwtAuthGuard implements CanActivate {
       });
 
       if (!account || !payload.branchId || !account.branches?.[0]?.shopId)
-        throw new CustomHttpException(HttpStatus.CONFLICT, "Thông tin đăng nhập không hợp lệ!");
+        throw new CustomHttpException(HttpStatus.CONFLICT, "Phiên bản đăng nhập đã hết hạn!");
 
       request.tokenPayload = {
         ...payload,
@@ -58,7 +63,7 @@ export class JwtAuthGuard implements CanActivate {
         accountId: account.id,
       } as TokenPayload;
     } catch (error) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Thông tin đăng nhập không hợp lệ!");
+      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Phiên bản đăng nhập đã hết hạn!");
     }
 
     return true;
@@ -74,7 +79,7 @@ export class JwtAuthGuard implements CanActivate {
 
 @Injectable()
 export class JwtCustomerAuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
