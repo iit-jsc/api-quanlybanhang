@@ -29,6 +29,8 @@ export class CustomerRequestService {
 
     // Gửi socket
     await this.customerRequestGateway.handleCreateCustomerRequest(customerRequest);
+
+    return customerRequest
   }
 
 
