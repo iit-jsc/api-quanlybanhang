@@ -135,6 +135,7 @@ model Account {
   updaterProductOption        ProductOption[]        @relation("updater")
   creatorProductOptionGroup   ProductOptionGroup[]   @relation("creator")
   updaterProductOptionGroup   ProductOptionGroup[]   @relation("updater")
+  updaterCustomerRequest      CustomerRequest[]      @relation("updater")
 }
 
 model User {
@@ -615,38 +616,37 @@ model PromotionProduct {
 }
 
 model Order {
-  id                  String            @id @default(uuid())
+  id                  String         @id @default(uuid())
   branchId            String
   customerId          String?
   code                String
   cancelReason        String?
   cancelDate          DateTime?
   note                String?
-  convertedPointValue Float?            @default(0)
+  convertedPointValue Float?         @default(0)
   promotion           Json?
   discountIssue       Json?
   customerDiscount    Json?
-  usedPoint           Float?            @default(0)
+  usedPoint           Float?         @default(0)
   moneyReceived       Float?
   orderType           Int
   paymentMethodId     String?
   bankingImages       Json?
-  paymentMethod       PaymentMethod?    @relation(fields: [paymentMethodId], references: [id])
-  isPaid              Boolean?          @default(false)
-  isSave              Boolean?          @default(false)
+  paymentMethod       PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  isPaid              Boolean?       @default(false)
+  isSave              Boolean?       @default(false)
   orderStatus         Int
-  isPublic            Boolean?          @default(true)
+  isPublic            Boolean?       @default(true)
   createdBy           String?
   updatedBy           String?
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  branch              Branch            @relation(fields: [branchId], references: [id])
-  customer            Customer?         @relation(fields: [customerId], references: [id])
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  branch              Branch         @relation(fields: [branchId], references: [id])
+  customer            Customer?      @relation(fields: [customerId], references: [id])
   orderDetails        OrderDetail[]
-  customerRequests    CustomerRequest[]
   orderRatings        OrderRating[]
-  creator             Account?          @relation("creator", fields: [createdBy], references: [id])
-  updater             Account?          @relation("updater", fields: [updatedBy], references: [id])
+  creator             Account?       @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?       @relation("updater", fields: [updatedBy], references: [id])
   pointHistories      PointHistory[]
 
   @@unique([branchId, code])
@@ -731,6 +731,7 @@ model Table {
   updatedBy         String?
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
   updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
+  customerRequests  CustomerRequest[]
 
   @@unique([branchId, code])
 }
@@ -821,18 +822,19 @@ model PointHistory {
 }
 
 model CustomerRequest {
-  id            String   @id @default(uuid())
-  branchId      String
-  orderId       String
-  requestType   Int
-  requestDetail String
-  isPublic      Boolean? @default(true)
-  createdBy     String?
-  updatedBy     String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-  branch        Branch   @relation(fields: [branchId], references: [id])
-  order         Order    @relation(fields: [orderId], references: [id])
+  id          String   @id @default(uuid())
+  branchId    String
+  tableId     String
+  requestType String
+  content     String   @db.Text
+  isCompleted Boolean? @default(false)
+  isPublic    Boolean? @default(true)
+  updatedBy   String?
+  updater     Account? @relation("updater", fields: [updatedBy], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch   @relation(fields: [branchId], references: [id])
+  table       Table    @relation(fields: [tableId], references: [id])
 }
 
 model OrderRating {

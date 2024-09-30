@@ -92,3 +92,10 @@ export enum ACTIVITY_LOG_TYPE {
   CONFIRM = "CONFIRM",
   PAYMENT = "PAYMENT",
 }
+
+export enum REQUEST_TYPE {
+  CALL_STALL = "CALL_STALL",
+  PAYMENT = "PAYMENT",
+}
+
+

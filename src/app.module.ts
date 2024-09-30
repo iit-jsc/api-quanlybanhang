@@ -55,6 +55,7 @@ import { FeatureUsageSettingModule } from "./feature-usage-setting/feature-usage
 import { PaymentMethodModule } from "./payment-method/payment-method.module";
 import { ActivityLogModule } from "./activity-log/activity-log.module";
 import { ProductOptionGroupModule } from './product-option-group/product-option-group.module';
+import { CustomerRequestModule } from './customer-request/customer-request.module';
 
 @Module({
   imports: [
@@ -131,6 +132,7 @@ import { ProductOptionGroupModule } from './product-option-group/product-option-
     PaymentMethodModule,
     ActivityLogModule,
     ProductOptionGroupModule,
+    CustomerRequestModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],
