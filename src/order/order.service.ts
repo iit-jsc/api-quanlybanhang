@@ -28,7 +28,7 @@ export class OrderService {
     private readonly orderGateway: OrderGateway,
     private readonly tableGateway: TableGateway,
     private readonly pointAccumulationService: PointAccumulationService,
-  ) {}
+  ) { }
 
   async getOrderDetails(orderProducts: OrderProducts[], status?: number, tokenPayload?: TokenPayload) {
     return await Promise.all(
@@ -53,7 +53,7 @@ export class OrderService {
         const productOptions = await this.prisma.productOption.findMany({
           where: {
             id: {
-              in: item.productOptionIds,
+              in: item.productOptionIds || [],
             },
             isPublic: true,
           },
@@ -65,6 +65,9 @@ export class OrderService {
             branchId: true,
           },
         });
+
+        console.log(item.productOptionIds);
+
 
         return {
           amount: item.amount,
@@ -606,23 +609,23 @@ export class OrderService {
       }),
       ...(from &&
         to && {
-          createdAt: {
-            gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
-            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-          },
-        }),
+        createdAt: {
+          gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+        },
+      }),
       ...(from &&
         !to && {
-          createdAt: {
-            gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
-          },
-        }),
+        createdAt: {
+          gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+        },
+      }),
       ...(!from &&
         to && {
-          createdAt: {
-            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-          },
-        }),
+        createdAt: {
+          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+        },
+      }),
       ...(orderTypes?.length > 0 && {
         orderType: { in: orderTypes },
       }),
@@ -734,23 +737,23 @@ export class OrderService {
       }),
       ...(from &&
         to && {
-          createdAt: {
-            gte: from,
-            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-          },
-        }),
+        createdAt: {
+          gte: from,
+          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+        },
+      }),
       ...(from &&
         !to && {
-          createdAt: {
-            gte: from,
-          },
-        }),
+        createdAt: {
+          gte: from,
+        },
+      }),
       ...(!from &&
         to && {
-          createdAt: {
-            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-          },
-        }),
+        createdAt: {
+          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+        },
+      }),
     };
 
     const [data, totalRecords] = await Promise.all([

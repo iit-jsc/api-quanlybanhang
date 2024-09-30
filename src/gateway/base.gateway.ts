@@ -10,11 +10,12 @@ import {
 } from "@nestjs/websockets";
 import { Server, Socket } from "socket.io";
 import { AnyObject, TokenPayload } from "interfaces/common.interface";
-import { Req } from "@nestjs/common";
+import { Req, UseGuards } from "@nestjs/common";
+import { JwtAuthGuard } from "guards/jwt-auth.guard";
 
 @WebSocketGateway()
 export abstract class BaseGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
-  constructor(protected readonly prisma: PrismaService) {}
+  constructor(protected readonly prisma: PrismaService) { }
 
   @WebSocketServer() server: Server;
 
@@ -28,38 +29,14 @@ export abstract class BaseGateway implements OnGatewayInit, OnGatewayConnection,
 
   async handleDisconnect(client: Socket) {
     // console.log("Client disconnected:", client.id);
-
-    await this.prisma.accountSocket.deleteMany({
-      where: {
-        socketId: client.id,
-      },
-    });
   }
 
   @SubscribeMessage("joinBranch")
+  @UseGuards(JwtAuthGuard)
   async handleJoinBranch(@ConnectedSocket() client: Socket, @Req() req: AnyObject) {
     const tokenPayload = req.handshake?.tokenPayload as TokenPayload;
 
-    await this.prisma.accountSocket.upsert({
-      where: {
-        socketId: client.id,
-      },
-      create: {
-        branchId: tokenPayload.branchId,
-        shopId: tokenPayload.shopId,
-        socketId: client.id,
-        accountId: tokenPayload.accountId,
-      },
-      update: {
-        branchId: tokenPayload.branchId,
-        shopId: tokenPayload.shopId,
-        accountId: tokenPayload.accountId,
-      },
-    });
-
-    console.log(`Người dùng ${client.id} đang join vào chi nhánh: ${tokenPayload.branchId}`);
-
-    client.emit("joinedBranch", { branchId: tokenPayload.branchId });
+    client.join(tokenPayload.branchId)
   }
 
   async getAccountsOnline(branchId: string) {

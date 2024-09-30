@@ -12,16 +12,6 @@ export class OrderGateway extends BaseGateway {
   }
 
   async handleModifyOrder(payload: Order) {
-    const accountOnline = await this.getAccountsOnline(payload.branchId);
-
-    const socketIds = accountOnline
-      .filter((account) => account.accountId !== payload.createdBy)
-      .map((account) => account.socketId);
-
-    if (socketIds.length > 0) {
-      // console.log(`Đơn hàng ${payload.id} đã gửi socket cho: ${socketIds}`);
-
-      this.server.to(socketIds).emit("order", payload);
-    }
+    this.server.to(payload.branchId).emit("order", payload);
   }
 }

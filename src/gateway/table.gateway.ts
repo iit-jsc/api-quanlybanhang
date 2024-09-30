@@ -13,16 +13,6 @@ export class TableGateway extends BaseGateway {
   }
 
   async handleModifyTable(payload: Table) {
-    const accountOnline = await this.getAccountsOnline(payload.branchId);
-
-    const socketIds = accountOnline
-      .filter((account) => account.accountId !== payload.updatedBy)
-      .map((account) => account.socketId);
-
-    if (socketIds.length > 0) {
-      // console.log(`Bàn ${payload.id} đã gửi socket cho: ${socketIds}`);
-
-      this.server.to(socketIds).emit("table", payload);
-    }
+    this.server.to(payload.branchId).emit("table", payload);
   }
 }
