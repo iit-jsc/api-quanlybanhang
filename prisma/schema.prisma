@@ -1105,13 +1105,14 @@ model PaymentMethod {
 }
 
 model AuthToken {
-  accountId    String
-  account      Account?  @relation(fields: [accountId], references: [id])
-  ip           String?
-  userAgent    String?
-  lastLogin    DateTime?
-  refreshToken String    @db.Text
-  deviceId     String    @unique
-  createdAt    DateTime  @default(now())
-  updatedAt    DateTime  @updatedAt
+  accountId     String
+  account       Account?  @relation(fields: [accountId], references: [id])
+  ip            String?
+  userAgent     String?
+  firebaseToken String?   @db.Text
+  lastLogin     DateTime?
+  refreshToken  String    @db.Text
+  deviceId      String    @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

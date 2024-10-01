@@ -66,9 +66,6 @@ export class OrderService {
           },
         });
 
-        console.log(item.productOptionIds);
-
-
         return {
           amount: item.amount,
           status,

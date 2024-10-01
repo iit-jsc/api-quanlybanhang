@@ -14,6 +14,7 @@ import { ChangeMyPasswordDto, ChangePasswordDto } from "./dto/change-password.dt
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { TransporterService } from "src/transporter/transporter.service";
 import { v4 as uuidv4 } from "uuid";
+import { FirebaseService } from "src/firebase/firebase.service";
 @Injectable()
 export class AuthService {
   constructor(
@@ -21,7 +22,8 @@ export class AuthService {
     private jwtService: JwtService,
     private commonService: CommonService,
     private transporterService: TransporterService,
-  ) {}
+    private firebaseService: FirebaseService,
+  ) { }
 
   async login(data: LoginDto) {
     const account = await this.prisma.account.findFirst({
@@ -109,6 +111,8 @@ export class AuthService {
       tokenPayload.deviceId,
       req,
     );
+
+
 
     return {
       accessToken: await this.jwtService.signAsync(
@@ -370,11 +374,14 @@ export class AuthService {
       },
     );
 
+    const firebaseToken = await this.firebaseService.getToken(accountId)
+
     return await this.prisma.authToken.upsert({
       where: { deviceId: validDeviceId },
       create: {
         accountId: accountId,
         deviceId: validDeviceId,
+        firebaseToken: firebaseToken,
         refreshToken,
         ip: ip,
         userAgent: userAgent,

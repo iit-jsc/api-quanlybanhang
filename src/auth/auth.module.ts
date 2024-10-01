@@ -8,7 +8,7 @@ import { TransporterModule } from "src/transporter/transporter.module";
 @Module({
   controllers: [AuthController],
   providers: [AuthService],
-  imports: [CommonModule, FirebaseModule, TransporterModule],
+  imports: [CommonModule, FirebaseModule, TransporterModule, FirebaseModule],
   exports: [AuthService],
 })
-export class AuthModule {}
+export class AuthModule { }

@@ -10,7 +10,7 @@ export class RolesGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private prisma: PrismaService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext) {
     const roles = this.reflector.get<string[]>('roles', context.getHandler());
@@ -19,15 +19,14 @@ export class RolesGuard implements CanActivate {
 
     const tokenPayload = request.tokenPayload as TokenPayload;
 
-    if (roles.some((role) => role === SPECIAL_ROLE.STORE_OWNER)) {
-      return tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER;
+    if (roles.some((role) => role === SPECIAL_ROLE.STORE_OWNER)
+      && tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER) {
+      return true
     }
 
-    if (roles.some((role) => role === SPECIAL_ROLE.MANAGER)) {
-      return (
-        tokenPayload.type === ACCOUNT_TYPE.MANAGER ||
-        tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER
-      );
+    if (roles.some((role) => role === SPECIAL_ROLE.MANAGER)
+      && tokenPayload.type === ACCOUNT_TYPE.MANAGER) {
+      return true
     }
 
     const accountRoles = await this.prisma.role.findMany({
