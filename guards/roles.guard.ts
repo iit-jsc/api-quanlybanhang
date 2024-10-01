@@ -19,15 +19,17 @@ export class RolesGuard implements CanActivate {
 
     const tokenPayload = request.tokenPayload as TokenPayload;
 
+    console.log(roles, tokenPayload.type);
+
     if (roles.some((role) => role === SPECIAL_ROLE.STORE_OWNER)
-      && tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER) {
+      && tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER)
       return true
-    }
+
 
     if (roles.some((role) => role === SPECIAL_ROLE.MANAGER)
-      && tokenPayload.type === ACCOUNT_TYPE.MANAGER) {
+      && tokenPayload.type !== ACCOUNT_TYPE.STAFF)
       return true
-    }
+
 
     const accountRoles = await this.prisma.role.findMany({
       where: {
