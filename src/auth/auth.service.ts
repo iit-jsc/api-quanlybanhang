@@ -107,12 +107,10 @@ export class AuthService {
 
     const data = await this.createRefreshTokenAndDevice(
       account.id,
-      accessBranchDto.branchId,
+      accessBranchDto,
       tokenPayload.deviceId,
       req,
     );
-
-
 
     return {
       accessToken: await this.jwtService.signAsync(
@@ -353,7 +351,7 @@ export class AuthService {
     });
   }
 
-  async createRefreshTokenAndDevice(accountId: string, branchId: string, deviceId: string, req: AnyObject) {
+  async createRefreshTokenAndDevice(accountId: string, accessBranchDto: AccessBranchDto, deviceId: string, req: AnyObject) {
     // Lưu thông tin thiết bị
     const ip = req.headers["x-forwarded-for"] || req.connection.remoteAddress;
 
@@ -365,7 +363,7 @@ export class AuthService {
     const refreshToken = await this.jwtService.signAsync(
       {
         accountId: accountId,
-        branchId: branchId,
+        branchId: accessBranchDto.branchId,
         deviceId: validDeviceId,
       },
       {
@@ -374,14 +372,12 @@ export class AuthService {
       },
     );
 
-    const firebaseToken = await this.firebaseService.getToken(accountId)
-
     return await this.prisma.authToken.upsert({
       where: { deviceId: validDeviceId },
       create: {
         accountId: accountId,
         deviceId: validDeviceId,
-        firebaseToken: firebaseToken,
+        firebaseToken: accessBranchDto.firebaseToken,
         refreshToken,
         ip: ip,
         userAgent: userAgent,

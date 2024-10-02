@@ -3,6 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { mapLimit } from 'async';
 import { chunk } from 'lodash';
+import { AnyObject } from "interfaces/common.interface";
 @Injectable()
 export class FirebaseService {
   constructor(protected readonly prisma: PrismaService,) {
@@ -24,60 +25,28 @@ export class FirebaseService {
     return await admin.auth().createCustomToken(userId);
   }
 
-  async sendPushNotification(
-    tokens: string[],
-    title: string,
-    body: string
-  ): Promise<void> {
-    try {
-      const tokenChunks = chunk(tokens, 500);
+  async sendNotificationToBranch(branchId: string, accountId: string) {
+    const firebaseTokens = await this.getTokensByBranchId(branchId, accountId);
 
-      const batchResponses = await mapLimit(
-        tokenChunks,
-        Number(process.env.FIREBASE_PARALLEL_LIMIT) || 3,
-        async (tokenGroup: string[]): Promise<admin.messaging.BatchResponse> => {
-          const messagePayloads = tokenGroup.map((token) => ({
-            token: token,
-            notification: {
-              title: title,
-              body: body,
-            },
-            apns: {
-              payload: {
-                aps: {
-                  'content-available': 1,
-                },
-              },
-            },
-          }));
+    if (firebaseTokens.length === 0) {
+      return;
+    }
 
-          return await this.sendAll(messagePayloads);
-        },
-      );
+    const message = {
+      notification: {
+        title: "Có thông báo mới!",
+        body: `Bạn nhận được thông tin đơn hàng mới.`,
+      },
+      tokens: firebaseTokens,
+    };
 
-      console.log(batchResponses[0].responses);
-
-
-      batchResponses.forEach((batchResponse, idx) => {
-        console.log(`Batch ${idx + 1}: Success - ${batchResponse.successCount}, Failures - ${batchResponse.failureCount}`);
+    admin.messaging().sendMulticast(message)
+      .then((response) => {
+        console.log(`${response.successCount} thông báo đã được gửi thành công.`);
+      })
+      .catch((error) => {
+        console.error("Lỗi khi gửi thông báo:", error);
       });
-    } catch (error) {
-      console.error('Error sending notifications:', error);
-    }
-  }
-  private async sendAll(messages: admin.messaging.TokenMessage[]): Promise<admin.messaging.BatchResponse> {
-    try {
-      return await admin.messaging().sendAll(messages);
-    } catch (error) {
-      return {
-        responses: messages.map(() => ({
-          success: false,
-          error: error,
-        })),
-        successCount: 0,
-        failureCount: messages.length,
-      } as admin.messaging.BatchResponse;
-    }
   }
 
   async getTokensByBranchId(branchId: string, accountId: string): Promise<string[]> {

@@ -4,4 +4,6 @@ export class AccessBranchDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   branchId: string;
+
+  firebaseToken?: string;
 }
