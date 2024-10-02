@@ -13,7 +13,7 @@ export class TableService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateTableDto, tokenPayload: TokenPayload) {
     const result = await this.prisma.table.create({
@@ -94,7 +94,8 @@ export class TableService {
           orderDetails: {
             where: {
               isPublic: true,
-            }
+            },
+            orderBy: { createdAt: "desc" }
           },
           updatedAt: true,
         },
@@ -140,6 +141,7 @@ export class TableService {
             product: true,
             productOptions: true,
           },
+          orderBy: { createdAt: "desc" }
         },
         tableTransactions: {
           where: { isPublic: true },
