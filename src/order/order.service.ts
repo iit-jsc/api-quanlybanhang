@@ -142,7 +142,7 @@ export class OrderService {
         value: true,
         typeValue: true,
         amount: true,
-        amountApplied: true
+        amountApplied: true,
       },
     });
 
@@ -151,15 +151,37 @@ export class OrderService {
     if (matchPromotion.amountApplied >= matchPromotion.amount)
       throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lượng áp dụng!");
 
-    await prisma.promotion.update({
+    return await prisma.promotion.update({
       where: { id: promotionId }, data: {
         amountApplied: {
           increment: 1
         }
-      }
+      },
+      select: {
+        id: true,
+        type: true,
+        value: true,
+        typeValue: true,
+        amount: true,
+        amountApplied: true,
+        promotionProducts: {
+          select: {
+            name: true,
+            photoURL: true,
+            product: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+                thumbnail: true,
+                branchId: true,
+                price: true,
+              },
+            },
+          }
+        }
+      },
     })
-
-    return matchPromotion;
   }
 
   async getDiscountIssue(code: string, branchId: string, prisma: PrismaClient) {
