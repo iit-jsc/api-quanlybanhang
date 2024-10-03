@@ -567,6 +567,8 @@ model Promotion {
   endDate             DateTime?
   isEndDateDisabled   Boolean?             @default(true)
   amount              Int
+  amountApplied       Int?                 @default(0)
+  active              Boolean?             @default(true)
   description         String?              @db.Text
   value               Float?
   typeValue           Int?

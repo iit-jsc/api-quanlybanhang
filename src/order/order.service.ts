@@ -90,8 +90,10 @@ export class OrderService {
     }, 0);
   }
 
-  async getPromotion(promotionId: string, orderDetails: AnyObject, branchId: string) {
-    const matchPromotions = await this.prisma.promotion.findMany({
+  async getPromotion(promotionId: string, orderDetails: AnyObject, branchId: string, prisma?: PrismaClient) {
+    prisma = prisma || this.prisma;
+
+    const matchPromotions = await prisma.promotion.findMany({
       where: {
         isPublic: true,
         branchId: branchId,
@@ -140,10 +142,22 @@ export class OrderService {
         value: true,
         typeValue: true,
         amount: true,
+        amountApplied: true
       },
     });
 
     const matchPromotion = matchPromotions.find((promotion) => promotion.id === promotionId);
+
+    if (matchPromotion.amountApplied >= matchPromotion.amount)
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lượng áp dụng!");
+
+    await prisma.promotion.update({
+      where: { id: promotionId }, data: {
+        amountApplied: {
+          increment: 1
+        }
+      }
+    })
 
     return matchPromotion;
   }
@@ -360,7 +374,7 @@ export class OrderService {
 
       const totalOrder = this.getTotalInOrder(orderDetails);
 
-      if (data.promotionId) promotion = await this.getPromotion(data.promotionId, orderDetails, tokenPayload.branchId);
+      if (data.promotionId) promotion = await this.getPromotion(data.promotionId, orderDetails, tokenPayload.branchId, prisma);
 
       if (data.discountCode)
         discountIssue = await this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma);
@@ -911,7 +925,7 @@ export class OrderService {
       if (order.customer) customerDiscount = await this.getDiscountCustomer(totalOrder, order.customer);
 
       if (data.promotionId)
-        discountIssue = await this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId);
+        discountIssue = await this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma);
 
       if (data.discountCode)
         discountIssue = await this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma);

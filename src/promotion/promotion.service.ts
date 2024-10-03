@@ -14,7 +14,7 @@ export class PromotionService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreatePromotionDto, tokenPayload: TokenPayload) {
     const result = await this.prisma.promotion.create({
@@ -25,6 +25,7 @@ export class PromotionService {
         endDate: data.endDate,
         isEndDateDisabled: data.isEndDateDisabled,
         amount: data.amount,
+        active: data.active,
         description: data.description,
         value: data.value,
         typeValue: data.typeValue,
@@ -44,18 +45,18 @@ export class PromotionService {
         }),
         ...(data.promotionProducts?.length > 0 &&
           data.type == PROMOTION_TYPE.GIFT && {
-            promotionProducts: {
-              createMany: {
-                data: data.promotionProducts.map((product) => ({
-                  productId: product.productId,
-                  amount: product.amount,
-                  name: product.name,
-                  photoURL: product.photoURL,
-                  branchId: tokenPayload.branchId,
-                })),
-              },
+          promotionProducts: {
+            createMany: {
+              data: data.promotionProducts.map((product) => ({
+                productId: product.productId,
+                amount: product.amount,
+                name: product.name,
+                photoURL: product.photoURL,
+                branchId: tokenPayload.branchId,
+              })),
             },
-          }),
+          },
+        }),
       },
       include: {
         promotionConditions: true,
@@ -199,6 +200,7 @@ export class PromotionService {
         endDate: data.endDate,
         isEndDateDisabled: data.isEndDateDisabled,
         amount: data.amount,
+        active: data.active,
         description: data.description,
         value: data.value,
         typeValue: data.typeValue,

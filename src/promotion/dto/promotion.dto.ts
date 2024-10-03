@@ -74,6 +74,10 @@ export class CreatePromotionDto {
   type: number;
 
   @IsOptional()
+  @IsString()
+  active: boolean;
+
+  @IsOptional()
   @ValidateNested({ each: true })
   @Type(() => PromotionConditionDto)
   promotionConditions: PromotionConditionDto[];
@@ -131,4 +135,4 @@ export class OrderProductDto {
   amount: number;
 }
 
-export class UpdatePromotionDto extends PartialType(CreatePromotionDto) {}
+export class UpdatePromotionDto extends PartialType(CreatePromotionDto) { }
