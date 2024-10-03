@@ -25,7 +25,7 @@ export class PromotionService {
         endDate: data.endDate,
         isEndDateDisabled: data.isEndDateDisabled,
         amount: data.amount,
-        active: data.active,
+        isActive: data.isActive,
         description: data.description,
         value: data.value,
         typeValue: data.typeValue,
@@ -115,6 +115,9 @@ export class PromotionService {
               },
             ],
           },
+          {
+            isActive: true,
+          }
         ],
       }),
     };
@@ -200,7 +203,7 @@ export class PromotionService {
         endDate: data.endDate,
         isEndDateDisabled: data.isEndDateDisabled,
         amount: data.amount,
-        active: data.active,
+        isActive: data.isActive,
         description: data.description,
         value: data.value,
         typeValue: data.typeValue,

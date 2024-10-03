@@ -134,6 +134,9 @@ export class OrderService {
               },
             ],
           },
+          {
+            isActive: true
+          }
         ],
       },
       select: {

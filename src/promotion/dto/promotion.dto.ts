@@ -75,7 +75,7 @@ export class CreatePromotionDto {
 
   @IsOptional()
   @IsString()
-  active: boolean;
+  isActive: boolean;
 
   @IsOptional()
   @ValidateNested({ each: true })
