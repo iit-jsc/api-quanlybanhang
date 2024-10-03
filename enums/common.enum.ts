@@ -94,7 +94,7 @@ export enum ACTIVITY_LOG_TYPE {
 }
 
 export enum REQUEST_TYPE {
-  CALL_STALL = "CALL_STALL",
+  CALL_STAFF = "CALL_STAFF",
   PAYMENT = "PAYMENT",
 }
 
