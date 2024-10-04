@@ -99,3 +99,9 @@ export enum REQUEST_TYPE {
 }
 
 
+export enum REQUEST_STATUS {
+  "PENDING" = "PENDING",
+  "PROCESSING" = "PROCESSING",
+  "COMPLETED" = "COMPLETED",
+}
+

@@ -6,6 +6,7 @@ import { Prisma } from '@prisma/client';
 import { calculatePagination } from 'utils/Helps';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CustomerRequestGateway } from 'src/gateway/customer-request.gateway';
+import { REQUEST_STATUS } from 'enums/common.enum';
 
 @Injectable()
 export class CustomerRequestService {
@@ -21,6 +22,7 @@ export class CustomerRequestService {
         tableId: data.tableId,
         branchId: data.branchId,
         requestType: data.requestType,
+        status: REQUEST_STATUS.PENDING,
       },
       include: {
         table: true,
@@ -45,7 +47,7 @@ export class CustomerRequestService {
         content: data.content,
         tableId: data.tableId,
         requestType: data.requestType,
-        isCompleted: data.isCompleted,
+        status: data.status,
         updatedBy: tokenPayload.accountId
       },
       where: {
@@ -84,7 +86,11 @@ export class CustomerRequestService {
               }
             },
           },
-          table: true
+          table: {
+            include: {
+              area: true,
+            }
+          }
         }
       }),
       this.prisma.customerRequest.count({

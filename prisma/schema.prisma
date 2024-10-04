@@ -829,7 +829,7 @@ model CustomerRequest {
   tableId     String
   requestType String
   content     String   @db.Text
-  isCompleted Boolean? @default(false)
+  status      String?
   isPublic    Boolean? @default(true)
   updatedBy   String?
   updater     Account? @relation("updater", fields: [updatedBy], references: [id])

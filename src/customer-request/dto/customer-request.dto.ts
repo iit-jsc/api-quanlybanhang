@@ -2,9 +2,10 @@ import { PartialType } from "@nestjs/swagger";
 import {
 	IsEnum,
 	IsNotEmpty,
+	IsOptional,
 	IsString,
 } from "class-validator";
-import { REQUEST_TYPE } from "enums/common.enum";
+import { REQUEST_STATUS, REQUEST_TYPE } from "enums/common.enum";
 
 export class CreateCustomerRequestDto {
 	@IsNotEmpty({ message: "Không được để trống!" })
@@ -22,7 +23,9 @@ export class CreateCustomerRequestDto {
 
 	content?: string;
 
-	isCompleted?: boolean;
+	@IsOptional()
+	@IsEnum(REQUEST_STATUS, { message: "Trạng thái không hợp lệ!" })
+	status: string;
 }
 
 export class UpdateCustomerRequestDto extends PartialType(CreateCustomerRequestDto) { }
