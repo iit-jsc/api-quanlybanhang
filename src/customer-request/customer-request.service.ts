@@ -120,7 +120,11 @@ export class CustomerRequestService {
             }
           },
         },
-        table: true
+        table: {
+          select: {
+            area: true,
+          }
+        }
       }
     });
   }
