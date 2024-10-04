@@ -29,9 +29,7 @@ export class AuthService {
     const account = await this.prisma.account.findFirst({
       where: {
         isPublic: true,
-        username: {
-          contains: data.username,
-        },
+        username: data.username,
       },
       include: {
         user: {
