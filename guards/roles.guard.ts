@@ -14,25 +14,23 @@ export class RolesGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext) {
     const requiredRoleCodes = this.reflector.get<string[]>('roles', context.getHandler());
-
     const request = context.switchToHttp().getRequest();
-
     const tokenPayload = request.tokenPayload as TokenPayload;
 
-    const allRoles = request.permissions?.map(permission => permission.roles).flat() || [];
+    const userRoleCodes = request.permissions?.reduce((acc, permission) => {
+      return acc.concat(permission.roles.map(role => role.code));
+    }, []) || [];
 
-    const userRoleCodes = allRoles?.map(role => role.code);
+    const userRoleCodeSet = new Set(userRoleCodes);
 
-    if (requiredRoleCodes.some((role) => role === SPECIAL_ROLE.STORE_OWNER)
-      && tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER)
-      return true
+    if (requiredRoleCodes.includes(SPECIAL_ROLE.STORE_OWNER) && tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER) {
+      return true;
+    }
 
-    if (requiredRoleCodes.some((role) => role === SPECIAL_ROLE.MANAGER)
-      && tokenPayload.type !== ACCOUNT_TYPE.STAFF)
-      return true
+    if (requiredRoleCodes.includes(SPECIAL_ROLE.MANAGER) && tokenPayload.type !== ACCOUNT_TYPE.STAFF) {
+      return true;
+    }
 
-    return requiredRoleCodes.some((requiredCode) =>
-      userRoleCodes.some((code) => code === requiredCode),
-    )
+    return requiredRoleCodes.some(requiredCode => userRoleCodeSet.has(requiredCode));
   }
 }

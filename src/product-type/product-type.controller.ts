@@ -25,7 +25,7 @@ import { SPECIAL_ROLE } from "enums/common.enum";
 
 @Controller("product-type")
 export class ProductTypeController {
-  constructor(private readonly productTypeService: ProductTypeService) {}
+  constructor(private readonly productTypeService: ProductTypeService) { }
 
   @Post("")
   @HttpCode(HttpStatus.OK)
