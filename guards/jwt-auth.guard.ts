@@ -1,3 +1,4 @@
+import { permission } from 'process';
 import { Injectable, CanActivate, ExecutionContext, HttpStatus } from "@nestjs/common";
 import { JwtService } from "@nestjs/jwt";
 import { BRANCH_STATUS } from "enums/shop.enum";
@@ -49,8 +50,21 @@ export class JwtAuthGuard implements CanActivate {
             select: { shopId: true, id: true },
             where: { id: payload.branchId },
           },
+          permissions: {
+            where: {
+              isPublic: true,
+            },
+            select: {
+              roles: {
+                select: {
+                  code: true,
+                },
+              }
+            }
+          }
         },
       });
+
 
       if (!account || !payload.branchId || !account.branches?.[0]?.shopId)
         throw new CustomHttpException(HttpStatus.CONFLICT, "Phiên bản đăng nhập đã hết hạn!");
@@ -62,6 +76,8 @@ export class JwtAuthGuard implements CanActivate {
         shopId: account.branches?.[0]?.shopId,
         accountId: account.id,
       } as TokenPayload;
+
+      request.permissions = account.permissions;
     } catch (error) {
       throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Phiên bản đăng nhập đã hết hạn!");
     }

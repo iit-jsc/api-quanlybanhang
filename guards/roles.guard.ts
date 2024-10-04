@@ -13,42 +13,26 @@ export class RolesGuard implements CanActivate {
   ) { }
 
   async canActivate(context: ExecutionContext) {
-    const roles = this.reflector.get<string[]>('roles', context.getHandler());
+    const requiredRoleCodes = this.reflector.get<string[]>('roles', context.getHandler());
 
     const request = context.switchToHttp().getRequest();
 
     const tokenPayload = request.tokenPayload as TokenPayload;
 
-    console.log(roles, tokenPayload.type);
+    const allRoles = request.permissions?.map(permission => permission.roles).flat() || [];
 
-    if (roles.some((role) => role === SPECIAL_ROLE.STORE_OWNER)
+    const userRoleCodes = allRoles?.map(role => role.code);
+
+    if (requiredRoleCodes.some((role) => role === SPECIAL_ROLE.STORE_OWNER)
       && tokenPayload.type === ACCOUNT_TYPE.STORE_OWNER)
       return true
 
-
-    if (roles.some((role) => role === SPECIAL_ROLE.MANAGER)
+    if (requiredRoleCodes.some((role) => role === SPECIAL_ROLE.MANAGER)
       && tokenPayload.type !== ACCOUNT_TYPE.STAFF)
       return true
 
-
-    const accountRoles = await this.prisma.role.findMany({
-      where: {
-        permissions: {
-          some: {
-            accounts: {
-              some: {
-                id: tokenPayload.accountId,
-                isPublic: true,
-              },
-            },
-            isPublic: true,
-          },
-        },
-      },
-    });
-
-    return roles.some((role) =>
-      accountRoles.some((accountRole) => accountRole.code === role),
-    );
+    return requiredRoleCodes.some((requiredCode) =>
+      userRoleCodes.some((code) => code === requiredCode),
+    )
   }
 }
