@@ -83,7 +83,8 @@ export class CustomerRequestService {
                 }
               }
             },
-          }
+          },
+          table: true
         }
       }),
       this.prisma.customerRequest.count({
@@ -118,7 +119,8 @@ export class CustomerRequestService {
               }
             }
           },
-        }
+        },
+        table: true
       }
     });
   }
