@@ -58,11 +58,18 @@ export class CustomerRequestService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, orderBy } = params;
+    let { skip, take, orderBy, keyword } = params;
+
+    const keySearch = ["content"];
 
     let where: Prisma.CustomerRequestWhereInput = {
       isPublic: true,
-      branchId: tokenPayload.branchId
+      branchId: tokenPayload.branchId,
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword },
+        })),
+      }),
     };
 
     const [data, totalRecords] = await Promise.all([
