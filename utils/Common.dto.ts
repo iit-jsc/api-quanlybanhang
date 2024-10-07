@@ -161,6 +161,10 @@ export class FindManyDto {
     return value?.split(",").map((id: string) => id.trim());
   })
   productTypeIds: string[];
+
+  /* ====== customer request filter  ====== */
+  @IsOptional()
+  tableId: string;
 }
 
 export class FindBySlugDto {

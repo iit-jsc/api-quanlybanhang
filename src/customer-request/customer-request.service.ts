@@ -58,7 +58,7 @@ export class CustomerRequestService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, orderBy, keyword } = params;
+    let { skip, take, orderBy, keyword, tableId } = params;
 
     const keySearch = ["content"];
 
@@ -69,6 +69,9 @@ export class CustomerRequestService {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword },
         })),
+      }),
+      ...(tableId && {
+        tableId: tableId,
       }),
     };
 
