@@ -233,6 +233,8 @@ export class OrderService {
   }
 
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
+    console.log(data);
+
     const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.SUCCESS, tokenPayload);
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
