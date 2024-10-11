@@ -77,12 +77,7 @@ export class TableService {
         take,
         where,
         orderBy: orderBy || { createdAt: "desc" },
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          code: true,
-          photoURL: true,
+        include: {
           area: {
             select: {
               id: true,
@@ -97,7 +92,6 @@ export class TableService {
             },
             orderBy: { createdAt: "desc" }
           },
-          updatedAt: true,
         },
       }),
       this.prisma.table.count({
