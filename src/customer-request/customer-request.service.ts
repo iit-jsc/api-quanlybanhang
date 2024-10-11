@@ -109,7 +109,7 @@ export class CustomerRequestService {
     ]);
 
     return {
-      list: branchId ? data : [],
+      list: data,
       pagination: calculatePagination(totalRecords, skip, take),
     };
   }

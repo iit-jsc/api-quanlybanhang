@@ -123,7 +123,7 @@ export class ProductService {
       }),
     ]);
     return {
-      list: branchId ? data : [],
+      list: data,
       pagination: calculatePagination(totalRecords, skip, take),
     };
   }
