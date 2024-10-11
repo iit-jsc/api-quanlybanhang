@@ -680,6 +680,8 @@ export class OrderService {
         include: {
           paymentMethod: true,
           creator: true,
+          orderDetails: true,
+          customer: true,
         },
       }),
       this.prisma.order.count({
@@ -702,6 +704,9 @@ export class OrderService {
       include: {
         paymentMethod: true,
         creator: true,
+        orderDetails: true,
+        customer: true,
+        orderRatings: true
       },
     });
   }

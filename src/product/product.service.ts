@@ -13,7 +13,7 @@ export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateProductDto, tokenPayload: TokenPayload) {
     const result = await this.prisma.product.create({
@@ -123,7 +123,7 @@ export class ProductService {
       }),
     ]);
     return {
-      list: data,
+      list: branchId ? data : [],
       pagination: calculatePagination(totalRecords, skip, take),
     };
   }

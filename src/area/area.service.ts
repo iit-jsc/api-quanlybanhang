@@ -13,7 +13,7 @@ export class AreaService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
     const area = await this.prisma.area.create({

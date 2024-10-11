@@ -6,6 +6,7 @@ import {
 	IsString,
 } from "class-validator";
 import { REQUEST_STATUS, REQUEST_TYPE } from "enums/common.enum";
+import { FindManyDto } from "utils/Common.dto";
 
 export class CreateCustomerRequestDto {
 	@IsNotEmpty({ message: "Không được để trống!" })
@@ -27,5 +28,7 @@ export class CreateCustomerRequestDto {
 	@IsEnum(REQUEST_STATUS, { message: "Trạng thái không hợp lệ!" })
 	status: string;
 }
+
+export class FindManyCustomerRequestDto extends FindManyDto { }
 
 export class UpdateCustomerRequestDto extends PartialType(CreateCustomerRequestDto) { }

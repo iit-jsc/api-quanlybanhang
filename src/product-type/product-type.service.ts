@@ -14,7 +14,7 @@ export class ProductTypeService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
     const result = await this.prisma.productType.create({
@@ -72,7 +72,7 @@ export class ProductTypeService {
       }),
     ]);
     return {
-      list: data,
+      list: branchId ? data : [],
       pagination: calculatePagination(totalRecords, skip, take),
     };
   }

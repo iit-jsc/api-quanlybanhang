@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'nestjs-prisma';
-import { CreateCustomerRequestDto, UpdateCustomerRequestDto } from './dto/customer-request.dto';
+import { CreateCustomerRequestDto, FindManyCustomerRequestDto, UpdateCustomerRequestDto } from './dto/customer-request.dto';
 import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
 import { calculatePagination } from 'utils/Helps';
@@ -57,14 +57,14 @@ export class CustomerRequestService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, orderBy, keyword, tableId } = params;
+  async findAll(params: FindManyCustomerRequestDto) {
+    let { skip, take, orderBy, keyword, tableId, branchId } = params;
 
     const keySearch = ["content"];
 
     let where: Prisma.CustomerRequestWhereInput = {
       isPublic: true,
-      branchId: tokenPayload.branchId,
+      branchId: branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword },
@@ -109,7 +109,7 @@ export class CustomerRequestService {
     ]);
 
     return {
-      list: data,
+      list: branchId ? data : [],
       pagination: calculatePagination(totalRecords, skip, take),
     };
   }

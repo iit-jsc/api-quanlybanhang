@@ -2,7 +2,7 @@ import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post
 import { CustomerRequestService } from './customer-request.service';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { CreateCustomerRequestDto, UpdateCustomerRequestDto } from './dto/customer-request.dto';
+import { CreateCustomerRequestDto, FindManyCustomerRequestDto, UpdateCustomerRequestDto } from './dto/customer-request.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 
 @Controller('customer-request')
@@ -17,11 +17,9 @@ export class CustomerRequestController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  findAll(@Query() findManyDto: FindManyCustomerRequestDto) {
 
-    return this.customerRequestService.findAll(findManyDto, tokenPayload);
+    return this.customerRequestService.findAll(findManyDto);
   }
 
   @Get(":id")
