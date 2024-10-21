@@ -9,21 +9,11 @@ export class CreateTableDto {
   name: string;
 
   @IsOptional()
-  @IsString()
-  description: string;
-
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
-  code: string;
-
-  @IsOptional()
-  photoURL?: string;
+  seat?: number;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
   areaId: string;
 }
 
-export class UpdateTableDto extends PartialType(CreateTableDto) {}
+export class UpdateTableDto extends PartialType(CreateTableDto) { }

@@ -18,12 +18,8 @@ export class TableService {
   async create(data: CreateTableDto, tokenPayload: TokenPayload) {
     const result = await this.prisma.table.create({
       data: {
-        ...(data.code && {
-          code: data.code,
-        }),
         name: data.name,
-        description: data.description,
-        photoURL: data.photoURL,
+        seat: data.seat,
         area: {
           connect: {
             id: data.areaId,
@@ -81,7 +77,6 @@ export class TableService {
           area: {
             select: {
               id: true,
-              code: true,
               name: true,
               photoURL: true,
             },
@@ -111,16 +106,10 @@ export class TableService {
         ...where,
         isPublic: true,
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        code: true,
-        photoURL: true,
+      include: {
         area: {
           select: {
             id: true,
-            code: true,
             name: true,
             photoURL: true,
           },
@@ -179,9 +168,7 @@ export class TableService {
       },
       data: {
         name: data.name,
-        code: data.code,
-        photoURL: data.photoURL,
-        description: data.description,
+        seat: data.seat,
         ...(data.areaId && {
           area: {
             connect: {

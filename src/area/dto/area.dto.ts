@@ -9,17 +9,7 @@ export class CreateAreaDto {
   name: string;
 
   @IsOptional()
-  @IsString()
-  description: string;
-
-  @IsOptional()
-  @IsString()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
-  code: string;
-
-  @IsOptional()
   photoURL?: string;
 }
 
-export class UpdateAreaDto extends PartialType(CreateAreaDto) {}
+export class UpdateAreaDto extends PartialType(CreateAreaDto) { }

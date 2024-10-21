@@ -18,11 +18,7 @@ export class AreaService {
   async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
     const area = await this.prisma.area.create({
       data: {
-        ...(data.code && {
-          code: data.code,
-        }),
         name: data.name,
-        description: data.description,
         photoURL: data.photoURL,
         tables: {
           create: {
@@ -73,25 +69,12 @@ export class AreaService {
         take,
         orderBy: orderBy || { createdAt: "desc" },
         where,
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          code: true,
-          photoURL: true,
+        include: {
           tables: {
             where: {
               isPublic: true,
             },
-            select: {
-              id: true,
-              name: true,
-              code: true,
-              photoURL: true,
-              description: true,
-            },
           },
-          updatedAt: true,
         },
       }),
       this.prisma.area.count({
@@ -115,23 +98,11 @@ export class AreaService {
           id: tokenPayload.branchId,
         },
       },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        code: true,
-        photoURL: true,
+      include: {
         tables: {
           where: {
             branchId: tokenPayload.branchId,
             isPublic: true,
-          },
-          select: {
-            id: true,
-            name: true,
-            code: true,
-            photoURL: true,
-            description: true,
           },
         },
       },
@@ -158,9 +129,7 @@ export class AreaService {
       },
       data: {
         name: data.name,
-        code: data.code,
         photoURL: data.photoURL,
-        description: data.description,
         updatedBy: tokenPayload.accountId,
       },
     });

@@ -695,23 +695,19 @@ model TableTransaction {
 }
 
 model Area {
-  id          String   @id @default(uuid())
-  branchId    String
-  name        String
-  code        String?
-  description String?  @db.Text
-  photoURL    String?  @default("uploads/area.png") @db.Text
-  isPublic    Boolean? @default(true)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  tables      Table[]
-  createdBy   String?
-  updatedBy   String?
-  creator     Account? @relation("creator", fields: [createdBy], references: [id])
-  updater     Account? @relation("updater", fields: [updatedBy], references: [id])
-
-  @@unique([branchId, code])
+  id        String   @id @unique @default(uuid())
+  branchId  String
+  name      String
+  photoURL  String?  @default("uploads/area.png") @db.Text
+  isPublic  Boolean? @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branch    Branch   @relation(fields: [branchId], references: [id])
+  tables    Table[]
+  createdBy String?
+  updatedBy String?
+  creator   Account? @relation("creator", fields: [createdBy], references: [id])
+  updater   Account? @relation("updater", fields: [updatedBy], references: [id])
 }
 
 model Table {
@@ -719,9 +715,7 @@ model Table {
   branchId          String
   areaId            String
   name              String
-  code              String?
-  photoURL          String?            @default("uploads/table.png") @db.Text
-  description       String?            @db.Text
+  seat              Int?
   orderDetails      OrderDetail[]
   isPublic          Boolean?           @default(true)
   createdAt         DateTime           @default(now())
@@ -734,8 +728,6 @@ model Table {
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
   updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
   customerRequests  CustomerRequest[]
-
-  @@unique([branchId, code])
 }
 
 model DiscountIssue {

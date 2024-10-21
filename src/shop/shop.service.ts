@@ -20,7 +20,7 @@ export class ShopService {
     private readonly prisma: PrismaService,
     private readonly commonService: CommonService,
     private readonly authService: AuthService,
-  ) {}
+  ) { }
 
   async registerShop(data: RegisterShopDto, req: AnyObject) {
     const { user, branch } = data;
@@ -258,19 +258,16 @@ export class ShopService {
     const area = prisma.area.create({
       data: {
         name: "Khu vực A",
-        code: "KVA",
         branchId: branchId,
         tables: {
           createMany: {
             data: [
               {
                 name: "Bàn 01",
-                code: "01",
                 branchId: branchId,
               },
               {
                 name: "Bàn 02",
-                code: "02",
                 branchId: branchId,
               },
             ],
