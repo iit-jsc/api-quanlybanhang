@@ -72,7 +72,7 @@ export class TableService {
         skip,
         take,
         where,
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: { areaId: "desc" },
         include: {
           area: {
             select: {
