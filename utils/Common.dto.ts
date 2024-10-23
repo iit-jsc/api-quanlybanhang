@@ -165,6 +165,13 @@ export class FindManyDto {
   /* ====== customer request filter  ====== */
   @IsOptional()
   tableId: string;
+
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  active?: boolean;
 }
 
 export class FindBySlugDto {

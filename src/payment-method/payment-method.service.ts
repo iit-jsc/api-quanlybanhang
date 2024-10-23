@@ -13,7 +13,7 @@ export class PaymentMethodService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(
     params: {
@@ -74,11 +74,12 @@ export class PaymentMethodService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+    let { skip, take, keyword, orderBy, active } = params;
     const keySearch = ["bankName", "bankCode", "representative", "type"];
 
     let where: Prisma.PaymentMethodWhereInput = {
       branchId: tokenPayload.branchId,
+      ...(typeof active !== "undefined" && { active: active }),
       ...(keyword && {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword },

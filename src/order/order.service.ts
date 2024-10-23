@@ -666,9 +666,7 @@ export class OrderService {
       ...(orderTypes?.length > 0 && {
         orderType: { in: orderTypes },
       }),
-      ...(isPaid && {
-        isPaid,
-      }),
+      ...(typeof isPaid !== "undefined" && { isPaid: isPaid }),
     };
 
     const [data, totalRecords] = await Promise.all([
