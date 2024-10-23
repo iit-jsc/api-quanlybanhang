@@ -53,6 +53,7 @@ export class PaymentMethodService {
       data: {
         active: data.active,
         bankCode: data.bankCode,
+        representative: data.representative,
         bankName: data.bankName,
         photoURL: data.photoURL,
         updatedBy: tokenPayload.accountId,
