@@ -1000,7 +1000,7 @@ export class OrderService {
       if (order.customer) customerDiscount = await this.getDiscountCustomer(totalOrder, order.customer);
 
       if (data.promotionId)
-        discountIssue = await this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma);
+        promotion = await this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma);
 
       if (data.discountCode)
         discountIssue = await this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma);
@@ -1023,9 +1023,6 @@ export class OrderService {
       }
 
       await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
-
-      if (data.moneyReceived < totalOrder)
-        throw new CustomHttpException(HttpStatus.CONFLICT, "Tiền nhận không hợp lệ!");
 
       return await prisma.order.update({
         where: { id: where.id, isPublic: true },
