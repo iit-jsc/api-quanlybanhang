@@ -156,34 +156,11 @@ export class OrderService {
       throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lượng áp dụng!");
 
     return await prisma.promotion.update({
-      where: { id: promotionId }, data: {
+      where: { id: promotionId },
+      data: {
         amountApplied: {
           increment: 1
-        }
-      },
-      select: {
-        id: true,
-        type: true,
-        value: true,
-        typeValue: true,
-        amount: true,
-        amountApplied: true,
-        promotionProducts: {
-          select: {
-            name: true,
-            photoURL: true,
-            product: {
-              select: {
-                id: true,
-                name: true,
-                code: true,
-                thumbnail: true,
-                branchId: true,
-                price: true,
-              },
-            },
-          }
-        }
+        },
       },
     })
   }
@@ -400,7 +377,8 @@ export class OrderService {
 
       const totalOrder = this.getTotalInOrder(orderDetails);
 
-      if (data.promotionId) promotion = await this.getPromotion(data.promotionId, orderDetails, tokenPayload.branchId, prisma);
+      if (data.promotionId)
+        promotion = await this.getPromotion(data.promotionId, orderDetails, tokenPayload.branchId, prisma);
 
       if (data.discountCode)
         discountIssue = await this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma);
@@ -422,9 +400,6 @@ export class OrderService {
         data.exchangePoint,
         tokenPayload.shopId,
       );
-
-      if (data.moneyReceived < totalOrder)
-        throw new CustomHttpException(HttpStatus.CONFLICT, "Tiền nhận không hợp lệ!");
 
       const order = await prisma.order.create({
         data: {
@@ -997,7 +972,8 @@ export class OrderService {
 
       if (order.isPaid) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này đã thành toán!");
 
-      if (order.customer) customerDiscount = await this.getDiscountCustomer(totalOrder, order.customer);
+      if (order.customer)
+        customerDiscount = await this.getDiscountCustomer(totalOrder, order.customer);
 
       if (data.promotionId)
         promotion = await this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma);
