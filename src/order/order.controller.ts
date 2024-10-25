@@ -19,9 +19,7 @@ import { PaymentOrderDto, CreateOrderDto, UpdateOrderDto } from "./dto/order.dto
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-customer.dto";
-import { UpdateOrderProductDto } from "./dto/update-order-detail.dto";
 import { PaymentFromTableDto } from "./dto/payment-order-from-table.dto";
-import { CombineTableDto } from "./dto/combine-table.dto";
 import { SeparateTableDto } from "./dto/separate-table.dto";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { SaveOrderDto } from "./dto/save-order.dto";
@@ -31,7 +29,7 @@ import { SPECIAL_ROLE } from "enums/common.enum";
 
 @Controller("order")
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(private readonly orderService: OrderService) { }
 
   @Post("")
   @HttpCode(HttpStatus.OK)

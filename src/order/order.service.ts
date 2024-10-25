@@ -352,7 +352,7 @@ export class OrderService {
   async createOrderOnline(data: CreateOrderOnlineDto) {
     let discountIssue = null;
 
-    const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.WAITING, {
+    const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.SUCCESS, {
       branchId: data.branchId,
     });
 
@@ -678,7 +678,11 @@ export class OrderService {
         include: {
           paymentMethod: true,
           creator: true,
-          orderDetails: true,
+          orderDetails: {
+            where: {
+              isPublic: true
+            }
+          },
           customer: true,
         },
       }),
@@ -702,7 +706,11 @@ export class OrderService {
       include: {
         paymentMethod: true,
         creator: true,
-        orderDetails: true,
+        orderDetails: {
+          where: {
+            isPublic: true
+          }
+        },
         customer: true,
         orderRatings: true
       },
@@ -871,8 +879,44 @@ export class OrderService {
   }
 
   async getOrderDetailsInTable(tableId: string, prisma: PrismaClient) {
-    return await prisma.orderDetail.findMany({
-      where: { tableId, isPublic: true },
+    await this.updateOrderDetailsStatus(prisma, { tableId });
+
+    const orderDetails = await prisma.orderDetail.findMany({
+      where: {
+        tableId,
+        isPublic: true,
+      },
+    });
+
+    return orderDetails;
+  }
+
+  async updateOrderDetailsStatus(
+    prisma: PrismaClient,
+    conditions: { tableId?: string; orderId?: string }
+  ) {
+    await prisma.orderDetail.updateMany({
+      where: {
+        ...conditions,
+        status: ORDER_STATUS_COMMON.CANCELLED,
+        isPublic: true,
+      },
+      data: {
+        isPublic: false,
+      },
+    });
+
+    await prisma.orderDetail.updateMany({
+      where: {
+        ...conditions,
+        isPublic: true,
+        status: {
+          not: ORDER_STATUS_COMMON.SUCCESS,
+        },
+      },
+      data: {
+        status: ORDER_STATUS_COMMON.SUCCESS,
+      },
     });
   }
 
@@ -914,6 +958,8 @@ export class OrderService {
     let customerDiscount = null;
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      await this.updateOrderDetailsStatus(prisma, { orderId: where.id });
+
       const order = await prisma.order.findFirstOrThrow({
         where: { id: where.id, isPublic: true },
         select: {

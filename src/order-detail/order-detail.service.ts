@@ -14,7 +14,7 @@ export class OrderDetailService {
     private readonly prisma: PrismaService,
     private readonly orderGateway: OrderGateway,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async update(
     params: {
@@ -24,17 +24,19 @@ export class OrderDetailService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
-
+    let productOptions = null;
     await this.checkOrderPaidByDetailIds([where.id]);
 
-    const productOptions = await this.prisma.productOption.findMany({
-      where: {
-        id: {
-          in: data.productOptionIds,
+    if (Array.isArray(data.productOptionIds)) {
+      productOptions = await this.prisma.productOption.findMany({
+        where: {
+          id: {
+            in: data.productOptionIds,
+          },
+          isPublic: true,
         },
-        isPublic: true,
-      },
-    });
+      });
+    }
 
     const orderDetail = await this.prisma.orderDetail.update({
       where: {
