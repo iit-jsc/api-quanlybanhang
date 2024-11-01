@@ -1,7 +1,7 @@
+import * as bcrypt from "bcrypt";
 import { LoginForCustomerDto, LoginDto } from "./dto/login.dto";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import * as bcrypt from "bcrypt";
 import { JwtService } from "@nestjs/jwt";
 import { mapResponseLogin } from "map-responses/account.map-response";
 import { CustomHttpException } from "utils/ApiErrors";
@@ -22,16 +22,18 @@ export class AuthService {
     private jwtService: JwtService,
     private commonService: CommonService,
     private transporterService: TransporterService,
-    private firebaseService: FirebaseService,
   ) { }
 
   async login(data: LoginDto) {
-    const account = await this.prisma.account.findFirst({
+    const account = await this.prisma.account.findUnique({
       where: {
         isPublic: true,
         username: data.username,
       },
-      include: {
+      select: {
+        id: true,
+        password: true,
+        status: true,
         user: {
           select: {
             id: true,
@@ -55,7 +57,7 @@ export class AuthService {
 
     return {
       accountToken: await this.jwtService.signAsync(payload, {
-        expiresIn: "24h",
+        expiresIn: process.env.EXPIRES_IN_ACCOUNT_TOKEN,
         secret: process.env.SECRET_KEY,
       }),
       shops,
@@ -85,7 +87,8 @@ export class AuthService {
           customerId: customer.id,
         } as TokenCustomerPayload,
         {
-          expiresIn: "48h",
+          expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
+          secret: process.env.SECRET_KEY,
         },
       ),
       customer,
@@ -118,7 +121,8 @@ export class AuthService {
           deviceId: data.deviceId,
         } as TokenPayload,
         {
-          expiresIn: "48h",
+          expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
+          secret: process.env.SECRET_KEY,
         },
       ),
       refreshToken: data.refreshToken,
@@ -268,7 +272,8 @@ export class AuthService {
           },
         },
       },
-      include: {
+      select: {
+        id: true,
         user: {
           select: {
             id: true,
@@ -281,7 +286,9 @@ export class AuthService {
         },
         permissions: {
           where: { isPublic: true },
-          include: {
+          select: {
+            id: true,
+            name: true,
             roles: true,
           },
         },
@@ -365,7 +372,7 @@ export class AuthService {
         deviceId: validDeviceId,
       },
       {
-        expiresIn: "30d",
+        expiresIn: process.env.EXPIRES_IN_REFRESH_TOKEN,
         secret: process.env.SECRET_KEY,
       },
     );
@@ -438,7 +445,8 @@ export class AuthService {
             deviceId: payload.deviceId,
           } as TokenPayload,
           {
-            expiresIn: "48h",
+            expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
+            secret: process.env.SECRET_KEY,
           },
         ),
         ...mapResponseLogin({ account, shops, currentShop }),

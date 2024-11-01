@@ -109,6 +109,7 @@ export class OrderService {
                   some: {
                     OR: orderDetails.map((order) => ({
                       productId: order.product.id,
+
                       amount: {
                         lte: order.amount,
                       },
@@ -386,11 +387,22 @@ export class OrderService {
       if (data.customerId) {
         customerDiscount = await this.prisma.customer.findFirstOrThrow({
           where: { id: data.customerId },
-          include: {
+          select: {
+            id: true,
+            address: true,
+            discount: true,
+            discountType: true,
+            endow: true,
             customerType: {
               where: {
                 isPublic: true,
               },
+              select: {
+                id: true,
+                name: true,
+                discount: true,
+                discountType: true,
+              }
             },
           },
         });
@@ -650,15 +662,72 @@ export class OrderService {
         skip,
         take,
         orderBy: orderBy || { createdAt: "desc" },
-        include: {
-          paymentMethod: true,
-          creator: true,
+        select: {
+          id: true,
+          code: true,
+          bankingImages: true,
+          isPaid: true,
+          discountIssue: true,
+          isSave: true,
+          note: true,
+          orderType: true,
+          promotion: true,
+          convertedPointValue: true,
+          customerDiscount: true,
+          orderStatus: true,
+          paymentMethod: {
+            select: {
+              id: true,
+              bankCode: true,
+              bankName: true,
+              name: true,
+              photoURL: true,
+              representative: true,
+              type: true,
+              updatedAt: true,
+            }
+          },
+          creator: {
+            select: {
+              id: true,
+              updatedAt: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  phone: true,
+                  photoURL: true,
+                  updatedAt: true,
+                }
+              }
+            }
+          },
           orderDetails: {
             where: {
               isPublic: true
+            },
+            select: {
+              id: true,
+              amount: true,
+              note: true,
+              status: true,
+              product: true,
+              productOptions: true,
+              updatedAt: true,
             }
           },
-          customer: true,
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              email: true,
+              address: true,
+              updatedAt: true,
+            }
+          },
+          updatedAt: true
         },
       }),
       this.prisma.order.count({
@@ -787,9 +856,72 @@ export class OrderService {
         orderBy: {
           createdAt: "desc",
         },
-        include: {
-          paymentMethod: true,
-          creator: true,
+        select: {
+          id: true,
+          code: true,
+          bankingImages: true,
+          isPaid: true,
+          discountIssue: true,
+          isSave: true,
+          note: true,
+          orderType: true,
+          promotion: true,
+          convertedPointValue: true,
+          customerDiscount: true,
+          orderStatus: true,
+          paymentMethod: {
+            select: {
+              id: true,
+              bankCode: true,
+              bankName: true,
+              name: true,
+              photoURL: true,
+              representative: true,
+              type: true,
+              updatedAt: true,
+            }
+          },
+          creator: {
+            select: {
+              id: true,
+              updatedAt: true,
+              user: {
+                select: {
+                  id: true,
+                  name: true,
+                  email: true,
+                  phone: true,
+                  photoURL: true,
+                  updatedAt: true,
+                }
+              }
+            }
+          },
+          orderDetails: {
+            where: {
+              isPublic: true
+            },
+            select: {
+              id: true,
+              amount: true,
+              note: true,
+              status: true,
+              product: true,
+              productOptions: true,
+              updatedAt: true,
+            }
+          },
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              phone: true,
+              email: true,
+              address: true,
+              updatedAt: true,
+            }
+          },
+          updatedAt: true
         },
       }),
       this.prisma.order.count({
@@ -972,14 +1104,35 @@ export class OrderService {
 
       if (order.isPaid) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này đã thành toán!");
 
-      if (order.customer)
-        customerDiscount = await this.getDiscountCustomer(totalOrder, order.customer);
-
       if (data.promotionId)
         promotion = await this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma);
 
       if (data.discountCode)
         discountIssue = await this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma);
+
+      if (data.customerId) {
+        customerDiscount = await this.prisma.customer.findFirstOrThrow({
+          where: { id: data.customerId },
+          select: {
+            id: true,
+            address: true,
+            discount: true,
+            discountType: true,
+            endow: true,
+            customerType: {
+              where: {
+                isPublic: true,
+              },
+              select: {
+                id: true,
+                name: true,
+                discount: true,
+                discountType: true,
+              }
+            },
+          },
+        });
+      }
 
       const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
         data.exchangePoint,
@@ -988,7 +1141,7 @@ export class OrderService {
 
       // Xử lý tích điểm
       if (order.customerId) {
-        customerDiscount = await this.pointAccumulationService.handlePoint(
+        await this.pointAccumulationService.handlePoint(
           order.customerId,
           order.id,
           data.exchangePoint,

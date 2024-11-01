@@ -21,7 +21,7 @@ export class ProductOptionGroupService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateProductOptionGroupDto, tokenPayload: TokenPayload) {
     this.validateDefaultProductOptions(data.productOptions);
@@ -84,9 +84,31 @@ export class ProductOptionGroupService {
         take,
         orderBy: orderBy || { createdAt: "desc" },
         where,
-        include: {
-          productOptions: true,
-          productTypes: true
+        select: {
+          id: true,
+          name: true,
+          isMultiple: true,
+          isRequired: true,
+          productOptions: {
+            select: {
+              id: true,
+              name: true,
+              price: true,
+              isDefault: true,
+              photoURL: true,
+              updatedAt: true,
+            },
+          },
+          productTypes: {
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              slug: true,
+              updatedAt: true,
+            }
+          },
+          updatedAt: true,
         },
       }),
       this.prisma.productOptionGroup.count({

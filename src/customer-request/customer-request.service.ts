@@ -97,8 +97,18 @@ export class CustomerRequestService {
             },
           },
           table: {
-            include: {
-              area: true,
+            select: {
+              area: {
+                select: {
+                  id: true,
+                  name: true,
+                  updatedAt: true
+                },
+              },
+              id: true,
+              name: true,
+              seat: true,
+              updatedAt: true
             }
           }
         }

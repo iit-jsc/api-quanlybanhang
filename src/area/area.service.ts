@@ -69,11 +69,21 @@ export class AreaService {
         take,
         orderBy: orderBy || { createdAt: "desc" },
         where,
-        include: {
+        select: {
+          id: true,
+          name: true,
+          photoURL: true,
+          updatedAt: true,
           tables: {
             where: {
               isPublic: true,
             },
+            select: {
+              id: true,
+              name: true,
+              seat: true,
+              updatedAt: true,
+            }
           },
         },
       }),

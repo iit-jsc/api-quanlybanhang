@@ -6,7 +6,7 @@ import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class GroupRoleService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
   async findAll(params: FindManyDto) {
     let { skip, take, types } = params;
     let where: Prisma.GroupRoleWhereInput = {

@@ -15,7 +15,6 @@ import {
   ValidateNested,
 } from "class-validator";
 import { ORDER_STATUS_COMMON } from "enums/order.enum";
-import { CreateProductOptionDto } from "src/product-option-group/dto/product-option-group.dto";
 
 export class CreateOrderDto {
   @IsOptional()
@@ -106,4 +105,8 @@ export class PaymentOrderDto {
   @IsNumber()
   @Min(1)
   moneyReceived: number;
+
+  @IsOptional()
+  @IsString()
+  customerId: string;
 }
