@@ -77,6 +77,7 @@ export class TableService {
           id: true,
           name: true,
           seat: true,
+          areaId: true,
           area: {
             select: {
               id: true,

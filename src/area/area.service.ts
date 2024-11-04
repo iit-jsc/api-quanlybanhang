@@ -82,6 +82,7 @@ export class AreaService {
               id: true,
               name: true,
               seat: true,
+
               updatedAt: true,
             }
           },
