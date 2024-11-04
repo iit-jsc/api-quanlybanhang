@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "./dto/order.dto";
-import { AnyObject, CustomerShape, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
+import { AnyObject, CustomerShape, DeleteManyResponse, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { OrderDetail, Prisma, PrismaClient } from "@prisma/client";
@@ -783,19 +783,10 @@ export class OrderService {
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const ordersPaid = await this.prisma.order.findMany({
-      where: { id: { in: data.ids }, isPublic: true, isPaid: true },
-      select: { id: true },
-    });
-
-    const ordersPaidIds = ordersPaid.map((order) => order.id);
-
-    const idsToDelete = data.ids.filter((id) => !ordersPaidIds.includes(id));
-
     const count = await this.prisma.order.updateMany({
       where: {
         id: {
-          in: idsToDelete,
+          in: data.ids,
         },
         branch: { isPublic: true, id: tokenPayload.branchId },
       },
@@ -810,9 +801,7 @@ export class OrderService {
     return {
       ...count,
       ids: data.ids,
-      deletedIds: idsToDelete,
-      notDeletedIds: ordersPaidIds,
-    };
+    } as DeleteManyResponse;
   }
 
   async findAllByCustomer(params: FindManyDto, tokenCustomerPayload: TokenCustomerPayload) {

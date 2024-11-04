@@ -1,7 +1,7 @@
 import * as bcrypt from "bcrypt";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { CreateManagerDto, UpdateManagerDto } from "./dto/manager.dto";
-import { TokenPayload } from "interfaces/common.interface";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
@@ -15,7 +15,7 @@ export class ManagerService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async checkManagerExisting(username: string, id?: string) {
     let ownerShopAccount = await this.prisma.account.findFirst({
@@ -128,10 +128,10 @@ export class ManagerService {
             ...(data.newPassword && { password: data.newPassword ? bcrypt.hashSync(data.newPassword, 10) : undefined }),
             ...(data.branchIds &&
               data.branchIds?.length > 0 && {
-                branches: {
-                  set: data.branchIds?.map((id: string) => ({ id })),
-                },
-              }),
+              branches: {
+                set: data.branchIds?.map((id: string) => ({ id })),
+              },
+            }),
           },
         },
       },
@@ -151,7 +151,7 @@ export class ManagerService {
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     return await this.prisma.$transaction(async (prisma) => {
-      await prisma.user.updateMany({
+      const count = await prisma.user.updateMany({
         where: {
           id: {
             in: data.ids,
@@ -185,6 +185,11 @@ export class ManagerService {
           updatedBy: tokenPayload.accountId,
         },
       });
+
+      return {
+        ...count,
+        ids: data.ids,
+      } as DeleteManyResponse;
     });
   }
 
