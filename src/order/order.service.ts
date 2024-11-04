@@ -727,7 +727,8 @@ export class OrderService {
               updatedAt: true,
             }
           },
-          updatedAt: true
+          updatedAt: true,
+          createdAt: true,
         },
       }),
       this.prisma.order.count({
