@@ -94,6 +94,7 @@ export class ProductOptionGroupService {
               id: true,
               name: true,
               price: true,
+              productOptionGroupId: true,
               isDefault: true,
               photoURL: true,
               updatedAt: true,
