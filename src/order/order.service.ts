@@ -1158,6 +1158,7 @@ export class OrderService {
         where: { id: where.id, isPublic: true },
         data: {
           isPaid: true,
+          note: data.note,
           promotion,
           customerDiscount,
           discountIssue,

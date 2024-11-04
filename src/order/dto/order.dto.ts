@@ -109,4 +109,8 @@ export class PaymentOrderDto {
   @IsOptional()
   @IsString()
   customerId: string;
+
+  @IsOptional()
+  @IsString()
+  note: string;
 }
