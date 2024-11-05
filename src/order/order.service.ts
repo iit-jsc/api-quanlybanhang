@@ -750,7 +750,36 @@ export class OrderService {
       },
       include: {
         paymentMethod: true,
-        creator: true,
+        creator: {
+          select: {
+            id: true,
+            username: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                photoURL: true,
+              }
+            }
+          }
+        },
+        updater: {
+          select: {
+            id: true,
+            username: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                photoURL: true,
+              }
+            }
+          }
+        },
         orderDetails: {
           where: {
             isPublic: true
