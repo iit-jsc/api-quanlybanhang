@@ -70,7 +70,7 @@ export class UpdateOrderDto extends PartialType(CreateOrderDto) {
   @Type(() => Date)
   cancelDate: Date;
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsOptional()
   @IsString()
   paymentMethodId: string;
 
