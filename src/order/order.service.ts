@@ -504,11 +504,13 @@ export class OrderService {
           cancelReason: data.cancelReason,
           cancelDate: data.cancelDate,
           bankingImages: data.bankingImages,
-          paymentMethod: {
-            connect: {
-              id: data.paymentMethodId,
+          ...(data.paymentMethodId && {
+            paymentMethod: {
+              connect: {
+                id: data.paymentMethodId,
+              },
             },
-          },
+          }),
           updater: {
             connect: {
               id: tokenPayload.accountId,
