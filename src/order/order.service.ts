@@ -411,41 +411,17 @@ export class OrderService {
 
       const totalOrder = this.getTotalInOrder(orderDetails);
 
-      if (data.promotionId)
-        promotion = await this.getPromotion(data.promotionId, orderDetails, tokenPayload.branchId, prisma);
+      const [promotionPromise, discountIssuePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
+        data.promotionId ? this.getPromotion(data.promotionId, orderDetails, tokenPayload.branchId, prisma) : null,
+        data.discountCode ? this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma) : null,
+        data.customerId ? this.getCustomerDiscount(data.customerId) : null,
+        data.exchangePoint ? this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId) : null,
+      ]);
 
-      if (data.discountCode)
-        discountIssue = await this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma);
-
-      if (data.customerId) {
-        customerDiscount = await this.prisma.customer.findFirstOrThrow({
-          where: { id: data.customerId },
-          select: {
-            id: true,
-            address: true,
-            discount: true,
-            discountType: true,
-            endow: true,
-            customerType: {
-              where: {
-                isPublic: true,
-              },
-              select: {
-                id: true,
-                name: true,
-                discount: true,
-                discountType: true,
-              }
-            },
-          },
-        });
-      }
-
-      if (data.exchangePoint)
-        convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
-          data.exchangePoint,
-          tokenPayload.shopId,
-        );
+      promotion = promotionPromise;
+      discountIssue = discountIssuePromise;
+      customerDiscount = customerDiscountPromise;
+      convertedPointValue = convertedPointValuePromise ?? 0;
 
       const order = await prisma.order.create({
         data: {
@@ -1169,40 +1145,17 @@ export class OrderService {
 
       if (order.isPaid) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này đã thành toán!");
 
-      if (data.promotionId)
-        promotion = await this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma);
+      const [promotionPromise, discountIssuePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
+        data.promotionId ? this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma) : null,
+        data.discountCode ? this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma) : null,
+        data.customerId ? this.getCustomerDiscount(data.customerId) : null,
+        data.exchangePoint ? this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId) : null,
+      ]);
 
-      if (data.discountCode)
-        discountIssue = await this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma);
-
-      if (data.customerId)
-        customerDiscount = await this.prisma.customer.findFirstOrThrow({
-          where: { id: data.customerId },
-          select: {
-            id: true,
-            address: true,
-            discount: true,
-            discountType: true,
-            endow: true,
-            customerType: {
-              where: {
-                isPublic: true,
-              },
-              select: {
-                id: true,
-                name: true,
-                discount: true,
-                discountType: true,
-              }
-            },
-          },
-        });
-
-      if (data.exchangePoint)
-        convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
-          data.exchangePoint,
-          tokenPayload.shopId,
-        );
+      promotion = promotionPromise;
+      discountIssue = discountIssuePromise;
+      customerDiscount = customerDiscountPromise;
+      convertedPointValue = convertedPointValuePromise ?? 0;
 
       // Xử lý tích điểm
       if (order.customerId) {
@@ -1239,5 +1192,29 @@ export class OrderService {
       maxWait: 5000,
       timeout: 10000,
     });
+  }
+
+  async getCustomerDiscount(customerId: string) {
+    return this.prisma.customer.findFirstOrThrow({
+      where: { id: customerId },
+      select: {
+        id: true,
+        address: true,
+        discount: true,
+        discountType: true,
+        endow: true,
+        customerType: {
+          where: {
+            isPublic: true,
+          },
+          select: {
+            id: true,
+            name: true,
+            discount: true,
+            discountType: true,
+          },
+        },
+      },
+    })
   }
 }
