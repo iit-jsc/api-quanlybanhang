@@ -224,6 +224,9 @@ export class OrderService {
       }
     });
 
+    if (!discountIssue)
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Mã giảm giá không tồn tại hoặc đã sử dụng!");
+
     const discountCode = await prisma.discountCode.update({
       where: {
         branchId_code: {
@@ -401,6 +404,7 @@ export class OrderService {
     let promotion = null;
     let discountIssue = null;
     let customerDiscount = null;
+    let convertedPointValue = 0;
 
     const newOrder = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const orderDetails = await this.getOrderDetailsInTable(data.tableId, prisma);
@@ -437,10 +441,11 @@ export class OrderService {
         });
       }
 
-      const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
-        data.exchangePoint,
-        tokenPayload.shopId,
-      );
+      if (data.exchangePoint)
+        convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
+          data.exchangePoint,
+          tokenPayload.shopId,
+        );
 
       const order = await prisma.order.create({
         data: {
@@ -1122,6 +1127,7 @@ export class OrderService {
     let promotion = null;
     let discountIssue = null;
     let customerDiscount = null;
+    let convertedPointValue = 0;
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       await this.updateOrderDetailsStatus(prisma, { orderId: where.id });
@@ -1169,7 +1175,7 @@ export class OrderService {
       if (data.discountCode)
         discountIssue = await this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma);
 
-      if (data.customerId) {
+      if (data.customerId)
         customerDiscount = await this.prisma.customer.findFirstOrThrow({
           where: { id: data.customerId },
           select: {
@@ -1191,12 +1197,12 @@ export class OrderService {
             },
           },
         });
-      }
 
-      const convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
-        data.exchangePoint,
-        tokenPayload.shopId,
-      );
+      if (data.exchangePoint)
+        convertedPointValue = await this.pointAccumulationService.convertDiscountFromPoint(
+          data.exchangePoint,
+          tokenPayload.shopId,
+        );
 
       // Xử lý tích điểm
       if (order.customerId) {
