@@ -101,6 +101,7 @@ export class OrderService {
         startDate: {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),
         },
+        isActive: true,
         AND: [
           {
             OR: [
@@ -146,12 +147,18 @@ export class OrderService {
         type: true,
         value: true,
         typeValue: true,
+        isActive: true,
         amount: true,
         amountApplied: true,
+        code: true,
+        updatedAt: true
       },
     });
 
     const matchPromotion = matchPromotions.find((promotion) => promotion.id === promotionId);
+
+    if (!matchPromotion)
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy khuyến mãi!");
 
     if (matchPromotion.amountApplied >= matchPromotion.amount)
       throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lượng áp dụng!");
@@ -162,6 +169,20 @@ export class OrderService {
         amountApplied: {
           increment: 1
         },
+      },
+      select: {
+        id: true,
+        type: true,
+        value: true,
+        typeValue: true,
+        amount: true,
+        amountApplied: true,
+        code: true,
+        name: true,
+        isEndDateDisabled: true,
+        description: true,
+        startDate: true,
+        updatedAt: true
       },
     })
   }
@@ -196,6 +217,20 @@ export class OrderService {
           },
         },
       },
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        amount: true,
+        startDate: true,
+        endDate: true,
+        isEndDateDisabled: true,
+        maxValue: true,
+        type: true,
+        value: true,
+        minTotalOrder: true,
+        description: true,
+      }
     });
 
     await prisma.discountCode.update({
