@@ -148,6 +148,7 @@ export class OrderService {
         type: true,
         value: true,
         typeValue: true,
+        isActive: true,
         amount: true,
         amountApplied: true,
         code: true,
@@ -155,6 +156,7 @@ export class OrderService {
         isEndDateDisabled: true,
         description: true,
         startDate: true,
+        endDate: true,
         updatedAt: true
       },
     });
