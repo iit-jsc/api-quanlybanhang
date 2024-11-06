@@ -230,10 +230,11 @@ export class OrderService {
         value: true,
         minTotalOrder: true,
         description: true,
+        updatedAt: true
       }
     });
 
-    await prisma.discountCode.update({
+    const discountCode = await prisma.discountCode.update({
       where: {
         branchId_code: {
           branchId: branchId,
@@ -242,6 +243,9 @@ export class OrderService {
       },
       data: { isUsed: true },
     });
+
+    if (!discountCode)
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Mã giảm giá không tồn tại hoặc đã sử dụng!");
 
     return discountIssue;
   }
