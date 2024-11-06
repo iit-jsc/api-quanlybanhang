@@ -66,11 +66,6 @@ export class UpdateOrderDto extends PartialType(CreateOrderDto) {
   cancelReason: string;
 
   @IsOptional()
-  @IsDate()
-  @Type(() => Date)
-  cancelDate: Date;
-
-  @IsOptional()
   @IsString()
   paymentMethodId: string;
 

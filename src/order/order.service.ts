@@ -501,9 +501,11 @@ export class OrderService {
         data: {
           orderStatus: data.orderStatus,
           note: data.note,
-          cancelReason: data.cancelReason,
-          cancelDate: data.cancelDate,
           bankingImages: data.bankingImages,
+          ...(data.orderStatus === ORDER_STATUS_COMMON.CANCELLED && {
+            cancelDate: new Date(),
+            cancelReason: data.cancelReason,
+          }),
           ...(data.paymentMethodId && {
             paymentMethod: {
               connect: {
@@ -519,7 +521,11 @@ export class OrderService {
           },
         },
         include: {
-          orderDetails: true,
+          orderDetails: {
+            where: {
+              isPublic: true,
+            }
+          },
         },
       });
 
