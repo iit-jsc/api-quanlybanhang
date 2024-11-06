@@ -94,8 +94,9 @@ export class OrderService {
   async getPromotion(promotionId: string, orderDetails: AnyObject, branchId: string, prisma?: PrismaClient) {
     prisma = prisma || this.prisma;
 
-    const matchPromotions = await prisma.promotion.findMany({
+    const matchPromotion = await prisma.promotion.findUnique({
       where: {
+        id: promotionId,
         isPublic: true,
         branchId: branchId,
         startDate: {
@@ -147,34 +148,6 @@ export class OrderService {
         type: true,
         value: true,
         typeValue: true,
-        isActive: true,
-        amount: true,
-        amountApplied: true,
-        code: true,
-        updatedAt: true
-      },
-    });
-
-    const matchPromotion = matchPromotions.find((promotion) => promotion.id === promotionId);
-
-    if (!matchPromotion)
-      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy khuyến mãi!");
-
-    if (matchPromotion.amountApplied >= matchPromotion.amount)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lượng áp dụng!");
-
-    return await prisma.promotion.update({
-      where: { id: promotionId },
-      data: {
-        amountApplied: {
-          increment: 1
-        },
-      },
-      select: {
-        id: true,
-        type: true,
-        value: true,
-        typeValue: true,
         amount: true,
         amountApplied: true,
         code: true,
@@ -184,7 +157,24 @@ export class OrderService {
         startDate: true,
         updatedAt: true
       },
+    });
+
+    if (!matchPromotion)
+      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy khuyến mãi!");
+
+    if (matchPromotion.amountApplied >= matchPromotion.amount)
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lượng áp dụng!");
+
+    await prisma.promotion.update({
+      where: { id: promotionId },
+      data: {
+        amountApplied: {
+          increment: 1
+        },
+      },
     })
+
+    return matchPromotion
   }
 
   async getDiscountIssue(code: string, branchId: string, prisma: PrismaClient) {
@@ -512,6 +502,9 @@ export class OrderService {
       await this.commonService.createActivityLog([order.id], "Order", ACTIVITY_LOG_TYPE.PAYMENT, tokenPayload);
 
       return order;
+    }, {
+      maxWait: 5000,
+      timeout: 10000,
     });
 
     return newOrder;
@@ -1236,6 +1229,9 @@ export class OrderService {
           updatedBy: tokenPayload.accountId,
         },
       });
+    }, {
+      maxWait: 5000,
+      timeout: 10000,
     });
   }
 }
