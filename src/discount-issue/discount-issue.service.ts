@@ -13,7 +13,7 @@ export class DiscountIssueService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateDiscountIssueDto, tokenPayload: TokenPayload) {
     const discountIssue = await this.prisma.discountIssue.create({
@@ -85,11 +85,16 @@ export class DiscountIssueService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+    let { skip, take, keyword, orderBy, totalOrder } = params;
     let where: Prisma.DiscountIssueWhereInput = {
       isPublic: true,
       ...(keyword && { name: { contains: keyword } }),
       branchId: tokenPayload.branchId,
+      ...(totalOrder && {
+        minTotalOrder: {
+          lte: totalOrder
+        }
+      })
     };
     const [data, totalRecords] = await Promise.all([
       this.prisma.discountIssue.findMany({

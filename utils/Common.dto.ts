@@ -172,6 +172,10 @@ export class FindManyDto {
     return Boolean(+value);
   })
   active?: boolean;
+
+  /* ====== discount issue  ====== */
+  @Type(() => Number)
+  totalOrder?: number;
 }
 
 export class FindBySlugDto {

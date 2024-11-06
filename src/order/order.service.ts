@@ -179,7 +179,7 @@ export class OrderService {
     return matchPromotion
   }
 
-  async getDiscountIssue(code: string, branchId: string, prisma: PrismaClient) {
+  async getDiscountIssue(code: string, totalOrder: number, branchId: string, prisma: PrismaClient) {
     const discountIssue = await this.prisma.discountIssue.findFirst({
       where: {
         isPublic: true,
@@ -208,6 +208,9 @@ export class OrderService {
             isPublic: true,
           },
         },
+        minTotalOrder: {
+          lte: totalOrder,
+        }
       },
       select: {
         id: true,
@@ -369,7 +372,9 @@ export class OrderService {
     });
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      if (data.discountCode) discountIssue = await this.getDiscountIssue(data.discountCode, data.branchId, prisma);
+      const totalOrder = this.getTotalInOrder(orderDetails);
+
+      if (data.discountCode) discountIssue = await this.getDiscountIssue(data.discountCode, totalOrder, data.branchId, prisma);
 
       const order = await this.prisma.order.create({
         data: {
@@ -415,7 +420,7 @@ export class OrderService {
 
       const [promotionPromise, discountIssuePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
         data.promotionId ? this.getPromotion(data.promotionId, orderDetails, tokenPayload.branchId, prisma) : null,
-        data.discountCode ? this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma) : null,
+        data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma) : null,
         data.customerId ? this.getCustomerDiscount(data.customerId) : null,
         data.exchangePoint ? this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId) : null,
       ]);
@@ -1149,7 +1154,7 @@ export class OrderService {
 
       const [promotionPromise, discountIssuePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
         data.promotionId ? this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma) : null,
-        data.discountCode ? this.getDiscountIssue(data.discountCode, tokenPayload.branchId, prisma) : null,
+        data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma) : null,
         data.customerId ? this.getCustomerDiscount(data.customerId) : null,
         data.exchangePoint ? this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId) : null,
       ]);
