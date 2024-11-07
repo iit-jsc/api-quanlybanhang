@@ -438,7 +438,7 @@ export class OrderService {
           discountIssue,
           promotion,
           orderType: ORDER_TYPE.OFFLINE,
-          orderStatus: ORDER_STATUS_COMMON.SUCCESS,
+          orderStatus: data.orderStatus,
           bankingImages: data.bankingImages,
           isPaid: true,
           convertedPointValue,
@@ -507,7 +507,7 @@ export class OrderService {
   ) {
     const { where, data } = params;
 
-    await this.commonService.checkOrderChange(where.id);
+    await this.commonService.checkOrderCancel(where.id, data.orderStatus);
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const order = await prisma.order.update({
@@ -1189,7 +1189,7 @@ export class OrderService {
           convertedPointValue,
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,
-          orderStatus: ORDER_STATUS_COMMON.SUCCESS,
+          orderStatus: data.orderStatus,
           bankingImages: data.exchangePoint,
           paymentMethodId: data.paymentMethodId,
           updatedBy: tokenPayload.accountId,

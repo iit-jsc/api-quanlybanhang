@@ -108,4 +108,9 @@ export class PaymentOrderDto {
   @IsOptional()
   @IsString()
   note: string;
+
+  @IsOptional()
+  @IsNumber()
+  @IsEnum(ORDER_STATUS_COMMON, { message: "Trạng thái không hợp lệ!" })
+  orderStatus: number;
 }

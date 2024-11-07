@@ -1,6 +1,7 @@
 import { ACTIVITY_LOG_TYPE } from "./../../enums/common.enum";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
+import { ORDER_STATUS_COMMON } from "enums/order.enum";
 import { AnyObject, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { ConfirmEmailDto } from "src/shop/dto/confirm-email.dto";
@@ -8,7 +9,7 @@ import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
 export class CommonService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
   async uploadPhotoURLs(data: { photoURLs: string[] }) {
     return data.photoURLs;
@@ -256,7 +257,7 @@ export class CommonService {
     }
   }
 
-  async checkOrderChange(orderId: string) {
+  async checkOrderCancel(orderId: string, orderStatus: number) {
     const order = await this.prisma.order.findFirst({
       where: {
         id: orderId,
@@ -265,7 +266,8 @@ export class CommonService {
       select: { id: true },
     });
 
-    if (order) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này không thể cập nhật vì đã thanh toán!");
+    if (order && orderStatus === ORDER_STATUS_COMMON.CANCELLED)
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này không thể hủy vì đã thanh toán!");
   }
 
   async findAllIdsInBranch(model: Prisma.ModelName, branchId: string, condition?: AnyObject) {

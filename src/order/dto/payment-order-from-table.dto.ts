@@ -1,4 +1,5 @@
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from "class-validator";
+import { ORDER_STATUS_COMMON } from "enums/order.enum";
 
 export class PaymentFromTableDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -38,4 +39,9 @@ export class PaymentFromTableDto {
   @IsNumber()
   @Min(1)
   moneyReceived: number;
+
+  @IsOptional()
+  @IsNumber()
+  @IsEnum(ORDER_STATUS_COMMON, { message: "Trạng thái không hợp lệ!" })
+  orderStatus: number;
 }

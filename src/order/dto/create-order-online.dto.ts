@@ -3,7 +3,6 @@ import { OrderProducts } from "./order.dto";
 import {
   ArrayNotEmpty,
   IsEmail,
-  IsEnum,
   IsNotEmpty,
   IsNumber,
   IsOptional,
