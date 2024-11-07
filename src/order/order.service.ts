@@ -507,8 +507,6 @@ export class OrderService {
   ) {
     const { where, data } = params;
 
-    await this.commonService.checkOrderCancel(where.id, data.orderStatus);
-
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const order = await prisma.order.update({
         where: {
