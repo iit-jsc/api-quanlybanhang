@@ -258,15 +258,14 @@ export class CommonService {
   }
 
   async checkOrderCancel(orderId: string, orderStatus: number) {
-    const order = await this.prisma.order.findFirst({
+    const order = await this.prisma.order.findUnique({
       where: {
         id: orderId,
-        isPaid: true,
       },
-      select: { id: true },
+      select: { id: true, isPaid: true, },
     });
 
-    if (order && orderStatus === ORDER_STATUS_COMMON.CANCELLED)
+    if (order.isPaid === true && orderStatus === ORDER_STATUS_COMMON.CANCELLED)
       throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này không thể hủy vì đã thanh toán!");
   }
 
