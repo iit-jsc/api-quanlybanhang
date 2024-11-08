@@ -265,10 +265,22 @@ export class ShopService {
               {
                 name: "Bàn 01",
                 branchId: branchId,
+                seat: 4
               },
               {
                 name: "Bàn 02",
                 branchId: branchId,
+                seat: 4
+              },
+              {
+                name: "Bàn 03",
+                branchId: branchId,
+                seat: 3
+              },
+              {
+                name: "Bàn 04",
+                branchId: branchId,
+                seat: 2
               },
             ],
           },
@@ -346,6 +358,11 @@ export class ShopService {
         {
           name: "Cái",
           code: "c",
+          branchId,
+        },
+        {
+          name: "Ly",
+          code: "l",
           branchId,
         },
         {
@@ -530,6 +547,7 @@ export class ShopService {
         name: "Size",
         branchId,
         isMultiple: false,
+        isRequired: true,
         productOptions: {
           createMany: {
             data: [

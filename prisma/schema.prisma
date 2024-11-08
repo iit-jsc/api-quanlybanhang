@@ -48,6 +48,8 @@ model Permission {
   updater     Account?  @relation("updater", fields: [updatedBy], references: [id])
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
+
+  @@index([branchId])
 }
 
 model Account {
@@ -168,6 +170,8 @@ model User {
   employeeSalary        EmployeeSalary?
   detailTableSalaries   DetailTableSalary[]
   compensationEmployees CompensationEmployee[]
+
+  @@index([branchId])
 }
 
 model EmployeeGroup {
@@ -185,6 +189,8 @@ model EmployeeGroup {
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
   salarySettingId String?
+
+  @@index([branchId])
 }
 
 model Shop {
@@ -228,6 +234,7 @@ model PrintTemplate {
   updatedAt DateTime @updatedAt
 
   @@unique([shopId, type])
+  @@index([shopId])
 }
 
 model CurrencyUnit {
@@ -245,6 +252,7 @@ model CurrencyUnit {
   updatedAt  DateTime @updatedAt
 
   @@unique([branchId, code])
+  @@index([branchId])
 }
 
 model MeasurementUnit {
@@ -263,6 +271,7 @@ model MeasurementUnit {
   products  Product[]
 
   @@unique([branchId, code])
+  @@index([branchId])
 }
 
 model ActivityLog {
@@ -275,6 +284,8 @@ model ActivityLog {
   createdAt DateTime @default(now())
   account   Account? @relation(fields: [accountId], references: [id])
   branch    Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
 }
 
 model ProductType {
@@ -296,6 +307,7 @@ model ProductType {
   updater                Account?                @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([branchId, slug])
+  @@index([branchId])
 }
 
 model OtherAttributePattern {
@@ -312,6 +324,8 @@ model OtherAttributePattern {
   updatedAt     DateTime    @updatedAt
   branch        Branch      @relation(fields: [branchId], references: [id])
   productType   ProductType @relation(fields: [productTypeId], references: [id])
+
+  @@index([branchId])
 }
 
 model Product {
@@ -347,6 +361,7 @@ model Product {
 
   @@unique([branchId, slug])
   @@unique([branchId, code])
+  @@index([branchId])
 }
 
 model ProductOption {
@@ -366,6 +381,8 @@ model ProductOption {
   updater              Account?            @relation("updater", fields: [updatedBy], references: [id])
   productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id])
   productOptionGroupId String?
+
+  @@index([branchId])
 }
 
 model ProductOptionGroup {
@@ -384,6 +401,8 @@ model ProductOptionGroup {
   creator        Account?        @relation("creator", fields: [createdBy], references: [id])
   updater        Account?        @relation("updater", fields: [updatedBy], references: [id])
   productTypes   ProductType[]
+
+  @@index([branchId])
 }
 
 model Warehouse {
@@ -400,6 +419,8 @@ model Warehouse {
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
   stocks                Stock[]
+
+  @@index([branchId])
 }
 
 model Stock {
@@ -415,11 +436,11 @@ model Stock {
   warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
   createdBy   String?
   updatedBy   String?
-
-  creator Account? @relation("creator", fields: [createdBy], references: [id])
-  updater Account? @relation("updater", fields: [updatedBy], references: [id])
+  creator     Account?  @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?  @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([productId, warehouseId])
+  @@index([branchId])
 }
 
 model InventoryTransaction {
@@ -446,6 +467,7 @@ model InventoryTransaction {
   inventoryTransactionDetails InventoryTransactionDetail[]
 
   @@unique([branchId, code])
+  @@index([branchId])
 }
 
 model InventoryTransactionDetail {
@@ -478,6 +500,8 @@ model CustomerType {
   updatedBy    String?
   creator      Account?   @relation("creator", fields: [createdBy], references: [id])
   updater      Account?   @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([shopId])
 }
 
 model Customer {
@@ -514,6 +538,7 @@ model Customer {
 
   @@unique([shopId, phone])
   @@unique([shopId, email])
+  @@index([shopId])
 }
 
 model SupplierType {
@@ -530,6 +555,8 @@ model SupplierType {
   suppliers   Supplier[]
   creator     Account?   @relation("creator", fields: [createdBy], references: [id])
   updater     Account?   @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([branchId])
 }
 
 model Supplier {
@@ -556,6 +583,7 @@ model Supplier {
 
   @@unique([branchId, email])
   @@unique([branchId, phone])
+  @@index([branchId])
 }
 
 model Promotion {
@@ -585,6 +613,7 @@ model Promotion {
   updater             Account?             @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([branchId, code])
+  @@index([branchId])
 }
 
 model PromotionCondition {
@@ -599,6 +628,8 @@ model PromotionCondition {
   branch      Branch    @relation(fields: [branchId], references: [id])
   promotion   Promotion @relation(fields: [promotionId], references: [id])
   product     Product   @relation(fields: [productId], references: [id])
+
+  @@index([branchId])
 }
 
 model PromotionProduct {
@@ -615,6 +646,8 @@ model PromotionProduct {
   branch      Branch    @relation(fields: [branchId], references: [id])
   promotion   Promotion @relation(fields: [promotionId], references: [id])
   product     Product?  @relation(fields: [productId], references: [id])
+
+  @@index([branchId])
 }
 
 model Order {
@@ -652,6 +685,7 @@ model Order {
   pointHistories      PointHistory[]
 
   @@unique([branchId, code])
+  @@index([branchId])
 }
 
 model OrderDetail {
@@ -675,6 +709,8 @@ model OrderDetail {
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
   updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
   tableTransactions TableTransaction[]
+
+  @@index([branchId])
 }
 
 model TableTransaction {
@@ -692,6 +728,8 @@ model TableTransaction {
   branch       Branch        @relation(fields: [branchId], references: [id])
   table        Table         @relation(fields: [tableId], references: [id])
   orderDetails OrderDetail[]
+
+  @@index([branchId])
 }
 
 model Area {
@@ -708,6 +746,8 @@ model Area {
   updatedBy String?
   creator   Account? @relation("creator", fields: [createdBy], references: [id])
   updater   Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([branchId])
 }
 
 model Table {
@@ -728,6 +768,8 @@ model Table {
   creator           Account?           @relation("creator", fields: [createdBy], references: [id])
   updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
   customerRequests  CustomerRequest[]
+
+  @@index([branchId])
 }
 
 model DiscountIssue {
@@ -756,6 +798,7 @@ model DiscountIssue {
   updater           Account?       @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([branchId, code])
+  @@index([branchId])
 }
 
 model DiscountCode {
@@ -775,6 +818,7 @@ model DiscountCode {
   updater         Account?      @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([branchId, code])
+  @@index([branchId])
 }
 
 model PointSetting {
@@ -786,6 +830,8 @@ model PointSetting {
   updatedBy String?
   updater   Account? @relation("updater", fields: [updatedBy], references: [id])
   shop      Shop     @relation(fields: [shopId], references: [id])
+
+  @@index([shopId])
 }
 
 model PointAccumulation {
@@ -800,6 +846,8 @@ model PointAccumulation {
   customer   Customer @relation(fields: [customerId], references: [id])
   shop       Shop     @relation(fields: [shopId], references: [id])
   shopId     String
+
+  @@index([shopId])
 }
 
 model PointHistory {
@@ -813,6 +861,8 @@ model PointHistory {
   order      Order    @relation(fields: [orderId], references: [id])
   shop       Shop     @relation(fields: [shopId], references: [id])
   shopId     String
+
+  @@index([shopId])
 }
 
 model CustomerRequest {
@@ -829,6 +879,8 @@ model CustomerRequest {
   updatedAt   DateTime @updatedAt
   branch      Branch   @relation(fields: [branchId], references: [id])
   table       Table    @relation(fields: [tableId], references: [id])
+
+  @@index([branchId])
 }
 
 model OrderRating {
@@ -841,6 +893,8 @@ model OrderRating {
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   order       Order?   @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
 }
 
 model Branch {
@@ -897,6 +951,8 @@ model Branch {
   paymentMethods             PaymentMethod[]
   productOptionGroups        ProductOptionGroup[]
   productOptions             ProductOption[]
+
+  @@index([shopId])
 }
 
 model WorkShift {
@@ -917,6 +973,8 @@ model WorkShift {
   updatedAt          DateTime           @updatedAt
   branch             Branch             @relation(fields: [branchId], references: [id])
   employeeSchedules  EmployeeSchedule[]
+
+  @@index([branchId])
 }
 
 model EmployeeSchedule {
@@ -937,6 +995,8 @@ model EmployeeSchedule {
   branch      Branch    @relation(fields: [branchId], references: [id])
   employee    User      @relation(fields: [employeeId], references: [id])
   workShift   WorkShift @relation(fields: [workShiftId], references: [id])
+
+  @@index([branchId])
 }
 
 model TableSalary {
@@ -959,6 +1019,8 @@ model TableSalary {
   updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
   confirmer           Account?            @relation("confirmer", fields: [confirmBy], references: [id])
   detailTableSalaries DetailTableSalary[]
+
+  @@index([branchId])
 }
 
 model DetailTableSalary {
@@ -976,6 +1038,7 @@ model DetailTableSalary {
   branchId       String?
 
   @@unique([tableSalaryId, employeeId])
+  @@index([branchId])
 }
 
 model CompensationSetting {
@@ -995,6 +1058,8 @@ model CompensationSetting {
   creator               Account?               @relation("creator", fields: [createdBy], references: [id])
   updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
   compensationEmployees CompensationEmployee[]
+
+  @@index([branchId])
 }
 
 model CompensationEmployee {
@@ -1015,6 +1080,7 @@ model CompensationEmployee {
   updater               Account?            @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([compensationSettingId, employeeId])
+  @@index([branchId])
 }
 
 model EmployeeSalary {
@@ -1032,6 +1098,8 @@ model EmployeeSalary {
   updatedBy  String?
   creator    Account? @relation("creator", fields: [createdBy], references: [id])
   updater    Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([branchId])
 }
 
 model ContactVerification {
@@ -1055,6 +1123,8 @@ model QRSetting {
   updatedAt        DateTime @updatedAt
   updatedBy        String?
   updater          Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([shopId])
 }
 
 model FeatureUsageSetting {
@@ -1067,6 +1137,7 @@ model FeatureUsageSetting {
   updater     Account? @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([shopId, featureCode])
+  @@index([shopId])
 }
 
 model AccountSocket {
@@ -1075,6 +1146,9 @@ model AccountSocket {
   shopId    String
   accountId String
   createdAt DateTime @default(now())
+
+  @@index([shopId])
+  @@index([branchId])
 }
 
 model PaymentMethod {
@@ -1097,6 +1171,7 @@ model PaymentMethod {
   orders         Order[]
 
   @@unique([type, branchId])
+  @@index([branchId])
 }
 
 model AuthToken {
@@ -1110,4 +1185,6 @@ model AuthToken {
   deviceId      String    @unique
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
+
+  @@index([accountId])
 }
