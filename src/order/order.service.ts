@@ -255,7 +255,7 @@ export class OrderService {
       const order = await prisma.order.create({
         data: {
           note: data.note,
-          orderType: ORDER_TYPE.OFFLINE,
+          orderType: data.orderType,
           orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
           code: data.code || generateSortCode(),
           ...(data.customerId && {
@@ -437,7 +437,7 @@ export class OrderService {
           customerDiscount,
           discountIssue,
           promotion,
-          orderType: ORDER_TYPE.OFFLINE,
+          orderType: data.orderType,
           orderStatus: data.orderStatus,
           bankingImages: data.bankingImages,
           isPaid: true,

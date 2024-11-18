@@ -14,7 +14,7 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
-import { ORDER_STATUS_COMMON } from "enums/order.enum";
+import { ORDER_STATUS_COMMON, ORDER_TYPE } from "enums/order.enum";
 
 export class CreateOrderDto {
   @IsOptional()
@@ -35,6 +35,11 @@ export class CreateOrderDto {
   @IsNumber()
   @IsEnum(ORDER_STATUS_COMMON, { message: "Trạng thái không hợp lệ!" })
   orderStatus: number;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsEnum(ORDER_TYPE, { message: "Loại đơn hàng không hợp lệ!" })
+  @IsNumber()
+  orderType: number;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @ArrayNotEmpty({ message: "Danh sách sản phẩm không được rỗng!" })

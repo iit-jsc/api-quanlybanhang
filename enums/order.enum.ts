@@ -1,6 +1,8 @@
 export const ORDER_TYPE = {
-  OFFLINE: 1,
-  ONLINE: 2,
+  ON_TABLE: 1,
+  TAKE_AWAY: 2,
+  ONLINE: 3,
+  OFFLINE: 4,
 };
 
 export const ORDER_STATUS_COMMON = {
