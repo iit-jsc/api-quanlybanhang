@@ -26,6 +26,8 @@ export class PaymentFromTableDto {
   @IsString()
   discountCode: string;
 
+
+
   @IsOptional()
   @IsString()
   promotionId: string;
@@ -40,7 +42,7 @@ export class PaymentFromTableDto {
   @Min(1)
   moneyReceived: number;
 
-  @IsOptional()
+  @IsNotEmpty({ message: "Trạng thái đơn hàng không để trống!" })
   @IsNumber()
   @IsEnum(ORDER_STATUS_COMMON, { message: "Trạng thái không hợp lệ!" })
   orderStatus: number;
