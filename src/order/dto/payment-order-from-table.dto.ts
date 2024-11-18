@@ -26,8 +26,6 @@ export class PaymentFromTableDto {
   @IsString()
   discountCode: string;
 
-
-
   @IsOptional()
   @IsString()
   promotionId: string;

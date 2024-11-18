@@ -1189,6 +1189,7 @@ export class OrderService {
           moneyReceived: data.moneyReceived,
           orderStatus: data.orderStatus,
           bankingImages: data.exchangePoint,
+          customerId: data.customerId,
           paymentMethodId: data.paymentMethodId,
           updatedBy: tokenPayload.accountId,
         },
