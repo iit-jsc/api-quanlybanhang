@@ -437,7 +437,7 @@ export class OrderService {
           customerDiscount,
           discountIssue,
           promotion,
-          orderType: data.orderType,
+          orderType: ORDER_TYPE.ON_TABLE,
           orderStatus: data.orderStatus,
           bankingImages: data.bankingImages,
           isPaid: true,
@@ -1182,6 +1182,7 @@ export class OrderService {
         data: {
           isPaid: true,
           note: data.note,
+          orderType: data.orderType,
           promotion,
           customerDiscount,
           discountIssue,

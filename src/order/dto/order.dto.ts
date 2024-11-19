@@ -118,4 +118,9 @@ export class PaymentOrderDto {
   @IsNumber()
   @IsEnum(ORDER_STATUS_COMMON, { message: "Trạng thái không hợp lệ!" })
   orderStatus: number;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsEnum(ORDER_TYPE, { message: "Loại đơn hàng không hợp lệ!" })
+  @IsNumber()
+  orderType: number;
 }
