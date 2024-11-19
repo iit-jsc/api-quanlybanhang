@@ -444,6 +444,7 @@ export class OrderService {
           convertedPointValue,
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,
+          paymentAt: new Date(),
           ...(data.customerId && {
             customer: {
               connect: {
@@ -1191,6 +1192,7 @@ export class OrderService {
           bankingImages: data.exchangePoint,
           customerId: data.customerId,
           paymentMethodId: data.paymentMethodId,
+          paymentAt: new Date(),
           updatedBy: tokenPayload.accountId,
         },
       });

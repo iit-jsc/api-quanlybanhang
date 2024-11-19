@@ -676,6 +676,7 @@ model Order {
   updatedBy           String?
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
+  paymentAt           DateTime?
   branch              Branch         @relation(fields: [branchId], references: [id])
   customer            Customer?      @relation(fields: [customerId], references: [id])
   orderDetails        OrderDetail[]
