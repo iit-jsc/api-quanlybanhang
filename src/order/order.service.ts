@@ -1190,7 +1190,7 @@ export class OrderService {
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,
           orderStatus: data.orderStatus,
-          bankingImages: data.exchangePoint,
+          bankingImages: data.bankingImages,
           customerId: data.customerId,
           paymentMethodId: data.paymentMethodId,
           paymentAt: new Date(),
