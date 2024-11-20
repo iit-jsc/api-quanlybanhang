@@ -423,6 +423,7 @@ export class OrderService {
         data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma) : null,
         data.customerId ? this.getCustomerDiscount(data.customerId) : null,
         data.exchangePoint ? this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId) : null,
+        this.deleteCustomerRequests(data.tableId, tokenPayload, prisma),
       ]);
 
       promotion = promotionPromise;
@@ -1224,6 +1225,21 @@ export class OrderService {
           },
         },
       },
+    })
+  }
+
+
+  async deleteCustomerRequests(tableId: string, tokenPayload: TokenPayload, prisma: PrismaClient) {
+    prisma = prisma || this.prisma
+    await prisma.customerRequest.updateMany({
+      where: {
+        isPublic: true,
+        tableId
+      },
+      data: {
+        isPublic: false,
+        updatedBy: tokenPayload.accountId
+      }
     })
   }
 }
