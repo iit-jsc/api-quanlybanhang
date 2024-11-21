@@ -217,4 +217,9 @@ export class FindUniqDto {
   @IsOptional()
   @IsString()
   shopId: string;
+
+  @IsOptional()
+  @IsString()
+  branchId: string;
 }
+

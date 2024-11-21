@@ -4,7 +4,8 @@ import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
-import { UpdateFeatureUsageSettingDto } from "./dto/update-future-usage-setting.dto";
+import { FindUniqFutureUsageSettingDto, UpdateFeatureUsageSettingDto } from "./dto/update-future-usage-setting.dto";
+import { FindUniqDto } from "utils/Common.dto";
 
 @Injectable()
 export class FeatureUsageSettingService {
@@ -13,9 +14,23 @@ export class FeatureUsageSettingService {
     private commonService: CommonService,
   ) {}
 
-  async findUniq(where: Prisma.FeatureUsageSettingWhereUniqueInput) {
-    return this.prisma.featureUsageSetting.findUnique({
-      where,
+  async findUniq(featureCode: string, findUniqDto: FindUniqFutureUsageSettingDto) {
+    const { branchId, shopId } = findUniqDto
+    
+    return this.prisma.featureUsageSetting.findFirst({
+      where: {
+        ...(branchId && { 
+          shop: {
+            branches: {
+              some: {
+                id: branchId
+              }
+            }
+          }
+        }),
+        ...(shopId && { shopId }),
+        featureCode,
+      },
     });
   }
 

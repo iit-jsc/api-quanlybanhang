@@ -5,7 +5,7 @@ import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";
 import { RolesGuard } from "guards/roles.guard";
-import { UpdateFeatureUsageSettingDto } from "./dto/update-future-usage-setting.dto";
+import { FindUniqFutureUsageSettingDto, UpdateFeatureUsageSettingDto } from "./dto/update-future-usage-setting.dto";
 import { FindUniqDto } from "utils/Common.dto";
 
 @Controller("feature-usage-setting")
@@ -14,10 +14,11 @@ export class FeatureUsageSettingController {
 
   @Get(":featureCode")
   @HttpCode(HttpStatus.OK)
-  findUniq(@Query() findUniqDto: FindUniqDto, @Param("featureCode") featureCode: string, @Req() req: any) {
-    return this.featureUsageSettingService.findUniq({
-      shopId_featureCode: { featureCode: featureCode, shopId: findUniqDto.shopId },
-    });
+  findUniq(
+    @Query() findUniqDto: FindUniqFutureUsageSettingDto,
+    @Param("featureCode") featureCode: string
+  ) {
+    return this.featureUsageSettingService.findUniq(featureCode, findUniqDto);
   }
 
   @Patch("")
