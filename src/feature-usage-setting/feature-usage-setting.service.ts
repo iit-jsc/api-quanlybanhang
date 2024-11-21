@@ -1,11 +1,9 @@
 import { Injectable } from "@nestjs/common";
 import { TokenPayload } from "interfaces/common.interface";
-import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 import { FindUniqFutureUsageSettingDto, UpdateFeatureUsageSettingDto } from "./dto/update-future-usage-setting.dto";
-import { FindUniqDto } from "utils/Common.dto";
 
 @Injectable()
 export class FeatureUsageSettingService {
@@ -31,6 +29,34 @@ export class FeatureUsageSettingService {
         ...(shopId && { shopId }),
         featureCode,
       },
+      include: {
+        shop: {
+          select: {
+            id: true,
+            address: true,
+            code: true,
+            name: true,
+            email: true,
+            domain: true,
+            phone: true,
+            photoURL: true,
+            updatedAt: true,
+            branches: {
+              select: {
+                id: true,
+                name: true,
+                address: true,
+                photoURL: true,
+                phone: true,
+                bannerURL: true
+              },
+              where: {
+                id: branchId
+              }
+            }
+          }
+        }
+      }
     });
   }
 
