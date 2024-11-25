@@ -23,7 +23,7 @@ export class CreateCustomerDto {
   @IsString()
   name: string;
 
-  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
+  @IsOptional()
   @IsString()
   customerTypeId: string;
 
