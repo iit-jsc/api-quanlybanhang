@@ -300,7 +300,6 @@ model ProductType {
   updatedAt              DateTime                @updatedAt
   otherAttributePatterns OtherAttributePattern[]
   products               Product[]
-  productOptionGroups    ProductOptionGroup[]
   createdBy              String?
   updatedBy              String?
   creator                Account?                @relation("creator", fields: [createdBy], references: [id])
@@ -358,6 +357,8 @@ model Product {
   creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])
   updater                     Account?                     @relation("updater", fields: [updatedBy], references: [id])
   inventoryTransactionDetails InventoryTransactionDetail[]
+  productOptions              ProductOption[]
+  productOptionGroups         ProductOptionGroup[]
 
   @@unique([branchId, slug])
   @@unique([branchId, code])
@@ -371,6 +372,7 @@ model ProductOption {
   price                Float?              @default(0)
   photoURL             String?             @db.Text
   branchId             String
+  colors               Json?
   branch               Branch              @relation(fields: [branchId], references: [id])
   isPublic             Boolean?            @default(true)
   createdAt            DateTime            @default(now())
@@ -381,6 +383,7 @@ model ProductOption {
   updater              Account?            @relation("updater", fields: [updatedBy], references: [id])
   productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id])
   productOptionGroupId String?
+  products             Product[]
 
   @@index([branchId])
 }
@@ -400,7 +403,7 @@ model ProductOptionGroup {
   updatedBy      String?
   creator        Account?        @relation("creator", fields: [createdBy], references: [id])
   updater        Account?        @relation("updater", fields: [updatedBy], references: [id])
-  productTypes   ProductType[]
+  products       Product[]
 
   @@index([branchId])
 }

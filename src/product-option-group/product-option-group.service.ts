@@ -34,6 +34,7 @@ export class ProductOptionGroupService {
             data: data.productOptions.map((option) => ({
               name: option.name,
               price: option.price,
+              colors: option.colors,
               isDefault: option.isDefault,
               branchId: tokenPayload.branchId,
               photoURL: option.photoURL,
@@ -43,9 +44,6 @@ export class ProductOptionGroupService {
         },
         isMultiple: data.isMultiple,
         isRequired: data.isRequired,
-        productTypes: {
-          connect: data.productTypeIds.map((id) => ({ id })),
-        },
         branchId: tokenPayload.branchId,
         createdBy: tokenPayload.accountId,
       },
@@ -97,16 +95,11 @@ export class ProductOptionGroupService {
               productOptionGroupId: true,
               isDefault: true,
               photoURL: true,
+              colors: true,
               updatedAt: true,
             },
-          },
-          productTypes: {
-            select: {
-              id: true,
-              name: true,
-              description: true,
-              slug: true,
-              updatedAt: true,
+            where: {
+              isPublic: true
             }
           },
           updatedAt: true,
@@ -130,8 +123,11 @@ export class ProductOptionGroupService {
         isPublic: true,
       },
       include: {
-        productOptions: true,
-        productTypes: true,
+        productOptions: {
+          where: { 
+            isPublic: true
+          }
+        },
       },
     });
   }
@@ -157,14 +153,10 @@ export class ProductOptionGroupService {
                 branchId: tokenPayload.branchId,
                 photoURL: option.photoURL,
                 isDefault: option.isDefault,
+                colors: option.colors,
                 updatedBy: tokenPayload.accountId,
               })),
             },
-          },
-        }),
-        ...(data.productTypeIds && {
-          productTypes: {
-            set: data.productTypeIds.map((id) => ({ id })),
           },
         }),
         isMultiple: data.isMultiple,
@@ -178,7 +170,6 @@ export class ProductOptionGroupService {
       },
       include: {
         productOptions: true,
-        productTypes: true,
       },
     });
 

@@ -29,6 +29,16 @@ export class ProductService {
         otherAttributes: data.otherAttributes,
         status: data.status,
         photoURLs: data.photoURLs,
+        ...(data.productOptionGroupIds && {
+          productOptionGroups: {
+            connect: data.productOptionGroupIds.map((id) => ({ id }))
+          }
+        }),
+        ...(data.productOptionIds && {
+          productOptions: {
+            connect: data.productOptionIds.map((id) => ({ id }))
+          }
+        }),
         productType: {
           connect: {
             id: data.productTypeId,
@@ -148,6 +158,28 @@ export class ProductService {
             name: true,
           },
         },
+        productOptionGroups: {
+          where: {
+            isPublic: true,
+            products: {
+              some: {
+                id: where.id
+              }
+            }
+          },
+          include: {
+            productOptions: {
+              where: {
+                isPublic: true,
+                products: {
+                  some: {
+                    id: where.id
+                  }
+                }
+              },
+            }
+          }
+        }
       },
     });
   }
@@ -184,6 +216,16 @@ export class ProductService {
         otherAttributes: data.otherAttributes,
         status: data.status,
         updatedBy: tokenPayload.accountId,
+        ...(data.productOptionGroupIds && {
+          productOptionGroups: {
+            set: data.productOptionGroupIds.map((id) => ({ id }))
+          }
+        }),
+        ...(data.productOptionIds && {
+          productOptions: {
+            set: data.productOptionIds.map((id) => ({ id }))
+          }
+        }),
       },
     });
 
