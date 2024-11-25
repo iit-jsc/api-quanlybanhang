@@ -371,18 +371,54 @@ export class OrderService {
       branchId: data.branchId,
     });
 
+    const shop = await this.prisma.shop.findFirst({ 
+      where: {
+        branches: {
+          some: {
+            id: data.branchId
+          }
+        }
+      }
+    })
+
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const totalOrder = this.getTotalInOrder(orderDetails);
 
       if (data.discountCode) discountIssue = await this.getDiscountIssue(data.discountCode, totalOrder, data.branchId, prisma);
 
-      const order = await this.prisma.order.create({
+      const customer = await prisma.customer.upsert({ 
+        where: {
+          shopId_phone: {
+            phone: data.phone,
+            shopId: shop.id
+          }
+        },
+        update: {
+          name: data.name
+        },
+        create: {
+          name: data.name,
+          phone: data.phone,
+          email: data.email,
+          address: data.address,
+          shopId: shop.id
+        }
+      })
+
+      const order = await prisma.order.create({
         data: {
           note: data.note,
           discountIssue,
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
           code: generateSortCode(),
+          ...(customer && {
+            customer: {
+              connect: {
+                id: customer.id
+              }
+            }
+          }),
           orderDetails: {
             createMany: {
               data: orderDetails,
@@ -397,8 +433,19 @@ export class OrderService {
         },
         include: {
           orderDetails: true,
+          customer: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+              address: true,
+              phone: true
+            }
+          }
         },
       });
+
+      // Gửi email
 
       // Gửi socket
       await this.orderGateway.handleModifyOrder(order);
