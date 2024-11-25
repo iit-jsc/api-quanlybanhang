@@ -411,46 +411,46 @@ export class OrderService {
       console.log(customerDiscount);
       
 
-      // const order = await prisma.order.create({
-      //   data: {
-      //     note: data.note,
-      //     discountIssue,
-      //     customerDiscount,
-      //     orderType: ORDER_TYPE.ONLINE,
-      //     orderStatus: ORDER_STATUS_COMMON.WAITING,
-      //     code: generateSortCode(),
-      //     ...(customer && {
-      //       customer: {
-      //         connect: {
-      //           id: customer.id
-      //         }
-      //       }
-      //     }),
-      //     orderDetails: {
-      //       createMany: {
-      //         data: orderDetails,
-      //       },
-      //     },
-      //     branch: {
-      //       connect: {
-      //         id: data.branchId,
-      //         isPublic: true,
-      //       },
-      //     },
-      //   },
-      //   include: {
-      //     orderDetails: true,
-      //   },
-      // });
+      const order = await prisma.order.create({
+        data: {
+          note: data.note,
+          discountIssue,
+          customerDiscount,
+          orderType: ORDER_TYPE.ONLINE,
+          orderStatus: ORDER_STATUS_COMMON.WAITING,
+          code: generateSortCode(),
+          ...(customer && {
+            customer: {
+              connect: {
+                id: customer.id
+              }
+            }
+          }),
+          orderDetails: {
+            createMany: {
+              data: orderDetails,
+            },
+          },
+          branch: {
+            connect: {
+              id: data.branchId,
+              isPublic: true,
+            },
+          },
+        },
+        include: {
+          orderDetails: true,
+        },
+      });
 
       // Gửi email
       // if (data.email) 
       //   this.mailService.sendEmailOrderSuccess(order)
 
       // Gửi socket
-      // await this.orderGateway.handleModifyOrder(order);
+      await this.orderGateway.handleModifyOrder(order);
 
-      // return order;
+      return order;
     });
   }
 
