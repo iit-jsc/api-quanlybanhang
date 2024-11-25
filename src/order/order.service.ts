@@ -402,52 +402,55 @@ export class OrderService {
 
       const [discountIssuePromise, customerDiscountPromise] = await Promise.all([
         data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, data.branchId, prisma) : null,
-        customer.id ? this.getCustomerDiscount(customer.id) : null,
+        customer.id ? this.getCustomerDiscount(customer.id, prisma) : null,
       ]);
 
       discountIssue = discountIssuePromise;
       customerDiscount = customerDiscountPromise;
 
-      const order = await prisma.order.create({
-        data: {
-          note: data.note,
-          discountIssue,
-          customerDiscount,
-          orderType: ORDER_TYPE.ONLINE,
-          orderStatus: ORDER_STATUS_COMMON.WAITING,
-          code: generateSortCode(),
-          ...(customer && {
-            customer: {
-              connect: {
-                id: customer.id
-              }
-            }
-          }),
-          orderDetails: {
-            createMany: {
-              data: orderDetails,
-            },
-          },
-          branch: {
-            connect: {
-              id: data.branchId,
-              isPublic: true,
-            },
-          },
-        },
-        include: {
-          orderDetails: true,
-        },
-      });
+      console.log(customerDiscount);
+      
+
+      // const order = await prisma.order.create({
+      //   data: {
+      //     note: data.note,
+      //     discountIssue,
+      //     customerDiscount,
+      //     orderType: ORDER_TYPE.ONLINE,
+      //     orderStatus: ORDER_STATUS_COMMON.WAITING,
+      //     code: generateSortCode(),
+      //     ...(customer && {
+      //       customer: {
+      //         connect: {
+      //           id: customer.id
+      //         }
+      //       }
+      //     }),
+      //     orderDetails: {
+      //       createMany: {
+      //         data: orderDetails,
+      //       },
+      //     },
+      //     branch: {
+      //       connect: {
+      //         id: data.branchId,
+      //         isPublic: true,
+      //       },
+      //     },
+      //   },
+      //   include: {
+      //     orderDetails: true,
+      //   },
+      // });
 
       // Gửi email
       // if (data.email) 
       //   this.mailService.sendEmailOrderSuccess(order)
 
       // Gửi socket
-      await this.orderGateway.handleModifyOrder(order);
+      // await this.orderGateway.handleModifyOrder(order);
 
-      return order;
+      // return order;
     });
   }
 
@@ -1210,8 +1213,9 @@ export class OrderService {
     });
   }
 
-  async getCustomerDiscount(customerId: string) {
-    return this.prisma.customer.findFirstOrThrow({
+  async getCustomerDiscount(customerId: string, prisma?: PrismaClient) {
+    prisma = prisma || this.prisma
+    return prisma.customer.findFirstOrThrow({
       where: { id: customerId },
       select: {
         id: true,
