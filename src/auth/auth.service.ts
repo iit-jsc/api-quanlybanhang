@@ -133,44 +133,35 @@ export class AuthService {
   async verifyContact(data: VerifyContactDto) {
     const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
 
-    let user = null;
-
-    if (data.isCustomer) {
-      user = await this.prisma.customer.findFirst({
-        where: {
-          OR: [{ phone: data.phone }, { email: data.email }],
-          email: { not: null },
-          isPublic: true,
-          shop: {
-            code: data.shopCode,
-            isPublic: true,
-          },
-        },
-        select: { id: true, email: true },
-      });
-    } else {
-      user = await this.prisma.user.findFirst({
-        where: {
-          email: { not: null },
-          account: { username: data.phone },
-          isPublic: true,
-          branch: {
-            shop: {
-              code: data.shopCode,
-              isPublic: true,
-            },
-          },
-        },
-        select: { id: true, email: true },
-      });
-    }
+    const user = await this.prisma.customer.findUnique({
+      where: {
+        isPublic: true,
+        ...(data.phone && {
+          shopId_phone: {
+            shopId: data.shopId,
+            phone: data.phone
+          }
+        }),
+        ...(data.email && {
+          shopId_email: {
+            shopId: data.shopId,
+            email: data.email
+          }
+        })
+      },
+      select: { id: true, email: true },
+    });
 
     if (!user) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin người dùng!");
 
     await this.transporterService.sendOTP(user?.email, otp);
 
     await this.prisma.contactVerification.create({
-      data: { code: otp, ...(data.phone && { phone: data.phone }), ...(data.email && { email: data.email }) },
+      data: {
+        code: otp,
+        ...(data.phone && { phone: data.phone }),
+        ...(data.email && { email: data.email }),
+      },
     });
 
     return user.email;

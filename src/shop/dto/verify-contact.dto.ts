@@ -13,15 +13,11 @@ export class VerifyContactDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  shopCode: string;
+  shopId: string;
 
   @ValidateIf((o) => !o.phone)
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   email: string;
-
-  @IsOptional()
-  @IsBoolean()
-  isCustomer: string;
 }
