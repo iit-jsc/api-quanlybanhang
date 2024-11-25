@@ -343,7 +343,7 @@ export class ShopService {
     const employeeGroups = prisma.employeeGroup.createMany({
       data: [
         {
-          name: "Phục vụ",
+          name: "Nhân viên",
           branchId,
         },
         {
@@ -569,6 +569,15 @@ export class ShopService {
       },
     });
 
+    const productType = prisma.productType.create({
+      data: {
+        name: "Đồ uống",
+        slug: "do-uong",
+        description: "Đồ uống...",
+        branchId
+      },
+    });
+
     await Promise.all([
       area,
       customerType,
@@ -582,6 +591,7 @@ export class ShopService {
       permissionEmployee,
       qRSetting,
       productGroupOption,
+      productType
     ]);
   }
 }

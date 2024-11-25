@@ -14,7 +14,7 @@ import { ChangeMyPasswordDto, ChangePasswordDto } from "./dto/change-password.dt
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { TransporterService } from "src/transporter/transporter.service";
 import { v4 as uuidv4 } from "uuid";
-import { FirebaseService } from "src/firebase/firebase.service";
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -66,7 +66,7 @@ export class AuthService {
 
   async loginForCustomer(data: LoginForCustomerDto) {
     await this.commonService.confirmOTP({
-      code: data.code,
+      otp: data.otp,
       email: data.email,
     });
 
@@ -74,10 +74,7 @@ export class AuthService {
       where: {
         email: data.email,
         isPublic: true,
-        shop: {
-          code: data.shopCode,
-          isPublic: true,
-        },
+        shopId: data.shopId
       },
     });
 
@@ -158,13 +155,25 @@ export class AuthService {
 
     await this.prisma.contactVerification.create({
       data: {
-        code: otp,
+        otp,
         ...(data.phone && { phone: data.phone }),
         ...(data.email && { email: data.email }),
       },
     });
 
-    return user.email;
+    return data.email ? { email: user.email } : { email: this.maskEmail(user.email) };
+  }
+
+  maskEmail(email: string) {
+    const [localPart, domain] = email.split("@");
+
+    if (localPart.length <= 2) {
+      return email;
+    }
+
+    const maskedLocalPart = localPart[0] + "*".repeat(localPart.length - 2) + localPart[localPart.length - 1];
+
+    return maskedLocalPart + "@" + domain;
   }
 
   async checkValidDeviceAndUpdateLastLogin(deviceId: string) {

@@ -107,7 +107,7 @@ export class CommonService {
   async confirmOTP(data: ConfirmEmailDto) {
     const otp = await this.prisma.contactVerification.findFirst({
       where: {
-        code: data.code,
+        otp: data.otp,
         email: data.email,
         isUsed: false,
         createdAt: {
@@ -117,6 +117,8 @@ export class CommonService {
     });
 
     if (!otp) throw new CustomHttpException(HttpStatus.BAD_REQUEST, "Mã OTP không hợp lệ!");
+
+    if (otp.attempts > 3) throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lần thử!");
 
     await this.prisma.contactVerification.update({
       where: { id: otp.id },

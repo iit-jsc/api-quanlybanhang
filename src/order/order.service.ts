@@ -385,11 +385,12 @@ export class OrderService {
           shopId_phone: {
             phone: data.phone,
             shopId: shop.id
-          }
+          },
         },
         update: {
           name: data.name,
-          address: data.address
+          address: data.address,
+          isPublic: true
         },
         create: {
           name: data.name,
@@ -407,9 +408,6 @@ export class OrderService {
 
       discountIssue = discountIssuePromise;
       customerDiscount = customerDiscountPromise;
-
-      console.log(customerDiscount);
-      
 
       const order = await prisma.order.create({
         data: {

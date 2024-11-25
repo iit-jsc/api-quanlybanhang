@@ -21,6 +21,12 @@ export class AuthController {
     return this.authService.login(loginDto);
   }
 
+  @Post("/login-for-customer")
+  @HttpCode(HttpStatus.OK)
+  loginForCustomer(@Body() loginDto: LoginForCustomerDto) {
+    return this.authService.loginForCustomer(loginDto);
+  }
+
   @Post("/access-branch")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessBranchGuard)

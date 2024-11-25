@@ -19,7 +19,7 @@ export class LoginForManagerDto {
 export class LoginForCustomerDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
-  code: string;
+  otp: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
@@ -28,7 +28,7 @@ export class LoginForCustomerDto {
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
-  shopCode: string;
+  shopId: string;
 }
 
 export class LoginDto {

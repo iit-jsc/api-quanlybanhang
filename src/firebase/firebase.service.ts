@@ -1,20 +1,16 @@
 import * as admin from "firebase-admin";
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { mapLimit } from 'async';
-import { chunk } from 'lodash';
-import { AnyObject } from "interfaces/common.interface";
 @Injectable()
 export class FirebaseService {
   constructor(protected readonly prisma: PrismaService,) {
-    admin.initializeApp({
-      credential: admin.credential.cert({
-        projectId: process.env.FIREBASE_PROJECT_ID,
-        privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
-        clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-      }),
-    });
-
+    // admin.initializeApp({
+    //   credential: admin.credential.cert({
+    //     projectId: process.env.FIREBASE_PROJECT_ID,
+    //     privateKey: process.env.FIREBASE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+    //     clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
+    //   }),
+    // });
   }
 
   async verifyToken(token: string): Promise<admin.auth.DecodedIdToken> {

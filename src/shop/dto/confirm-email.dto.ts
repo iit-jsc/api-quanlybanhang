@@ -5,7 +5,7 @@ import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 export class ConfirmEmailDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
-  code: string;
+  otp: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())

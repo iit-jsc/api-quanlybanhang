@@ -19,7 +19,7 @@ model Role {
   name        String
   code        String       @id @unique
   groupCode   String
-  groupRole   GroupRole    @relation(fields: [groupCode], references: [code])
+  groupRole   GroupRole?   @relation(fields: [groupCode], references: [code])
   permissions Permission[]
 }
 
@@ -59,7 +59,7 @@ model Account {
   username                    String                 @unique
   password                    String?
   userId                      String                 @unique
-  user                        User                   @relation(fields: [userId], references: [id])
+  user                        User?                  @relation(fields: [userId], references: [id])
   isPublic                    Boolean?               @default(true)
   branches                    Branch[]
   createdBy                   String?
@@ -291,7 +291,7 @@ model ActivityLog {
 model ProductType {
   id                     String                  @id @default(uuid())
   branchId               String
-  branch                 Branch                  @relation(fields: [branchId], references: [id])
+  branch                 Branch?                 @relation(fields: [branchId], references: [id])
   name                   String
   slug                   String
   description            String?                 @db.Text
@@ -310,19 +310,19 @@ model ProductType {
 }
 
 model OtherAttributePattern {
-  id            String      @id @default(uuid())
+  id            String       @id @default(uuid())
   branchId      String
   productTypeId String
   label         String
   amount        Int
   type          Int
-  isPublic      Boolean?    @default(true)
+  isPublic      Boolean?     @default(true)
   createdBy     String?
   updatedBy     String?
-  createdAt     DateTime    @default(now())
-  updatedAt     DateTime    @updatedAt
-  branch        Branch      @relation(fields: [branchId], references: [id])
-  productType   ProductType @relation(fields: [productTypeId], references: [id])
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  branch        Branch?      @relation(fields: [branchId], references: [id])
+  productType   ProductType? @relation(fields: [productTypeId], references: [id])
 
   @@index([branchId])
 }
@@ -345,13 +345,13 @@ model Product {
   isPublic                    Boolean?                     @default(true)
   createdAt                   DateTime                     @default(now())
   updatedAt                   DateTime                     @updatedAt
-  branch                      Branch                       @relation(fields: [branchId], references: [id])
-  measurementUnit             MeasurementUnit              @relation(fields: [unitId], references: [id])
+  branch                      Branch?                      @relation(fields: [branchId], references: [id])
+  measurementUnit             MeasurementUnit?             @relation(fields: [unitId], references: [id])
   stocks                      Stock[]
   promotionConditionProducts  PromotionCondition[]
   promotionProducts           PromotionProduct[]
   productTypeId               String
-  productType                 ProductType                  @relation(fields: [productTypeId], references: [id])
+  productType                 ProductType?                 @relation(fields: [productTypeId], references: [id])
   createdBy                   String?
   updatedBy                   String?
   creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])
@@ -373,7 +373,7 @@ model ProductOption {
   photoURL             String?             @db.Text
   branchId             String
   colors               Json?
-  branch               Branch              @relation(fields: [branchId], references: [id])
+  branch               Branch?             @relation(fields: [branchId], references: [id])
   isPublic             Boolean?            @default(true)
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
@@ -395,7 +395,7 @@ model ProductOptionGroup {
   isRequired     Boolean?        @default(false)
   productOptions ProductOption[]
   branchId       String
-  branch         Branch          @relation(fields: [branchId], references: [id])
+  branch         Branch?         @relation(fields: [branchId], references: [id])
   isPublic       Boolean?        @default(true)
   createdAt      DateTime        @default(now())
   updatedAt      DateTime        @updatedAt
@@ -414,7 +414,7 @@ model Warehouse {
   name                  String
   photoURLs             Json?
   address               String?                @db.Text
-  branch                Branch                 @relation(fields: [branchId], references: [id])
+  branch                Branch?                @relation(fields: [branchId], references: [id])
   isPublic              Boolean?               @default(true)
   inventoryTransactions InventoryTransaction[]
   updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
@@ -427,20 +427,20 @@ model Warehouse {
 }
 
 model Stock {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   branchId    String
   productId   String
   quantity    Float?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  branch      Branch    @relation(fields: [branchId], references: [id])
-  product     Product   @relation(fields: [productId], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  product     Product?   @relation(fields: [productId], references: [id])
   warehouseId String
-  warehouse   Warehouse @relation(fields: [warehouseId], references: [id])
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id])
   createdBy   String?
   updatedBy   String?
-  creator     Account?  @relation("creator", fields: [createdBy], references: [id])
-  updater     Account?  @relation("updater", fields: [updatedBy], references: [id])
+  creator     Account?   @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?   @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([productId, warehouseId])
   @@index([branchId])
@@ -450,7 +450,7 @@ model InventoryTransaction {
   id                          String                       @id @default(uuid())
   status                      Int
   warehouseId                 String
-  warehouse                   Warehouse                    @relation(fields: [warehouseId], references: [id])
+  warehouse                   Warehouse?                   @relation(fields: [warehouseId], references: [id])
   supplierId                  String?
   type                        Int
   supplier                    Supplier?                    @relation(fields: [supplierId], references: [id])
@@ -497,7 +497,7 @@ model CustomerType {
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   shopId       String
-  shop         Shop       @relation(fields: [shopId], references: [id])
+  shop         Shop?      @relation(fields: [shopId], references: [id])
   customers    Customer[]
   createdBy    String?
   updatedBy    String?
@@ -531,7 +531,7 @@ model Customer {
   shopId              String
   createdBy           String?
   updatedBy           String?
-  shop                Shop                @relation(fields: [shopId], references: [id])
+  shop                Shop?               @relation(fields: [shopId], references: [id])
   customerType        CustomerType?       @relation(fields: [customerTypeId], references: [id])
   orders              Order[]
   pointAccumulations  PointAccumulation[]
@@ -554,7 +554,7 @@ model SupplierType {
   updatedBy   String?
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-  branch      Branch     @relation(fields: [branchId], references: [id])
+  branch      Branch?    @relation(fields: [branchId], references: [id])
   suppliers   Supplier[]
   creator     Account?   @relation("creator", fields: [createdBy], references: [id])
   updater     Account?   @relation("updater", fields: [updatedBy], references: [id])
@@ -578,7 +578,7 @@ model Supplier {
   updatedBy             String?
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
-  branch                Branch                 @relation(fields: [branchId], references: [id])
+  branch                Branch?                @relation(fields: [branchId], references: [id])
   supplierType          SupplierType?          @relation(fields: [supplierTypeId], references: [id])
   creator               Account?               @relation("creator", fields: [createdBy], references: [id])
   updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
@@ -607,7 +607,7 @@ model Promotion {
   isPublic            Boolean?             @default(true)
   createdAt           DateTime             @default(now())
   updatedAt           DateTime             @updatedAt
-  branch              Branch               @relation(fields: [branchId], references: [id])
+  branch              Branch?              @relation(fields: [branchId], references: [id])
   promotionConditions PromotionCondition[]
   promotionProducts   PromotionProduct[]
   createdBy           String?
@@ -620,35 +620,35 @@ model Promotion {
 }
 
 model PromotionCondition {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   branchId    String
   promotionId String
   productId   String
   amount      Int
-  isPublic    Boolean?  @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  branch      Branch    @relation(fields: [branchId], references: [id])
-  promotion   Promotion @relation(fields: [promotionId], references: [id])
-  product     Product   @relation(fields: [productId], references: [id])
+  isPublic    Boolean?   @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  product     Product?   @relation(fields: [productId], references: [id])
 
   @@index([branchId])
 }
 
 model PromotionProduct {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   branchId    String
   promotionId String
   productId   String?
   amount      Int
   name        String?
-  photoURL    String?   @db.Text
-  isPublic    Boolean?  @default(true)
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  branch      Branch    @relation(fields: [branchId], references: [id])
-  promotion   Promotion @relation(fields: [promotionId], references: [id])
-  product     Product?  @relation(fields: [productId], references: [id])
+  photoURL    String?    @db.Text
+  isPublic    Boolean?   @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  product     Product?   @relation(fields: [productId], references: [id])
 
   @@index([branchId])
 }
@@ -680,7 +680,7 @@ model Order {
   createdAt           DateTime       @default(now())
   updatedAt           DateTime       @updatedAt
   paymentAt           DateTime?
-  branch              Branch         @relation(fields: [branchId], references: [id])
+  branch              Branch?        @relation(fields: [branchId], references: [id])
   customer            Customer?      @relation(fields: [customerId], references: [id])
   orderDetails        OrderDetail[]
   orderRatings        OrderRating[]
@@ -704,7 +704,7 @@ model OrderDetail {
   isPublic          Boolean?           @default(true)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  branch            Branch             @relation(fields: [branchId], references: [id])
+  branch            Branch?            @relation(fields: [branchId], references: [id])
   order             Order?             @relation(fields: [orderId], references: [id])
   table             Table?             @relation(fields: [tableId], references: [id])
   tableId           String?
@@ -729,8 +729,8 @@ model TableTransaction {
   updater      Account?      @relation("updater", fields: [updatedBy], references: [id])
   createdAt    DateTime      @default(now())
   updatedAt    DateTime      @updatedAt
-  branch       Branch        @relation(fields: [branchId], references: [id])
-  table        Table         @relation(fields: [tableId], references: [id])
+  branch       Branch?       @relation(fields: [branchId], references: [id])
+  table        Table?        @relation(fields: [tableId], references: [id])
   orderDetails OrderDetail[]
 
   @@index([branchId])
@@ -744,7 +744,7 @@ model Area {
   isPublic  Boolean? @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  branch    Branch   @relation(fields: [branchId], references: [id])
+  branch    Branch?  @relation(fields: [branchId], references: [id])
   tables    Table[]
   createdBy String?
   updatedBy String?
@@ -764,8 +764,8 @@ model Table {
   isPublic          Boolean?           @default(true)
   createdAt         DateTime           @default(now())
   updatedAt         DateTime           @updatedAt
-  branch            Branch             @relation(fields: [branchId], references: [id])
-  area              Area               @relation(fields: [areaId], references: [id])
+  branch            Branch?            @relation(fields: [branchId], references: [id])
+  area              Area?              @relation(fields: [areaId], references: [id])
   tableTransactions TableTransaction[]
   createdBy         String?
   updatedBy         String?
@@ -794,7 +794,7 @@ model DiscountIssue {
   isPublic          Boolean?       @default(true)
   createdAt         DateTime       @default(now())
   updatedAt         DateTime       @updatedAt
-  branch            Branch         @relation(fields: [branchId], references: [id])
+  branch            Branch?        @relation(fields: [branchId], references: [id])
   discountCodes     DiscountCode[]
   createdBy         String?
   updatedBy         String?
@@ -806,20 +806,20 @@ model DiscountIssue {
 }
 
 model DiscountCode {
-  id              String        @id @default(uuid())
+  id              String         @id @default(uuid())
   branchId        String
   code            String
-  isUsed          Boolean       @default(false)
+  isUsed          Boolean        @default(false)
   discountIssueId String
-  isPublic        Boolean?      @default(true)
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
-  branch          Branch        @relation(fields: [branchId], references: [id])
-  discountIssue   DiscountIssue @relation(fields: [discountIssueId], references: [id])
+  isPublic        Boolean?       @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  branch          Branch?        @relation(fields: [branchId], references: [id])
+  discountIssue   DiscountIssue? @relation(fields: [discountIssueId], references: [id])
   createdBy       String?
   updatedBy       String?
-  creator         Account?      @relation("creator", fields: [createdBy], references: [id])
-  updater         Account?      @relation("updater", fields: [updatedBy], references: [id])
+  creator         Account?       @relation("creator", fields: [createdBy], references: [id])
+  updater         Account?       @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([branchId, code])
   @@index([branchId])
@@ -833,37 +833,37 @@ model PointSetting {
   active    Boolean
   updatedBy String?
   updater   Account? @relation("updater", fields: [updatedBy], references: [id])
-  shop      Shop     @relation(fields: [shopId], references: [id])
+  shop      Shop?    @relation(fields: [shopId], references: [id])
 
   @@index([shopId])
 }
 
 model PointAccumulation {
-  id         String   @id @default(uuid())
-  customerId String   @unique
+  id         String    @id @default(uuid())
+  customerId String    @unique
   point      Float
-  isPublic   Boolean? @default(true)
+  isPublic   Boolean?  @default(true)
   updatedBy  String?
-  updater    Account? @relation("updater", fields: [updatedBy], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-  customer   Customer @relation(fields: [customerId], references: [id])
-  shop       Shop     @relation(fields: [shopId], references: [id])
+  updater    Account?  @relation("updater", fields: [updatedBy], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  shop       Shop?     @relation(fields: [shopId], references: [id])
   shopId     String
 
   @@index([shopId])
 }
 
 model PointHistory {
-  id         String   @id @default(uuid())
+  id         String    @id @default(uuid())
   customerId String
   orderId    String
   point      Float
   type       Int
-  createdAt  DateTime @default(now())
-  customer   Customer @relation(fields: [customerId], references: [id])
-  order      Order    @relation(fields: [orderId], references: [id])
-  shop       Shop     @relation(fields: [shopId], references: [id])
+  createdAt  DateTime  @default(now())
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  order      Order?    @relation(fields: [orderId], references: [id])
+  shop       Shop?     @relation(fields: [shopId], references: [id])
   shopId     String
 
   @@index([shopId])
@@ -881,8 +881,8 @@ model CustomerRequest {
   updater     Account? @relation("updater", fields: [updatedBy], references: [id])
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  branch      Branch   @relation(fields: [branchId], references: [id])
-  table       Table    @relation(fields: [tableId], references: [id])
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+  table       Table?   @relation(fields: [tableId], references: [id])
 
   @@index([branchId])
 }
@@ -975,30 +975,30 @@ model WorkShift {
   updater            Account?           @relation("updater", fields: [updatedBy], references: [id])
   createdAt          DateTime           @default(now())
   updatedAt          DateTime           @updatedAt
-  branch             Branch             @relation(fields: [branchId], references: [id])
+  branch             Branch?            @relation(fields: [branchId], references: [id])
   employeeSchedules  EmployeeSchedule[]
 
   @@index([branchId])
 }
 
 model EmployeeSchedule {
-  id          String    @id @default(uuid())
+  id          String     @id @default(uuid())
   branchId    String
   employeeId  String
   workShiftId String
   startTime   Int
   endTime     Int
   date        DateTime
-  isPublic    Boolean?  @default(true)
+  isPublic    Boolean?   @default(true)
   createdBy   String?
   updatedBy   String?
-  creator     Account?  @relation("creator", fields: [createdBy], references: [id])
-  updater     Account?  @relation("updater", fields: [updatedBy], references: [id])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  branch      Branch    @relation(fields: [branchId], references: [id])
-  employee    User      @relation(fields: [employeeId], references: [id])
-  workShift   WorkShift @relation(fields: [workShiftId], references: [id])
+  creator     Account?   @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?   @relation("updater", fields: [updatedBy], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  employee    User?      @relation(fields: [employeeId], references: [id])
+  workShift   WorkShift? @relation(fields: [workShiftId], references: [id])
 
   @@index([branchId])
 }
@@ -1009,7 +1009,7 @@ model TableSalary {
   description         String              @db.Text
   isFulltime          Boolean             @default(true)
   branchId            String
-  branch              Branch              @relation(fields: [branchId], references: [id])
+  branch              Branch?             @relation(fields: [branchId], references: [id])
   allowanceLabel      Json?
   deductionLabel      Json?
   isPublic            Boolean?            @default(true)
@@ -1028,17 +1028,17 @@ model TableSalary {
 }
 
 model DetailTableSalary {
-  id             String      @id @default(uuid())
+  id             String       @id @default(uuid())
   tableSalaryId  String
-  tableSalary    TableSalary @relation(fields: [tableSalaryId], references: [id])
+  tableSalary    TableSalary? @relation(fields: [tableSalaryId], references: [id])
   allowanceValue Json?
   deductionValue Json?
-  baseSalary     Float       @default(0)
+  baseSalary     Float        @default(0)
   workDay        Float?
   totalHours     Float?
   employeeId     String
-  employee       User        @relation(fields: [employeeId], references: [id])
-  branch         Branch?     @relation(fields: [branchId], references: [id])
+  employee       User?        @relation(fields: [employeeId], references: [id])
+  branch         Branch?      @relation(fields: [branchId], references: [id])
   branchId       String?
 
   @@unique([tableSalaryId, employeeId])
@@ -1053,7 +1053,7 @@ model CompensationSetting {
   defaultValue          Float
   applyTo               Int                    @default(3)
   branchId              String
-  branch                Branch                 @relation(fields: [branchId], references: [id])
+  branch                Branch?                @relation(fields: [branchId], references: [id])
   isPublic              Boolean?               @default(true)
   createdAt             DateTime               @default(now())
   updatedAt             DateTime               @updatedAt
@@ -1067,21 +1067,21 @@ model CompensationSetting {
 }
 
 model CompensationEmployee {
-  id                    String              @id @default(uuid())
+  id                    String               @id @default(uuid())
   employeeId            String
-  employee              User                @relation(fields: [employeeId], references: [id])
+  employee              User?                @relation(fields: [employeeId], references: [id])
   compensationSettingId String
-  compensationSetting   CompensationSetting @relation(fields: [compensationSettingId], references: [id])
+  compensationSetting   CompensationSetting? @relation(fields: [compensationSettingId], references: [id])
   type                  Int
   value                 Float
   branchId              String
-  branch                Branch              @relation(fields: [branchId], references: [id])
-  createdAt             DateTime            @default(now())
-  updatedAt             DateTime            @updatedAt
+  branch                Branch?              @relation(fields: [branchId], references: [id])
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
   createdBy             String?
   updatedBy             String?
-  creator               Account?            @relation("creator", fields: [createdBy], references: [id])
-  updater               Account?            @relation("updater", fields: [updatedBy], references: [id])
+  creator               Account?             @relation("creator", fields: [createdBy], references: [id])
+  updater               Account?             @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([compensationSettingId, employeeId])
   @@index([branchId])
@@ -1090,12 +1090,12 @@ model CompensationEmployee {
 model EmployeeSalary {
   id         String   @id @default(uuid())
   employeeId String   @unique
-  employee   User     @relation(fields: [employeeId], references: [id])
+  employee   User?    @relation(fields: [employeeId], references: [id])
   baseSalary Float    @default(0)
   isFulltime Boolean  @default(true)
   isPublic   Boolean? @default(true)
   branchId   String
-  branch     Branch   @relation(fields: [branchId], references: [id])
+  branch     Branch?  @relation(fields: [branchId], references: [id])
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
   createdBy  String?
@@ -1108,9 +1108,10 @@ model EmployeeSalary {
 
 model ContactVerification {
   id        String   @id @default(uuid())
-  code      String
+  otp       String
   phone     String?
   email     String?
+  attempts  Int?     @default(0)
   isUsed    Boolean  @default(false)
   createdAt DateTime @default(now())
 }
@@ -1158,7 +1159,7 @@ model AccountSocket {
 model PaymentMethod {
   id             String   @id @default(uuid())
   branchId       String
-  branch         Branch   @relation(fields: [branchId], references: [id])
+  branch         Branch?  @relation(fields: [branchId], references: [id])
   name           String   @default("")
   bankName       String?
   bankCode       String?
