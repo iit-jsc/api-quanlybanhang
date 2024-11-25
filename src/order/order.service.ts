@@ -19,12 +19,14 @@ import { OrderGateway } from "src/gateway/order.gateway";
 import { TableGateway } from "src/gateway/table.gateway";
 import { PointAccumulationService } from "src/point-accumulation/point-accumulation.service";
 import { ENDOW_TYPE } from "enums/user.enum";
+import { MailService } from "src/mail/mail.service";
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
+    private mailService: MailService,
     private readonly orderGateway: OrderGateway,
     private readonly tableGateway: TableGateway,
     private readonly pointAccumulationService: PointAccumulationService,
@@ -284,13 +286,6 @@ export class OrderService {
           },
         },
         include: {
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              phone: true,
-            },
-          },
           orderDetails: {
             select: {
               id: true,
@@ -366,6 +361,7 @@ export class OrderService {
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
     let discountIssue = null;
+    let customerDiscount = null
 
     const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.SUCCESS, {
       branchId: data.branchId,
@@ -384,9 +380,7 @@ export class OrderService {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const totalOrder = this.getTotalInOrder(orderDetails);
 
-      if (data.discountCode) discountIssue = await this.getDiscountIssue(data.discountCode, totalOrder, data.branchId, prisma);
-
-      const customer = await prisma.customer.upsert({ 
+      const customer = await prisma.customer.upsert({
         where: {
           shopId_phone: {
             phone: data.phone,
@@ -394,7 +388,8 @@ export class OrderService {
           }
         },
         update: {
-          name: data.name
+          name: data.name,
+          address: data.address
         },
         create: {
           name: data.name,
@@ -405,10 +400,19 @@ export class OrderService {
         }
       })
 
+      const [discountIssuePromise, customerDiscountPromise] = await Promise.all([
+        data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, data.branchId, prisma) : null,
+        customer.id ? this.getCustomerDiscount(customer.id) : null,
+      ]);
+
+      discountIssue = discountIssuePromise;
+      customerDiscount = customerDiscountPromise;
+
       const order = await prisma.order.create({
         data: {
           note: data.note,
           discountIssue,
+          customerDiscount,
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
           code: generateSortCode(),
@@ -433,19 +437,12 @@ export class OrderService {
         },
         include: {
           orderDetails: true,
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              address: true,
-              phone: true
-            }
-          }
         },
       });
 
       // Gửi email
+      // if (data.email) 
+      //   this.mailService.sendEmailOrderSuccess(order)
 
       // Gửi socket
       await this.orderGateway.handleModifyOrder(order);
@@ -792,16 +789,6 @@ export class OrderService {
               updatedAt: true,
             }
           },
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              phone: true,
-              email: true,
-              address: true,
-              updatedAt: true,
-            }
-          },
           updatedAt: true,
           createdAt: true,
         },
@@ -860,7 +847,6 @@ export class OrderService {
             isPublic: true
           }
         },
-        customer: true,
         orderRatings: true
       },
     });
@@ -1002,16 +988,6 @@ export class OrderService {
               status: true,
               product: true,
               productOptions: true,
-              updatedAt: true,
-            }
-          },
-          customer: {
-            select: {
-              id: true,
-              name: true,
-              phone: true,
-              email: true,
-              address: true,
               updatedAt: true,
             }
           },
@@ -1167,25 +1143,8 @@ export class OrderService {
         select: {
           id: true,
           customerId: true,
-          customer: {
-            select: {
-              id: true,
-              discount: true,
-              discountType: true,
-              endow: true,
-              customerType: {
-                select: {
-                  id: true,
-                  discount: true,
-                  discountType: true,
-                },
-                where: {
-                  isPublic: true,
-                },
-              },
-            },
-          },
           isPaid: true,
+          customerDiscount: true,
           orderType: true,
           orderDetails: {
             where: {
@@ -1257,9 +1216,14 @@ export class OrderService {
       select: {
         id: true,
         address: true,
+        name: true,
+        birthday: true,
+        email: true,
+        phone: true,
         discount: true,
         discountType: true,
         endow: true,
+        updatedAt: true,
         customerType: {
           where: {
             isPublic: true,

@@ -10,7 +10,6 @@ import {
   Min,
   ValidateNested,
 } from "class-validator";
-import { PAYMENT_METHOD_TYPE } from "enums/common.enum";
 import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateOrderOnlineDto {
@@ -33,10 +32,6 @@ export class CreateOrderOnlineDto {
   @IsOptional()
   @IsString()
   address: string;
-
-  @IsOptional()
-  @IsString()
-  customerId: string;
 
   @IsOptional()
   @IsString()

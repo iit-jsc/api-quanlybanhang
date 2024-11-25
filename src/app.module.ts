@@ -1,3 +1,4 @@
+import { join } from "path";
 import { CompensationSettingModule } from "./compensation-setting/compensation-setting.module";
 import { Module } from "@nestjs/common";
 import { AppController } from "./app.controller";
@@ -56,6 +57,8 @@ import { PaymentMethodModule } from "./payment-method/payment-method.module";
 import { ActivityLogModule } from "./activity-log/activity-log.module";
 import { ProductOptionGroupModule } from './product-option-group/product-option-group.module';
 import { CustomerRequestModule } from './customer-request/customer-request.module';
+import { MailModule } from './mail/mail.module';
+import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter';
 
 @Module({
   imports: [
@@ -69,7 +72,7 @@ import { CustomerRequestModule } from './customer-request/customer-request.modul
     JwtModule.register({
       global: true,
       secret: process.env.SECRET_KEY,
-      signOptions: { expiresIn: "48h" },
+      signOptions: { expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN },
     }),
     MailerModule.forRoot({
       transport: {
@@ -133,6 +136,7 @@ import { CustomerRequestModule } from './customer-request/customer-request.modul
     ActivityLogModule,
     ProductOptionGroupModule,
     CustomerRequestModule,
+    MailModule,
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService],
