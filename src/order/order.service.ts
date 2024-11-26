@@ -148,8 +148,8 @@ export class OrderService {
       select: {
         id: true,
         type: true,
-        value: true,
-        typeValue: true,
+        discount: true,
+        discountType: true,
         isActive: true,
         amount: true,
         amountApplied: true,
@@ -210,9 +210,6 @@ export class OrderService {
             isPublic: true,
           },
         },
-        minTotalOrder: {
-          lte: totalOrder,
-        }
       },
       select: {
         id: true,
@@ -223,8 +220,8 @@ export class OrderService {
         endDate: true,
         isEndDateDisabled: true,
         maxValue: true,
-        type: true,
-        value: true,
+        discountType: true,
+        discount: true,
         minTotalOrder: true,
         description: true,
         updatedAt: true
@@ -233,6 +230,9 @@ export class OrderService {
 
     if (!discountIssue)
       throw new CustomHttpException(HttpStatus.NOT_FOUND, "Mã giảm giá không tồn tại hoặc đã sử dụng!");
+
+    if (discountIssue.minTotalOrder > totalOrder)
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Tổng số tiền đơn hàng chưa đủ để áp dụng!");
 
     const discountCode = await prisma.discountCode.update({
       where: {
@@ -438,12 +438,37 @@ export class OrderService {
         },
         include: {
           orderDetails: true,
+          customer: {
+            include: {
+              customerType: {
+                where: {
+                  isPublic: true
+                }
+              }
+            }
+          },
+          branch: {
+            select: {
+              id: true,
+              name: true,
+              address: true,
+              phone: true,
+              shop: {
+                select: {
+                  id: true,
+                  name: true,
+                  address: true,
+                  photoURL: true,
+                }
+              }
+            }
+          }
         },
       });
 
       // Gửi email
-      // if (data.email) 
-      //   this.mailService.sendEmailOrderSuccess(order)
+      if (data.email) 
+        this.mailService.sendEmailOrderSuccess(order)
 
       // Gửi socket
       await this.orderGateway.handleModifyOrder(order);

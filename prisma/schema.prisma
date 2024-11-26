@@ -601,8 +601,8 @@ model Promotion {
   amountApplied       Int?                 @default(0)
   isActive            Boolean?             @default(true)
   description         String?              @db.Text
-  value               Float?
-  typeValue           Int?
+  discount            Float?
+  discountType        Int?
   type                Int
   isPublic            Boolean?             @default(true)
   createdAt           DateTime             @default(now())
@@ -781,8 +781,8 @@ model DiscountIssue {
   branchId          String
   name              String
   code              String?
-  type              Int
-  value             Float
+  discount          Float?
+  discountType      Int?
   startDate         DateTime
   endDate           DateTime?
   isEndDateDisabled Boolean?       @default(true)

@@ -152,3 +152,12 @@ export function CustomFilesInterceptor(
     limits: { fileSize },
   });
 }
+
+
+export function formatDate(dateString: string): string {
+  const date = new Date(dateString); // Chuyển chuỗi thành đối tượng Date
+  const day = date.getDate().toString().padStart(2, '0'); // Lấy ngày (dd)
+  const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Lấy tháng (mm) (0-indexed)
+  const year = date.getFullYear(); // Lấy năm (yyyy)
+  return `${day}/${month}/${year}`;
+}

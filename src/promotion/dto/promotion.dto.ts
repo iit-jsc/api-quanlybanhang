@@ -58,15 +58,15 @@ export class CreatePromotionDto {
   @ValidateIf((o) => o.type === PROMOTION_TYPE.VALUE)
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
-  @ValidateIf((o) => o.typeValue === DISCOUNT_TYPE.PERCENT)
+  @ValidateIf((o) => o.discountType === DISCOUNT_TYPE.PERCENT)
   @Max(100)
-  value: number;
+  discount: number;
 
   @ValidateIf((o) => o.type === PROMOTION_TYPE.VALUE)
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   @IsEnum(DISCOUNT_TYPE, { message: "Giá trị không hợp lệ!" })
-  typeValue: number;
+  discountType: number;
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()

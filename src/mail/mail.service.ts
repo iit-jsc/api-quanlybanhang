@@ -1,29 +1,130 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { AnyObject } from 'interfaces/common.interface';
-import { PrismaService } from 'nestjs-prisma';
+import * as fs from 'fs/promises';
+import { Prisma } from '@prisma/client';
+import { DISCOUNT_TYPE } from 'enums/common.enum';
+import { formatDate } from 'utils/Helps';
+import { ENDOW_TYPE } from 'enums/user.enum';
 
 @Injectable()
 export class MailService {
   constructor(
-    private readonly prisma: PrismaService,
     private readonly mailerService: MailerService
   ) { }
 
   async sendEmailOrderSuccess(order: AnyObject) {
-    const { orderDetails, customer } = order
+    const { orderDetails, customer, branch } = order
+
+    const htmlTemplate = await fs.readFile('./src/mail/templates/order-success.html', 'utf8');
+
+    const totalOrder = this.getTotalInOrder(orderDetails)
+
+    const discountValue = this.getDiscountValue(order.discountIssue, totalOrder)
+
+    const orderDetailsHTML = this.getOrderDetailsHTML(orderDetails)
+    
+    const htmlContent = htmlTemplate
+      .replaceAll('{{order.code}}', order.code)
+      .replaceAll('{{order.createdAt}}', formatDate(order.createdAt))
+      .replaceAll('{{customer.name}}', customer.name)
+      .replaceAll('{{customer.email}}', customer.email || "")
+      .replaceAll('{{customer.phone}}', customer.phone || "")
+      .replaceAll('{{customer.address}}', customer.address || "")
+      .replaceAll('{{branch.phone}}', branch.phone || "")
+      .replaceAll('{{branch.email}}', branch.email || "")
+      .replaceAll('{{branch.name}}', branch.name || "")
+      .replaceAll('{{branch.address}}', branch.name || "")
+      .replaceAll('{{shop.name}}', branch.shop?.name)
+      .replaceAll('{{discountValue}}', discountValue?.toLocaleString('vi-VN'))
+      .replaceAll('{{totalAmount}}', totalOrder.toLocaleString('vi-VN'))
+      .replaceAll('{{paymentAmount}}', (totalOrder - discountValue)?.toLocaleString('vi-VN'))
+      .replaceAll('{{order.orderDetails}}', orderDetailsHTML);
 
     await this.mailerService.sendMail({
-      to: customer.email, 
-      subject: `Xác nhận đơn hàng #${order.code}`,
-      template: './order-success',
-      context: {
-        customerName: customer.name,
-        orderDate: customer.createdAt,
-        orderItems: orderDetails,
-        totalAmount: 0,
-      },
+      to: customer.email,
+      subject: `Đặt hàng thành công #${order.code}`,
+      html: htmlContent,
     });
+  }
+
+  getOrderDetailsHTML(orderDetails: AnyObject) {
+    const orderDetailsHTML = orderDetails
+      .map(
+        (item, index) => {
+          const optionsTotalPrice = item.productOptions
+            ? item.productOptions.reduce((sum, option) => sum + option.price, 0)
+            : 0;
+
+          const totalPricePerItem = (item.product.price + optionsTotalPrice) * item.amount;
+
+          return `
+        <tr>
+            <td>${index + 1}</td>
+            <td>
+                <strong>${item.product?.name} (${item.product?.price?.toLocaleString('vi-VN') } đ)</strong><br />
+                ${item.productOptions
+              ? item.productOptions
+                .map(
+                  (option) =>
+                    `+ ${option.name} (${option.price.toLocaleString('vi-VN')} đ)`
+                )
+                .join('<br />')
+              : ''
+            }
+            </td>
+            <td>${item.amount}</td>
+            <td>${(item.product.price + optionsTotalPrice).toLocaleString('vi-VN')} đ</td>
+            <td>${totalPricePerItem.toLocaleString('vi-VN')} đ</td>
+        </tr>
+      `;
+        }
+      )
+      .join('');
+
+    return orderDetailsHTML;
+  }
+
+  getTotalInOrder(orderDetails: AnyObject) {
+    return orderDetails?.reduce((total, order) => {
+      const productPrice = order.product?.price || 0;
+
+      const optionsTotal = (order.productOptions || []).reduce((sum, option) => sum + (option.price || 0), 0);
+
+      return total + order.amount * (productPrice + optionsTotal);
+    }, 0);
+  }
+
+  getDiscountValue(discountIssue: Prisma.DiscountIssueCreateInput, totalOrder: number) {
+    if (!discountIssue) return 0
+
+    if (discountIssue.discountType === DISCOUNT_TYPE.PERCENT) {
+      const value = totalOrder * discountIssue.discount
+
+      return value > discountIssue.maxValue ? discountIssue.maxValue : value
+    }
+
+    if (discountIssue.discountType === DISCOUNT_TYPE.VALUE)
+      return discountIssue.discount > totalOrder ? totalOrder : discountIssue.discount;
+  }
+
+  getDiscountCustomer(customer: AnyObject, totalOrder: number) {
+    if (customer.endow === ENDOW_TYPE.BY_CUSTOMER) {
+      if (customer.discountType === DISCOUNT_TYPE.PERCENT) {
+        return totalOrder * customer.discount
+      }
+
+      if (customer.discountType === DISCOUNT_TYPE.VALUE) {
+        return customer.discount > totalOrder ? totalOrder : customer.discount
+      }
+    } else {
+      if (customer.customerType === DISCOUNT_TYPE.PERCENT) {
+        return totalOrder * customer.discount
+      }
+
+      if (customer.discountType === DISCOUNT_TYPE.VALUE) {
+        return customer.discount > totalOrder ? totalOrder : customer.discount
+      }
+    }
   }
 }

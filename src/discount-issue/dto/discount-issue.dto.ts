@@ -28,13 +28,13 @@ export class CreateDiscountIssueDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
   @IsEnum(DISCOUNT_TYPE, { message: 'Giảm giá không hợp lệ!' })
-  type: number;
+  discountType: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  @ValidateIf((o) => o.type === DISCOUNT_TYPE.PERCENT)
+  @ValidateIf((o) => o.discountType === DISCOUNT_TYPE.PERCENT)
   @Max(100)
-  value: number;
+  discount: number;
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }) => value && new Date(value))

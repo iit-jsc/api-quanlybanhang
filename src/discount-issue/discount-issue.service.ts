@@ -20,8 +20,8 @@ export class DiscountIssueService {
       data: {
         name: data.name,
         code: data.code,
-        type: data.type,
-        value: data.value,
+        discountType: data.discountType,
+        discount: data.discount,
         startDate: data.startDate,
         endDate: data.endDate,
         isEndDateDisabled: data.isEndDateDisabled,
@@ -58,8 +58,8 @@ export class DiscountIssueService {
       data: {
         name: data.name,
         code: data.code,
-        type: data.type,
-        value: data.value,
+        discountType: data.discountType,
+        discount: data.discount,
         startDate: data.startDate,
         endDate: data.endDate,
         isEndDateDisabled: data.isEndDateDisabled,

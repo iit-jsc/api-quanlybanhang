@@ -27,8 +27,8 @@ export class PromotionService {
         amount: data.amount,
         isActive: data.isActive,
         description: data.description,
-        value: data.value,
-        typeValue: data.typeValue,
+        discount: data.discount,
+        discountType: data.discountType,
         type: data.type,
         branchId: tokenPayload.branchId,
         createdBy: tokenPayload.accountId,
@@ -205,8 +205,8 @@ export class PromotionService {
         amount: data.amount,
         isActive: data.isActive,
         description: data.description,
-        value: data.value,
-        typeValue: data.typeValue,
+        discount: data.discount,
+        discountType: data.discountType,
         type: data.type,
         ...(data.promotionConditions?.length > 0 && {
           promotionConditions: {
