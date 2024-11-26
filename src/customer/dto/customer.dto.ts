@@ -100,3 +100,20 @@ export class CreateCustomerDto {
 }
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
+
+export class CheckEmailDto {
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsVietnamesePhoneNumber()
+  phone: string;
+
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  @IsEmail()
+  email: string;
+
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  shopId: string;
+}

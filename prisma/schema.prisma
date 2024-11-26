@@ -491,8 +491,8 @@ model CustomerType {
   id           String     @id @default(uuid())
   name         String
   description  String?    @db.Text
-  discount     Float?
-  discountType Int?
+  discount     Float?     @default(0)
+  discountType Int?       @default(1)
   isPublic     Boolean?   @default(true)
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
@@ -520,8 +520,8 @@ model Customer {
   representativePhone String?
   birthday            DateTime?
   endow               Int?                @default(1)
-  discount            Float?
-  discountType        Int?
+  discount            Float?              @default(0)
+  discountType        Int?                @default(1)
   sex                 Int?
   fax                 String?
   tax                 String?
@@ -601,8 +601,8 @@ model Promotion {
   amountApplied       Int?                 @default(0)
   isActive            Boolean?             @default(true)
   description         String?              @db.Text
-  discount            Float?
-  discountType        Int?
+  discount            Float?               @default(0)
+  discountType        Int?                 @default(1)
   type                Int
   isPublic            Boolean?             @default(true)
   createdAt           DateTime             @default(now())
@@ -781,8 +781,8 @@ model DiscountIssue {
   branchId          String
   name              String
   code              String?
-  discount          Float?
-  discountType      Int?
+  discount          Float?         @default(0)
+  discountType      Int?           @default(1)
   startDate         DateTime
   endDate           DateTime?
   isEndDateDisabled Boolean?       @default(true)

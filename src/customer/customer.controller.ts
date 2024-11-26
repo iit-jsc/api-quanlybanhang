@@ -13,7 +13,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { CustomerService } from "./customer.service";
-import { CreateCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
+import { CheckEmailDto, CreateCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -33,6 +33,14 @@ export class CustomerController {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.customerService.create(createCustomerDto, tokenPayload);
+  }
+
+
+  @Post("check-email")
+  @HttpCode(HttpStatus.OK)
+  checkEmailExisted(@Body() data: CheckEmailDto) {
+
+    return this.customerService.checkEmailExisted(data);
   }
 
   @Get("")

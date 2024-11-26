@@ -385,7 +385,7 @@ export class OrderService {
           shopId_phone: {
             phone: data.phone,
             shopId: shop.id
-          },
+          }
         },
         update: {
           name: data.name,

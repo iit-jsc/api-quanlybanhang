@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CreateCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
+import { CheckEmailDto, CreateCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
@@ -13,7 +13,7 @@ export class CustomerService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateCustomerDto, tokenPayload: TokenPayload) {
     const customer = await this.prisma.customer.create({
@@ -80,23 +80,23 @@ export class CustomerService {
       }),
       ...(from &&
         to && {
-          createdAt: {
-            gte: from,
-            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-          },
-        }),
+        createdAt: {
+          gte: from,
+          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+        },
+      }),
       ...(from &&
         !to && {
-          createdAt: {
-            gte: from,
-          },
-        }),
+        createdAt: {
+          gte: from,
+        },
+      }),
       ...(!from &&
         to && {
-          createdAt: {
-            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-          },
-        }),
+        createdAt: {
+          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+        },
+      }),
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,
@@ -247,5 +247,18 @@ export class CustomerService {
     await this.commonService.createActivityLog(data.ids, "Customer", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
     return { ...count, ids: data.ids } as DeleteManyResponse;
+  }
+
+  async checkEmailExisted(data: CheckEmailDto) {
+    const customer = await this.prisma.customer.findUnique({
+      where: {
+        shopId_email: {
+          email: data.email,
+          shopId: data.shopId
+        }
+      }
+    })
+
+    return customer.phone !== data.phone ? false : true
   }
 }

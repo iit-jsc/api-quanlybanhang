@@ -1,3 +1,4 @@
+import { Customer } from './../../node_modules/.prisma/client/index.d';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
 import { AnyObject } from 'interfaces/common.interface';
@@ -22,6 +23,12 @@ export class MailService {
 
     const discountValue = this.getDiscountValue(order.discountIssue, totalOrder)
 
+    const customerDiscount = this.getDiscountCustomer(order.customer, totalOrder)
+
+    let totalDiscount = discountValue + customerDiscount
+
+    if (totalDiscount > totalOrder) totalDiscount = totalOrder
+      
     const orderDetailsHTML = this.getOrderDetailsHTML(orderDetails)
     
     const htmlContent = htmlTemplate
@@ -35,10 +42,10 @@ export class MailService {
       .replaceAll('{{branch.email}}', branch.email || "")
       .replaceAll('{{branch.name}}', branch.name || "")
       .replaceAll('{{branch.address}}', branch.name || "")
-      .replaceAll('{{shop.name}}', branch.shop?.name)
-      .replaceAll('{{discountValue}}', discountValue?.toLocaleString('vi-VN'))
+      .replaceAll('{{shop.name}}', branch.shop?.name || "")
+      .replaceAll('{{discountValue}}', totalDiscount?.toLocaleString('vi-VN'))
       .replaceAll('{{totalAmount}}', totalOrder.toLocaleString('vi-VN'))
-      .replaceAll('{{paymentAmount}}', (totalOrder - discountValue)?.toLocaleString('vi-VN'))
+      .replaceAll('{{paymentAmount}}', (totalOrder - totalDiscount)?.toLocaleString('vi-VN'))
       .replaceAll('{{order.orderDetails}}', orderDetailsHTML);
 
     await this.mailerService.sendMail({
@@ -97,34 +104,40 @@ export class MailService {
 
   getDiscountValue(discountIssue: Prisma.DiscountIssueCreateInput, totalOrder: number) {
     if (!discountIssue) return 0
-
+    
     if (discountIssue.discountType === DISCOUNT_TYPE.PERCENT) {
-      const value = totalOrder * discountIssue.discount
+      const value = totalOrder * discountIssue.discount / 100
 
       return value > discountIssue.maxValue ? discountIssue.maxValue : value
     }
 
     if (discountIssue.discountType === DISCOUNT_TYPE.VALUE)
       return discountIssue.discount > totalOrder ? totalOrder : discountIssue.discount;
+
+    return 0
   }
 
   getDiscountCustomer(customer: AnyObject, totalOrder: number) {
     if (customer.endow === ENDOW_TYPE.BY_CUSTOMER) {
       if (customer.discountType === DISCOUNT_TYPE.PERCENT) {
-        return totalOrder * customer.discount
+        return totalOrder * customer.discount / 100
       }
 
       if (customer.discountType === DISCOUNT_TYPE.VALUE) {
         return customer.discount > totalOrder ? totalOrder : customer.discount
       }
     } else {
-      if (customer.customerType === DISCOUNT_TYPE.PERCENT) {
-        return totalOrder * customer.discount
+      if (!customer.customerType) return 0;
+
+      if (customer.customerType?.discountType === DISCOUNT_TYPE.PERCENT) {
+        return totalOrder * customer.customerType?.discount / 100
       }
 
-      if (customer.discountType === DISCOUNT_TYPE.VALUE) {
-        return customer.discount > totalOrder ? totalOrder : customer.discount
+      if (customer.customerType?.discountType === DISCOUNT_TYPE.VALUE) {
+        return customer.customerType?.discount > totalOrder ? totalOrder : customer.customerType?.discount
       }
     }
+
+    return 0;
   }
 }
