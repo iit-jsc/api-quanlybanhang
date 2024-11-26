@@ -384,6 +384,7 @@ export class ShopService {
           branchId,
           type: PAYMENT_METHOD_TYPE.CASH,
           active: true,
+          name: "Tiền mặt",
         },
         {
           branchId,
@@ -391,12 +392,14 @@ export class ShopService {
           bankCode: "123456789",
           bankName: "HD Bank",
           representative: "Nguyen Van A",
+          name: "Chuyển khoản",
           active: false,
         },
         {
           branchId,
           type: PAYMENT_METHOD_TYPE.QR_CODE,
           active: false,
+          name: "QR Code",
         },
       ],
     });

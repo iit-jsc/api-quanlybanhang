@@ -111,14 +111,14 @@ export class CommonService {
         email: data.email,
         isUsed: false,
         createdAt: {
-          gt: new Date(Date.now() - 240 * 1000),
+          gt: new Date(Date.now() - +process.env.OTP_EXPIRATION_TIME * 1000),
         },
       },
     });
 
     if (!otp) throw new CustomHttpException(HttpStatus.BAD_REQUEST, "Mã OTP không hợp lệ!");
 
-    if (otp.attempts > 3) throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lần thử!");
+    if (otp.attempts > +process.env.MAX_OTP_ATTEMPTS) throw new CustomHttpException(HttpStatus.CONFLICT, "Đã quá số lần thử!");
 
     await this.prisma.contactVerification.update({
       where: { id: otp.id },
