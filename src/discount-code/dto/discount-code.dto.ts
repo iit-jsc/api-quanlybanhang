@@ -20,3 +20,17 @@ export class CreateDiscountCodeDto {
   @IsNumber()
   amount: number;
 }
+
+export class CheckAvailableDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  code: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  branchId: string;
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNumber()
+  totalOrder: number;
+}

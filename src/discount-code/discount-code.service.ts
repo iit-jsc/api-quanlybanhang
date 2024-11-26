@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { CreateDiscountCodeDto } from "./dto/discount-code.dto";
+import { CheckAvailableDto, CreateDiscountCodeDto } from "./dto/discount-code.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -110,5 +110,41 @@ export class DiscountCodeService {
         branchId: tokenPayload.branchId,
       },
     });
+  }
+
+  async checkAvailable(data: CheckAvailableDto) {
+    return await this.prisma.discountCode.findUniqueOrThrow({ 
+      where: {
+        branchId_code: {
+          branchId: data.branchId,
+          code: data.code
+        },
+        isPublic: true,
+        isUsed: false,
+        discountIssue: {
+          startDate: {
+            lte: new Date(new Date().setHours(23, 59, 59, 999)),
+          },
+          isPublic: true,
+          minTotalOrder: {
+            lte: data.totalOrder,
+          },
+          AND: [
+            {
+              OR: [
+                {
+                  endDate: {
+                    gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                  },
+                },
+                {
+                  isEndDateDisabled: true,
+                },
+              ],
+            },
+          ],
+        }
+      }
+    })
   }
 }

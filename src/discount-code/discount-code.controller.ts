@@ -18,11 +18,11 @@ import { SPECIAL_ROLE } from 'enums/common.enum';
 import { Roles } from 'guards/roles.decorator';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { TokenPayload } from 'interfaces/common.interface';
-import { CreateDiscountCodeDto } from './dto/discount-code.dto';
+import { CreateDiscountCodeDto, CheckAvailableDto } from './dto/discount-code.dto';
 
 @Controller('discount-code')
 export class DiscountCodeController {
-  constructor(private readonly discountCodeService: DiscountCodeService) {}
+  constructor(private readonly discountCodeService: DiscountCodeService) { }
 
   @Post()
   @HttpCode(HttpStatus.OK)
@@ -70,6 +70,14 @@ export class DiscountCodeController {
         id,
       },
       tokenPayload,
+    );
+  }
+
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  CheckAvailable(@Body() data: CheckAvailableDto) {
+    return this.discountCodeService.checkAvailable(
+      data
     );
   }
 
