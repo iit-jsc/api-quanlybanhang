@@ -121,6 +121,7 @@ export class PromotionService {
         ],
       }),
     };
+
     const [data, totalRecords] = await Promise.all([
       this.prisma.promotion.findMany({
         skip,
@@ -142,6 +143,9 @@ export class PromotionService {
                 },
                 amount: true,
               },
+              where: {
+                isPublic: true
+              }
             },
             promotionProducts: {
               select: {
@@ -158,6 +162,9 @@ export class PromotionService {
                 name: true,
                 photoURL: true,
               },
+              where: {
+                isPublic: true
+              }
             },
           }),
         },
@@ -180,8 +187,40 @@ export class PromotionService {
         isPublic: true,
       },
       include: {
-        promotionConditions: true,
-        promotionProducts: true,
+        promotionConditions: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                code: true,
+                photoURLs: true,
+                thumbnail: true,
+                slug: true,
+                id: true,
+              },
+            },
+          },
+          where: {
+            isPublic: true
+          }
+        },
+        promotionProducts: {
+          include: {
+            product: {
+              select: {
+                id: true,
+                name: true,
+                code: true,
+                photoURLs: true,
+                thumbnail: true,
+                slug: true,
+              },
+            },
+          },
+          where: {
+            isPublic: true
+          }
+        },
       },
     });
   }
