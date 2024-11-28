@@ -74,7 +74,6 @@ export class CreatePromotionDto {
   type: number;
 
   @IsOptional()
-  @IsString()
   isActive: boolean;
 
   @IsOptional()
