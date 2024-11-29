@@ -70,8 +70,7 @@ export class CreateDiscountIssueDto {
   @IsNumber()
   minTotalOrder: number;
 
-  @ValidateIf((o) => o.isLimit)
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsOptional()
   @IsNumber()
   maxValue: number;
 }

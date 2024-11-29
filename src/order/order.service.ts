@@ -154,6 +154,7 @@ export class OrderService {
         amount: true,
         amountApplied: true,
         code: true,
+        maxValue: true,
         name: true,
         isEndDateDisabled: true,
         description: true,

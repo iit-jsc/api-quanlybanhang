@@ -11,7 +11,6 @@ import {
   IsString,
   Max,
   MinDate,
-  Validate,
   ValidateIf,
   ValidateNested,
 } from "class-validator";
@@ -46,6 +45,9 @@ export class CreatePromotionDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsNumber()
   amount: number;
+
+  @IsOptional()
+  maxValue: number;
 
   @IsOptional()
   @IsBoolean()

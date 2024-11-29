@@ -103,18 +103,23 @@ export class MailService {
   }
 
   getDiscountValue(discountIssue: Prisma.DiscountIssueCreateInput, totalOrder: number) {
+    let result = 0;
+
     if (!discountIssue) return 0
     
     if (discountIssue.discountType === DISCOUNT_TYPE.PERCENT) {
       const value = totalOrder * discountIssue.discount / 100
 
-      return value > discountIssue.maxValue ? discountIssue.maxValue : value
+      result = value > totalOrder ? totalOrder : value
     }
 
     if (discountIssue.discountType === DISCOUNT_TYPE.VALUE)
-      return discountIssue.discount > totalOrder ? totalOrder : discountIssue.discount;
+      result = discountIssue.discount > totalOrder ? totalOrder : discountIssue.discount;
 
-    return 0
+    if (discountIssue.maxValue !== null && discountIssue.maxValue < result)
+      result = discountIssue.maxValue
+
+    return result;
   }
 
   getDiscountCustomer(customer: AnyObject, totalOrder: number) {

@@ -599,6 +599,7 @@ model Promotion {
   isEndDateDisabled   Boolean?             @default(true)
   amount              Int
   amountApplied       Int?                 @default(0)
+  maxValue            Float?                
   isActive            Boolean?             @default(true)
   description         String?              @db.Text
   discount            Float?               @default(0)

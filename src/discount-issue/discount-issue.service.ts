@@ -102,6 +102,17 @@ export class DiscountIssueService {
         take,
         orderBy: orderBy || { createdAt: "desc" },
         where,
+        select: {
+          _count: {
+            select: {
+              discountCodes: {
+                where: {
+                  isPublic: true
+                },
+              }
+            }
+          }
+        }
       }),
       this.prisma.discountIssue.count({
         where,
