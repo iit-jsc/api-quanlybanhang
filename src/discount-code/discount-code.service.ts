@@ -14,7 +14,7 @@ export class DiscountCodeService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateDiscountCodeDto, tokenPayload: TokenPayload) {
     const discountCodeData = [];
@@ -51,7 +51,7 @@ export class DiscountCodeService {
       where: { isPublic: true, discountIssueId },
     });
 
-    if (amount + currentAmount > discountIssue.amount)
+    if (discountIssue.isLimit && (amount + currentAmount > discountIssue.amount))
       throw new CustomHttpException(HttpStatus.CONFLICT, "Số lượng vượt quá đợt khuyến mãi!", [], {
         currentAmount,
         maxAmount: discountIssue.amount,
@@ -113,7 +113,7 @@ export class DiscountCodeService {
   }
 
   async checkAvailable(data: CheckAvailableDto) {
-    return await this.prisma.discountCode.findUniqueOrThrow({ 
+    return await this.prisma.discountCode.findUniqueOrThrow({
       where: {
         branchId_code: {
           branchId: data.branchId,

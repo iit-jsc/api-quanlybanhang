@@ -66,24 +66,13 @@ export class CreateDiscountIssueDto {
   @IsBoolean()
   isLimit: boolean;
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  amountCustomer: number;
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsBoolean()
-  isLimitCustomer: boolean;
-
-  @IsOptional()
-  @IsBoolean()
-  otherDiscountApplied: boolean;
-
   @IsOptional()
   @IsNumber()
   minTotalOrder: number;
 
-  @IsOptional()
+  @ValidateIf((o) => o.isLimit)
   @IsNumber()
+  @IsNotEmpty({ message: 'Không được để trống!' })
   maxValue: number;
 }
 
