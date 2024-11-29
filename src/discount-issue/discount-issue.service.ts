@@ -102,7 +102,7 @@ export class DiscountIssueService {
         take,
         orderBy: orderBy || { createdAt: "desc" },
         where,
-        select: {
+        include: {
           _count: {
             select: {
               discountCodes: {
