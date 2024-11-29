@@ -91,6 +91,18 @@ export class DiscountCodeService {
         take,
         orderBy: orderBy || { createdAt: "desc" },
         where,
+        include: {
+          discountIssue: {
+            select: {
+              id: true,
+              code: true,
+              name: true,
+              amount: true,
+              updatedAt: true,
+              description: true
+            }
+          }
+        }
       }),
       this.prisma.discountCode.count({
         where,
@@ -109,6 +121,9 @@ export class DiscountCodeService {
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
+      include: {
+        discountIssue: true
+      }
     });
   }
 
