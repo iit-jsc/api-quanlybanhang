@@ -597,7 +597,7 @@ model Promotion {
   startDate           DateTime
   endDate             DateTime?
   isEndDateDisabled   Boolean?             @default(true)
-  amount              Int?
+  amount              Int
   amountApplied       Int?                 @default(0)
   maxValue            Float?                
   isActive            Boolean?             @default(true)
@@ -788,7 +788,7 @@ model DiscountIssue {
   endDate           DateTime?
   isEndDateDisabled Boolean?       @default(true)
   description       String?        @db.Text
-  amount            Int
+  amount            Int?
   isLimit           Boolean        @default(false)
   minTotalOrder     Float?
   maxValue          Float?
