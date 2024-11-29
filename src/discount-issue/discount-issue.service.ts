@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
+import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CreateDiscountIssueDto, UpdateDiscountIssueDto } from "./dto/discount-issue.dto";
@@ -135,22 +135,40 @@ export class DiscountIssueService {
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = await this.prisma.discountIssue.updateMany({
-      where: {
-        id: {
-          in: data.ids,
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => { 
+      const count = await prisma.discountIssue.updateMany({
+        where: {
+          id: {
+            in: data.ids,
+          },
+          isPublic: true,
+          branchId: tokenPayload.branchId,
         },
-        isPublic: true,
-        branchId: tokenPayload.branchId,
-      },
-      data: {
-        isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        data: {
+          isPublic: false,
+          updatedBy: tokenPayload.accountId,
+        },
+      });
 
-    await this.commonService.createActivityLog(data.ids, "DiscountIssue", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+      await prisma.discountCode.updateMany({ 
+        where: {
+          discountIssue: {
+            id: {
+              in: data.ids
+            }
+          },
+          isPublic: true,
+        },
+        data: {
+          isPublic: false,
+          updatedBy: tokenPayload.accountId
+        }
+      })
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+      await this.commonService.createActivityLog(data.ids, "DiscountIssue", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+
+      return { ...count, ids: data.ids } as DeleteManyResponse;
+    })
+    
   }
 }
