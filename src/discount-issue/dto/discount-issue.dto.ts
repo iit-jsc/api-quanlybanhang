@@ -58,6 +58,7 @@ export class CreateDiscountIssueDto {
   @IsString()
   description: string;
 
+  @ValidateIf((o) => o.isLimit === true)
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   amount: number;
