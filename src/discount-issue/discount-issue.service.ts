@@ -131,6 +131,17 @@ export class DiscountIssueService {
         isPublic: true,
         branchId: tokenPayload.branchId,
       },
+      include: {
+        _count: {
+          select: {
+            discountCodes: {
+              where: {
+                isPublic: true
+              },
+            }
+          }
+        }
+      }
     });
   }
 
