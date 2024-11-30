@@ -37,6 +37,9 @@ export class CreateProductOptionDto {
 
   @IsOptional()
   photoURL: string;
+
+  @IsOptional()
+  id: string;
 }
 
 export class UpdateProductOptionGroupDto extends PartialType(CreateProductOptionGroupDto) { }

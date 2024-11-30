@@ -138,37 +138,16 @@ export class ProductOptionGroupService {
   ) {
     const { where, data } = params;
 
-    if (data.productOptions) this.validateDefaultProductOptions(data.productOptions);
-
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       if (data.productOptions) {
-        prisma.productOption.updateMany({
-          where: { productOptionGroupId: where.id, isPublic: true }, data: {
-            isPublic: false,
-            updatedBy: tokenPayload.accountId,
-          }
-        })
+        this.validateDefaultProductOptions(data.productOptions);
+
+        await this.updateProductOption(data.productOptions, where.id, tokenPayload, prisma)
       }
 
       const productOptionGroup = await prisma.productOptionGroup.update({
         data: {
           name: data.name,
-          ...(data.productOptions && {
-            productOptions: {
-              set: [],
-              createMany: {
-                data: data.productOptions.map((option) => ({
-                  name: option.name,
-                  price: option.price,
-                  branchId: tokenPayload.branchId,
-                  photoURL: option.photoURL,
-                  isDefault: option.isDefault,
-                  colors: option.colors,
-                  updatedBy: tokenPayload.accountId,
-                })),
-              },
-            },
-          }),
           isMultiple: data.isMultiple,
           isRequired: data.isRequired,
           updatedBy: tokenPayload.accountId,
@@ -179,7 +158,11 @@ export class ProductOptionGroupService {
           branchId: tokenPayload.branchId,
         },
         include: {
-          productOptions: true,
+          productOptions: {
+            where: {
+              isPublic: true
+            }
+          },
         },
       });
 
@@ -192,6 +175,66 @@ export class ProductOptionGroupService {
 
       return productOptionGroup;
     })
+  }
+
+  async updateProductOption(
+    data: CreateProductOptionDto[],
+    productOptionGroupId: string,
+    tokenPayload: TokenPayload,
+    prisma?: PrismaClient
+  ) {
+    const idsToKeep = data.filter(option => option.id).map(option => option.id);
+    prisma = prisma || this.prisma;
+
+    await prisma.productOption.updateMany({
+      where: {
+        id: { notIn: idsToKeep },
+        productOptionGroupId: productOptionGroupId,
+        branchId: tokenPayload.branchId,
+        isPublic: true
+      },
+      data: {
+        updatedBy: tokenPayload.accountId,
+        isPublic: false
+      }
+    });
+
+    const operations = data.map(option => {
+      
+      if (option.id) {
+        return prisma.productOption.update({
+          where: {
+            id: option.id,
+            branchId: tokenPayload.branchId,
+            productOptionGroupId,
+            isPublic: true,
+          },
+          data: {
+            name: option.name,
+            price: option.price,
+            colors: option.colors,
+            photoURL: option.photoURL,
+            isDefault: option.isDefault,
+            updatedBy: tokenPayload.accountId,
+          },
+        });
+      } else {
+        return prisma.productOption.create({
+          data: {
+            productOptionGroupId,
+            name: option.name,
+            price: option.price,
+            photoURL: option.photoURL,
+            colors: option.colors,
+            isDefault: option.isDefault,
+            createdBy: tokenPayload.accountId,
+            branchId: tokenPayload.branchId,
+          },
+        });
+      }
+    });
+
+    await Promise.all(operations);
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
