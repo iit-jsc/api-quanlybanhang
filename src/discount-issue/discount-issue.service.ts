@@ -1,4 +1,4 @@
-import { Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
@@ -7,6 +7,7 @@ import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
 export class DiscountIssueService {
@@ -16,6 +17,9 @@ export class DiscountIssueService {
   ) { }
 
   async create(data: CreateDiscountIssueDto, tokenPayload: TokenPayload) {
+    if (data.endDate && data.startDate && data.endDate < data.startDate)
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Ngày kết thúc không hợp lệ!");
+
     const discountIssue = await this.prisma.discountIssue.create({
       data: {
         name: data.name,
@@ -53,6 +57,9 @@ export class DiscountIssueService {
     tokenPayload: TokenPayload,
   ) {
     const { where, data } = params;
+
+    if (data.endDate && data.startDate && data.endDate < data.startDate)
+      throw new CustomHttpException(HttpStatus.CONFLICT, "Ngày kết thúc không hợp lệ!");
 
     const discountIssue = await this.prisma.discountIssue.update({
       data: {
@@ -146,7 +153,7 @@ export class DiscountIssueService {
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => { 
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const count = await prisma.discountIssue.updateMany({
         where: {
           id: {
@@ -161,7 +168,7 @@ export class DiscountIssueService {
         },
       });
 
-      await prisma.discountCode.updateMany({ 
+      await prisma.discountCode.updateMany({
         where: {
           discountIssue: {
             id: {
@@ -180,6 +187,6 @@ export class DiscountIssueService {
 
       return { ...count, ids: data.ids } as DeleteManyResponse;
     })
-    
+
   }
 }

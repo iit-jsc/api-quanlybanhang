@@ -11,6 +11,7 @@ import {
   Max,
   MinDate,
   ValidateIf,
+  ValidationArguments,
 } from 'class-validator';
 import { DISCOUNT_TYPE } from 'enums/common.enum';
 
@@ -44,10 +45,12 @@ export class CreateDiscountIssueDto {
   })
   startDate: Date;
 
-  @IsOptional()
+  @ValidateIf((o) => o.endDate)
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MinDate(new Date(), { message: 'Ngày tháng phải lớn hơn ngày hiện tại!' })
+  @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
+    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!',
+  })
   endDate: Date;
 
   @IsOptional()
