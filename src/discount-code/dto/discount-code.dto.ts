@@ -1,14 +1,16 @@
 import { Transform, TransformFnParams } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Length } from 'class-validator';
 
 export class CreateDiscountCodeDto {
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Length(0, 10, { message: 'Vượt quá kí tự.' })
   @IsString()
   prefix: string;
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
+  @Length(0, 10, { message: 'Vượt quá kí tự.' })
   @IsString()
   suffixes: string;
 
