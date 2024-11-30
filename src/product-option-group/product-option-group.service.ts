@@ -124,7 +124,7 @@ export class ProductOptionGroupService {
       },
       include: {
         productOptions: {
-          where: { 
+          where: {
             isPublic: true
           }
         },
@@ -140,67 +140,95 @@ export class ProductOptionGroupService {
 
     if (data.productOptions) this.validateDefaultProductOptions(data.productOptions);
 
-    const productOptionGroup = await this.prisma.productOptionGroup.update({
-      data: {
-        name: data.name,
-        ...(data.productOptions && {
-          productOptions: {
-            set: [],
-            createMany: {
-              data: data.productOptions.map((option) => ({
-                name: option.name,
-                price: option.price,
-                branchId: tokenPayload.branchId,
-                photoURL: option.photoURL,
-                isDefault: option.isDefault,
-                colors: option.colors,
-                updatedBy: tokenPayload.accountId,
-              })),
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      if (data.productOptions) {
+        prisma.productOption.updateMany({
+          where: { productOptionGroupId: where.id, isPublic: true }, data: {
+            isPublic: false,
+            updatedBy: tokenPayload.accountId,
+          }
+        })
+      }
+
+      const productOptionGroup = await prisma.productOptionGroup.update({
+        data: {
+          name: data.name,
+          ...(data.productOptions && {
+            productOptions: {
+              set: [],
+              createMany: {
+                data: data.productOptions.map((option) => ({
+                  name: option.name,
+                  price: option.price,
+                  branchId: tokenPayload.branchId,
+                  photoURL: option.photoURL,
+                  isDefault: option.isDefault,
+                  colors: option.colors,
+                  updatedBy: tokenPayload.accountId,
+                })),
+              },
             },
-          },
-        }),
-        isMultiple: data.isMultiple,
-        isRequired: data.isRequired,
-        updatedBy: tokenPayload.accountId,
-      },
-      where: {
-        id: where.id,
-        isPublic: true,
-        branchId: tokenPayload.branchId,
-      },
-      include: {
-        productOptions: true,
-      },
-    });
+          }),
+          isMultiple: data.isMultiple,
+          isRequired: data.isRequired,
+          updatedBy: tokenPayload.accountId,
+        },
+        where: {
+          id: where.id,
+          isPublic: true,
+          branchId: tokenPayload.branchId,
+        },
+        include: {
+          productOptions: true,
+        },
+      });
 
-    await this.commonService.createActivityLog(
-      [productOptionGroup.id],
-      "ProductOptionGroup",
-      ACTIVITY_LOG_TYPE.UPDATE,
-      tokenPayload,
-    );
+      await this.commonService.createActivityLog(
+        [productOptionGroup.id],
+        "ProductOptionGroup",
+        ACTIVITY_LOG_TYPE.UPDATE,
+        tokenPayload,
+      );
 
-    return productOptionGroup;
+      return productOptionGroup;
+    })
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = await this.prisma.productOptionGroup.updateMany({
-      where: {
-        id: {
-          in: data.ids,
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      await prisma.productOption.updateMany({
+        where: {
+          isPublic: true,
+          productOptionGroup: {
+            id: {
+              in: data.ids
+            }
+          }
+        }, data: {
+          isPublic: false,
+          updatedBy: tokenPayload.accountId,
+        }
+      })
+
+      const count = await prisma.productOptionGroup.updateMany({
+        where: {
+          id: {
+            in: data.ids,
+          },
+          isPublic: true,
+          branchId: tokenPayload.branchId,
         },
-        isPublic: true,
-        branchId: tokenPayload.branchId,
-      },
-      data: {
-        isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        data: {
+          isPublic: false,
+          updatedBy: tokenPayload.accountId,
+        },
+      });
 
-    await this.commonService.createActivityLog(data.ids, "ProductOptionGroup", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+      await this.commonService.createActivityLog(data.ids, "ProductOptionGroup", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+      return { ...count, ids: data.ids } as DeleteManyResponse;
+    })
+
   }
 
   validateDefaultProductOptions(productOptions: CreateProductOptionDto[]) {
