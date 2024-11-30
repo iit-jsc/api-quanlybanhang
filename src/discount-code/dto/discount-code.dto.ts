@@ -1,5 +1,5 @@
 import { Transform, TransformFnParams } from 'class-transformer';
-import { IsNotEmpty, IsNumber, IsOptional, IsString, Length } from 'class-validator';
+import { IsNotEmpty, IsNumber, IsOptional, IsString, Length, Max } from 'class-validator';
 
 export class CreateDiscountCodeDto {
   @IsOptional()
@@ -20,6 +20,7 @@ export class CreateDiscountCodeDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
+  @Max(50, { message: 'Số lượng không được vượt quá 50!' })
   amount: number;
 }
 
