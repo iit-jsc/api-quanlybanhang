@@ -75,7 +75,7 @@ export class DiscountCodeController {
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
-  CheckAvailable(@Body() data: CheckAvailableDto) {
+  checkAvailable(@Body() data: CheckAvailableDto) {
     return this.discountCodeService.checkAvailable(
       data
     );

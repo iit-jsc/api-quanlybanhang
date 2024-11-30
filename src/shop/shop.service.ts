@@ -85,31 +85,38 @@ export class ShopService {
   }
 
   async create(data: CreateShopDto, tokenPayload: TokenPayload) {
-    return this.prisma.shop.create({
-      data: {
-        code: await this.generateShopCode(),
-        name: data.name,
-        businessTypeCode: data.businessTypeCode,
-        photoURL: data.photoURL,
-        status: data.status,
-        address: data.address,
-        email: data.email,
-        phone: data.phone,
-        branches: {
-          create: {
-            name: data.branch?.name,
-            address: data.branch?.address,
-            photoURL: data.photoURL,
-            accounts: {
-              connect: {
-                id: tokenPayload.accountId,
+    await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const newShop = await prisma.shop.create({
+        data: {
+          code: await this.generateShopCode(),
+          name: data.name,
+          businessTypeCode: data.businessTypeCode,
+          photoURL: data.photoURL,
+          status: data.status,
+          address: data.address,
+          email: data.email,
+          phone: data.phone,
+          branches: {
+            create: {
+              name: data.branch?.name,
+              address: data.branch?.address,
+              photoURL: data.photoURL,
+              accounts: {
+                connect: {
+                  id: tokenPayload.accountId,
+                },
               },
             },
           },
+          createdBy: tokenPayload.accountId,
         },
-        createdBy: tokenPayload.accountId,
-      },
-    });
+        include: {
+          branches: true
+        }
+      });
+
+      await this.createSampleData(newShop.branches[0].id, newShop.id, prisma);
+    })
   }
 
   async update(
