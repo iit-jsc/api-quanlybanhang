@@ -27,10 +27,13 @@ export class MailService {
 
     let totalDiscount = discountValue + customerDiscount
 
-    if (totalDiscount > totalOrder) totalDiscount = totalOrder
-      
     const orderDetailsHTML = this.getOrderDetailsHTML(orderDetails)
-    
+
+    let paymentAmount = totalOrder - totalDiscount
+
+    if (paymentAmount < 0)
+      paymentAmount = totalOrder
+
     const htmlContent = htmlTemplate
       .replaceAll('{{order.code}}', order.code)
       .replaceAll('{{order.createdAt}}', formatDate(order.createdAt))
@@ -45,7 +48,7 @@ export class MailService {
       .replaceAll('{{shop.name}}', branch.shop?.name || "")
       .replaceAll('{{discountValue}}', totalDiscount?.toLocaleString('vi-VN'))
       .replaceAll('{{totalAmount}}', totalOrder.toLocaleString('vi-VN'))
-      .replaceAll('{{paymentAmount}}', (totalOrder - totalDiscount)?.toLocaleString('vi-VN'))
+      .replaceAll('{{paymentAmount}}', paymentAmount?.toLocaleString('vi-VN'))
       .replaceAll('{{order.orderDetails}}', orderDetailsHTML);
 
     await this.mailerService.sendMail({
@@ -69,7 +72,7 @@ export class MailService {
         <tr>
             <td>${index + 1}</td>
             <td>
-                <strong>${item.product?.name} (${item.product?.price?.toLocaleString('vi-VN') } đ)</strong><br />
+                <strong>${item.product?.name} (${item.product?.price?.toLocaleString('vi-VN')} đ)</strong><br />
                 ${item.productOptions
               ? item.productOptions
                 .map(
@@ -106,15 +109,12 @@ export class MailService {
     let result = 0;
 
     if (!discountIssue) return 0
-    
-    if (discountIssue.discountType === DISCOUNT_TYPE.PERCENT) {
-      const value = totalOrder * discountIssue.discount / 100
 
-      result = value > totalOrder ? totalOrder : value
-    }
+    if (discountIssue.discountType === DISCOUNT_TYPE.PERCENT)
+      result = totalOrder * discountIssue.discount / 100
 
     if (discountIssue.discountType === DISCOUNT_TYPE.VALUE)
-      result = discountIssue.discount > totalOrder ? totalOrder : discountIssue.discount;
+      result = discountIssue.discount
 
     if (discountIssue.maxValue !== null && discountIssue.maxValue < result)
       result = discountIssue.maxValue
@@ -124,23 +124,21 @@ export class MailService {
 
   getDiscountCustomer(customer: AnyObject, totalOrder: number) {
     if (customer.endow === ENDOW_TYPE.BY_CUSTOMER) {
-      if (customer.discountType === DISCOUNT_TYPE.PERCENT) {
+      if (customer.discountType === DISCOUNT_TYPE.PERCENT)
         return totalOrder * customer.discount / 100
-      }
 
-      if (customer.discountType === DISCOUNT_TYPE.VALUE) {
-        return customer.discount > totalOrder ? totalOrder : customer.discount
-      }
+      if (customer.discountType === DISCOUNT_TYPE.VALUE)
+        return customer.discount
+
     } else {
       if (!customer.customerType) return 0;
 
-      if (customer.customerType?.discountType === DISCOUNT_TYPE.PERCENT) {
+      if (customer.customerType?.discountType === DISCOUNT_TYPE.PERCENT)
         return totalOrder * customer.customerType?.discount / 100
-      }
 
-      if (customer.customerType?.discountType === DISCOUNT_TYPE.VALUE) {
-        return customer.customerType?.discount > totalOrder ? totalOrder : customer.customerType?.discount
-      }
+      if (customer.customerType?.discountType === DISCOUNT_TYPE.VALUE)
+        return customer.customerType?.discount
+
     }
 
     return 0;
