@@ -206,7 +206,6 @@ export class ProductOptionGroupService {
     });
 
     const operations = data.map(option => {
-      
       if (option.id) {
         return prisma.productOption.update({
           where: {

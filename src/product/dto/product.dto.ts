@@ -61,14 +61,6 @@ export class CreateProductDto {
   @IsOptional()
   @IsEnum(PRODUCT_STATUS, { message: "Trạng thái không hợp lệ!" })
   status: number;
-
-  @IsOptional()
-  @IsArray()
-  productOptionGroupIds: string[];
-
-  @IsOptional()
-  @IsArray()
-  productOptionIds: string[];
 }
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {}

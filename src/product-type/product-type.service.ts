@@ -27,6 +27,16 @@ export class ProductTypeService {
         name: data.name,
         slug: data.slug,
         description: data.description,
+        ...(data.productOptionGroupIds && {
+          productOptionGroups: {
+            connect: data.productOptionGroupIds.map((id) => ({ id }))
+          }
+        }),
+        ...(data.productOptionIds && {
+          productOptions: {
+            connect: data.productOptionIds.map((id) => ({ id }))
+          }
+        }),
         creator: {
           connect: {
             id: tokenPayload.accountId,
@@ -64,6 +74,28 @@ export class ProductTypeService {
               isPublic: true,
             },
           },
+          productOptionGroups: {
+            where: {
+              isPublic: true,
+              productTypes: {
+                some: {
+                  id: where.id
+                }
+              }
+            },
+            include: {
+              productOptions: {
+                where: {
+                  isPublic: true,
+                  productTypes: {
+                    some: {
+                      id: where.id
+                    }
+                  }
+                },
+              }
+            }
+          },
           updatedAt: true,
         },
       }),
@@ -95,6 +127,28 @@ export class ProductTypeService {
             isPublic: true,
           },
         },
+        productOptionGroups: {
+          where: {
+            isPublic: true,
+            productTypes: {
+              some: {
+                id: where.id
+              }
+            }
+          },
+          include: {
+            productOptions: {
+              where: {
+                isPublic: true,
+                productTypes: {
+                  some: {
+                    id: where.id
+                  }
+                }
+              },
+            }
+          }
+        },
       },
     });
   }
@@ -118,6 +172,16 @@ export class ProductTypeService {
         name: data.name,
         slug: data.slug,
         description: data.description,
+        ...(data.productOptionGroupIds && {
+          productOptionGroups: {
+            set: data.productOptionGroupIds.map((id) => ({ id }))
+          }
+        }),
+        ...(data.productOptionIds && {
+          productOptions: {
+            set: data.productOptionIds.map((id) => ({ id }))
+          }
+        }),
         updater: {
           connect: {
             id: tokenPayload.accountId,

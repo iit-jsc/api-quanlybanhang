@@ -304,6 +304,8 @@ model ProductType {
   updatedBy              String?
   creator                Account?                @relation("creator", fields: [createdBy], references: [id])
   updater                Account?                @relation("updater", fields: [updatedBy], references: [id])
+  productOptions         ProductOption[]
+  productOptionGroups    ProductOptionGroup[]
 
   @@unique([branchId, slug])
   @@index([branchId])
@@ -357,8 +359,6 @@ model Product {
   creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])
   updater                     Account?                     @relation("updater", fields: [updatedBy], references: [id])
   inventoryTransactionDetails InventoryTransactionDetail[]
-  productOptions              ProductOption[]
-  productOptionGroups         ProductOptionGroup[]
 
   @@unique([branchId, slug])
   @@unique([branchId, code])
@@ -383,7 +383,7 @@ model ProductOption {
   updater              Account?            @relation("updater", fields: [updatedBy], references: [id])
   productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id])
   productOptionGroupId String?
-  products             Product[]
+  productTypes         ProductType[]
 
   @@index([branchId])
 }
@@ -403,7 +403,7 @@ model ProductOptionGroup {
   updatedBy      String?
   creator        Account?        @relation("creator", fields: [createdBy], references: [id])
   updater        Account?        @relation("updater", fields: [updatedBy], references: [id])
-  products       Product[]
+  productTypes   ProductType[]
 
   @@index([branchId])
 }
@@ -599,7 +599,7 @@ model Promotion {
   isEndDateDisabled   Boolean?             @default(true)
   amount              Int
   amountApplied       Int?                 @default(0)
-  maxValue            Float?                
+  maxValue            Float?
   isActive            Boolean?             @default(true)
   description         String?              @db.Text
   discount            Float?               @default(0)
