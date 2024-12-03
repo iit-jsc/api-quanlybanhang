@@ -102,7 +102,7 @@ export class ProductOptionGroupService {
               isPublic: true
             },
             orderBy: {
-              createdAt: "desc"
+              createdAt: "asc"
             }
           },
           updatedAt: true,
@@ -131,7 +131,7 @@ export class ProductOptionGroupService {
             isPublic: true
           },
           orderBy: {
-            createdAt: "desc"
+            createdAt: "asc"
           }
         },
       },
