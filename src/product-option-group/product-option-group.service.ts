@@ -100,6 +100,9 @@ export class ProductOptionGroupService {
             },
             where: {
               isPublic: true
+            },
+            orderBy: {
+              createdAt: "desc"
             }
           },
           updatedAt: true,
@@ -126,6 +129,9 @@ export class ProductOptionGroupService {
         productOptions: {
           where: {
             isPublic: true
+          },
+          orderBy: {
+            createdAt: "desc"
           }
         },
       },
