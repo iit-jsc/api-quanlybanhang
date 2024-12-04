@@ -1,6 +1,7 @@
 import { Transform, TransformFnParams, Type } from "class-transformer";
-import { ArrayNotEmpty, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { ArrayNotEmpty, IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { FIND_UNIQ_TYPE } from "enums/common.enum";
+import { ORDER_TYPE } from "enums/order.enum";
 import { AnyObject } from "interfaces/common.interface";
 
 export class FindManyDto {
@@ -98,6 +99,12 @@ export class FindManyDto {
     return value?.split(",").map((id: string) => id.trim());
   })
   orderTypes: number[];
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => id.trim());
+  })
+  orderStatus: number[];
 
   @Transform(({ value }: TransformFnParams) => {
     return Boolean(+value);

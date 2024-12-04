@@ -1,6 +1,6 @@
 import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams, Type } from "class-transformer";
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, Min } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, Min } from "class-validator";
 import { PRODUCT_STATUS } from "enums/product.enum";
 
 export class CreateProductDto {
@@ -26,8 +26,9 @@ export class CreateProductDto {
   unitId: string;
 
   @IsNotEmpty({ message: "Không được để trống!" })
-  @IsString()
-  productTypeId: string;
+  @IsArray()
+  @ArrayNotEmpty()
+  productTypeIds: string[];
 
   @IsNotEmpty({ message: "Không được để trống!" })
   @Transform(({ value }: TransformFnParams) => value?.trim())
@@ -63,4 +64,4 @@ export class CreateProductDto {
   status: number;
 }
 
-export class UpdateProductDto extends PartialType(CreateProductDto) {}
+export class UpdateProductDto extends PartialType(CreateProductDto) { }

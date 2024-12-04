@@ -49,7 +49,6 @@ export class OrderService {
               oldPrice: true,
               thumbnail: true,
               otherAttributes: true,
-              productTypeId: true,
             },
           }),
           this.prisma.productOption.findMany({

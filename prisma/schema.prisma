@@ -352,8 +352,7 @@ model Product {
   stocks                      Stock[]
   promotionConditionProducts  PromotionCondition[]
   promotionProducts           PromotionProduct[]
-  productTypeId               String
-  productType                 ProductType?                 @relation(fields: [productTypeId], references: [id])
+  productTypes                ProductType[]
   createdBy                   String?
   updatedBy                   String?
   creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])

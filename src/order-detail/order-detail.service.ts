@@ -6,7 +6,8 @@ import { CommonService } from "src/common/common.service";
 import { OrderGateway } from "src/gateway/order.gateway";
 import { UpdateOrderProductDto } from "src/order/dto/update-order-detail.dto";
 import { CustomHttpException } from "utils/ApiErrors";
-import { DeleteManyDto } from "utils/Common.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { calculatePagination } from "utils/Helps";
 
 @Injectable()
 export class OrderDetailService {
@@ -100,5 +101,70 @@ export class OrderDetailService {
     });
 
     if (order) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này không thể cập nhật vì đã thanh toán!");
+  }
+
+  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+    let { skip, take, keyword, orderBy, orderStatus } = params;
+
+    const keySearch = ["code"];
+
+    const where: Prisma.OrderDetailWhereInput = {
+      isPublic: true,
+      branchId: tokenPayload.branchId,
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword },
+        })),
+      }),
+      ...(orderStatus && {
+        status: {
+          in: orderStatus
+        }
+      })
+    };
+
+    const [data, totalRecords] = await Promise.all([
+      this.prisma.orderDetail.findMany({
+        where,
+        skip,
+        take,
+        orderBy: orderBy || { createdAt: "desc" },
+        select: {
+          id: true,
+          product: true,
+          status: true,
+          note: true,
+          amount: true,
+          table: {
+            select: {
+              id: true,
+              name: true,
+              area: {
+                select: {
+                  id: true,
+                  name: true,
+                  photoURL: true
+                },
+                where: {
+                  isPublic: true
+                }
+              }
+            },
+            where: {
+              isPublic: true
+            }
+          },
+          updatedAt: true,
+          createdAt: true,
+        },
+      }),
+      this.prisma.orderDetail.count({
+        where,
+      }),
+    ]);
+    return {
+      list: data,
+      pagination: calculatePagination(totalRecords, skip, take),
+    };
   }
 }

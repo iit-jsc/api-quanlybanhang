@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, HttpCode, HttpStatus, Param, Patch, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Query, Req, UseGuards } from "@nestjs/common";
 import { OrderDetailService } from "./order-detail.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { RolesGuard } from "guards/roles.guard";
@@ -6,7 +6,7 @@ import { SPECIAL_ROLE } from "enums/common.enum";
 import { UpdateOrderProductDto } from "src/order/dto/update-order-detail.dto";
 import { Roles } from "guards/roles.decorator";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto } from "utils/Common.dto";
+import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
 @Controller("order-detail")
 export class OrderDetailController {
@@ -44,4 +44,15 @@ export class OrderDetailController {
       tokenPayload,
     );
   }
+
+  @Get("")
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  @Roles("VIEW_ORDER", SPECIAL_ROLE.MANAGER)
+  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload;
+
+    return this.orderDetailService.findAll(findManyDto, tokenPayload);
+  }
+
 }
