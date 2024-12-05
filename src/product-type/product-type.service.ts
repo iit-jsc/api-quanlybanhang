@@ -83,7 +83,12 @@ export class ProductTypeService {
                 }
               }
             },
-            include: {
+            select: {
+              id: true,
+              name: true,
+              isMultiple: true,
+              isRequired: true,
+              updatedAt: true,
               productOptions: {
                 where: {
                   isPublic: true,
@@ -136,7 +141,12 @@ export class ProductTypeService {
               }
             }
           },
-          include: {
+          select: {
+            id: true,
+            name: true,
+            isMultiple: true,
+            isRequired: true,
+            updatedAt: true,
             productOptions: {
               where: {
                 isPublic: true,

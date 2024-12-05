@@ -344,6 +344,8 @@ model Product {
   photoURLs                   Json?
   otherAttributes             Json?
   status                      Int?                         @default(1)
+  productTypeId               String                       @default("ca1c651b-716d-42db-88b6-32584cf0bc3d")
+  productType                 ProductType?                 @relation(fields: [productTypeId], references: [id])
   isPublic                    Boolean?                     @default(true)
   createdAt                   DateTime                     @default(now())
   updatedAt                   DateTime                     @updatedAt
@@ -352,7 +354,6 @@ model Product {
   stocks                      Stock[]
   promotionConditionProducts  PromotionCondition[]
   promotionProducts           PromotionProduct[]
-  productTypes                ProductType[]
   createdBy                   String?
   updatedBy                   String?
   creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])

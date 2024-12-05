@@ -29,10 +29,10 @@ export class ProductService {
         otherAttributes: data.otherAttributes,
         status: data.status,
         photoURLs: data.photoURLs,
-        productTypes: {
-          connect: data.productTypeIds.map((id) => ({
-            id,
-          }))
+        productType: {
+          connect: {
+            id: data.productTypeId,
+          },
         },
         branch: {
           connect: {
@@ -109,7 +109,7 @@ export class ProductService {
               code: true,
             },
           },
-          productTypes: {
+          productType: {
             select: {
               id: true,
               name: true,
@@ -148,13 +148,30 @@ export class ProductService {
             code: true,
           },
         },
-        productTypes: {
+        productType: {
           select: {
             id: true,
             name: true,
             updatedAt: true,
             description: true,
             slug: true,
+            productOptionGroups: {
+              where: {
+                isPublic: true,
+              },
+              select: {
+                id: true,
+                name: true,
+                isMultiple: true,
+                isRequired: true,
+                updatedAt: true,
+                productOptions: {
+                  where: {
+                    isPublic: true,
+                  },
+                }
+              }
+            },
           },
           where: {
             isPublic: true
@@ -188,13 +205,7 @@ export class ProductService {
         slug: data.slug,
         unitId: data.unitId,
         thumbnail: data.thumbnail,
-        ...(data.productTypeIds && {
-          productTypes: {
-            set: data.productTypeIds.map((id) => ({
-              id,
-            }))
-          },
-        }),
+        productTypeId: data.productTypeId,
         code: data.code,
         price: data.price,
         oldPrice: data.oldPrice,
