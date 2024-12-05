@@ -72,14 +72,17 @@ export class ProductTypeService {
           products: {
             where: {
               isPublic: true,
+              branchId
             },
           },
           productOptionGroups: {
             where: {
               isPublic: true,
+              branchId,
               productTypes: {
                 some: {
-                  id: where.id
+                  id: where.id,
+                  branchId
                 }
               }
             },
@@ -96,7 +99,8 @@ export class ProductTypeService {
                     some: {
                       id: where.id
                     }
-                  }
+                  },
+                  branchId
                 },
               }
             }
@@ -137,7 +141,8 @@ export class ProductTypeService {
             isPublic: true,
             productTypes: {
               some: {
-                id: where.id
+                id: where.id,
+                branchId: where.branchId,
               }
             }
           },
@@ -152,9 +157,10 @@ export class ProductTypeService {
                 isPublic: true,
                 productTypes: {
                   some: {
-                    id: where.id
+                    id: where.id,
+                    branchId: where.branchId,
                   }
-                }
+                },
               },
             }
           }
