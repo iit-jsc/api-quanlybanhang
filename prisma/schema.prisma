@@ -344,7 +344,7 @@ model Product {
   photoURLs                   Json?
   otherAttributes             Json?
   status                      Int?                         @default(1)
-  productTypeId               String                       @default("ca1c651b-716d-42db-88b6-32584cf0bc3d")
+  productTypeId               String                      
   productType                 ProductType?                 @relation(fields: [productTypeId], references: [id])
   isPublic                    Boolean?                     @default(true)
   createdAt                   DateTime                     @default(now())
