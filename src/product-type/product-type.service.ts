@@ -75,36 +75,6 @@ export class ProductTypeService {
               branchId
             },
           },
-          productOptionGroups: {
-            where: {
-              isPublic: true,
-              branchId,
-              productTypes: {
-                some: {
-                  id: where.id,
-                  branchId
-                }
-              }
-            },
-            select: {
-              id: true,
-              name: true,
-              isMultiple: true,
-              isRequired: true,
-              updatedAt: true,
-              productOptions: {
-                where: {
-                  isPublic: true,
-                  productTypes: {
-                    some: {
-                      id: where.id
-                    }
-                  },
-                  branchId
-                },
-              }
-            }
-          },
           updatedAt: true,
         },
       }),
