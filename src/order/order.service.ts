@@ -47,6 +47,7 @@ export class OrderService {
               code: true,
               price: true,
               oldPrice: true,
+              productTypeId: true,
               thumbnail: true,
               otherAttributes: true,
             },
