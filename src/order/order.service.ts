@@ -64,6 +64,7 @@ export class OrderService {
               name: true,
               price: true,
               photoURL: true,
+              productOptionGroupId: true,
               branchId: true,
             },
           })
