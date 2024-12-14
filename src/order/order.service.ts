@@ -815,6 +815,10 @@ export class OrderService {
               product: true,
               productOptions: true,
               updatedAt: true,
+              createdAt: true,
+            },
+            orderBy: {
+              createdAt: "asc"
             }
           },
           updatedAt: true,
@@ -1017,6 +1021,10 @@ export class OrderService {
               product: true,
               productOptions: true,
               updatedAt: true,
+              createdAt: true
+            },
+            orderBy: {
+              createdAt: "asc"
             }
           },
           updatedAt: true
