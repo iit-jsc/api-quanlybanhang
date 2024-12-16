@@ -96,6 +96,7 @@ export class TableService {
               note: true,
               status: true,
               createdAt: true,
+              product: true
             },
           },
           updatedAt: true
