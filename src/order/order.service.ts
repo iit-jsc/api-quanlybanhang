@@ -877,6 +877,9 @@ export class OrderService {
         orderDetails: {
           where: {
             isPublic: true
+          },
+          orderBy: {
+            createdAt: "asc"
           }
         },
         orderRatings: true
@@ -1048,9 +1051,66 @@ export class OrderService {
         isPublic: true,
         customerId: tokenCustomerPayload.customerId,
       },
-      include: {
-        paymentMethod: true,
-        creator: true,
+      select: {
+        id: true,
+        code: true,
+        bankingImages: true,
+        isPaid: true,
+        discountIssue: true,
+        isSave: true,
+        note: true,
+        orderType: true,
+        promotion: true,
+        convertedPointValue: true,
+        customerDiscount: true,
+        orderStatus: true,
+        paymentMethod: {
+          select: {
+            id: true,
+            bankCode: true,
+            bankName: true,
+            name: true,
+            photoURL: true,
+            representative: true,
+            type: true,
+            updatedAt: true,
+          }
+        },
+        creator: {
+          select: {
+            id: true,
+            updatedAt: true,
+            user: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                phone: true,
+                photoURL: true,
+                updatedAt: true,
+              }
+            }
+          }
+        },
+        orderDetails: {
+          where: {
+            isPublic: true
+          },
+          select: {
+            id: true,
+            amount: true,
+            note: true,
+            status: true,
+            product: true,
+            productOptions: true,
+            updatedAt: true,
+            createdAt: true
+          },
+          orderBy: {
+            createdAt: "asc"
+          }
+        },
+        updatedAt: true
       },
     });
   }
