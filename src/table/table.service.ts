@@ -89,7 +89,14 @@ export class TableService {
             where: {
               isPublic: true,
             },
-            orderBy: { createdAt: "desc" }
+            orderBy: { createdAt: "asc" },
+            select: {
+              id: true,
+              amount: true,
+              note: true,
+              status: true,
+              createdAt: true,
+            },
           },
           updatedAt: true
         },
@@ -121,15 +128,7 @@ export class TableService {
         },
         orderDetails: {
           where: { isPublic: true },
-          select: {
-            id: true,
-            amount: true,
-            note: true,
-            status: true,
-            product: true,
-            productOptions: true,
-          },
-          orderBy: { createdAt: "desc" }
+          orderBy: { createdAt: "asc" }
         },
         tableTransactions: {
           where: { isPublic: true },
