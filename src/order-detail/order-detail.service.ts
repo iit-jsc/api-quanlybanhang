@@ -104,9 +104,12 @@ export class OrderDetailService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy, orderStatuses, hasTable } = params;
+    let { skip, take, keyword, orderBy, orderDetailStatuses, hasTable } = params;
 
     const keySearch = ["code"];
+
+    console.log(orderDetailStatuses, 999);
+    
 
     const where: Prisma.OrderDetailWhereInput = {
       isPublic: true,
@@ -116,9 +119,9 @@ export class OrderDetailService {
           [key]: { contains: keyword },
         })),
       }),
-      ...(orderStatuses && {
+      ...(orderDetailStatuses && {
         status: {
-          in: orderStatuses
+          in: orderDetailStatuses
         }
       }),
       ...(typeof hasTable !== "undefined" && {
