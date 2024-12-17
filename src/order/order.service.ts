@@ -363,11 +363,13 @@ export class OrderService {
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
     let discountIssue = null;
-    let customerDiscount = null
+    let customerDiscount = null;
 
-    const orderDetails = await this.getOrderDetails(data.orderProducts, DETAIL_ORDER_STATUS.SUCCESS, {
-      branchId: data.branchId,
-    });
+    const orderDetails = await this.getOrderDetails(
+      data.orderProducts,
+      DETAIL_ORDER_STATUS.SUCCESS,
+      { branchId: data.branchId }
+    );
 
     const shop = await this.prisma.shop.findFirst({ 
       where: {
@@ -392,7 +394,7 @@ export class OrderService {
         update: {
           name: data.name,
           address: data.address,
-          isPublic: true
+          email: data.email,
         },
         create: {
           name: data.name,

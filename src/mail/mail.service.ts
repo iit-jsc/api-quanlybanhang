@@ -49,7 +49,8 @@ export class MailService {
       .replaceAll('{{discountValue}}', totalDiscount?.toLocaleString('vi-VN'))
       .replaceAll('{{totalAmount}}', totalOrder.toLocaleString('vi-VN'))
       .replaceAll('{{paymentAmount}}', paymentAmount?.toLocaleString('vi-VN'))
-      .replaceAll('{{order.orderDetails}}', orderDetailsHTML);
+      .replaceAll('{{order.orderDetails}}', orderDetailsHTML)
+      .replaceAll('{{order.id}}', order.id);
 
     await this.mailerService.sendMail({
       to: customer.email,
