@@ -140,6 +140,7 @@ export class OrderDetailService {
           status: true,
           note: true,
           amount: true,
+          productOptions: true,
           table: {
             select: {
               id: true,
