@@ -111,6 +111,11 @@ export class FindManyDto {
   })
   isPaid?: boolean;
 
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  hasTable?: boolean;
+
   /* ====== table  filter  ====== */
 
   @IsOptional()
