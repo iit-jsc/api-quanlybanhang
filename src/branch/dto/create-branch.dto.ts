@@ -23,11 +23,6 @@ export class CreateBranchDto {
   bannerURL?: string;
 
   @IsOptional()
-  @Type(() => Number)
-  @IsEnum(BRANCH_STATUS, { message: "Trạng thái không hợp lệ!" })
-  status?: number;
-
-  @IsOptional()
   others: AnyObject;
 
   @IsOptional()

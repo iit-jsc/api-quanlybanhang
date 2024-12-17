@@ -35,7 +35,7 @@ export class JwtAuthGuard implements CanActivate {
           id: payload.accountId,
           isPublic: true,
           status: ACCOUNT_STATUS.ACTIVE,
-          branches: { some: { id: payload.branchId, isPublic: true, status: BRANCH_STATUS.ACTIVE } },
+          branches: { some: { id: payload.branchId, isPublic: true } },
           authTokens: {
             some: {
               deviceId: payload.deviceId

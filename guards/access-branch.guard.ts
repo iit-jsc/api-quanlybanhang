@@ -11,7 +11,7 @@ export class AccessBranchGuard implements CanActivate {
   constructor(
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
-  ) {}
+  ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = this.getRequest(context);
@@ -34,7 +34,7 @@ export class AccessBranchGuard implements CanActivate {
           id: payload.accountId,
           isPublic: true,
           status: ACCOUNT_STATUS.ACTIVE,
-          branches: { some: { id: payload.branchId, isPublic: true, status: BRANCH_STATUS.ACTIVE } },
+          branches: { some: { id: payload.branchId, isPublic: true } },
         },
         select: {
           id: true,
@@ -73,7 +73,7 @@ export class AccessBranchGuard implements CanActivate {
 
 @Injectable()
 export class JwtCustomerAuthGuard implements CanActivate {
-  constructor(private readonly jwtService: JwtService) {}
+  constructor(private readonly jwtService: JwtService) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();

@@ -25,7 +25,6 @@ export class BranchService {
           address: createBranchDto.address,
           photoURL: createBranchDto.photoURL,
           bannerURL: createBranchDto.bannerURL,
-          status: createBranchDto.status,
           phone: createBranchDto.phone,
           others: createBranchDto.others,
           creator: {
@@ -119,7 +118,6 @@ export class BranchService {
         address: data.address,
         photoURL: data.photoURL,
         bannerURL: data.bannerURL,
-        status: data.status,
         phone: data.phone,
         others: data.others,
         updater: {

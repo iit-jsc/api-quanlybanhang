@@ -911,7 +911,6 @@ model Branch {
   name                       String
   address                    String?                 @db.Text
   phone                      String?
-  status                     Int?                    @default(1)
   isPublic                   Boolean?                @default(true)
   createdBy                  String?
   updatedBy                  String?

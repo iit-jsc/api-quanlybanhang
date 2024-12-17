@@ -61,7 +61,6 @@ export class ShopService {
             create: {
               name: branch.name,
               address: branch.address,
-              status: BRANCH_STATUS.ACTIVE,
               accounts: {
                 connect: {
                   id: ownerShop.account.id,
@@ -195,6 +194,8 @@ export class ShopService {
             id: true,
             name: true,
             bannerURL: true,
+            photoURL: true,
+            phone: true,
             address: true,
             createdAt: true,
             updatedAt: true
