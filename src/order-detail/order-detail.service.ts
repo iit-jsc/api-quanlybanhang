@@ -108,9 +108,6 @@ export class OrderDetailService {
 
     const keySearch = ["code"];
 
-    console.log(orderDetailStatuses, 999);
-    
-
     const where: Prisma.OrderDetailWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
