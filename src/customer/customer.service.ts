@@ -257,8 +257,10 @@ export class CustomerService {
           shopId: data.shopId
         }
       }
-    })
+    });
 
-    return customer.phone === data.phone
+    if (!customer || !customer.phone) return true;
+
+    return customer.phone === data.phone;
   }
 }
