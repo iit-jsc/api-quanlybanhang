@@ -104,7 +104,7 @@ export class FindManyDto {
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(",").map((id: string) => id.trim());
   })
-  orderStatus: number[];
+  orderStatuses: number[];
 
   @Transform(({ value }: TransformFnParams) => {
     return Boolean(+value);
