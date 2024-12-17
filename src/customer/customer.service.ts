@@ -259,6 +259,6 @@ export class CustomerService {
       }
     })
 
-    return customer.phone !== data.phone ? false : true
+    return customer.phone === data.phone
   }
 }
