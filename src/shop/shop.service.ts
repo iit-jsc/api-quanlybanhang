@@ -189,6 +189,21 @@ export class ShopService {
         ...where,
         isPublic: true,
       },
+      include: {
+        branches: { 
+          select: {
+            id: true,
+            name: true,
+            bannerURL: true,
+            address: true,
+            createdAt: true,
+            updatedAt: true
+          },
+          where: {
+            isPublic: true
+          }
+        }
+      }
     });
   }
 
