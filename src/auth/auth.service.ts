@@ -128,40 +128,34 @@ export class AuthService {
   }
 
   async verifyContact(data: VerifyContactDto) {
-    const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
+    // const otp = (Math.floor(Math.random() * 900000) + 100000).toString();
 
-    const user = await this.prisma.customer.findUnique({
-      where: {
-        isPublic: true,
-        ...(data.phone && {
-          shopId_phone: {
-            shopId: data.shopId,
-            phone: data.phone
-          }
-        }),
-        ...(data.email && {
-          shopId_email: {
-            shopId: data.shopId,
-            email: data.email
-          }
-        })
-      },
-      select: { id: true, email: true },
-    });
+    // const user = await this.prisma.customer.findUnique({
+    //   where: {
+    //     isPublic: true,
+    //     ...(data.phone && {
+    //       shopId_phone: {
+    //         shopId: data.shopId,
+    //         phone: data.phone
+    //       }
+    //     }),
+    //   },
+    //   select: { id: true, email: true },
+    // });
 
-    if (!user) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin người dùng!");
+    // if (!user) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy thông tin người dùng!");
 
-    await this.transporterService.sendOTP(user?.email, otp);
+    // await this.transporterService.sendOTP(user?.email, otp);
 
-    await this.prisma.contactVerification.create({
-      data: {
-        otp,
-        ...(data.phone && { phone: data.phone }),
-        ...(data.email && { email: data.email }),
-      },
-    });
+    // await this.prisma.contactVerification.create({
+    //   data: {
+    //     otp,
+    //     ...(data.phone && { phone: data.phone }),
+    //     ...(data.email && { email: data.email }),
+    //   },
+    // });
 
-    return data.email ? { email: user.email } : { email: this.maskEmail(user.email) };
+    // return data.email ? { email: user.email } : { email: this.maskEmail(user.email) };
   }
 
   maskEmail(email: string) {

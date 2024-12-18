@@ -249,18 +249,5 @@ export class CustomerService {
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 
-  async checkEmailExisted(data: CheckEmailDto) {
-    const customer = await this.prisma.customer.findUnique({
-      where: {
-        shopId_email: {
-          email: data.email,
-          shopId: data.shopId
-        }
-      }
-    });
-
-    if (!customer || !customer.phone) return true;
-
-    return customer.phone === data.phone;
-  }
+  async checkEmailExisted(data: CheckEmailDto) {}
 }
