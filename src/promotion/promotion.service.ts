@@ -73,9 +73,6 @@ export class PromotionService {
   async findAll(params: FindManyPromotionDto) {
     const { skip, take, keyword, isSort, branchId, orderBy, orderProducts } = params;
 
-    console.log(orderProducts);
-    
-
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
       branchId: branchId,

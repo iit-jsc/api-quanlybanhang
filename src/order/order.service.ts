@@ -114,7 +114,6 @@ export class OrderService {
                   some: {
                     OR: orderDetails.map((order) => ({
                       productId: order.product.id,
-
                       amount: {
                         lte: order.amount,
                       },
