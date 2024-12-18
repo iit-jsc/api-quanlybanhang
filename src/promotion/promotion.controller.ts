@@ -15,11 +15,10 @@ import {
 import { PromotionService } from './promotion.service';
 import {
   CreatePromotionDto,
-  ProductsOrderDto,
   UpdatePromotionDto,
 } from './dto/promotion.dto';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto } from 'utils/Common.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { RolesGuard } from 'guards/roles.guard';
 import { Roles } from 'guards/roles.decorator';
@@ -43,9 +42,8 @@ export class PromotionController {
   @HttpCode(HttpStatus.OK)
   findAll(
     @Query() findManyDto: FindManyPromotionDto,
-    @Body() productsOrderDto: ProductsOrderDto,
   ) {
-    return this.promotionService.findAll(findManyDto, productsOrderDto);
+    return this.promotionService.findAll(findManyDto);
   }
 
   @Get(':id')

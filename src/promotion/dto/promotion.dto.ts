@@ -100,7 +100,7 @@ class PromotionConditionDto {
   amount: number;
 }
 
-class PromotionProductDto {
+export class PromotionProductDto {
   @IsOptional()
   @IsString()
   productId: string;
@@ -118,22 +118,6 @@ class PromotionProductDto {
   photoURL: string;
 }
 
-export class ProductsOrderDto {
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => PromotionProductDto)
-  @ArrayMinSize(1, { message: "Danh sách không được rỗng!" })
-  orderProducts: OrderProductDto[];
-}
 
-export class OrderProductDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @IsString()
-  productId: string;
-
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @IsNumber()
-  amount: number;
-}
 
 export class UpdatePromotionDto extends PartialType(CreatePromotionDto) { }

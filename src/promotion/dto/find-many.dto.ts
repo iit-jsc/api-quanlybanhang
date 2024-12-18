@@ -1,7 +1,6 @@
 import { Transform, TransformFnParams, Type } from "class-transformer";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { ArrayMinSize, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateNested } from "class-validator";
 import { AnyObject } from "interfaces/common.interface";
-
 export class FindManyPromotionDto {
   @IsNotEmpty({ message: "Không được để trống!" })
   @IsString()
@@ -33,4 +32,20 @@ export class FindManyPromotionDto {
     return { createdAt: "desc" };
   })
   orderBy?: AnyObject;
+
+  @IsOptional()
+  @Transform(({ value }) => JSON.parse(value))
+  @ValidateNested({ each: true })
+  @ArrayMinSize(1, { message: 'Danh sách không được rỗng!' })
+  @Type(() => OrderProductDto)
+  orderProducts: OrderProductDto[];
+}
+
+export class OrderProductDto {
+  @IsNotEmpty({ message: "Không được để trống!" })
+  productId: string;
+
+  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNumber()
+  amount: number;
 }

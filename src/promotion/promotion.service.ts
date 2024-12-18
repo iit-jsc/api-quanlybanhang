@@ -1,6 +1,6 @@
 import { Injectable } from "@nestjs/common";
-import { CreatePromotionDto, ProductsOrderDto, UpdatePromotionDto } from "./dto/promotion.dto";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { CreatePromotionDto, UpdatePromotionDto } from "./dto/promotion.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
@@ -70,9 +70,11 @@ export class PromotionService {
     return result;
   }
 
-  async findAll(params: FindManyPromotionDto, body: ProductsOrderDto) {
-    const { skip, take, keyword, isSort, branchId, orderBy } = params;
-    const { orderProducts } = body;
+  async findAll(params: FindManyPromotionDto) {
+    const { skip, take, keyword, isSort, branchId, orderBy, orderProducts } = params;
+
+    console.log(orderProducts);
+    
 
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
