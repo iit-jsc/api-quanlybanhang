@@ -540,6 +540,7 @@ model Customer {
   updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([shopId, phone])
+  @@unique([shopId, email])
   @@index([shopId])
 }
 
