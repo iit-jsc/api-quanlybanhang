@@ -160,7 +160,18 @@ export class OrderService {
         description: true,
         startDate: true,
         endDate: true,
-        updatedAt: true
+        updatedAt: true,
+        promotionProducts: {
+          where: {
+            isPublic: true
+          },
+          select: {
+            id: true,
+            name: true,
+            amount: true,
+            photoURL: true,
+          }
+        }
       },
     });
 
