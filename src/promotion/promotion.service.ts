@@ -7,7 +7,7 @@ import { PrismaService } from "nestjs-prisma";
 import { calculatePagination } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE, PROMOTION_TYPE } from "enums/common.enum";
-import { FindManyPromotionDto } from "./dto/find-many.dto";
+import { FindManyPromotionDto, OrderProductDto } from "./dto/find-many.dto";
 
 @Injectable()
 export class PromotionService {
@@ -70,6 +70,21 @@ export class PromotionService {
     return result;
   }
 
+  aggregateOrderProducts(orderProducts: OrderProductDto[]) {
+    if (!orderProducts && !orderProducts?.length)
+      return orderProducts
+
+    return Object.values(
+      orderProducts.reduce((acc, { productId, amount }) => {
+        if (!acc[productId]) {
+          acc[productId] = { productId, amount: 0 };
+        }
+        acc[productId].amount += amount;
+        return acc;
+      }, {} as OrderProductDto)
+    );
+  }
+
   async findAll(params: FindManyPromotionDto) {
     const { skip, take, keyword, isSort, branchId, orderBy, orderProducts } = params;
 
@@ -84,18 +99,20 @@ export class PromotionService {
         AND: [
           {
             OR: [
-              {
+              (orderProducts && {
                 promotionConditions: {
                   some: {
-                    OR: orderProducts.map((orderDetail) => ({
-                      productId: orderDetail.productId,
-                      amount: {
-                        lte: orderDetail.amount,
-                      },
-                    })),
+                    OR: this.aggregateOrderProducts(orderProducts).
+                      map((orderDetail) =>
+                      ({
+                        productId: orderDetail.productId,
+                        amount: {
+                          lte: orderDetail.amount,
+                        },
+                      })),
                   },
                 },
-              },
+              }),
               {
                 promotionConditions: {
                   none: {},
@@ -248,7 +265,7 @@ export class PromotionService {
         discount: data.discount,
         discountType: data.discountType,
         type: data.type,
-        ...(data.promotionConditions?.length > 0 && {
+        ...(data.promotionConditions && {
           promotionConditions: {
             deleteMany: {
               promotionId: where.id,
@@ -262,7 +279,7 @@ export class PromotionService {
             },
           },
         }),
-        ...(data.promotionProducts?.length > 0 && {
+        ...(data.promotionProducts && {
           promotionProducts: {
             deleteMany: {
               promotionId: where.id,
