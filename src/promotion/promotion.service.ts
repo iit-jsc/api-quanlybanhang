@@ -70,21 +70,6 @@ export class PromotionService {
     return result;
   }
 
-  aggregateOrderProducts(orderProducts: OrderProductDto[]) {
-    if (!orderProducts && !orderProducts?.length)
-      return orderProducts
-
-    return Object.values(
-      orderProducts.reduce((acc, { productId, amount }) => {
-        if (!acc[productId]) {
-          acc[productId] = { productId, amount: 0 };
-        }
-        acc[productId].amount += amount;
-        return acc;
-      }, {} as OrderProductDto)
-    );
-  }
-
   async findAll(params: FindManyPromotionDto) {
     const { skip, take, keyword, isSort, branchId, orderBy, orderProducts } = params;
 
@@ -102,7 +87,7 @@ export class PromotionService {
               (orderProducts && {
                 promotionConditions: {
                   some: {
-                    OR: this.aggregateOrderProducts(orderProducts).
+                    OR: this.commonService.aggregateOrderProducts(orderProducts).
                       map((orderDetail) =>
                       ({
                         productId: orderDetail.productId,

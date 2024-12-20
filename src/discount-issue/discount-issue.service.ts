@@ -2,7 +2,7 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { CreateDiscountIssueDto, UpdateDiscountIssueDto } from "./dto/discount-issue.dto";
+import { CreateDiscountIssueDto, findUniqByDiscountCodeDto, UpdateDiscountIssueDto } from "./dto/discount-issue.dto";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
@@ -152,6 +152,45 @@ export class DiscountIssueService {
     });
   }
 
+  async findByDiscountCode(data: findUniqByDiscountCodeDto) {
+    const { branchId, code } = data
+
+    const discountIssue = await this.prisma.discountIssue.findFirst({
+      where: {
+        branchId: branchId,
+        isPublic: true,
+        startDate: {
+          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        },
+        AND: [
+          {
+            OR: [
+              {
+                endDate: {
+                  gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                },
+              },
+              {
+                isEndDateDisabled: true,
+              },
+            ],
+          },
+        ],
+        discountCodes: {
+          some: {
+            code: code,
+            isUsed: false,
+            isPublic: true,
+          },
+        },
+      },
+    });
+
+    if (!discountIssue) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy khuyến mãi!");
+
+    return discountIssue;
+  }
+
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const count = await prisma.discountIssue.updateMany({
@@ -187,6 +226,5 @@ export class DiscountIssueService {
 
       return { ...count, ids: data.ids } as DeleteManyResponse;
     })
-
   }
 }

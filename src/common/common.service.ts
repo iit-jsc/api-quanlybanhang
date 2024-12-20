@@ -4,6 +4,7 @@ import { Prisma } from "@prisma/client";
 import { ORDER_STATUS_COMMON } from "enums/order.enum";
 import { AnyObject, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
+import { OrderProductDto } from "src/promotion/dto/find-many.dto";
 import { ConfirmEmailDto } from "src/shop/dto/confirm-email.dto";
 import { CustomHttpException } from "utils/ApiErrors";
 
@@ -309,5 +310,21 @@ export class CommonService {
         },
       },
     });
+  }
+
+
+  aggregateOrderProducts(orderProducts: OrderProductDto[]) {
+    if (!orderProducts && !orderProducts?.length)
+      return orderProducts
+
+    return Object.values(
+      orderProducts.reduce((acc, { productId, amount }) => {
+        if (!acc[productId]) {
+          acc[productId] = { productId, amount: 0 };
+        }
+        acc[productId].amount += amount;
+        return acc;
+      }, {} as OrderProductDto)
+    );
   }
 }

@@ -20,6 +20,7 @@ import { TableGateway } from "src/gateway/table.gateway";
 import { PointAccumulationService } from "src/point-accumulation/point-accumulation.service";
 import { ENDOW_TYPE } from "enums/user.enum";
 import { MailService } from "src/mail/mail.service";
+import { OrderProductDto } from "src/promotion/dto/find-many.dto";
 
 @Injectable()
 export class OrderService {
@@ -94,7 +95,7 @@ export class OrderService {
     }, 0);
   }
 
-  async getPromotion(promotionId: string, orderDetails: AnyObject, branchId: string, prisma?: PrismaClient) {
+  async getPromotion(promotionId: string, orderDetails: OrderProductDto[], branchId: string, prisma?: PrismaClient) {
     prisma = prisma || this.prisma;
 
     const matchPromotion = await prisma.promotion.findUnique({
@@ -113,7 +114,7 @@ export class OrderService {
                 promotionConditions: {
                   some: {
                     OR: orderDetails.map((order) => ({
-                      productId: order.product.id,
+                      productId: order.productId,
                       amount: {
                         lte: order.amount,
                       },
@@ -374,6 +375,7 @@ export class OrderService {
   async createOrderOnline(data: CreateOrderOnlineDto) {
     let discountIssue = null;
     let customerDiscount = null;
+    let promotion = null;
 
     const orderDetails = await this.getOrderDetails(
       data.orderProducts,
@@ -381,7 +383,7 @@ export class OrderService {
       { branchId: data.branchId }
     );
 
-    const shop = await this.prisma.shop.findFirst({ 
+    const shop = await this.prisma.shop.findFirst({
       where: {
         branches: {
           some: {
@@ -393,6 +395,7 @@ export class OrderService {
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const totalOrder = this.getTotalInOrder(orderDetails);
+      const aggregateOrderProducts = this.commonService.aggregateOrderProducts(data.orderProducts)
 
       const customer = await prisma.customer.upsert({
         where: {
@@ -415,11 +418,13 @@ export class OrderService {
         }
       })
 
-      const [discountIssuePromise, customerDiscountPromise] = await Promise.all([
+      const [promotionPromise, discountIssuePromise, customerDiscountPromise] = await Promise.all([
+        data.promotionId ? this.getPromotion(data.promotionId, aggregateOrderProducts, data.branchId, prisma) : null,
         data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, data.branchId, prisma) : null,
         customer.id ? this.getCustomerDiscount(customer.id, prisma) : null,
       ]);
 
+      promotion = promotionPromise;
       discountIssue = discountIssuePromise;
       customerDiscount = customerDiscountPromise;
 
@@ -427,6 +432,7 @@ export class OrderService {
         data: {
           note: data.note,
           discountIssue,
+          promotion,
           customerDiscount,
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
@@ -481,7 +487,7 @@ export class OrderService {
       });
 
       // Gửi email
-      if (data.email) 
+      if (data.email)
         this.mailService.sendEmailOrderSuccess(order)
 
       // Gửi socket
@@ -499,14 +505,23 @@ export class OrderService {
 
     const newOrder = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const orderDetails = await this.getOrderDetailsInTable(data.tableId, prisma);
+      const orderProducts = this.mapOrderProducts(orderDetails);
 
       const totalOrder = this.getTotalInOrder(orderDetails);
 
       const [promotionPromise, discountIssuePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
-        data.promotionId ? this.getPromotion(data.promotionId, orderDetails, tokenPayload.branchId, prisma) : null,
-        data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma) : null,
-        data.customerId ? this.getCustomerDiscount(data.customerId) : null,
-        data.exchangePoint ? this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId) : null,
+        data.promotionId ?
+          this.getPromotion(data.promotionId, orderProducts, tokenPayload.branchId, prisma)
+          : null,
+        data.discountCode ?
+          this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
+          : null,
+        data.customerId ?
+          this.getCustomerDiscount(data.customerId)
+          : null,
+        data.exchangePoint ?
+          this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId)
+          : null,
         this.deleteCustomerRequests(data.tableId, tokenPayload, prisma),
       ]);
 
@@ -1263,14 +1278,28 @@ export class OrderService {
       });
 
       const totalOrder = this.getTotalInOrder(order.orderDetails);
+      const orderProducts = this.mapOrderProducts(order.orderDetails);
 
       if (order.isPaid) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này đã thành toán!");
 
-      const [promotionPromise, discountIssuePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
-        data.promotionId ? this.getPromotion(data.promotionId, order.orderDetails, tokenPayload.branchId, prisma) : null,
-        data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma) : null,
-        data.customerId ? this.getCustomerDiscount(data.customerId) : null,
-        data.exchangePoint ? this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId) : null,
+      const [
+        promotionPromise,
+        discountIssuePromise,
+        customerDiscountPromise,
+        convertedPointValuePromise
+      ] = await Promise.all([
+        data.promotionId ?
+          this.getPromotion(data.promotionId, orderProducts, tokenPayload.branchId, prisma)
+          : null,
+        data.discountCode ?
+          this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
+          : null,
+        data.customerId ?
+          this.getCustomerDiscount(data.customerId)
+          : null,
+        data.exchangePoint ?
+          this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId)
+          : null,
       ]);
 
       promotion = promotionPromise;
@@ -1316,6 +1345,17 @@ export class OrderService {
       maxWait: 5000,
       timeout: 10000,
     });
+  }
+
+  mapOrderProducts(orderDetails: AnyObject) {
+    const formattedOrderDetails = orderDetails.map(detail => ({
+      productId: detail.product?.id,
+      amount: detail.amount,
+    }));
+
+    const orderProducts = this.commonService.aggregateOrderProducts(formattedOrderDetails);
+
+    return orderProducts;
   }
 
   async getCustomerDiscount(customerId: string, prisma?: PrismaClient) {

@@ -82,3 +82,11 @@ export class CreateDiscountIssueDto {
 export class UpdateDiscountIssueDto extends PartialType(
   CreateDiscountIssueDto,
 ) {}
+
+export class findUniqByDiscountCodeDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  branchId: string
+
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  code: string
+}

@@ -78,6 +78,17 @@ export class DiscountIssueController {
     );
   }
 
+  @Get(':branchId/:code')
+  @HttpCode(HttpStatus.OK)
+  findByDiscountCode(@Param('branchId') branchId: string, @Param('code') code: string) {
+    return this.discountIssueService.findByDiscountCode(
+      {
+        branchId,
+        code
+      },
+    );
+  }
+
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)

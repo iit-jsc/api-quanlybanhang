@@ -51,4 +51,8 @@ export class CreateOrderOnlineDto {
   @IsNumber()
   @Min(1)
   exchangePoint: number;
+
+  @IsOptional()
+  @IsString()
+  promotionId: string;
 }
