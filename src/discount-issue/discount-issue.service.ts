@@ -155,6 +155,8 @@ export class DiscountIssueService {
   async findByDiscountCode(data: findUniqByDiscountCodeDto) {
     const { branchId, code } = data
 
+    if(!branchId) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Chi nhánh không được để trống!");
+
     const discountIssue = await this.prisma.discountIssue.findFirst({
       where: {
         branchId: branchId,

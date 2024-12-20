@@ -14,7 +14,7 @@ async function bootstrap() {
 
     app.enableCors({ origin: true });
     app.use("/uploads", static_("uploads"));
-    app.use(json({ limit: "200mb" }));
+    app.use(json({ limit: "2mb" }));
     app.useGlobalFilters(new PrismaExceptionFilter());
     app.useGlobalInterceptors(new TransformInterceptor());
     app.setGlobalPrefix("api");

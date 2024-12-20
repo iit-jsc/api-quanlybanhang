@@ -11,6 +11,8 @@ import {
   Query,
   Req,
   UseGuards,
+  UsePipes,
+  ValidationPipe,
 } from '@nestjs/common';
 import { DiscountIssueService } from './discount-issue.service';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
@@ -78,9 +80,9 @@ export class DiscountIssueController {
     );
   }
 
-  @Get(':branchId/:code')
+  @Get('code/:code')
   @HttpCode(HttpStatus.OK)
-  findByDiscountCode(@Param('branchId') branchId: string, @Param('code') code: string) {
+  findByDiscountCode(@Param('code') code: string, @Query('branchId') branchId: string) {
     return this.discountIssueService.findByDiscountCode(
       {
         branchId,
