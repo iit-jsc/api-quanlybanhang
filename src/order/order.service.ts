@@ -438,11 +438,9 @@ export class OrderService {
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
           discountCode: discountCodePromise,
+          customerDiscount: customerDiscountPromise,
           promotion: promotionPromise,
           code: generateSortCode(),
-          ...(customer.id && {
-            customerDiscount: customerDiscountPromise,
-          }),
           ...(customer && {
             customer: {
               connect: {
