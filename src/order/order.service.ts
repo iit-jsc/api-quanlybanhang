@@ -421,9 +421,15 @@ export class OrderService {
       })
 
       const [promotionPromise, discountCodePromise, customerDiscountPromise] = await Promise.all([
-        data.promotionId ? this.getPromotion(data.promotionId, aggregateOrderProducts, data.branchId, prisma) : null,
-        data.discountCode ? this.getDiscountCode(data.discountCode, totalOrder, data.branchId, prisma) : null,
-        customer.id ? this.getCustomerDiscount(customer.id, prisma) : null,
+        data.promotionId ?
+          this.getPromotion(data.promotionId, aggregateOrderProducts, data.branchId, prisma)
+          : undefined,
+        data.discountCode ?
+          this.getDiscountCode(data.discountCode, totalOrder, data.branchId, prisma)
+          : undefined,
+        customer.id ?
+          this.getCustomerDiscount(customer.id, prisma)
+          : undefined,
       ]);
 
       const order = await prisma.order.create({
@@ -507,16 +513,16 @@ export class OrderService {
       const [promotionPromise, discountCodePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
         data.promotionId ?
           this.getPromotion(data.promotionId, orderProducts, tokenPayload.branchId, prisma)
-          : null,
+          : undefined,
         data.discountCode ?
           this.getDiscountCode(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
-          : null,
+          : undefined,
         data.customerId ?
           this.getCustomerDiscount(data.customerId)
-          : null,
+          : undefined,
         data.exchangePoint ?
           this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId)
-          : null,
+          : undefined,
         this.deleteCustomerRequests(data.tableId, tokenPayload, prisma),
       ]);
 
@@ -1275,16 +1281,16 @@ export class OrderService {
       ] = await Promise.all([
         data.promotionId ?
           this.getPromotion(data.promotionId, orderProducts, tokenPayload.branchId, prisma)
-          : null,
+          : undefined,
         data.discountCode ?
           this.getDiscountCode(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
-          : null,
+          : undefined,
         data.customerId ?
           this.getCustomerDiscount(data.customerId)
-          : null,
+          : undefined,
         data.exchangePoint ?
           this.pointAccumulationService.convertDiscountFromPoint(data.exchangePoint, tokenPayload.shopId)
-          : null,
+          : undefined,
       ]);
 
       // Xử lý tích điểm
