@@ -21,6 +21,7 @@ import { PointAccumulationService } from "src/point-accumulation/point-accumulat
 import { ENDOW_TYPE } from "enums/user.enum";
 import { MailService } from "src/mail/mail.service";
 import { OrderProductDto } from "src/promotion/dto/find-many.dto";
+import { TrunkContextImpl } from "twilio/lib/rest/routes/v2/trunk";
 
 @Injectable()
 export class OrderService {
@@ -194,60 +195,65 @@ export class OrderService {
     return matchPromotion
   }
 
-  async getDiscountIssue(code: string, totalOrder: number, branchId: string, prisma: PrismaClient) {
-    const discountIssue = await this.prisma.discountIssue.findFirst({
+  async getDiscountCode(code: string, totalOrder: number, branchId: string, prisma: PrismaClient) {
+    const discountCode = await this.prisma.discountCode.findUniqueOrThrow({
       where: {
         isPublic: true,
-        branchId,
-        startDate: {
-          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+        branchId_code: {
+          branchId: branchId,
+          code: code,
         },
-        AND: [
-          {
-            OR: [
-              {
-                endDate: {
-                  gte: new Date(new Date().setHours(0, 0, 0, 0)),
+        isUsed: false,
+        discountIssue: {
+          startDate: {
+            lte: new Date(new Date().setHours(23, 59, 59, 999)),
+          },
+          AND: [
+            {
+              OR: [
+                {
+                  endDate: {
+                    gte: new Date(new Date().setHours(0, 0, 0, 0)),
+                  },
                 },
-              },
-              {
-                isEndDateDisabled: true,
-              },
-            ],
-          },
-        ],
-        discountCodes: {
-          some: {
-            code: code,
-            isUsed: false,
-            isPublic: true,
-          },
-        },
+                {
+                  isEndDateDisabled: true,
+                },
+              ],
+            },
+          ],
+        }
       },
       select: {
         id: true,
-        name: true,
         code: true,
-        amount: true,
-        startDate: true,
-        endDate: true,
-        isEndDateDisabled: true,
-        maxValue: true,
-        discountType: true,
-        discount: true,
-        minTotalOrder: true,
-        description: true,
-        updatedAt: true
+        isUsed: true,
+        createdAt: true,
+        updatedAt: true,
+        discountIssue: {
+          select: {
+            id: true,
+            name: true,
+            code: true,
+            amount: true,
+            startDate: true,
+            endDate: true,
+            isEndDateDisabled: true,
+            maxValue: true,
+            discountType: true,
+            discount: true,
+            minTotalOrder: true,
+            description: true,
+            updatedAt: true
+          }
+        }
       }
     });
 
-    if (!discountIssue)
-      throw new CustomHttpException(HttpStatus.NOT_FOUND, "Mã giảm giá không tồn tại hoặc đã sử dụng!");
-
-    if (discountIssue.minTotalOrder > totalOrder)
+    if (discountCode.discountIssue.minTotalOrder > totalOrder)
       throw new CustomHttpException(HttpStatus.CONFLICT, "Tổng số tiền đơn hàng chưa đủ để áp dụng!");
 
-    const discountCode = await prisma.discountCode.update({
+    await prisma.discountCode.update({
       where: {
         branchId_code: {
           branchId: branchId,
@@ -260,7 +266,7 @@ export class OrderService {
     if (!discountCode)
       throw new CustomHttpException(HttpStatus.NOT_FOUND, "Mã giảm giá không tồn tại hoặc đã sử dụng!");
 
-    return discountIssue;
+    return discountCode;
   }
 
   async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
@@ -373,7 +379,7 @@ export class OrderService {
   }
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
-    let discountIssue = null;
+    let discountCode = null;
     let customerDiscount = null;
     let promotion = null;
 
@@ -418,20 +424,20 @@ export class OrderService {
         }
       })
 
-      const [promotionPromise, discountIssuePromise, customerDiscountPromise] = await Promise.all([
+      const [promotionPromise, discountCodePromise, customerDiscountPromise] = await Promise.all([
         data.promotionId ? this.getPromotion(data.promotionId, aggregateOrderProducts, data.branchId, prisma) : null,
-        data.discountCode ? this.getDiscountIssue(data.discountCode, totalOrder, data.branchId, prisma) : null,
+        data.discountCode ? this.getDiscountCode(data.discountCode, totalOrder, data.branchId, prisma) : null,
         customer.id ? this.getCustomerDiscount(customer.id, prisma) : null,
       ]);
 
       promotion = promotionPromise;
-      discountIssue = discountIssuePromise;
+      discountCode = discountCodePromise;
       customerDiscount = customerDiscountPromise;
 
       const order = await prisma.order.create({
         data: {
           note: data.note,
-          discountIssue,
+          discountCode,
           promotion,
           customerDiscount,
           orderType: ORDER_TYPE.ONLINE,
@@ -499,7 +505,7 @@ export class OrderService {
 
   async paymentFromTable(data: PaymentFromTableDto, tokenPayload: TokenPayload) {
     let promotion = null;
-    let discountIssue = null;
+    let discountCode = null;
     let customerDiscount = null;
     let convertedPointValue = 0;
 
@@ -509,12 +515,12 @@ export class OrderService {
 
       const totalOrder = this.getTotalInOrder(orderDetails);
 
-      const [promotionPromise, discountIssuePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
+      const [promotionPromise, discountCodePromise, customerDiscountPromise, convertedPointValuePromise] = await Promise.all([
         data.promotionId ?
           this.getPromotion(data.promotionId, orderProducts, tokenPayload.branchId, prisma)
           : null,
         data.discountCode ?
-          this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
+          this.getDiscountCode(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
           : null,
         data.customerId ?
           this.getCustomerDiscount(data.customerId)
@@ -526,7 +532,7 @@ export class OrderService {
       ]);
 
       promotion = promotionPromise;
-      discountIssue = discountIssuePromise;
+      discountCode = discountCodePromise;
       customerDiscount = customerDiscountPromise;
       convertedPointValue = convertedPointValuePromise ?? 0;
 
@@ -535,7 +541,7 @@ export class OrderService {
           code: generateSortCode(),
           note: data.note,
           customerDiscount,
-          discountIssue,
+          discountCode,
           promotion,
           orderType: ORDER_TYPE.ON_TABLE,
           orderStatus: data.orderStatus,
@@ -794,7 +800,7 @@ export class OrderService {
           code: true,
           bankingImages: true,
           isPaid: true,
-          discountIssue: true,
+          discountCode: true,
           isSave: true,
           note: true,
           orderType: true,
@@ -1003,7 +1009,7 @@ export class OrderService {
           code: true,
           bankingImages: true,
           isPaid: true,
-          discountIssue: true,
+          discountCode: true,
           isSave: true,
           note: true,
           orderType: true,
@@ -1083,7 +1089,7 @@ export class OrderService {
         code: true,
         bankingImages: true,
         isPaid: true,
-        discountIssue: true,
+        discountCode: true,
         isSave: true,
         note: true,
         orderType: true,
@@ -1254,7 +1260,7 @@ export class OrderService {
     const { where, data } = params;
 
     let promotion = null;
-    let discountIssue = null;
+    let discountCode = null;
     let customerDiscount = null;
     let convertedPointValue = 0;
 
@@ -1284,7 +1290,7 @@ export class OrderService {
 
       const [
         promotionPromise,
-        discountIssuePromise,
+        discountCodePromise,
         customerDiscountPromise,
         convertedPointValuePromise
       ] = await Promise.all([
@@ -1292,7 +1298,7 @@ export class OrderService {
           this.getPromotion(data.promotionId, orderProducts, tokenPayload.branchId, prisma)
           : null,
         data.discountCode ?
-          this.getDiscountIssue(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
+          this.getDiscountCode(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
           : null,
         data.customerId ?
           this.getCustomerDiscount(data.customerId)
@@ -1303,7 +1309,7 @@ export class OrderService {
       ]);
 
       promotion = promotionPromise;
-      discountIssue = discountIssuePromise;
+      discountCode = discountCodePromise;
       customerDiscount = customerDiscountPromise;
       convertedPointValue = convertedPointValuePromise ?? 0;
 
@@ -1329,7 +1335,7 @@ export class OrderService {
           orderType: data.orderType,
           promotion,
           customerDiscount,
-          discountIssue,
+          discountCode,
           convertedPointValue,
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,

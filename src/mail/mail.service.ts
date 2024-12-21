@@ -21,7 +21,7 @@ export class MailService {
 
     const totalOrder = this.getTotalInOrder(orderDetails)
 
-    const discountValue = this.getDiscountValue(order.discountIssue, totalOrder)
+    const discountValue = this.getDiscountValue(order.discountCode?.discountIssue, totalOrder)
 
     const customerDiscount = this.getDiscountCustomer(order.customer, totalOrder)
 

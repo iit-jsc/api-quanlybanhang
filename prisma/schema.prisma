@@ -344,7 +344,7 @@ model Product {
   photoURLs                   Json?
   otherAttributes             Json?
   status                      Int?                         @default(1)
-  productTypeId               String                      
+  productTypeId               String
   productType                 ProductType?                 @relation(fields: [productTypeId], references: [id])
   isPublic                    Boolean?                     @default(true)
   createdAt                   DateTime                     @default(now())
@@ -663,7 +663,7 @@ model Order {
   note                String?
   convertedPointValue Float?         @default(0)
   promotion           Json?
-  discountIssue       Json?
+  discountCode        Json?
   customerDiscount    Json?
   usedPoint           Float?         @default(0)
   moneyReceived       Float?
