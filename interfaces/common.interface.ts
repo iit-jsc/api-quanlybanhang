@@ -1,13 +1,13 @@
 import {
-  Account,
   Branch,
-  Order,
+  Customer,
+  CustomerType,
+  DiscountCode,
+  DiscountIssue,
   OrderDetail,
   Product,
   ProductOption,
   Promotion,
-  Table,
-  TableTransaction,
 } from "@prisma/client";
 
 export interface TokenPayload {
@@ -29,29 +29,8 @@ export interface PaginationResult {
   currentPage: number;
 }
 
-export interface Condition {
-  id?: string;
-  isPublic: boolean;
-  shop: {
-    id: string;
-    isPublic: boolean;
-  };
-  detailPermissions?: {
-    some: {
-      isPublic: boolean;
-    };
-  };
-  [key: string]: any;
-}
-
 export interface AnyObject {
   [key: string]: any;
-}
-
-export interface PromotionCountOrder extends Promotion {
-  _count: {
-    orders: number;
-  };
 }
 
 export interface DeleteManyResponse {
@@ -60,37 +39,46 @@ export interface DeleteManyResponse {
   notValidIds?: string[];
 }
 
-export interface CustomerShape {
-  id: string;
-  discount: number;
-  discountType: number;
-  endow: number;
-  customerType?: {
-    id: string;
-    discount: number;
-    discountType: number;
-  };
-}
-
 export interface IOrderDetail {
   id: string;
   branchId: string;
-  orderId?: string | null;
+  orderId: string;
   amount: number;
-  note?: string | null;
-  status?: number;
+  note: string;
+  status: number;
   productOptions?: ProductOption[] | null;
-  product?: Product | null;
-  isPublic?: boolean;
+  product?: Product | null;         
+  isPublic: boolean;
   createdAt: Date;
   updatedAt: Date;
-  branch: Branch;
-  order?: Order | null;
-  table?: Table | null;
-  tableId?: string | null;
+  tableId: string;
+  createdBy: string;
+  updatedBy: string;
+}
+
+export interface ICustomer {
+  id: string;
+  name: string;
+  customerTypeId?: string | null;
+  email?: string | null;
+  phone: string;
+  isOrganize: boolean;
+  address?: string | null;
+  description?: string | null;
+  representativeName?: string | null;
+  representativePhone?: string | null;
+  birthday?: Date | null;
+  endow?: number | null;
+  discount?: number | null;
+  discountType?: number | null;
+  sex?: number | null;
+  fax?: string | null;
+  tax?: string | null;
+  isPublic?: boolean | null;
+  createdAt: Date;
+  updatedAt: Date;
+  shopId: string;
   createdBy?: string | null;
   updatedBy?: string | null;
-  creator?: Account | null;
-  updater?: Account | null;
-  tableTransactions: TableTransaction[];
+  customerType?: CustomerType | null;
 }

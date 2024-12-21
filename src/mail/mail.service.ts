@@ -1,9 +1,8 @@
-import { Customer } from './../../node_modules/.prisma/client/index.d';
+import * as fs from 'fs/promises';
+import { DiscountIssue, Order, Promotion } from '@prisma/client';
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable } from '@nestjs/common';
-import { AnyObject } from 'interfaces/common.interface';
-import * as fs from 'fs/promises';
-import { Prisma } from '@prisma/client';
+import { AnyObject, ICustomer, IOrderDetail } from 'interfaces/common.interface';
 import { DISCOUNT_TYPE } from 'enums/common.enum';
 import { formatDate } from 'utils/Helps';
 import { ENDOW_TYPE } from 'enums/user.enum';
@@ -23,9 +22,11 @@ export class MailService {
 
     const discountValue = this.getDiscountValue(order.discountCode?.discountIssue, totalOrder)
 
+    const promotionValue = this.getPromotionValue(order.promotion, totalOrder)
+
     const customerDiscount = this.getDiscountCustomer(order.customer, totalOrder)
 
-    let totalDiscount = discountValue + customerDiscount
+    let totalDiscount = discountValue + customerDiscount + promotionValue
 
     const orderDetailsHTML = this.getOrderDetailsHTML(orderDetails)
 
@@ -59,7 +60,7 @@ export class MailService {
     });
   }
 
-  getOrderDetailsHTML(orderDetails: AnyObject) {
+  getOrderDetailsHTML(orderDetails: IOrderDetail[]) {
     const orderDetailsHTML = orderDetails
       .map(
         (item, index) => {
@@ -96,7 +97,7 @@ export class MailService {
     return orderDetailsHTML;
   }
 
-  getTotalInOrder(orderDetails: AnyObject) {
+  getTotalInOrder(orderDetails: IOrderDetail[]) {
     return orderDetails?.reduce((total, order) => {
       const productPrice = order.product?.price || 0;
 
@@ -106,7 +107,7 @@ export class MailService {
     }, 0);
   }
 
-  getDiscountValue(discountIssue: Prisma.DiscountIssueCreateInput, totalOrder: number) {
+  getDiscountValue(discountIssue: DiscountIssue, totalOrder: number) {
     let result = 0;
 
     if (!discountIssue) return 0
@@ -123,7 +124,7 @@ export class MailService {
     return result;
   }
 
-  getDiscountCustomer(customer: AnyObject, totalOrder: number) {
+  getDiscountCustomer(customer: ICustomer, totalOrder: number) {
     if (customer.endow === ENDOW_TYPE.BY_CUSTOMER) {
       if (customer.discountType === DISCOUNT_TYPE.PERCENT)
         return totalOrder * customer.discount / 100
@@ -139,9 +140,25 @@ export class MailService {
 
       if (customer.customerType?.discountType === DISCOUNT_TYPE.VALUE)
         return customer.customerType?.discount
-
     }
 
     return 0;
+  }
+
+  getPromotionValue(promotion: Promotion, totalOrder: number) {
+    let result = 0;
+
+    if (!promotion) return 0
+
+    if (promotion.discountType === DISCOUNT_TYPE.PERCENT)
+      result = totalOrder * promotion.discount / 100
+
+    if (promotion.discountType === DISCOUNT_TYPE.VALUE)
+      result = promotion.discount
+
+    if (promotion.maxValue !== null && promotion.maxValue < result)
+      result = promotion.maxValue
+
+    return result;
   }
 }

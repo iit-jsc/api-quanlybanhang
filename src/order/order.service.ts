@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "./dto/order.dto";
-import { AnyObject, CustomerShape, DeleteManyResponse, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
+import { AnyObject, ICustomer, DeleteManyResponse, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { OrderDetail, Prisma, PrismaClient } from "@prisma/client";
@@ -21,7 +21,6 @@ import { PointAccumulationService } from "src/point-accumulation/point-accumulat
 import { ENDOW_TYPE } from "enums/user.enum";
 import { MailService } from "src/mail/mail.service";
 import { OrderProductDto } from "src/promotion/dto/find-many.dto";
-import { TrunkContextImpl } from "twilio/lib/rest/routes/v2/trunk";
 
 @Injectable()
 export class OrderService {
@@ -486,7 +485,7 @@ export class OrderService {
                 }
               }
             }
-          }
+          },
         },
       });
 
@@ -1214,7 +1213,7 @@ export class OrderService {
     });
   }
 
-  async getDiscountCustomer(totalOrder: number, customer: CustomerShape) {
+  async getDiscountCustomer(totalOrder: number, customer: ICustomer) {
     if (customer && customer.endow === ENDOW_TYPE.BY_CUSTOMER) {
       if (customer.discountType == DISCOUNT_TYPE.PERCENT) {
         return (totalOrder * customer.discount) / 100;
