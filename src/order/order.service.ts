@@ -431,15 +431,11 @@ export class OrderService {
           note: data.note,
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
+          discountCode: discountCodePromise,
+          promotion: promotionPromise,
           code: generateSortCode(),
           ...(customer.id && {
             customerDiscount: customerDiscountPromise,
-          }),
-          ...(data.discountCode && {
-            discountCode: discountCodePromise,
-          }),
-          ...(data.promotionId && {
-            promotion: promotionPromise,
           }),
           ...(customer && {
             customer: {
@@ -536,15 +532,9 @@ export class OrderService {
           moneyReceived: data.moneyReceived,
           paymentAt: new Date(),
           convertedPointValue: convertedPointValuePromise ?? 0,
-          ...(data.promotionId && {
-            promotion: promotionPromise
-          }),
-          ...(data.discountCode && {
-            discountCode: discountCodePromise
-          }),
-          ...(data.customerId && {
-            customerDiscount: customerDiscountPromise
-          }),
+          promotion: promotionPromise,
+          discountCode: discountCodePromise,
+          customerDiscount: customerDiscountPromise,
           ...(data.customerId && {
             customer: {
               connect: {
@@ -1317,16 +1307,10 @@ export class OrderService {
           isPaid: true,
           note: data.note,
           orderType: data.orderType,
-          ...(data.promotionId && { 
-            promotion: promotionPromise
-          }),
-          ...(data.discountCode && {
-            discountCode: discountCodePromise
-          }),
-          ...(data.customerId && {
-            customerDiscount: customerDiscountPromise
-          }),
           convertedPointValue: convertedPointValuePromise ?? 0,
+          promotion: promotionPromise,
+          discountCode: discountCodePromise,
+          customerDiscount: customerDiscountPromise,
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,
           orderStatus: data.orderStatus,
