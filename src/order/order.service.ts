@@ -379,10 +379,6 @@ export class OrderService {
   }
 
   async createOrderOnline(data: CreateOrderOnlineDto) {
-    let discountCode = null;
-    let customerDiscount = null;
-    let promotion = null;
-
     const orderDetails = await this.getOrderDetails(
       data.orderProducts,
       DETAIL_ORDER_STATUS.SUCCESS,
@@ -430,19 +426,21 @@ export class OrderService {
         customer.id ? this.getCustomerDiscount(customer.id, prisma) : null,
       ]);
 
-      promotion = promotionPromise;
-      discountCode = discountCodePromise;
-      customerDiscount = customerDiscountPromise;
-
       const order = await prisma.order.create({
         data: {
           note: data.note,
-          discountCode,
-          promotion,
-          customerDiscount,
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
           code: generateSortCode(),
+          ...(customer.id && {
+            customerDiscount: customerDiscountPromise,
+          }),
+          ...(data.discountCode && {
+            discountCode: discountCodePromise,
+          }),
+          ...(data.promotionId && {
+            promotion: promotionPromise,
+          }),
           ...(customer && {
             customer: {
               connect: {
@@ -504,11 +502,6 @@ export class OrderService {
   }
 
   async paymentFromTable(data: PaymentFromTableDto, tokenPayload: TokenPayload) {
-    let promotion = null;
-    let discountCode = null;
-    let customerDiscount = null;
-    let convertedPointValue = 0;
-
     const newOrder = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const orderDetails = await this.getOrderDetailsInTable(data.tableId, prisma);
       const orderProducts = this.mapOrderProducts(orderDetails);
@@ -531,26 +524,27 @@ export class OrderService {
         this.deleteCustomerRequests(data.tableId, tokenPayload, prisma),
       ]);
 
-      promotion = promotionPromise;
-      discountCode = discountCodePromise;
-      customerDiscount = customerDiscountPromise;
-      convertedPointValue = convertedPointValuePromise ?? 0;
-
       const order = await prisma.order.create({
         data: {
           code: generateSortCode(),
           note: data.note,
-          customerDiscount,
-          discountCode,
-          promotion,
           orderType: ORDER_TYPE.ON_TABLE,
           orderStatus: data.orderStatus,
           bankingImages: data.bankingImages,
           isPaid: true,
-          convertedPointValue,
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,
           paymentAt: new Date(),
+          convertedPointValue: convertedPointValuePromise ?? 0,
+          ...(data.promotionId && {
+            promotion: promotionPromise
+          }),
+          ...(data.discountCode && {
+            discountCode: discountCodePromise
+          }),
+          ...(data.customerId && {
+            customerDiscount: customerDiscountPromise
+          }),
           ...(data.customerId && {
             customer: {
               connect: {
@@ -1259,11 +1253,6 @@ export class OrderService {
   ) {
     const { where, data } = params;
 
-    let promotion = null;
-    let discountCode = null;
-    let customerDiscount = null;
-    let convertedPointValue = 0;
-
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       await this.updateOrderDetailsStatus(prisma, { orderId: where.id });
 
@@ -1308,11 +1297,6 @@ export class OrderService {
           : null,
       ]);
 
-      promotion = promotionPromise;
-      discountCode = discountCodePromise;
-      customerDiscount = customerDiscountPromise;
-      convertedPointValue = convertedPointValuePromise ?? 0;
-
       // Xử lý tích điểm
       if (order.customerId) {
         await this.pointAccumulationService.handlePoint(
@@ -1333,10 +1317,16 @@ export class OrderService {
           isPaid: true,
           note: data.note,
           orderType: data.orderType,
-          promotion,
-          customerDiscount,
-          discountCode,
-          convertedPointValue,
+          ...(data.promotionId && { 
+            promotion: promotionPromise
+          }),
+          ...(data.discountCode && {
+            discountCode: discountCodePromise
+          }),
+          ...(data.customerId && {
+            customerDiscount: customerDiscountPromise
+          }),
+          convertedPointValue: convertedPointValuePromise ?? 0,
           usedPoint: data.exchangePoint,
           moneyReceived: data.moneyReceived,
           orderStatus: data.orderStatus,
