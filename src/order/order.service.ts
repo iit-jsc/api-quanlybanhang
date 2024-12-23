@@ -398,36 +398,12 @@ export class OrderService {
       const totalOrder = this.getTotalInOrder(orderDetails);
       const aggregateOrderProducts = this.commonService.aggregateOrderProducts(data.orderProducts)
 
-      const customer = await prisma.customer.upsert({
-        where: {
-          shopId_phone: {
-            phone: data.phone,
-            shopId: shop.id
-          }
-        },
-        update: {
-          name: data.name,
-          address: data.address,
-          email: data.email,
-        },
-        create: {
-          name: data.name,
-          phone: data.phone,
-          email: data.email,
-          address: data.address,
-          shopId: shop.id
-        }
-      })
-
-      const [promotionPromise, discountCodePromise, customerDiscountPromise] = await Promise.all([
+      const [promotionPromise, discountCodePromise] = await Promise.all([
         data.promotionId ?
           this.getPromotion(data.promotionId, aggregateOrderProducts, data.branchId, prisma)
           : undefined,
         data.discountCode ?
           this.getDiscountCode(data.discountCode, totalOrder, data.branchId, prisma)
-          : undefined,
-        customer.id ?
-          this.getCustomerDiscount(customer.id, prisma)
           : undefined,
       ]);
 
@@ -437,16 +413,14 @@ export class OrderService {
           orderType: ORDER_TYPE.ONLINE,
           orderStatus: ORDER_STATUS_COMMON.WAITING,
           discountCode: discountCodePromise,
-          customerDiscount: customerDiscountPromise,
+          customerDiscount: {
+            name: data.name,
+            phone: data.phone,
+            email: data.email,
+            address: data.address,
+          },
           promotion: promotionPromise,
           code: generateSortCode(),
-          ...(customer && {
-            customer: {
-              connect: {
-                id: customer.id
-              }
-            }
-          }),
           orderDetails: {
             createMany: {
               data: orderDetails,

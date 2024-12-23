@@ -14,7 +14,7 @@ export class MailService {
   ) { }
 
   async sendEmailOrderSuccess(order: AnyObject) {
-    const { orderDetails, customer, branch } = order
+    const { orderDetails, customerDiscount, branch } = order
 
     const htmlTemplate = await fs.readFile('./src/mail/templates/order-success.html', 'utf8');
 
@@ -24,9 +24,7 @@ export class MailService {
 
     const promotionValue = this.getPromotionValue(order.promotion, totalOrder)
 
-    const customerDiscount = this.getDiscountCustomer(order.customer, totalOrder)
-
-    let totalDiscount = discountValue + customerDiscount + promotionValue
+    let totalDiscount = discountValue + promotionValue
 
     const orderDetailsHTML = this.getOrderDetailsHTML(orderDetails)
 
@@ -38,10 +36,10 @@ export class MailService {
     const htmlContent = htmlTemplate
       .replaceAll('{{order.code}}', order.code)
       .replaceAll('{{order.createdAt}}', formatDate(order.createdAt))
-      .replaceAll('{{customer.name}}', customer.name)
-      .replaceAll('{{customer.email}}', customer.email || "")
-      .replaceAll('{{customer.phone}}', customer.phone || "")
-      .replaceAll('{{customer.address}}', customer.address || "")
+      .replaceAll('{{customer.name}}', customerDiscount.name)
+      .replaceAll('{{customer.email}}', customerDiscount.email || "")
+      .replaceAll('{{customer.phone}}', customerDiscount.phone || "")
+      .replaceAll('{{customer.address}}', customerDiscount.address || "")
       .replaceAll('{{branch.phone}}', branch.phone || "")
       .replaceAll('{{branch.email}}', branch.email || "")
       .replaceAll('{{branch.name}}', branch.name || "")
@@ -54,7 +52,7 @@ export class MailService {
       .replaceAll('{{order.id}}', order.id);
 
     await this.mailerService.sendMail({
-      to: customer.email,
+      to: customerDiscount.email,
       subject: `Đặt hàng thành công #${order.code}`,
       html: htmlContent,
     });
