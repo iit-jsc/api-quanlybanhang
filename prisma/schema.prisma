@@ -519,7 +519,7 @@ model Customer {
   representativeName  String?
   representativePhone String?
   birthday            DateTime?
-  endow               Int?                @default(1)
+  endow               Int?                @default(2)
   discount            Float?              @default(0)
   discountType        Int?                @default(1)
   sex                 Int?
