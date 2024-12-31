@@ -96,7 +96,7 @@ export class FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(",").map((id: string) => id.trim());
+    return value?.split(",").map((id: number) => +id);
   })
   orderTypes: number[];
 
