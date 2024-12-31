@@ -104,7 +104,7 @@ export class OrderDetailService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy, orderDetailStatuses, hasTable } = params;
+    let { skip, take, keyword, orderBy, orderDetailStatuses, orderTypes } = params;
 
     const keySearch = ["code"];
 
@@ -121,9 +121,11 @@ export class OrderDetailService {
           in: orderDetailStatuses
         }
       }),
-      ...(typeof hasTable !== "undefined" && {
-        tableId: {
-          not: null
+      ...(typeof orderTypes && {
+        order: {
+          orderType: {
+            in: orderTypes
+          }
         }
       }),
     };
