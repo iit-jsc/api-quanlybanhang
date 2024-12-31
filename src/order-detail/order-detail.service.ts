@@ -121,7 +121,7 @@ export class OrderDetailService {
           in: orderDetailStatuses
         }
       }),
-      ...(typeof orderTypes && {
+      ...(orderTypes && {
         order: {
           orderType: {
             in: orderTypes
@@ -160,6 +160,14 @@ export class OrderDetailService {
             },
             where: {
               isPublic: true
+            }
+          },
+          order: {
+            select: {
+              id: true,
+              code: true,
+              orderType: true,
+              createdAt: true
             }
           },
           updatedAt: true,
