@@ -104,18 +104,11 @@ export class OrderDetailService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy, orderDetailStatuses, orderTypes } = params;
-
-    const keySearch = ["code"];
+    let { skip, take, orderBy, orderDetailStatuses, orderTypes } = params;
 
     const where: Prisma.OrderDetailWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
-        })),
-      }),
       ...(orderDetailStatuses && {
         status: {
           in: orderDetailStatuses
