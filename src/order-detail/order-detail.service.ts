@@ -104,7 +104,7 @@ export class OrderDetailService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, orderBy, orderDetailStatuses, orderTypes } = params;
+    let { skip, take, orderBy, orderDetailStatuses, orderTypes, hasTable } = params;
 
     const where: Prisma.OrderDetailWhereInput = {
       isPublic: true,
@@ -114,13 +114,26 @@ export class OrderDetailService {
           in: orderDetailStatuses
         }
       }),
-      ...(orderTypes && {
-        order: {
-          orderType: {
-            in: orderTypes
-          }
+      ...(hasTable
+        ? {
+          OR: [
+            {
+              ...(orderTypes && {
+                order: {
+                  orderType: { in: orderTypes || [] },
+                }
+              })
+            },
+            {
+              tableId: {
+                not: null
+              }
+            }
+          ]
         }
-      }),
+        : orderTypes && {
+          order: { orderType: { in: orderTypes } },
+        }),
     };
 
     const [data, totalRecords] = await Promise.all([
