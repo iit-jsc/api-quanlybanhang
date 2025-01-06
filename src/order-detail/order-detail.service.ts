@@ -136,11 +136,9 @@ export class OrderDetailService {
         },
       }),
       ...(typeof hasTable !== 'undefined' && {
-        table: {
-          id: {
-            not: null
-          }
-        },
+        tableId: {
+          not: null
+        }
       }),
     };
 
