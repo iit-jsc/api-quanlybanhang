@@ -725,23 +725,20 @@ export class OrderService {
       ...(customerId && {
         customerId: customerId,
       }),
-      ...(from &&
-        to && {
+      ...(from && to && {
         createdAt: {
-          gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
-          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          gte: new Date(from),
+          lte: new Date(to),
         },
       }),
-      ...(from &&
-        !to && {
+      ...(from && !to && {
         createdAt: {
-          gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+          gte: new Date(from),
         },
       }),
-      ...(!from &&
-        to && {
+      ...(!from && to && {
         createdAt: {
-          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+          lte: new Date(to),
         },
       }),
       ...(orderTypes?.length > 0 && {

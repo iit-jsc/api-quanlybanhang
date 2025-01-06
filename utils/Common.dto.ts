@@ -33,7 +33,7 @@ export class FindManyDto {
   @IsOptional()
   @Transform(({ value }) => {
     if (value) {
-      const [field, direction] = value.split(",");
+      const [field, direction] = value.split("_");
       if (field && direction) {
         return { [field]: direction };
       }

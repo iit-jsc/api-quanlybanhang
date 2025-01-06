@@ -104,11 +104,27 @@ export class OrderDetailService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, orderBy, orderDetailStatuses, orderTypes, hasTable } = params;
+    let { skip, take, orderBy, orderDetailStatuses, orderTypes, hasTable, from, to } = params;
 
     const where: Prisma.OrderDetailWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
+      ...(from && to && {
+        createdAt: {
+          gte: new Date(from),
+          lte: new Date(to),
+        },
+      }),
+      ...(from && !to && {
+        createdAt: {
+          gte: new Date(from),
+        },
+      }),
+      ...(!from && to && {
+        createdAt: {
+          lte: new Date(to),
+        },
+      }),
       ...(orderDetailStatuses && {
         status: {
           in: orderDetailStatuses
