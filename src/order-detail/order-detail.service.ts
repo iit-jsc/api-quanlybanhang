@@ -130,26 +130,18 @@ export class OrderDetailService {
           in: orderDetailStatuses
         }
       }),
-      ...(hasTable
-        ? {
-          OR: [
-            {
-              ...(orderTypes && {
-                order: {
-                  orderType: { in: orderTypes || [] },
-                }
-              })
-            },
-            {
-              tableId: {
-                not: null
-              }
-            }
-          ]
-        }
-        : orderTypes && {
-          order: { orderType: { in: orderTypes } },
-        }),
+      ...(orderTypes && {
+        order: {
+          orderType: { in: orderTypes },
+        },
+      }),
+      ...(typeof hasTable !== 'undefined' && {
+        table: {
+          id: {
+            not: null
+          }
+        },
+      }),
     };
 
     const [data, totalRecords] = await Promise.all([
