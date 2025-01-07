@@ -105,7 +105,7 @@ export class OrderDetailService {
 
   async findAll(params: FindManyOrderDetailDto, tokenPayload: TokenPayload) {
     let { page, perPage, orderBy, orderDetailStatuses, orderTypes, hasTable, from, to } = params;
-
+    
     const where: Prisma.OrderDetailWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,

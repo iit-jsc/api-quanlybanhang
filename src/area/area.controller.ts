@@ -10,13 +10,10 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile,
   UseGuards,
-  UseInterceptors,
 } from "@nestjs/common";
 import { AreaService } from "./area.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { CustomFileInterceptor } from "utils/Helps";
 import { CreateAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";

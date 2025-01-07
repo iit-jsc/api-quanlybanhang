@@ -6,7 +6,8 @@ import { SPECIAL_ROLE } from "enums/common.enum";
 import { UpdateOrderProductDto } from "src/order/dto/update-order-detail.dto";
 import { Roles } from "guards/roles.decorator";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
+import { FindManyOrderDetailDto } from "./dto/order-detail.dto";
 
 @Controller("order-detail")
 export class OrderDetailController {
@@ -49,10 +50,10 @@ export class OrderDetailController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   @Roles("VIEW_ORDER", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyOrderDetailDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.orderDetailService.findAll(findManyDto, tokenPayload);
+    return this.orderDetailService.findAll(data, tokenPayload);
   }
 
 }
