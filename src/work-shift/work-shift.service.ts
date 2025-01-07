@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { CreateWorkShiftDto, UpdateWorkShiftDto } from "./dto/work-shift.dto";
+import { CreateWorkShiftDto, FindManyWorkShiftDto, UpdateWorkShiftDto } from "./dto/work-shift.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -34,8 +34,8 @@ export class WorkShiftService {
     return result;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, from, to, orderBy } = params;
+  async findAll(params: FindManyWorkShiftDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, from, to, orderBy } = params;
 
     const keySearch = ["name"];
 
@@ -68,12 +68,11 @@ export class WorkShiftService {
         }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.workShift.findMany({
-        skip,
-        take,
-        where,
+    return await customPaginate(
+      this.prisma.workShift,
+      {
         orderBy: orderBy || { createdAt: "desc" },
+        where,
         select: {
           id: true,
           name: true,
@@ -84,15 +83,13 @@ export class WorkShiftService {
           description: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.workShift.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
+
   }
 
   async findUniq(where: Prisma.WorkShiftWhereUniqueInput, tokenPayload: TokenPayload) {

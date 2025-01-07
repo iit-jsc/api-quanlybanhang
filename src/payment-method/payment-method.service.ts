@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { UpdatePaymentMethodDto } from "./dto/payment-method.dto";
+import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from "./dto/payment-method.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -74,8 +74,8 @@ export class PaymentMethodService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy, active } = params;
+  async findAll(params: FindManyPaymentMethodDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, orderBy, active } = params;
     const keySearch = ["bankName", "bankCode", "representative", "type"];
 
     let where: Prisma.PaymentMethodWhereInput = {
@@ -88,21 +88,17 @@ export class PaymentMethodService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.paymentMethod.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.paymentMethod,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
-      }),
-      this.prisma.paymentMethod.count({
-        where,
-      }),
-    ]);
+      },
+      {
+        page,
+        perPage,
+      },
+    );
 
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
   }
 }

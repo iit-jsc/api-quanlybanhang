@@ -1,5 +1,5 @@
 import { PartialType } from "@nestjs/swagger";
-import { Transform, TransformFnParams } from "class-transformer";
+import { Transform, TransformFnParams, Type } from "class-transformer";
 import {
   IsBoolean,
   IsDate,
@@ -15,6 +15,7 @@ import {
 } from "class-validator";
 import { DISCOUNT_TYPE } from "enums/common.enum";
 import { ENDOW_TYPE, SEX_TYPE } from "enums/user.enum";
+import { FindManyDto } from "utils/Common.dto";
 import { DiscountConstraint, IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateCustomerDto {
@@ -100,6 +101,24 @@ export class CreateCustomerDto {
 }
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
+
+export class FindManyCustomerDto extends FindManyDto {
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => id.trim());
+  })
+  customerTypeIds: string[];
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  from?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  to?: Date;
+}
 
 export class CheckEmailDto {
   @IsNotEmpty({ message: "Không được để trống!" })

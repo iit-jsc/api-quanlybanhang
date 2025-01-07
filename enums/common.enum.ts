@@ -105,3 +105,4 @@ export enum REQUEST_STATUS {
   "COMPLETED" = "COMPLETED",
 }
 
+export const PER_PAGE = 20

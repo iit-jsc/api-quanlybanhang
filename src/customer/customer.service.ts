@@ -1,11 +1,11 @@
 import { Injectable } from "@nestjs/common";
-import { CheckEmailDto, CreateCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
+import { CheckEmailDto, CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
@@ -59,8 +59,8 @@ export class CustomerService {
     return customer;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, customerTypeIds, from, to, orderBy } = params;
+  async findAll(params: FindManyCustomerDto, tokenPayload: TokenPayload) {
+    const { page, perPage, keyword, customerTypeIds, from, to, orderBy } = params;
 
     const keySearch = ["name", "email", "phone"];
 
@@ -102,10 +102,10 @@ export class CustomerService {
         isPublic: true,
       },
     };
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.customer.findMany({
-        skip,
-        take,
+    
+    return await customPaginate(
+      this.prisma.customer,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -137,15 +137,13 @@ export class CustomerService {
           createdAt: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.customer.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
+
   }
 
   async findUniq(where: Prisma.CustomerWhereUniqueInput, tokenPayload: TokenPayload) {

@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CreateAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
@@ -46,7 +46,7 @@ export class AreaService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, orderBy } = params;
+    const { page, perPage, keyword, orderBy } = params;
 
     const keySearch = ["name", "code"];
 
@@ -63,10 +63,9 @@ export class AreaService {
       },
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.area.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.area,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -82,21 +81,17 @@ export class AreaService {
               id: true,
               name: true,
               seat: true,
-
               updatedAt: true,
             }
           },
         },
-      }),
-      this.prisma.area.count({
-        where,
-      }),
-    ]);
+      },
+      {
+        page,
+        perPage,
+      },
+    );
 
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
   }
 
   async findUniq(where: Prisma.AreaWhereUniqueInput, tokenPayload: TokenPayload) {

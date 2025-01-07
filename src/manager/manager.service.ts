@@ -1,13 +1,13 @@
 import * as bcrypt from "bcrypt";
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { CreateManagerDto, UpdateManagerDto } from "./dto/manager.dto";
+import { CreateManagerDto, FindManyManagerDto, UpdateManagerDto } from "./dto/manager.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
@@ -193,8 +193,8 @@ export class ManagerService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, orderBy, branchIds } = params;
+  async findAll(params: FindManyManagerDto, tokenPayload: TokenPayload) {
+    const { page, perPage, keyword, orderBy, branchIds } = params;
 
     const keySearch = ["name", "code", "email", "phone"];
 
@@ -222,10 +222,9 @@ export class ManagerService {
       },
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.user.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.user,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -261,16 +260,13 @@ export class ManagerService {
           },
           updatedAt: true,
         },
-      }),
-      this.prisma.user.count({
-        where,
-      }),
-    ]);
+      },
+      {
+        page,
+        perPage,
+      },
+    );
 
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
   }
 
   async findUniq(where: Prisma.UserWhereUniqueInput, tokenPayload: TokenPayload) {

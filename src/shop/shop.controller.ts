@@ -21,6 +21,7 @@ import { SPECIAL_ROLE } from "enums/common.enum";
 import { TokenPayload } from "interfaces/common.interface";
 import { UpdateShopDto } from "./dto/update-shop.dto";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { FindByCodeDto } from "./dto/shop.dto";
 
 @Controller("shop")
 export class ShopController {
@@ -75,8 +76,8 @@ export class ShopController {
 
   @Get("/public")
   @HttpCode(HttpStatus.OK)
-  getShopByKeyword(@Query() findManyDto: FindManyDto) {
-    return this.shopService.getShopByKeyword(findManyDto);
+  getShopByKeyword(@Query() data: FindByCodeDto) {
+    return this.shopService.getShopByKeyword(data);
   }
 
   @Get(":id")

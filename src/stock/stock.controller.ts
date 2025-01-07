@@ -9,8 +9,8 @@ import {
 } from '@nestjs/common';
 import { StockService } from './stock.service';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { FindManyDto } from 'utils/Common.dto';
 import { TokenPayload } from 'interfaces/common.interface';
+import { FindManyStockDto } from './dto/stock.dto';
 
 @Controller('stock')
 export class StockController {
@@ -19,9 +19,9 @@ export class StockController {
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyStockDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.stockService.findAll(findManyDto, tokenPayload);
+    return this.stockService.findAll(data, tokenPayload);
   }
 }

@@ -1,12 +1,12 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { CreateInventoryTransactionDto, UpdateInventoryTransactionDto } from "./dto/inventory-transaction.dto";
+import { CreateInventoryTransactionDto, FindManInventTransDto, UpdateInventoryTransactionDto } from "./dto/inventory-transaction.dto";
 import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { ACTIVITY_LOG_TYPE, INVENTORY_TRANSACTION_STATUS, INVENTORY_TRANSACTION_TYPE } from "enums/common.enum";
 import { InventoryTransactionDetail, Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 
 @Injectable()
@@ -186,8 +186,8 @@ export class InventoryTransactionService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, types, from, to, orderBy } = params;
+  async findAll(params: FindManInventTransDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, types, from, to, orderBy } = params;
     let where: Prisma.InventoryTransactionWhereInput = {
       isPublic: true,
       ...(keyword && { name: { contains: keyword } }),
@@ -213,10 +213,10 @@ export class InventoryTransactionService {
         }),
       branchId: tokenPayload.branchId,
     };
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.inventoryTransaction.findMany({
-        skip,
-        take,
+   
+    return await customPaginate(
+      this.prisma.inventoryTransaction,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -258,15 +258,13 @@ export class InventoryTransactionService {
           },
           updatedAt: true,
         },
-      }),
-      this.prisma.inventoryTransaction.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
+
   }
 
   async findUniq(where: Prisma.InventoryTransactionWhereUniqueInput, tokenPayload: TokenPayload) {

@@ -14,7 +14,7 @@ import {
 } from "@nestjs/common";
 import { CompensationSettingService } from "./compensation-setting.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { CreateCompensationSettingDto, UpdateCompensationSettingDto } from "./dto/compensation-setting.dto";
+import { CreateCompensationSettingDto, FindManyCompensationSettingDto, UpdateCompensationSettingDto } from "./dto/compensation-setting.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
@@ -39,10 +39,10 @@ export class CompensationSettingController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_SALARY", "UPDATE_SALARY", "DELETE_SALARY", "VIEW_SALARY", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyCompensationSettingDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.compensationSettingService.findAll(findManyDto, tokenPayload);
+    return this.compensationSettingService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

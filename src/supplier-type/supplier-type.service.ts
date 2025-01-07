@@ -4,7 +4,7 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -58,7 +58,7 @@ export class SupplierTypeService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+    let { page, perPage, keyword, orderBy } = params;
 
     const keySearch = ["name"];
 
@@ -72,10 +72,9 @@ export class SupplierTypeService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.supplierType.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.supplierType,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -84,15 +83,13 @@ export class SupplierTypeService {
           description: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.supplierType.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
+
   }
 
   findUniq(where: Prisma.SupplierTypeWhereUniqueInput, tokenPayload: TokenPayload) {

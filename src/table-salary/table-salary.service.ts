@@ -6,7 +6,7 @@ import { Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
 import { ACTIVITY_LOG_TYPE, COMPENSATION_APPLY_TO, COMPENSATION_TYPE } from "enums/common.enum";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 
 @Injectable()
@@ -176,17 +176,16 @@ export class TableSalaryService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, orderBy } = params;
+    let { page, perPage, orderBy } = params;
 
     let where: Prisma.TableSalaryWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.tableSalary.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.tableSalary,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -198,16 +197,13 @@ export class TableSalaryService {
           confirmBy: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.tableSalary.count({
-        where,
-      }),
-    ]);
+      },
+      {
+        page,
+        perPage,
+      },
+    );
 
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
   }
 
   async findUniq(where: Prisma.TableSalaryWhereUniqueInput, tokenPayload: TokenPayload) {

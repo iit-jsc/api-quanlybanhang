@@ -19,7 +19,7 @@ import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { CustomFileInterceptor } from "utils/Helps";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { CreateTableDto, UpdateTableDto } from "./dto/table.dto";
+import { CreateTableDto, FindManyTableDto, UpdateTableDto } from "./dto/table.dto";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";
 import { RolesGuard } from "guards/roles.guard";
@@ -64,10 +64,10 @@ export class TableController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_TABLE", "UPDATE_TABLE", "DELETE_TABLE", "VIEW_TABLE", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyTableDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.tableService.findAll(findManyDto, tokenPayload);
+    return this.tableService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

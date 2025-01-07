@@ -1,3 +1,4 @@
+import { FindManyDto } from 'utils/Common.dto';
 import { PartialType } from "@nestjs/swagger";
 import { Product } from "@prisma/client";
 import { Transform, TransformFnParams, Type } from "class-transformer";
@@ -123,4 +124,26 @@ export class PaymentOrderDto {
   @IsEnum(ORDER_TYPE, { message: "Loại đơn hàng không hợp lệ!" })
   @IsNumber()
   orderType: number;
+}
+
+
+export class FindManyOrderDto extends FindManyDto {
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  from?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  to?: Date;
+
+  
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: number) => +id);
+  })
+  orderTypes: number[];
+
+  customerId?: string;
+  isPaid?: boolean;
 }

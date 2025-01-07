@@ -11,8 +11,9 @@ import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.i
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { DISCOUNT_TYPE, FEATURE_CODE, PAYMENT_METHOD_TYPE } from "enums/common.enum";
+import { FindByCodeDto } from "./dto/shop.dto";
 
 @Injectable()
 export class ShopService {
@@ -189,7 +190,7 @@ export class ShopService {
         isPublic: true,
       },
       include: {
-        branches: { 
+        branches: {
           select: {
             id: true,
             name: true,
@@ -209,7 +210,7 @@ export class ShopService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword } = params;
+    let { page, perPage, keyword, orderBy } = params;
 
     const keySearch = ["name", "code"];
 
@@ -231,23 +232,17 @@ export class ShopService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.shop.findMany({
-        skip,
-        take,
-        orderBy: {
-          createdAt: "desc",
-        },
+    return await customPaginate(
+      this.prisma.shop,
+      {
+        orderBy: orderBy || { createdAt: "desc" },
         where,
-      }),
-      this.prisma.shop.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async generateShopCode() {
@@ -269,7 +264,7 @@ export class ShopService {
     return `IIT${nextNumber}`;
   }
 
-  async getShopByKeyword(data: FindManyDto) {
+  async getShopByKeyword(data: FindByCodeDto) {
     return this.prisma.shop.findUniqueOrThrow({
       where: {
         code: data.code,

@@ -14,6 +14,7 @@ import {
   ValidationArguments,
 } from 'class-validator';
 import { DISCOUNT_TYPE } from 'enums/common.enum';
+import { FindManyDto } from 'utils/Common.dto';
 
 export class CreateDiscountIssueDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -89,4 +90,9 @@ export class findUniqByDiscountCodeDto {
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   code: string
+}
+
+export class FindManyDiscountIssueDto extends FindManyDto {
+  @Type(() => Number)
+  totalOrder?: number;
 }

@@ -12,6 +12,7 @@ import {
   MinLength,
 } from "class-validator";
 import { ACCOUNT_STATUS, SEX_TYPE } from "enums/user.enum";
+import { FindManyDto } from "utils/Common.dto";
 import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateManagerDto {
@@ -101,4 +102,11 @@ export class UpdateManagerDto extends PartialType(CreateManagerDto) {
   @Type(() => Number)
   @IsEnum(ACCOUNT_STATUS, { message: "Trạng thái không hợp lệ!" })
   accountStatus: number;
+}
+
+export class FindManyManagerDto extends FindManyDto {
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => id.trim());
+  })
+  branchIds: string[];
 }

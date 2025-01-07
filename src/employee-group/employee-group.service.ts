@@ -3,7 +3,7 @@ import { PrismaService } from "nestjs-prisma";
 import { CreateEmployeeGroupDto, UpdateEmployeeGroupDto } from "./dto/employee-group.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
@@ -44,7 +44,7 @@ export class EmployeeGroupService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+    let { page, perPage, keyword, orderBy } = params;
 
     let where: Prisma.EmployeeGroupWhereInput = {
       isPublic: true,
@@ -52,10 +52,9 @@ export class EmployeeGroupService {
       ...(keyword && { name: { contains: keyword } }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.employeeGroup.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.employeeGroup,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -64,16 +63,13 @@ export class EmployeeGroupService {
           description: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.employeeGroup.count({
-        where,
-      }),
-    ]);
+      },
+      {
+        page,
+        perPage,
+      },
+    );
 
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
   }
 
   async findUniq(where: Prisma.EmployeeGroupWhereUniqueInput, tokenPayload: TokenPayload) {

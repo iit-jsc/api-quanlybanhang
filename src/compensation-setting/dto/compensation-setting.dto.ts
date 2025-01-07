@@ -2,6 +2,7 @@ import { PartialType } from "@nestjs/swagger";
 import { Transform, TransformFnParams } from "class-transformer";
 import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
 import { COMPENSATION_APPLY_TO, COMPENSATION_TYPE } from "enums/common.enum";
+import { FindManyDto } from "utils/Common.dto";
 
 export class CreateCompensationSettingDto {
   @IsNotEmpty({ message: "Không được để trống!" })
@@ -29,3 +30,17 @@ export class CreateCompensationSettingDto {
 }
 
 export class UpdateCompensationSettingDto extends PartialType(CreateCompensationSettingDto) {}
+
+export class FindManyCompensationSettingDto extends FindManyDto {
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => +id.trim());
+  })
+  types: number[];
+  
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: number) => +id);
+  })
+  applyTos: number[];
+}

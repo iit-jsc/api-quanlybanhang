@@ -32,6 +32,8 @@ export class CreateCustomerRequestDto {
 export class FindManyCustomerRequestDto extends FindManyDto {
 	@IsNotEmpty({ message: "Không được để trống!" })
 	branchId: string;
+
+	tableId?: string;
 }
 
 export class UpdateCustomerRequestDto extends PartialType(CreateCustomerRequestDto) { }

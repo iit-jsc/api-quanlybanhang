@@ -1,12 +1,12 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { RegisterScheduleDto, UpdateRegisterScheduleDto } from "./dto/employee.schedule.dto";
+import { FindManyEmployeeScheduleDto, RegisterScheduleDto, UpdateRegisterScheduleDto } from "./dto/employee.schedule.dto";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { ACCOUNT_TYPE } from "enums/user.enum";
 import { CustomHttpException } from "utils/ApiErrors";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -15,7 +15,7 @@ export class EmployeeScheduleService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async registerSchedule(data: RegisterScheduleDto, tokenPayload: TokenPayload) {
     const workShift = await this.getAndCheckLimitWorkShift(data.workShiftId);
@@ -75,8 +75,8 @@ export class EmployeeScheduleService {
     return result;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, from, to, employeeIds, workShiftIds, keyword, orderBy } = params;
+  async findAll(params: FindManyEmployeeScheduleDto, tokenPayload: TokenPayload) {
+    let { page, perPage, from, to, employeeIds, workShiftIds, keyword, orderBy } = params;
     const keySearch = ["name"];
 
     let where: Prisma.EmployeeScheduleWhereInput = {
@@ -93,30 +93,30 @@ export class EmployeeScheduleService {
       }),
       ...(from &&
         to && {
-          date: {
-            gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
-            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-          },
-        }),
+        date: {
+          gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+        },
+      }),
       ...(from &&
         !to && {
-          date: {
-            gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
-          },
-        }),
+        date: {
+          gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
+        },
+      }),
       ...(!from &&
         to && {
-          date: {
-            lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-          },
-        }),
+        date: {
+          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
+        },
+      }),
       isPublic: true,
       branchId: tokenPayload.branchId,
     };
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.employeeSchedule.findMany({
-        skip,
-        take,
+
+    return await customPaginate(
+      this.prisma.employeeSchedule,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -142,15 +142,12 @@ export class EmployeeScheduleService {
           createdAt: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.employeeSchedule.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.EmployeeScheduleWhereUniqueInput, tokenPayload: TokenPayload) {

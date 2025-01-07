@@ -2,9 +2,9 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { CreateDiscountIssueDto, findUniqByDiscountCodeDto, UpdateDiscountIssueDto } from "./dto/discount-issue.dto";
+import { CreateDiscountIssueDto, FindManyDiscountIssueDto, findUniqByDiscountCodeDto, UpdateDiscountIssueDto } from "./dto/discount-issue.dto";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 import { CustomHttpException } from "utils/ApiErrors";
@@ -91,8 +91,8 @@ export class DiscountIssueService {
     return discountIssue;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy, totalOrder } = params;
+  async findAll(params: FindManyDiscountIssueDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, orderBy, totalOrder } = params;
     let where: Prisma.DiscountIssueWhereInput = {
       isPublic: true,
       ...(keyword && { name: { contains: keyword } }),
@@ -103,10 +103,10 @@ export class DiscountIssueService {
         }
       })
     };
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.discountIssue.findMany({
-        skip,
-        take,
+
+    return await customPaginate(
+      this.prisma.discountIssue,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         include: {
@@ -120,15 +120,12 @@ export class DiscountIssueService {
             }
           }
         }
-      }),
-      this.prisma.discountIssue.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.DiscountIssueWhereUniqueInput, tokenPayload: TokenPayload) {

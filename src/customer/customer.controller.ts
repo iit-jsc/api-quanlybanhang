@@ -13,7 +13,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { CustomerService } from "./customer.service";
-import { CheckEmailDto, CreateCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
+import { CheckEmailDto, CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -47,10 +47,10 @@ export class CustomerController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_CUSTOMER", "UPDATE_CUSTOMER", "DELETE_CUSTOMER", "VIEW_CUSTOMER", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyCustomerDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.customerService.findAll(findManyDto, tokenPayload);
+    return this.customerService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

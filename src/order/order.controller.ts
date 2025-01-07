@@ -15,7 +15,7 @@ import {
 import { OrderService } from "./order.service";
 import { JwtAuthGuard, JwtCustomerAuthGuard } from "guards/jwt-auth.guard";
 import { TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
-import { PaymentOrderDto, CreateOrderDto, UpdateOrderDto } from "./dto/order.dto";
+import { PaymentOrderDto, CreateOrderDto, UpdateOrderDto, FindManyOrderDto } from "./dto/order.dto";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
 import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-customer.dto";
@@ -140,10 +140,10 @@ export class OrderController {
   @Get("/me")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtCustomerAuthGuard)
-  findAllByCustomer(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAllByCustomer(@Query() data: FindManyOrderDto, @Req() req: any) {
     const tokenCustomerPayload = req.tokenCustomerPayload as TokenCustomerPayload;
 
-    return this.orderService.findAllByCustomer(findManyDto, tokenCustomerPayload);
+    return this.orderService.findAllByCustomer(data, tokenCustomerPayload);
   }
 
   @Get("/me/:id")
@@ -164,10 +164,10 @@ export class OrderController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("VIEW_ORDER", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyOrderDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.orderService.findAll(findManyDto, tokenPayload);
+    return this.orderService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

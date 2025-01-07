@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { CreateMeasurementUnitDto, UpdateMeasurementUnitDto } from "./dto/measurement-unit.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
@@ -39,7 +39,7 @@ export class MeasurementUnitService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+    let { page, perPage, keyword, orderBy } = params;
 
     let where: Prisma.MeasurementUnitWhereInput = {
       isPublic: true,
@@ -47,28 +47,17 @@ export class MeasurementUnitService {
       ...(keyword && { name: { contains: keyword } }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.measurementUnit.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.measurementUnit,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
-        select: {
-          id: true,
-          code: true,
-          name: true,
-          updatedAt: true,
-        },
-      }),
-      this.prisma.measurementUnit.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.MeasurementUnitWhereUniqueInput, tokenPayload: TokenPayload) {

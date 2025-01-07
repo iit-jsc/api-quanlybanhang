@@ -15,7 +15,7 @@ import {
 import { EmployeeSalaryService } from "./employee-salary.service";
 import { DeleteManyDto, FindManyDto, FindUniqDto } from "utils/Common.dto";
 import { TokenPayload } from "interfaces/common.interface";
-import { CreateEmployeeSalaryDto, UpdateEmployeeSalaryDto } from "./dto/employee-salary.dto";
+import { CreateEmployeeSalaryDto, FindManyEmployeeSalaryDto, UpdateEmployeeSalaryDto } from "./dto/employee-salary.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { RolesGuard } from "guards/roles.guard";
 import { FIND_UNIQ_TYPE, SPECIAL_ROLE } from "enums/common.enum";
@@ -39,10 +39,10 @@ export class EmployeeSalaryController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_SALARY", "UPDATE_SALARY", "DELETE_SALARY", "VIEW_SALARY", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyEmployeeSalaryDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.employeeSalaryService.findAll(findManyDto, tokenPayload);
+    return this.employeeSalaryService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

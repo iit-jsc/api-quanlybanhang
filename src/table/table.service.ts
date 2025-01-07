@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
-import { CreateTableDto, UpdateTableDto } from "./dto/table.dto";
+import { CreateTableDto, FindManyTableDto, UpdateTableDto } from "./dto/table.dto";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -44,8 +44,8 @@ export class TableService {
     return result;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, areaIds, orderBy } = params;
+  async findAll(params: FindManyTableDto, tokenPayload: TokenPayload) {
+    const { page, perPage, keyword, areaIds, orderBy } = params;
 
     const keySearch = ["name", "code"];
 
@@ -67,12 +67,11 @@ export class TableService {
       },
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.table.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.table,
+      {
+        orderBy: orderBy || { createdAt: "desc" },
         where,
-        orderBy: { areaId: "desc" },
         select: {
           id: true,
           name: true,
@@ -102,16 +101,12 @@ export class TableService {
           },
           updatedAt: true
         },
-      }),
-      this.prisma.table.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.TableWhereUniqueInput) {

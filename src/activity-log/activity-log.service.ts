@@ -3,13 +3,14 @@ import { Prisma } from "@prisma/client";
 import { TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
+import { FindManyActivityLogDto } from "./dto/activity-log.dto";
 
 @Injectable()
 export class ActivityLogService {
   constructor(private readonly prisma: PrismaService) {}
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, orderBy, from, to } = params;
+  async findAll(params: FindManyActivityLogDto, tokenPayload: TokenPayload) {
+    const { page, perPage, orderBy, from, to } = params;
 
     const where: Prisma.ActivityLogWhereInput = {
       branch: {
@@ -37,21 +38,16 @@ export class ActivityLogService {
         }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.activityLog.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.activityLog,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
-      }),
-      this.prisma.activityLog.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 }

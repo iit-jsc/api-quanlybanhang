@@ -13,6 +13,7 @@ import {
   MinLength,
 } from "class-validator";
 import { ACCOUNT_STATUS, SEX_TYPE } from "enums/user.enum";
+import { FindManyDto } from "utils/Common.dto";
 import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
 
 export class CreateEmployeeDto {
@@ -119,4 +120,12 @@ export class CheckUniqDto {
 
   @IsOptional()
   id: string;
+}
+
+
+export class FindManyEmployeeDto extends FindManyDto {
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",");
+  })
+  employeeGroupIds?: string[];
 }

@@ -35,6 +35,7 @@
     "@nestjs/serve-static": "^4.0.2",
     "@nestjs/swagger": "^7.3.1",
     "@nestjs/websockets": "^10.3.10",
+    "@nodeteam/nestjs-prisma-pagination": "^1.0.6",
     "@prisma/client": "^5.14.0",
     "api-phanmembanhang": "file:",
     "bcrypt": "^5.1.1",

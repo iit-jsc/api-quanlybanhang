@@ -4,7 +4,7 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
-import { calculatePagination, generateSortCode } from "utils/Helps";
+import { calculatePagination, customPaginate, generateSortCode } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
@@ -79,16 +79,16 @@ export class DiscountCodeService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+    let { page, perPage, keyword, orderBy } = params;
     let where: Prisma.DiscountCodeWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && { name: { contains: keyword } }),
     };
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.discountCode.findMany({
-        skip,
-        take,
+ 
+    return await customPaginate(
+      this.prisma.discountCode,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         include: {
@@ -103,15 +103,13 @@ export class DiscountCodeService {
             }
           }
         }
-      }),
-      this.prisma.discountCode.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
+
   }
 
   async findUniq(where: Prisma.DiscountCodeWhereUniqueInput, tokenPayload: TokenPayload) {

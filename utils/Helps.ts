@@ -1,3 +1,4 @@
+import { paginator, PaginatorTypes } from "@nodeteam/nestjs-prisma-pagination";
 import { TokenPayload } from "./../interfaces/common.interface";
 import { generate as generateIdentifier } from "short-uuid";
 import { PaginationResult } from "interfaces/common.interface";
@@ -6,6 +7,9 @@ import { FileInterceptor, FilesInterceptor } from "@nestjs/platform-express";
 import { diskStorage } from "multer";
 import { extname } from "path";
 import ShortUniqueId from "short-unique-id";
+import { PER_PAGE } from "enums/common.enum";
+
+const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: PER_PAGE });
 
 export function generateUniqueId(): string {
   return generateIdentifier();
@@ -60,7 +64,7 @@ export function generateSortCode(): string {
 
 export function calculatePagination(totalRecords: number, skip: number, take: number): PaginationResult {
   const totalPages = Math.ceil(totalRecords / take);
-  const currentPage = totalPages === 0 ? 0 : Math.floor(skip / take) + 1;
+  const currentPage = totalPages === 0 ? 0 : Math.ceil(skip / take) + 1;
 
   return {
     totalRecords,
@@ -160,4 +164,14 @@ export function formatDate(dateString: string): string {
   const month = (date.getMonth() + 1).toString().padStart(2, '0'); // Lấy tháng (mm) (0-indexed)
   const year = date.getFullYear(); // Lấy năm (yyyy)
   return `${day}/${month}/${year}`;
+}
+
+
+export async function customPaginate(prismaModel: any, queryArgs: any, paginationArgs: any) {
+  const result = await paginate(prismaModel, queryArgs, paginationArgs);
+
+  return {
+    list: result.data,
+    meta: result.meta,
+  };
 }

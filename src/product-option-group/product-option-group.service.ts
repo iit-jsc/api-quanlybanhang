@@ -9,11 +9,12 @@ import { CreateSupplierTypeDto } from "src/supplier-type/dto/supplier-type.dto";
 import {
   CreateProductOptionDto,
   CreateProductOptionGroupDto,
+  FindManyProductOptionGroupDto,
   UpdateProductOptionGroupDto,
 } from "./dto/product-option-group.dto";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
@@ -62,8 +63,8 @@ export class ProductOptionGroupService {
     return result;
   }
 
-  async findAll(params: FindManyDto, branchId: string) {
-    let { skip, take, keyword, orderBy, productTypeIds } = params;
+  async findAll(params: FindManyProductOptionGroupDto, branchId: string) {
+    let { page, perPage, keyword, orderBy, productTypeIds } = params;
 
     let where: Prisma.ProductOptionGroupWhereInput = {
       isPublic: true,
@@ -76,10 +77,9 @@ export class ProductOptionGroupService {
       ...(keyword && { name: { contains: keyword } }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.productOptionGroup.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.productOptionGroup,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -107,16 +107,12 @@ export class ProductOptionGroupService {
           },
           updatedAt: true,
         },
-      }),
-      this.prisma.productOptionGroup.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.ProductOptionGroupWhereUniqueInput) {

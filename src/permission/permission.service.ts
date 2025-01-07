@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { CreatePermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
-import { calculatePagination } from "utils/Helps";
+import { CreatePermissionDto, FindManyPermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
@@ -48,8 +48,8 @@ export class PermissionService {
     return result;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+  async findAll(params: FindManyPermissionDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, orderBy } = params;
 
     const where: Prisma.PermissionWhereInput = {
       isPublic: true,
@@ -57,10 +57,9 @@ export class PermissionService {
       ...(keyword && { name: { contains: keyword } }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.permission.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.permission,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -85,16 +84,12 @@ export class PermissionService {
           },
           updatedAt: true,
         },
-      }),
-      this.prisma.permission.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async update(

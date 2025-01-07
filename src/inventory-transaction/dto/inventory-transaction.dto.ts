@@ -2,6 +2,7 @@ import { PartialType } from '@nestjs/swagger';
 import { Transform, TransformFnParams, Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
+  IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -13,6 +14,7 @@ import {
   INVENTORY_TRANSACTION_STATUS,
   INVENTORY_TRANSACTION_TYPE,
 } from 'enums/common.enum';
+import { FindManyDto } from 'utils/Common.dto';
 
 export class CreateInventoryTransactionDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -76,4 +78,21 @@ export class InventoryTransactionDetailDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   actualQuantity: number;
+}
+
+export class FindManInventTransDto extends FindManyDto {
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => +id.trim());
+  })
+  types?: number[];
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  from?: Date;
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  to?: Date;
 }

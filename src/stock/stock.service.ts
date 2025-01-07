@@ -1,16 +1,16 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { TokenPayload } from "interfaces/common.interface";
-import { FindManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
-import { calculatePagination } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
+import { FindManyStockDto } from "./dto/stock.dto";
 
 @Injectable()
 export class StockService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, productId } = params;
+  async findAll(params: FindManyStockDto, tokenPayload: TokenPayload) {
+    let { page, perPage, productId, orderBy } = params;
 
     let where: Prisma.StockWhereInput = {
       branchId: tokenPayload.branchId,
@@ -19,22 +19,19 @@ export class StockService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.stock.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.stock,
+      {
+        orderBy: orderBy || { createdAt: "desc" },
         where,
         include: {
           warehouse: true,
         },
-      }),
-      this.prisma.stock.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 }

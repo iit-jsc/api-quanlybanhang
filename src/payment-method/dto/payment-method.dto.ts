@@ -1,6 +1,7 @@
 import { Transform, TransformFnParams } from "class-transformer";
-import { IsBoolean, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Matches } from "class-validator";
+import { IsBoolean, IsEnum, IsOptional, IsString, Matches } from "class-validator";
 import { PAYMENT_METHOD_TYPE } from "enums/common.enum";
+import { FindManyDto } from "utils/Common.dto";
 
 export class UpdatePaymentMethodDto {
   @IsOptional()
@@ -33,4 +34,9 @@ export class UpdatePaymentMethodDto {
   @IsOptional()
   @IsBoolean()
   active: boolean;
+}
+
+
+export class FindManyPaymentMethodDto extends FindManyDto {
+  active?: boolean;
 }

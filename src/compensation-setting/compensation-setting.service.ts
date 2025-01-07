@@ -3,8 +3,8 @@ import { PrismaService } from "nestjs-prisma";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
-import { CreateCompensationSettingDto } from "./dto/compensation-setting.dto";
+import { calculatePagination, customPaginate } from "utils/Helps";
+import { CreateCompensationSettingDto, FindManyCompensationSettingDto } from "./dto/compensation-setting.dto";
 import { CommonService } from "src/common/common.service";
 import { ACCOUNT_TYPE } from "enums/user.enum";
 import { ACTIVITY_LOG_TYPE, COMPENSATION_APPLY_TO } from "enums/common.enum";
@@ -63,8 +63,8 @@ export class CompensationSettingService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, types, applyTos, orderBy } = params;
+  async findAll(params: FindManyCompensationSettingDto, tokenPayload: TokenPayload) {
+    const { page, perPage, keyword, types, applyTos, orderBy } = params;
 
     const keySearch = ["name"];
 
@@ -80,10 +80,9 @@ export class CompensationSettingService {
       branchId: tokenPayload.branchId,
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.compensationSetting.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.compensationSetting,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -94,16 +93,12 @@ export class CompensationSettingService {
           applyTo: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.compensationSetting.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.CompensationSettingWhereUniqueInput, tokenPayload: TokenPayload) {

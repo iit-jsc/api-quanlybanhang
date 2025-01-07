@@ -1,20 +1,20 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { CommonService } from "src/common/common.service";
-import { OrderGateway } from "src/gateway/order.gateway";
+import { HttpStatus, Injectable } from "@nestjs/common";
+import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { UpdateOrderProductDto } from "src/order/dto/update-order-detail.dto";
 import { CustomHttpException } from "utils/ApiErrors";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
+import { PER_PAGE } from "enums/common.enum";
+import { paginator, PaginatorTypes } from "@nodeteam/nestjs-prisma-pagination";
+import { FindManyOrderDetailDto } from "./dto/order-detail.dto";
+const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: PER_PAGE });
 
 @Injectable()
 export class OrderDetailService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly orderGateway: OrderGateway,
-    private commonService: CommonService,
   ) { }
 
   async update(
@@ -103,8 +103,8 @@ export class OrderDetailService {
     if (order) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này không thể cập nhật vì đã thanh toán!");
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, orderBy, orderDetailStatuses, orderTypes, hasTable, from, to } = params;
+  async findAll(params: FindManyOrderDetailDto, tokenPayload: TokenPayload) {
+    let { page, perPage, orderBy, orderDetailStatuses, orderTypes, hasTable, from, to } = params;
 
     const where: Prisma.OrderDetailWhereInput = {
       isPublic: true,
@@ -142,12 +142,11 @@ export class OrderDetailService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.orderDetail.findMany({
-        where,
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.orderDetail,
+      {
         orderBy: orderBy || { createdAt: "desc" },
+        where,
         select: {
           id: true,
           product: true,
@@ -185,14 +184,11 @@ export class OrderDetailService {
           updatedAt: true,
           createdAt: true,
         },
-      }),
-      this.prisma.orderDetail.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 }

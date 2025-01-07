@@ -3,7 +3,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { CreateCustomerRequestDto, FindManyCustomerRequestDto, UpdateCustomerRequestDto } from './dto/customer-request.dto';
 import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
-import { calculatePagination } from 'utils/Helps';
+import { calculatePagination, customPaginate } from 'utils/Helps';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CustomerRequestGateway } from 'src/gateway/customer-request.gateway';
 import { REQUEST_STATUS } from 'enums/common.enum';
@@ -58,7 +58,7 @@ export class CustomerRequestService {
   }
 
   async findAll(params: FindManyCustomerRequestDto) {
-    let { skip, take, orderBy, keyword, tableId, branchId } = params;
+    let { page, perPage, orderBy, keyword, tableId, branchId } = params;
 
     const keySearch = ["content"];
 
@@ -75,10 +75,9 @@ export class CustomerRequestService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.customerRequest.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.customerRequest,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         include: {
@@ -112,16 +111,12 @@ export class CustomerRequestService {
             }
           }
         }
-      }),
-      this.prisma.customerRequest.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.CustomerRequestWhereUniqueInput, tokenPayload: TokenPayload) {

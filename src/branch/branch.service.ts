@@ -1,7 +1,7 @@
 import { CreateBranchDto, UpdateBranchDto } from "src/branch/dto/create-branch.dto";
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -52,7 +52,7 @@ export class BranchService {
   }
 
   async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+    let { page, perPage, keyword, orderBy } = params;
 
     let where: Prisma.BranchWhereInput = {
       isPublic: true,
@@ -63,10 +63,9 @@ export class BranchService {
       ...(keyword && { name: { contains: keyword } }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.branch.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.branch,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -79,16 +78,12 @@ export class BranchService {
           createdAt: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.branch.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.BranchWhereUniqueInput) {

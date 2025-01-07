@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { CreateEmployeeSalaryDto, UpdateEmployeeSalaryDto } from "./dto/employee-salary.dto";
+import { CreateEmployeeSalaryDto, FindManyEmployeeSalaryDto, UpdateEmployeeSalaryDto } from "./dto/employee-salary.dto";
 import { CompensationSetting, Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { CreateCompensationEmployeeDto } from "src/compensation-employee/dto/compensation-employee.dto";
 import { ACTIVITY_LOG_TYPE, COMPENSATION_APPLY_TO } from "enums/common.enum";
 import { CommonService } from "src/common/common.service";
@@ -14,7 +14,7 @@ export class EmployeeSalaryService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateEmployeeSalaryDto, tokenPayload: TokenPayload) {
     await this.createCompensation(data.isFulltime, { employeeId: data.employeeId }, tokenPayload);
@@ -86,8 +86,8 @@ export class EmployeeSalaryService {
     return result;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, employeeIds, isFulltime, orderBy } = params;
+  async findAll(params: FindManyEmployeeSalaryDto, tokenPayload: TokenPayload) {
+    let { page, perPage, employeeIds, isFulltime, orderBy } = params;
 
     let where: Prisma.EmployeeSalaryWhereInput = {
       isPublic: true,
@@ -96,10 +96,9 @@ export class EmployeeSalaryService {
       ...(employeeIds && { employeeId: { in: employeeIds } }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.employeeSalary.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.employeeSalary,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -117,16 +116,13 @@ export class EmployeeSalaryService {
           isFulltime: true,
           updatedAt: true,
         },
-      }),
-      this.prisma.employeeSalary.count({
-        where,
-      }),
-    ]);
+      },
+      {
+        page,
+        perPage,
+      },
+    );
 
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
   }
 
   async findUniq(where: Prisma.EmployeeSalaryWhereUniqueInput, tokenPayload: TokenPayload) {

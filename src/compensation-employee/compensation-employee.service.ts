@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
-import { UpdateCompensationEmployeeDto } from "./dto/compensation-employee.dto";
+import { FindManyCompensationEmployeeDto, UpdateCompensationEmployeeDto } from "./dto/compensation-employee.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { FindManyDto } from "utils/Common.dto";
 import { calculatePagination } from "utils/Helps";
@@ -25,36 +25,12 @@ export class CompensationEmployeeService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, employeeIds, orderBy } = params;
+  async findAll(params: FindManyCompensationEmployeeDto, tokenPayload: TokenPayload) {
+    let { page, perPage, employeeIds, orderBy } = params;
     let where: Prisma.CompensationEmployeeWhereInput = {
       ...(employeeIds && { employeeId: { in: employeeIds } }),
       branchId: tokenPayload.branchId,
     };
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.compensationEmployee.findMany({
-        skip,
-        take,
-        orderBy: orderBy || { createdAt: "desc" },
-        where,
-        select: {
-          id: true,
-          type: true,
-          value: true,
-          employeeId: true,
-          compensationSetting: {
-            select: { id: true, name: true, defaultValue: true, description: true, applyTo: true },
-          },
-          updatedBy: true,
-        },
-      }),
-      this.prisma.compensationEmployee.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+   
   }
 }

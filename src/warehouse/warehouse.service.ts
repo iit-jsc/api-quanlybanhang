@@ -1,10 +1,10 @@
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { CreateWarehouseDto, UpdateWarehouseDto } from "./dto/warehouse.dto";
+import { CreateWarehouseDto, FindManyWarehouseDto, UpdateWarehouseDto } from "./dto/warehouse.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 
 @Injectable()
 export class WarehouseService {
@@ -44,8 +44,8 @@ export class WarehouseService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, orderBy } = params;
+  async findAll(params: FindManyWarehouseDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, orderBy } = params;
 
     const keySearch = ["name"];
 
@@ -59,21 +59,17 @@ export class WarehouseService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.warehouse.findMany({
-        skip,
+    return await customPaginate(
+      this.prisma.warehouse,
+      {
         orderBy: orderBy || { createdAt: "desc" },
-        take,
         where,
-      }),
-      this.prisma.warehouse.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.WarehouseWhereUniqueInput, tokenPayload: TokenPayload) {

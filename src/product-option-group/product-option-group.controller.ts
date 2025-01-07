@@ -17,7 +17,7 @@ import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { Roles } from "guards/roles.decorator";
 import { RolesGuard } from "guards/roles.guard";
 import { SPECIAL_ROLE } from "enums/common.enum";
-import { CreateProductOptionGroupDto, UpdateProductOptionGroupDto } from "./dto/product-option-group.dto";
+import { CreateProductOptionGroupDto, FindManyProductOptionGroupDto, UpdateProductOptionGroupDto } from "./dto/product-option-group.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 
@@ -37,8 +37,8 @@ export class ProductOptionGroupController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  findAll(@Query() findManyDto: FindManyDto) {
-    return this.productOptionGroupService.findAll(findManyDto, findManyDto.branchId);
+  findAll(@Query() data: FindManyProductOptionGroupDto) {
+    return this.productOptionGroupService.findAll(data, data.branchId);
   }
 
   @Get(":id")

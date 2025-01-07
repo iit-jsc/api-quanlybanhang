@@ -13,13 +13,13 @@ import {
   Query,
 } from "@nestjs/common";
 import { ManagerService } from "./manager.service";
-import { CreateManagerDto, UpdateManagerDto } from "./dto/manager.dto";
+import { CreateManagerDto, FindManyManagerDto, UpdateManagerDto } from "./dto/manager.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { RolesGuard } from "guards/roles.guard";
 import { SPECIAL_ROLE } from "enums/common.enum";
 import { Roles } from "guards/roles.decorator";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 
 @Controller("manager")
 export class ManagerController {
@@ -38,10 +38,10 @@ export class ManagerController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyManagerDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.managerService.findAll(findManyDto, tokenPayload);
+    return this.managerService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

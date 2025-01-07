@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto } from "./dto/order.dto";
+import { PaymentOrderDto, CreateOrderDto, OrderProducts, UpdateOrderDto, FindManyOrderDto } from "./dto/order.dto";
 import { AnyObject, ICustomer, DeleteManyResponse, TokenCustomerPayload, TokenPayload } from "interfaces/common.interface";
 import { CreateOrderOnlineDto } from "./dto/create-order-online.dto";
 import { CreateOrderToTableDto } from "./dto/create-order-to-table.dto";
@@ -11,7 +11,7 @@ import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { DETAIL_ORDER_STATUS, ORDER_STATUS_COMMON, ORDER_TYPE, TRANSACTION_TYPE } from "enums/order.enum";
-import { calculatePagination, generateSortCode } from "utils/Helps";
+import { calculatePagination, customPaginate, generateSortCode } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 import { SaveOrderDto } from "./dto/save-order.dto";
 import { ACTIVITY_LOG_TYPE, DISCOUNT_TYPE } from "enums/common.enum";
@@ -709,8 +709,8 @@ export class OrderService {
     });
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { skip, take, keyword, customerId, from, to, orderTypes, isPaid, orderBy } = params;
+  async findAll(params: FindManyOrderDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, customerId, from, to, orderTypes, isPaid, orderBy } = params;
 
     const keySearch = ["code"];
 
@@ -747,12 +747,11 @@ export class OrderService {
       ...(typeof isPaid !== "undefined" && { isPaid: isPaid }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.order.findMany({
-        where,
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.order,
+      {
         orderBy: orderBy || { createdAt: "desc" },
+        where,
         select: {
           id: true,
           code: true,
@@ -815,15 +814,12 @@ export class OrderService {
           updatedAt: true,
           createdAt: true,
         },
-      }),
-      this.prisma.order.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.OrderWhereUniqueInput, tokenPayload: TokenPayload) {
@@ -920,8 +916,8 @@ export class OrderService {
     } as DeleteManyResponse;
   }
 
-  async findAllByCustomer(params: FindManyDto, tokenCustomerPayload: TokenCustomerPayload) {
-    let { skip, take, keyword, from, to } = params;
+  async findAllByCustomer(params: FindManyOrderDto, tokenCustomerPayload: TokenCustomerPayload) {
+    let { page, perPage, keyword, from, to, orderBy } = params;
 
     const keySearch = ["code"];
 
@@ -954,14 +950,11 @@ export class OrderService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.order.findMany({
+    return await customPaginate(
+      this.prisma.order,
+      {
+        orderBy: orderBy || { createdAt: "desc" },
         where,
-        skip,
-        take,
-        orderBy: {
-          createdAt: "desc",
-        },
         select: {
           id: true,
           code: true,
@@ -1023,16 +1016,12 @@ export class OrderService {
           },
           updatedAt: true
         },
-      }),
-      this.prisma.order.count({
-        where,
-      }),
-    ]);
-    return {
-      list: data,
-
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniqByCustomer(where: Prisma.OrderWhereUniqueInput, tokenCustomerPayload: TokenCustomerPayload) {

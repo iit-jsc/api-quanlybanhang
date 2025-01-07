@@ -1,12 +1,12 @@
 import * as bcrypt from "bcrypt";
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
-import { CheckUniqDto, CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
+import { CheckUniqDto, CreateEmployeeDto, FindManyEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { calculatePagination, customPaginate } from "utils/Helps";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -67,8 +67,8 @@ export class UserService {
     });
   }
 
-  async findAllEmployee(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { skip, take, keyword, employeeGroupIds, orderBy } = params;
+  async findAllEmployee(params: FindManyEmployeeDto, tokenPayload: TokenPayload) {
+    const { page, perPage, keyword, employeeGroupIds, orderBy } = params;
 
     const keySearch = ["name", "code", "email", "phone"];
 
@@ -91,10 +91,9 @@ export class UserService {
       },
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.user.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.user,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -136,16 +135,12 @@ export class UserService {
             },
           },
         },
-      }),
-      this.prisma.user.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniqEmployee(where: Prisma.UserWhereUniqueInput, tokenPayload: TokenPayload) {
