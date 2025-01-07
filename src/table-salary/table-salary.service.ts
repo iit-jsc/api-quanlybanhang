@@ -6,7 +6,7 @@ import { Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
 import { ACTIVITY_LOG_TYPE, COMPENSATION_APPLY_TO, COMPENSATION_TYPE } from "enums/common.enum";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 
 @Injectable()

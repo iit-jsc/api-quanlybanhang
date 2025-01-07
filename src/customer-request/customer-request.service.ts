@@ -3,7 +3,7 @@ import { PrismaService } from 'nestjs-prisma';
 import { CreateCustomerRequestDto, FindManyCustomerRequestDto, UpdateCustomerRequestDto } from './dto/customer-request.dto';
 import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface';
 import { Prisma } from '@prisma/client';
-import { calculatePagination, customPaginate } from 'utils/Helps';
+import { customPaginate } from 'utils/Helps';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { CustomerRequestGateway } from 'src/gateway/customer-request.gateway';
 import { REQUEST_STATUS } from 'enums/common.enum';

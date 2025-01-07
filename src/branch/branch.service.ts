@@ -1,7 +1,7 @@
 import { CreateBranchDto, UpdateBranchDto } from "src/branch/dto/create-branch.dto";
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";

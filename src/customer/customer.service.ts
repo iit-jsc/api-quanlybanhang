@@ -4,8 +4,8 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { DeleteManyDto } from "utils/Common.dto";
+import { customPaginate } from "utils/Helps";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()

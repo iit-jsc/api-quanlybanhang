@@ -3,10 +3,10 @@ import { PrismaService } from "nestjs-prisma";
 import { CreateInventoryTransactionDto, FindManInventTransDto, UpdateInventoryTransactionDto } from "./dto/inventory-transaction.dto";
 import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { ACTIVITY_LOG_TYPE, INVENTORY_TRANSACTION_STATUS, INVENTORY_TRANSACTION_TYPE } from "enums/common.enum";
-import { InventoryTransactionDetail, Prisma } from "@prisma/client";
+import { Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { DeleteManyDto } from "utils/Common.dto";
+import { customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 
 @Injectable()

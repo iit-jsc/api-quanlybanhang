@@ -4,7 +4,7 @@ import { DeleteManyDto } from "utils/Common.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
-import { calculatePagination } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE, PROMOTION_TYPE } from "enums/common.enum";
 import { FindManyPromotionDto, OrderProductDto } from "./dto/find-many.dto";
@@ -71,7 +71,7 @@ export class PromotionService {
   }
 
   async findAll(params: FindManyPromotionDto) {
-    const { skip, take, keyword, isSort, branchId, orderBy, orderProducts } = params;
+    const { page, perPage, keyword, isSort, branchId, orderBy, orderProducts } = params;
 
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
@@ -124,10 +124,9 @@ export class PromotionService {
       }),
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.promotion.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.promotion,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         include: {
@@ -170,16 +169,12 @@ export class PromotionService {
             },
           }),
         },
-      }),
-      this.prisma.promotion.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 
   async findUniq(where: Prisma.PromotionWhereUniqueInput) {

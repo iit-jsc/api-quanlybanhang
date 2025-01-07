@@ -62,17 +62,6 @@ export function generateSortCode(): string {
   return uid.randomUUID(10).toUpperCase();
 }
 
-export function calculatePagination(totalRecords: number, skip: number, take: number): PaginationResult {
-  const totalPages = Math.ceil(totalRecords / take);
-  const currentPage = totalPages === 0 ? 0 : Math.ceil(skip / take) + 1;
-
-  return {
-    totalRecords,
-    totalPages,
-    currentPage,
-  };
-}
-
 export function roleBasedBranchFilter(tokenPayload: TokenPayload) {
   const baseConditions = {
     isPublic: true,

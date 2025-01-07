@@ -2,8 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { FindManyDto } from "utils/Common.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { FindManyActivityLogDto } from "./dto/activity-log.dto";
 
 @Injectable()

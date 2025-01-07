@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { calculatePagination } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { CreateProductTypeDto, UpdateProductTypeDto } from "./dto/product-type.dto";
 import { FindManyProductTypeDto } from "./dto/find-many.dto";
 import { DeleteManyDto } from "utils/Common.dto";
@@ -51,16 +51,16 @@ export class ProductTypeService {
   }
 
   async findAll(params: FindManyProductTypeDto) {
-    let { skip, take, keyword, branchId, orderBy } = params;
+    let { page, perPage, keyword, branchId, orderBy } = params;
     let where: Prisma.ProductTypeWhereInput = {
       isPublic: true,
       branchId: branchId,
       ...(keyword && { name: { contains: keyword } }),
     };
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.productType.findMany({
-        skip,
-        take,
+
+    return await customPaginate(
+      this.prisma.productType,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         select: {
@@ -77,15 +77,13 @@ export class ProductTypeService {
           },
           updatedAt: true,
         },
-      }),
-      this.prisma.productType.count({
-        where,
-      }),
-    ]);
-    return {
-      list: branchId ? data : [],
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
+
   }
 
   async findUniq(where: Prisma.ProductTypeWhereInput) {

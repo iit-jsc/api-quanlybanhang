@@ -2,11 +2,11 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { FindManyEmployeeScheduleDto, RegisterScheduleDto, UpdateRegisterScheduleDto } from "./dto/employee.schedule.dto";
 import { Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { ACCOUNT_TYPE } from "enums/user.enum";
 import { CustomHttpException } from "utils/ApiErrors";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 

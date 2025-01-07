@@ -3,8 +3,8 @@ import { PrismaService } from "nestjs-prisma";
 import { CreateWarehouseDto, FindManyWarehouseDto, UpdateWarehouseDto } from "./dto/warehouse.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { DeleteManyDto } from "utils/Common.dto";
+import { customPaginate } from "utils/Helps";
 
 @Injectable()
 export class WarehouseService {

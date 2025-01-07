@@ -4,7 +4,7 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
-import { calculatePagination, customPaginate, generateSortCode } from "utils/Helps";
+import { customPaginate, generateSortCode } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";

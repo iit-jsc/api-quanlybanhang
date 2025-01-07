@@ -3,9 +3,9 @@ import { PrismaService } from "nestjs-prisma";
 import { CreateOrderRatingDto, UpdateOrderRatingDto } from "./dto/order-rating.dto";
 import { DeleteManyResponse, TokenCustomerPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { DeleteManyDto } from "utils/Common.dto";
 import { FindManyOrderRatings } from "./dto/find-many-order-rating";
+import { customPaginate } from "utils/Helps";
 
 @Injectable()
 export class OrderRatingService {
@@ -81,7 +81,7 @@ export class OrderRatingService {
   }
 
   async findAll(params: FindManyOrderRatings, tokenPayload: TokenCustomerPayload) {
-    const { skip, take, orderId, orderBy } = params;
+    const { page, perPage, orderId, orderBy } = params;
 
     const where: Prisma.OrderRatingWhereInput = {
       isPublic: true,
@@ -91,21 +91,16 @@ export class OrderRatingService {
       },
     };
 
-    const [data, totalRecords] = await Promise.all([
-      this.prisma.orderRating.findMany({
-        skip,
-        take,
+    return await customPaginate(
+      this.prisma.productOptionGroup,
+      {
         orderBy: orderBy || { createdAt: "desc" },
         where,
-      }),
-      this.prisma.orderRating.count({
-        where,
-      }),
-    ]);
-
-    return {
-      list: data,
-      pagination: calculatePagination(totalRecords, skip, take),
-    };
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 }

@@ -1,11 +1,8 @@
-import { ProductOptionGroupController } from "./product-option-group.controller";
-import { ProductOptionGroupModule } from "./product-option-group.module";
 import { HttpStatus, Injectable } from "@nestjs/common";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
-import { CreateSupplierTypeDto } from "src/supplier-type/dto/supplier-type.dto";
 import {
   CreateProductOptionDto,
   CreateProductOptionGroupDto,
@@ -13,8 +10,8 @@ import {
   UpdateProductOptionGroupDto,
 } from "./dto/product-option-group.dto";
 import { Prisma, PrismaClient } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { DeleteManyDto } from "utils/Common.dto";
+import { customPaginate } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()

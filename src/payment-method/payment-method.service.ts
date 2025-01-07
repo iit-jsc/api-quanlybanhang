@@ -3,8 +3,7 @@ import { PrismaService } from "nestjs-prisma";
 import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from "./dto/payment-method.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
-import { FindManyDto } from "utils/Common.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 

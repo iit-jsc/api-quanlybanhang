@@ -3,8 +3,7 @@ import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { FindManyCompensationEmployeeDto, UpdateCompensationEmployeeDto } from "./dto/compensation-employee.dto";
 import { TokenPayload } from "interfaces/common.interface";
-import { FindManyDto } from "utils/Common.dto";
-import { calculatePagination } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 
 @Injectable()
 export class CompensationEmployeeService {
@@ -31,6 +30,17 @@ export class CompensationEmployeeService {
       ...(employeeIds && { employeeId: { in: employeeIds } }),
       branchId: tokenPayload.branchId,
     };
-   
+
+    return await customPaginate(
+      this.prisma.compensationEmployee,
+      {
+        orderBy: orderBy || { createdAt: "desc" },
+        where,
+      },
+      {
+        page,
+        perPage,
+      },
+    );
   }
 }

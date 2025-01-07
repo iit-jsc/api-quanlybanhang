@@ -1,10 +1,9 @@
 import { Injectable } from "@nestjs/common";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
+import { TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CreateEmployeeSalaryDto, FindManyEmployeeSalaryDto, UpdateEmployeeSalaryDto } from "./dto/employee-salary.dto";
 import { CompensationSetting, Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { CreateCompensationEmployeeDto } from "src/compensation-employee/dto/compensation-employee.dto";
 import { ACTIVITY_LOG_TYPE, COMPENSATION_APPLY_TO } from "enums/common.enum";
 import { CommonService } from "src/common/common.service";

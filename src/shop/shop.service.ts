@@ -1,17 +1,15 @@
 import * as bcrypt from "bcrypt";
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { CreateShopDto, RegisterShopDto } from "./dto/create-shop.dto";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
-import { BRANCH_STATUS } from "enums/shop.enum";
 import { CommonService } from "src/common/common.service";
-import { CustomHttpException } from "utils/ApiErrors";
 import { AuthService } from "src/auth/auth.service";
 import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
-import { calculatePagination, customPaginate } from "utils/Helps";
+import { customPaginate } from "utils/Helps";
 import { DISCOUNT_TYPE, FEATURE_CODE, PAYMENT_METHOD_TYPE } from "enums/common.enum";
 import { FindByCodeDto } from "./dto/shop.dto";
 
