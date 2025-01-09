@@ -4,7 +4,7 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { customPaginate } from "utils/Helps";
-import { CreateAreaDto, UpdateAreaDto } from "./dto/area.dto";
+import { CreateAreaDto, FindManyAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -45,18 +45,27 @@ export class AreaService {
     return area;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    const { page, perPage, keyword, orderBy } = params;
+  async findAll(params: FindManyAreaDto, tokenPayload: TokenPayload) {
+    const { page, perPage, keyword, orderBy, areaIds } = params;
 
-    const keySearch = ["name", "code"];
+    const keySearch = ["name"];
 
     const where: Prisma.AreaWhereInput = {
       isPublic: true,
-      ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
-        })),
+      ...(areaIds && {
+        id: {
+          in: areaIds
+        },
       }),
+      tables: {
+        some: {
+          ...(keyword && {
+            OR: keySearch.map((key) => ({
+              [key]: { contains: keyword },
+            })),
+          }),
+        }
+      },
       branch: {
         id: tokenPayload.branchId,
         isPublic: true,
@@ -76,12 +85,32 @@ export class AreaService {
           tables: {
             where: {
               isPublic: true,
+              ...(keyword && {
+                OR: keySearch.map((key) => ({
+                  [key]: { contains: keyword },
+                })),
+              }),
             },
             select: {
               id: true,
               name: true,
               seat: true,
               updatedAt: true,
+              orderDetails: {
+                where: {
+                  isPublic: true,
+                },
+                orderBy: { createdAt: "asc" },
+                select: {
+                  id: true,
+                  amount: true,
+                  note: true,
+                  status: true,
+                  createdAt: true,
+                  product: true,
+                  productOptions: true
+                },
+              },
             }
           },
         },

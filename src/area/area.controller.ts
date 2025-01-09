@@ -14,7 +14,7 @@ import {
 } from "@nestjs/common";
 import { AreaService } from "./area.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { CreateAreaDto, UpdateAreaDto } from "./dto/area.dto";
+import { CreateAreaDto, FindManyAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
@@ -59,10 +59,10 @@ export class AreaController {
   @UseGuards(JwtAuthGuard)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_AREA", "UPDATE_AREA", "DELETE_AREA", "VIEW_AREA", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyAreaDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.areaService.findAll(findManyDto, tokenPayload);
+    return this.areaService.findAll(data, tokenPayload);
   }
 
   @Get(":id")
