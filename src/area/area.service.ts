@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { customPaginate } from "utils/Helps";
 import { CreateAreaDto, FindManyAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { CommonService } from "src/common/common.service";

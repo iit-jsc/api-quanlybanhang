@@ -13,10 +13,10 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { WorkShiftService } from "./work-shift.service";
-import { CreateWorkShiftDto, UpdateWorkShiftDto } from "./dto/work-shift.dto";
+import { CreateWorkShiftDto, FindManyWorkShiftDto, UpdateWorkShiftDto } from "./dto/work-shift.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";
 import { RolesGuard } from "guards/roles.guard";
@@ -38,10 +38,10 @@ export class WorkShiftController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_WORK_SHIFT", "UPDATE_WORK_SHIFT", "DELETE_WORK_SHIFT", "VIEW_WORK_SHIFT", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyWorkShiftDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.workShiftService.findAll(findManyDto, tokenPayload);
+    return this.workShiftService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

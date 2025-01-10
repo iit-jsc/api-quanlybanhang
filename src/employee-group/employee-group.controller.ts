@@ -45,10 +45,10 @@ export class EmployeeGroupController {
     "VIEW_EMPLOYEE_GROUP",
     SPECIAL_ROLE.MANAGER,
   )
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.employeeGroupService.findAll(findManyDto, tokenPayload);
+    return this.employeeGroupService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

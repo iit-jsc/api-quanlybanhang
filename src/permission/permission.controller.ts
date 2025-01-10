@@ -13,10 +13,10 @@ import {
   UseGuards,
 } from "@nestjs/common";
 import { PermissionService } from "./permission.service";
-import { CreatePermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
+import { CreatePermissionDto, FindManyPermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";
@@ -39,10 +39,10 @@ export class PermissionController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_PERMISSION", "UPDATE_PERMISSION", "DELETE_PERMISSION", "VIEW_PERMISSION", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyPermissionDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.permissionService.findAll(findManyDto, tokenPayload);
+    return this.permissionService.findAll(data, tokenPayload);
   }
 
   @Patch(":id")

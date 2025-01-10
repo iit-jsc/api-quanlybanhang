@@ -16,7 +16,7 @@ import { AreaService } from "./area.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { CreateAreaDto, FindManyAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
 import { Roles } from "guards/roles.decorator";
 import { ACCOUNT_TYPE } from "enums/user.enum";

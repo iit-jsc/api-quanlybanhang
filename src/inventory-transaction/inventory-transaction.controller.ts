@@ -18,9 +18,10 @@ import { RolesGuard } from 'guards/roles.guard';
 import { Roles } from 'guards/roles.decorator';
 import { SPECIAL_ROLE } from 'enums/common.enum';
 import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
+import { DeleteManyDto } from 'utils/Common.dto';
 import {
   CreateInventoryTransactionDto,
+  FindManInventTransDto,
   UpdateInventoryTransactionDto,
 } from './dto/inventory-transaction.dto';
 
@@ -56,10 +57,10 @@ export class InventoryTransactionController {
     'VIEW_WAREHOUSE',
     SPECIAL_ROLE.MANAGER,
   )
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManInventTransDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.inventoryTransactionService.findAll(findManyDto, tokenPayload);
+    return this.inventoryTransactionService.findAll(data, tokenPayload);
   }
 
   @Get(':id')

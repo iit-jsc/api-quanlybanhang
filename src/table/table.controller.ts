@@ -18,7 +18,7 @@ import { TableService } from "./table.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { CustomFileInterceptor } from "utils/Helps";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { CreateTableDto, FindManyTableDto, UpdateTableDto } from "./dto/table.dto";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";

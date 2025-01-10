@@ -13,10 +13,10 @@ import {
   Get,
 } from "@nestjs/common";
 import { UserService } from "./user.service";
-import { CheckUniqDto, CreateEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
+import { CheckUniqDto, CreateEmployeeDto, FindManyEmployeeDto, UpdateEmployeeDto } from "./dto/employee-dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";
@@ -45,10 +45,10 @@ export class UserController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_EMPLOYEE", "UPDATE_EMPLOYEE", "DELETE_EMPLOYEE", "VIEW_EMPLOYEE", SPECIAL_ROLE.MANAGER)
-  findAllEmployee(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAllEmployee(@Query() data: FindManyEmployeeDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.userService.findAllEmployee(findManyDto, tokenPayload);
+    return this.userService.findAllEmployee(data, tokenPayload);
   }
 
   @Get("/employee/:id")

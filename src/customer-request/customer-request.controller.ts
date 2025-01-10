@@ -17,9 +17,9 @@ export class CustomerRequestController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  findAll(@Query() findManyDto: FindManyCustomerRequestDto) {
+  findAll(@Query() data: FindManyCustomerRequestDto) {
 
-    return this.customerRequestService.findAll(findManyDto);
+    return this.customerRequestService.findAll(data);
   }
 
   @Get(":id")

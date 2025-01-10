@@ -47,10 +47,10 @@ export class DiscountCodeController {
     'VIEW_DISCOUNT_ISSUE',
     SPECIAL_ROLE.MANAGER,
   )
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.discountCodeService.findAll(findManyDto, tokenPayload);
+    return this.discountCodeService.findAll(data, tokenPayload);
   }
 
   @Get(':id')

@@ -39,10 +39,10 @@ export class TableSalaryController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_SALARY", "UPDATE_SALARY", "DELETE_SALARY", "VIEW_SALARY", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.tableSalaryService.findAll(findManyDto, tokenPayload);
+    return this.tableSalaryService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

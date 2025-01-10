@@ -44,10 +44,10 @@ export class SupplierTypeController {
     "VIEW_SUPPLIER_TYPE",
     SPECIAL_ROLE.MANAGER,
   )
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.supplierTypeService.findAll(findManyDto, tokenPayload);
+    return this.supplierTypeService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

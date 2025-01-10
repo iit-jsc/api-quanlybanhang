@@ -16,7 +16,7 @@ import { CustomerService } from "./customer.service";
 import { CheckEmailDto, CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";

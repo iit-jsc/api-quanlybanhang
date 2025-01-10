@@ -5,7 +5,7 @@ import { CheckUniqDto, CreateEmployeeDto, FindManyEmployeeDto, UpdateEmployeeDto
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { customPaginate } from "utils/Helps";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";

@@ -18,7 +18,7 @@ import { RolesGuard } from 'guards/roles.guard';
 import { Roles } from 'guards/roles.decorator';
 import { SPECIAL_ROLE } from 'enums/common.enum';
 import { TokenPayload } from 'interfaces/common.interface';
-import { CreateWarehouseDto, UpdateWarehouseDto } from './dto/warehouse.dto';
+import { CreateWarehouseDto, FindManyWarehouseDto, UpdateWarehouseDto } from './dto/warehouse.dto';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 
 @Controller('warehouse')
@@ -35,10 +35,10 @@ export class WarehouseController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('UPDATE_WAREHOUSE', 'VIEW_WAREHOUSE', SPECIAL_ROLE.MANAGER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyWarehouseDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.warehouseService.findAll(findManyDto, tokenPayload);
+    return this.warehouseService.findAll(data, tokenPayload);
   }
 
   @Get(':id')

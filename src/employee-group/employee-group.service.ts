@@ -1,10 +1,11 @@
+import { FindManyDto } from './../../utils/Common.dto';
 import { Injectable } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { CreateEmployeeGroupDto, UpdateEmployeeGroupDto } from "./dto/employee-group.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { customPaginate } from "utils/Helps";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 

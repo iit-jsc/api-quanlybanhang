@@ -16,7 +16,7 @@ import { CompensationSettingService } from "./compensation-setting.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { CreateCompensationSettingDto, FindManyCompensationSettingDto, UpdateCompensationSettingDto } from "./dto/compensation-setting.dto";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
 import { SPECIAL_ROLE } from "enums/common.enum";
 import { Roles } from "guards/roles.decorator";

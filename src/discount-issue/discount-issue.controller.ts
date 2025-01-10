@@ -16,7 +16,7 @@ import {
 } from '@nestjs/common';
 import { DiscountIssueService } from './discount-issue.service';
 import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { CreateDiscountIssueDto, UpdateDiscountIssueDto } from './dto/discount-issue.dto';
+import { CreateDiscountIssueDto, FindManyDiscountIssueDto, UpdateDiscountIssueDto } from './dto/discount-issue.dto';
 import { TokenPayload } from 'interfaces/common.interface';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { UpdatePromotionDto } from 'src/promotion/dto/promotion.dto';
@@ -54,10 +54,10 @@ export class DiscountIssueController {
     'VIEW_DISCOUNT_ISSUE',
     SPECIAL_ROLE.MANAGER,
   )
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDiscountIssueDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.discountIssueService.findAll(findManyDto, tokenPayload);
+    return this.discountIssueService.findAll(data, tokenPayload);
   }
 
   @Get(':id')

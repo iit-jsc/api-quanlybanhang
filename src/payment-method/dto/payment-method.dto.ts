@@ -38,5 +38,9 @@ export class UpdatePaymentMethodDto {
 
 
 export class FindManyPaymentMethodDto extends FindManyDto {
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
   active?: boolean;
 }

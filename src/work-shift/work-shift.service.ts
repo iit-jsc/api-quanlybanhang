@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { CreateWorkShiftDto, FindManyWorkShiftDto, UpdateWorkShiftDto } from "./dto/work-shift.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { customPaginate } from "utils/Helps";

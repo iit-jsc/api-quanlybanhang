@@ -92,9 +92,9 @@ export class ShopController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(SPECIAL_ROLE.STORE_OWNER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.shopService.findAll(findManyDto, tokenPayload);
+    return this.shopService.findAll(data, tokenPayload);
   }
 }

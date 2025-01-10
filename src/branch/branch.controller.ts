@@ -1,3 +1,4 @@
+import { FindManyDto } from './../../utils/Common.dto';
 import {
   Body,
   Controller,
@@ -16,7 +17,7 @@ import { BranchService } from "./branch.service";
 import { CreateBranchDto, UpdateBranchDto } from "./dto/create-branch.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { RolesGuard } from "guards/roles.guard";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";
@@ -39,10 +40,10 @@ export class BranchController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_BRANCH", "UPDATE_BRANCH", "DELETE_BRANCH", "VIEW_BRANCH", SPECIAL_ROLE.STORE_OWNER)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.branchService.findAll(findManyDto, tokenPayload);
+    return this.branchService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

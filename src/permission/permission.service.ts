@@ -4,7 +4,7 @@ import { PrismaService } from "nestjs-prisma";
 import { CreatePermissionDto, FindManyPermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
 import { customPaginate } from "utils/Helps";
 import { Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 

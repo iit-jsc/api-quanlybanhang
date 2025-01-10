@@ -1,6 +1,6 @@
 import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { GroupRoleService } from './group-role.service';
-import { FindManyDto } from 'utils/Common.dto';
+import { FindManyGroupRoleDto } from './dto/group-role.dto';
 
 @Controller('group-role')
 export class GroupRoleController {
@@ -8,7 +8,7 @@ export class GroupRoleController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  findAll(@Query() findManyDto: FindManyDto) {
-    return this.groupRoleService.findAll(findManyDto);
+  findAll(@Query() data: FindManyGroupRoleDto) {
+    return this.groupRoleService.findAll(data);
   }
 }

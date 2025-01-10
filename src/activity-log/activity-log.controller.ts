@@ -3,6 +3,7 @@ import { ActivityLogService } from "./activity-log.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { FindManyDto } from "utils/Common.dto";
 import { TokenPayload } from "interfaces/common.interface";
+import { FindManyActivityLogDto } from "./dto/activity-log.dto";
 
 @Controller("activity-log")
 export class ActivityLogController {
@@ -11,9 +12,9 @@ export class ActivityLogController {
   @Get("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyActivityLogDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.activityLogService.findAll(findManyDto, tokenPayload);
+    return this.activityLogService.findAll(data, tokenPayload);
   }
 }

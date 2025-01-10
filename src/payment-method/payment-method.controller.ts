@@ -16,7 +16,7 @@ import { PaymentMethodService } from "./payment-method.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { FindManyDto } from "utils/Common.dto";
 import { TokenPayload } from "interfaces/common.interface";
-import { UpdatePaymentMethodDto } from "./dto/payment-method.dto";
+import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from "./dto/payment-method.dto";
 import { Roles } from "guards/roles.decorator";
 import { SPECIAL_ROLE } from "enums/common.enum";
 import { RolesGuard } from "guards/roles.guard";
@@ -28,10 +28,10 @@ export class PaymentMethodController {
   @Get("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyPaymentMethodDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.paymentMethodService.findAll(findManyDto, tokenPayload);
+    return this.paymentMethodService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

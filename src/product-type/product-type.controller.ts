@@ -39,8 +39,8 @@ export class ProductTypeController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  findAll(@Query() findManyDto: FindManyProductTypeDto, @Req() req: any) {
-    return this.productTypeService.findAll(findManyDto);
+  findAll(@Query() data: FindManyProductTypeDto, @Req() req: any) {
+    return this.productTypeService.findAll(data);
   }
 
   @Get(":keyword")

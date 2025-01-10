@@ -38,10 +38,10 @@ export class MeasurementUnitController {
   @Get("")
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.measurementUnitService.findAll(findManyDto, tokenPayload);
+    return this.measurementUnitService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

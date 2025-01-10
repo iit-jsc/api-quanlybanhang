@@ -3,7 +3,7 @@ import { HttpStatus, Injectable } from "@nestjs/common";
 import { CreateManagerDto, FindManyManagerDto, UpdateManagerDto } from "./dto/manager.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";

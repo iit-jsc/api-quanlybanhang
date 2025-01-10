@@ -38,8 +38,8 @@ export class ProductController {
 
   @Get("")
   @HttpCode(HttpStatus.OK)
-  findAll(@Query() findManyDto: FindManyProductDto, @Req() req: any) {
-    return this.productService.findAll(findManyDto);
+  findAll(@Query() data: FindManyProductDto, @Req() req: any) {
+    return this.productService.findAll(data);
   }
 
   @Get(":keyword")

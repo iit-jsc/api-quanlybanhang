@@ -19,7 +19,7 @@ import { RolesGuard } from "guards/roles.guard";
 import { SPECIAL_ROLE } from "enums/common.enum";
 import { CreateProductOptionGroupDto, FindManyProductOptionGroupDto, UpdateProductOptionGroupDto } from "./dto/product-option-group.dto";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 
 @Controller("product-option-group")
 export class ProductOptionGroupController {

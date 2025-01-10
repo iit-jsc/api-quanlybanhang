@@ -14,9 +14,9 @@ import {
 } from "@nestjs/common";
 import { EmployeeScheduleService } from "./employee-schedule.service";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { RegisterScheduleDto, UpdateRegisterScheduleDto } from "./dto/employee.schedule.dto";
+import { FindManyEmployeeScheduleDto, RegisterScheduleDto, UpdateRegisterScheduleDto } from "./dto/employee.schedule.dto";
 import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+import { DeleteManyDto } from "utils/Common.dto";
 import { Roles } from "guards/roles.decorator";
 import { RolesGuard } from "guards/roles.guard";
 import { SPECIAL_ROLE } from "enums/common.enum";
@@ -45,10 +45,10 @@ export class EmployeeScheduleController {
     "VIEW_EMPLOYEE_SCHEDULE",
     SPECIAL_ROLE.MANAGER,
   )
-  findAll(@Query() findManyDto: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyEmployeeScheduleDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.employeeScheduleService.findAll(findManyDto, tokenPayload);
+    return this.employeeScheduleService.findAll(data, tokenPayload);
   }
 
   @Get(":id")

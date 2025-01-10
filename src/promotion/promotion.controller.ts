@@ -41,9 +41,9 @@ export class PromotionController {
   @Get()
   @HttpCode(HttpStatus.OK)
   findAll(
-    @Query() findManyDto: FindManyPromotionDto,
+    @Query() data: FindManyPromotionDto,
   ) {
-    return this.promotionService.findAll(findManyDto);
+    return this.promotionService.findAll(data);
   }
 
   @Get(':id')
