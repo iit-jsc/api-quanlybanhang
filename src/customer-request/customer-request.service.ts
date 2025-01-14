@@ -58,7 +58,7 @@ export class CustomerRequestService {
   }
 
   async findAll(params: FindManyCustomerRequestDto) {
-    let { page, perPage, orderBy, keyword, tableId, branchId } = params;
+    let { page, perPage, orderBy, keyword, branchId, tableIds, requestTypes, statuses } = params;
 
     const keySearch = ["content"];
 
@@ -70,8 +70,21 @@ export class CustomerRequestService {
           [key]: { contains: keyword },
         })),
       }),
-      ...(tableId && {
-        tableId: tableId,
+      ...(tableIds && {
+        table: {
+          id: { in: tableIds },
+          isPublic: true,
+        },
+      }),
+      ...(requestTypes && {
+        requestType: {
+          in: requestTypes
+        },
+      }),
+      ...(statuses && {
+        status: {
+          in: statuses
+        },
       }),
     };
 
