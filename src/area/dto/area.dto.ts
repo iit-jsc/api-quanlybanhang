@@ -19,6 +19,9 @@ export class FindManyAreaDto extends FindManyDto {
     return value?.split(",").map((id: string) => id.trim());
   })
   areaIds: string[];
+
+  @IsOptional()
+  tableKeyword?: string;
 }
 
 export class UpdateAreaDto extends PartialType(CreateAreaDto) { }

@@ -46,7 +46,7 @@ export class AreaService {
   }
 
   async findAll(params: FindManyAreaDto, tokenPayload: TokenPayload) {
-    const { page, perPage, keyword, orderBy, areaIds } = params;
+    const { page, perPage, keyword, tableKeyword, orderBy, areaIds } = params;
 
     const keySearch = ["name"];
 
@@ -59,13 +59,18 @@ export class AreaService {
       }),
       tables: {
         some: {
-          ...(keyword && {
+          ...(tableKeyword && {
             OR: keySearch.map((key) => ({
-              [key]: { contains: keyword },
+              [key]: { contains: tableKeyword },
             })),
           }),
         }
       },
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: keyword },
+        })),
+      }),
       branch: {
         id: tokenPayload.branchId,
         isPublic: true,
@@ -85,9 +90,9 @@ export class AreaService {
           tables: {
             where: {
               isPublic: true,
-              ...(keyword && {
+              ...(tableKeyword && {
                 OR: keySearch.map((key) => ({
-                  [key]: { contains: keyword },
+                  [key]: { contains: tableKeyword },
                 })),
               }),
             },
