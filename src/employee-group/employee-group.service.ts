@@ -8,13 +8,14 @@ import { customPaginate } from "utils/Helps";
 import { DeleteManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { ACCOUNT_TYPE } from 'enums/user.enum';
 
 @Injectable()
 export class EmployeeGroupService {
   constructor(
     private readonly prisma: PrismaService,
     private commonService: CommonService,
-  ) {}
+  ) { }
 
   async create(data: CreateEmployeeGroupDto, tokenPayload: TokenPayload) {
     const employeeGroup = await this.prisma.employeeGroup.create({
@@ -63,6 +64,18 @@ export class EmployeeGroupService {
           name: true,
           description: true,
           updatedAt: true,
+          _count: {
+            select: {
+              users: {
+                where: {
+                  isPublic: true,
+                  account: {
+                    type: ACCOUNT_TYPE.STAFF
+                  }
+                }
+              }
+            }
+          }
         },
       },
       {
@@ -83,7 +96,7 @@ export class EmployeeGroupService {
       select: {
         id: true,
         name: true,
-        description: true,
+        description: true
       },
     });
   }
