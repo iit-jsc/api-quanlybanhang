@@ -57,7 +57,7 @@ export class CustomerTypeService {
     };
    
     return await customPaginate(
-      this.prisma.customer,
+      this.prisma.customerType,
       {
         orderBy: orderBy || { createdAt: "desc" },
         where,
