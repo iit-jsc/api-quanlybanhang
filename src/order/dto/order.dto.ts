@@ -145,5 +145,14 @@ export class FindManyOrderDto extends FindManyDto {
   orderTypes: number[];
 
   customerId?: string;
+
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
   isPaid?: boolean;
+
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isSave?: boolean;
 }

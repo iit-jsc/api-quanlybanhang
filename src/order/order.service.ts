@@ -710,7 +710,7 @@ export class OrderService {
   }
 
   async findAll(params: FindManyOrderDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, customerId, from, to, orderTypes, isPaid, orderBy } = params;
+    let { page, perPage, keyword, customerId, from, to, orderTypes, isPaid, orderBy, isSave } = params;
 
     const keySearch = ["code"];
 
@@ -745,6 +745,7 @@ export class OrderService {
         orderType: { in: orderTypes },
       }),
       ...(typeof isPaid !== "undefined" && { isPaid: isPaid }),
+      ...(typeof isSave !== "undefined" && { isSave: isSave }),
     };
 
     return await customPaginate(
