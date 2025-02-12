@@ -144,6 +144,11 @@ export class FindManyOrderDto extends FindManyDto {
   })
   orderTypes: number[];
 
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: number) => +id);
+  })
+  orderStatuses: number[];
+
   customerId?: string;
 
   @Transform(({ value }: TransformFnParams) => {

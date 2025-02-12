@@ -710,7 +710,7 @@ export class OrderService {
   }
 
   async findAll(params: FindManyOrderDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, customerId, from, to, orderTypes, isPaid, orderBy, isSave } = params;
+    let { page, perPage, keyword, customerId, from, to, orderTypes, isPaid, orderBy, isSave, orderStatuses } = params;
 
     const keySearch = ["code"];
 
@@ -743,6 +743,9 @@ export class OrderService {
       }),
       ...(orderTypes?.length > 0 && {
         orderType: { in: orderTypes },
+      }),
+      ...(orderStatuses?.length > 0 && {
+        orderStatus: { in: orderStatuses },
       }),
       ...(typeof isPaid !== "undefined" && { isPaid: isPaid }),
       ...(typeof isSave !== "undefined" && { isSave: isSave }),
