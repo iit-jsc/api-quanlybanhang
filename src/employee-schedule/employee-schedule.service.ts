@@ -6,7 +6,7 @@ import { DeleteManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { ACCOUNT_TYPE } from "enums/user.enum";
 import { CustomHttpException } from "utils/ApiErrors";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -82,7 +82,7 @@ export class EmployeeScheduleService {
     let where: Prisma.EmployeeScheduleWhereInput = {
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
       ...(employeeIds?.length > 0 && {

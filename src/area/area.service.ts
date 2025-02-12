@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CreateAreaDto, FindManyAreaDto, UpdateAreaDto } from "./dto/area.dto";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
@@ -68,7 +68,7 @@ export class AreaService {
       },
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
       branch: {

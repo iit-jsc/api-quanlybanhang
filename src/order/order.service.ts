@@ -11,7 +11,7 @@ import { CreateOrderToTableByCustomerDto } from "./dto/create-order-to-table-by-
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { DETAIL_ORDER_STATUS, ORDER_STATUS_COMMON, ORDER_TYPE, TRANSACTION_TYPE } from "enums/order.enum";
-import { customPaginate, generateSortCode } from "utils/Helps";
+import { customPaginate, generateSortCode, removeDiacritics } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 import { SaveOrderDto } from "./dto/save-order.dto";
 import { ACTIVITY_LOG_TYPE, DISCOUNT_TYPE } from "enums/common.enum";
@@ -719,7 +719,7 @@ export class OrderService {
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
       ...(customerId && {
@@ -926,7 +926,7 @@ export class OrderService {
       customerId: tokenCustomerPayload.customerId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
       ...(from &&

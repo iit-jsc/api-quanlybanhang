@@ -4,7 +4,7 @@ import { CreateWarehouseDto, FindManyWarehouseDto, UpdateWarehouseDto } from "./
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 
 @Injectable()
 export class WarehouseService {
@@ -54,7 +54,7 @@ export class WarehouseService {
       branchId: tokenPayload.branchId,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
     };

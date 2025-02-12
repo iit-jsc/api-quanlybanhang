@@ -9,7 +9,7 @@ import { AnyObject, DeleteManyResponse, TokenPayload } from "interfaces/common.i
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
 import { UpdateShopDto } from "./dto/update-shop.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { DISCOUNT_TYPE, FEATURE_CODE, PAYMENT_METHOD_TYPE } from "enums/common.enum";
 import { FindByCodeDto } from "./dto/shop.dto";
 
@@ -225,7 +225,7 @@ export class ShopService {
       },
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
     };

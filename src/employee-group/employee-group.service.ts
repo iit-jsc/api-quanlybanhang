@@ -4,7 +4,7 @@ import { PrismaService } from "nestjs-prisma";
 import { CreateEmployeeGroupDto, UpdateEmployeeGroupDto } from "./dto/employee-group.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { DeleteManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
@@ -51,7 +51,7 @@ export class EmployeeGroupService {
     let where: Prisma.EmployeeGroupWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
     };
 
     return await customPaginate(

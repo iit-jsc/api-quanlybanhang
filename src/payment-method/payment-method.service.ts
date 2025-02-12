@@ -3,7 +3,7 @@ import { PrismaService } from "nestjs-prisma";
 import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from "./dto/payment-method.dto";
 import { TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -82,7 +82,7 @@ export class PaymentMethodService {
       ...(typeof active !== "undefined" && { active: active }),
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
     };

@@ -25,7 +25,7 @@ export class OrderStatusService {
   //   let { skip, take, keyword, businessTypeIds } = params;
   //   let where: Prisma.OrderStatusWhereInput = {
   //     isPublic: true,
-  //     ...(keyword && { name: { contains: keyword, mode: 'insensitive' } }),
+  //     ...(keyword && { name: { contains: removeDiacritics(keyword), mode: 'insensitive' } }),
   //     ...(businessTypeIds?.length > 0 && {
   //       businessType: {
   //         id: { in: businessTypeIds },

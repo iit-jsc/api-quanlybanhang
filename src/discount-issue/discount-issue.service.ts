@@ -4,7 +4,7 @@ import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CreateDiscountIssueDto, FindManyDiscountIssueDto, findUniqByDiscountCodeDto, UpdateDiscountIssueDto } from "./dto/discount-issue.dto";
 import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 import { CustomHttpException } from "utils/ApiErrors";
@@ -95,7 +95,7 @@ export class DiscountIssueService {
     let { page, perPage, keyword, orderBy, totalOrder } = params;
     let where: Prisma.DiscountIssueWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
       branchId: tokenPayload.branchId,
       ...(totalOrder && {
         minTotalOrder: {

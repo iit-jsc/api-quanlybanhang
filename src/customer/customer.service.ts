@@ -5,7 +5,7 @@ import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
 @Injectable()
@@ -68,7 +68,7 @@ export class CustomerService {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
       ...(customerTypeIds?.length > 0 && {

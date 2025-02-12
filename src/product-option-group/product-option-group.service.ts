@@ -11,7 +11,7 @@ import {
 } from "./dto/product-option-group.dto";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
@@ -71,7 +71,7 @@ export class ProductOptionGroupService {
           some: { id: { in: productTypeIds } },
         },
       }),
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
     };
 
     return await customPaginate(

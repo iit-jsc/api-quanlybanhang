@@ -6,7 +6,7 @@ import { ACTIVITY_LOG_TYPE, INVENTORY_TRANSACTION_STATUS, INVENTORY_TRANSACTION_
 import { Prisma } from "@prisma/client";
 import { CustomHttpException } from "utils/ApiErrors";
 import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 
 @Injectable()
@@ -190,7 +190,7 @@ export class InventoryTransactionService {
     let { page, perPage, keyword, types, from, to, orderBy } = params;
     let where: Prisma.InventoryTransactionWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
       ...(types && { type: { in: types } }),
       ...(from &&
         to && {

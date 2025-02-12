@@ -1,7 +1,7 @@
 import { CreateBranchDto, UpdateBranchDto } from "src/branch/dto/create-branch.dto";
 import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { Prisma, PrismaClient } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -60,7 +60,7 @@ export class BranchService {
         id: tokenPayload.shopId,
         isPublic: true,
       },
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
     };
 
     return await customPaginate(

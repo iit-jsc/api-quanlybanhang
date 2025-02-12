@@ -2,7 +2,7 @@ import { Injectable } from "@nestjs/common";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { CreatePermissionDto, FindManyPermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto } from "utils/Common.dto";
 import { CommonService } from "src/common/common.service";
@@ -54,7 +54,7 @@ export class PermissionService {
     const where: Prisma.PermissionWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
     };
 
     return await customPaginate(

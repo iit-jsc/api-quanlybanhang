@@ -3,7 +3,7 @@ import { Injectable } from "@nestjs/common";
 import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CreateProductTypeDto, UpdateProductTypeDto } from "./dto/product-type.dto";
 import { FindManyProductTypeDto } from "./dto/find-many.dto";
 import { DeleteManyDto } from "utils/Common.dto";
@@ -52,10 +52,17 @@ export class ProductTypeService {
 
   async findAll(params: FindManyProductTypeDto) {
     let { page, perPage, keyword, branchId, orderBy } = params;
+
+    const keySearch = ["name", "slug"];
+
     let where: Prisma.ProductTypeWhereInput = {
       isPublic: true,
       branchId: branchId,
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && {
+        OR: keySearch.map((key) => ({
+          [key]: { contains: removeDiacritics(keyword) },
+        })),
+      }),
     };
 
     return await customPaginate(

@@ -3,7 +3,7 @@ import { PrismaService } from "nestjs-prisma";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CreateCompensationSettingDto, FindManyCompensationSettingDto } from "./dto/compensation-setting.dto";
 import { CommonService } from "src/common/common.service";
 import { ACCOUNT_TYPE } from "enums/user.enum";
@@ -72,7 +72,7 @@ export class CompensationSettingService {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
       ...(types && { type: { in: types } }),

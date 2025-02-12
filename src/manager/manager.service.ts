@@ -7,7 +7,7 @@ import { DeleteManyDto } from "utils/Common.dto";
 import { PrismaService } from "nestjs-prisma";
 import { CommonService } from "src/common/common.service";
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CustomHttpException } from "utils/ApiErrors";
 
 @Injectable()
@@ -202,7 +202,7 @@ export class ManagerService {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
       account: {

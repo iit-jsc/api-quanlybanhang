@@ -4,7 +4,7 @@ import { PrismaService } from "nestjs-prisma";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto } from "utils/Common.dto";
 import { Prisma } from "@prisma/client";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
 
@@ -53,7 +53,7 @@ export class TableService {
       isPublic: true,
       ...(keyword && {
         OR: keySearch.map((key) => ({
-          [key]: { contains: keyword },
+          [key]: { contains: removeDiacritics(keyword) },
         })),
       }),
       ...(areaIds?.length > 0 && {

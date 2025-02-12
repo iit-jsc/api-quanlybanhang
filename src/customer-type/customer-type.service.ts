@@ -3,7 +3,7 @@ import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { PrismaService } from "nestjs-prisma";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from "./dto/create-customer-type";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
@@ -49,7 +49,7 @@ export class CustomerTypeService {
     let { page, perPage, keyword, orderBy } = params;
     let where: Prisma.CustomerTypeWhereInput = {
       isPublic: true,
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
       shop: {
         id: tokenPayload.shopId,
         isPublic: true,

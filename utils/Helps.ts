@@ -73,9 +73,9 @@ export function roleBasedBranchFilter(tokenPayload: TokenPayload) {
 
   return tokenPayload.type !== ACCOUNT_TYPE.STORE_OWNER
     ? {
-        ...baseConditions,
-        id: tokenPayload.branchId,
-      }
+      ...baseConditions,
+      id: tokenPayload.branchId,
+    }
     : baseConditions;
 }
 
@@ -164,3 +164,11 @@ export async function customPaginate(prismaModel: any, queryArgs: any, paginatio
     meta: result.meta,
   };
 }
+
+export const removeDiacritics = (str: string) => {
+  return str
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/d/g, "đ")
+    .replace(/D/g, "Đ");
+};

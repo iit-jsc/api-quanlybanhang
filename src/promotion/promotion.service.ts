@@ -4,7 +4,7 @@ import { DeleteManyDto } from "utils/Common.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { PrismaService } from "nestjs-prisma";
-import { customPaginate } from "utils/Helps";
+import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE, PROMOTION_TYPE } from "enums/common.enum";
 import { FindManyPromotionDto, OrderProductDto } from "./dto/find-many.dto";
@@ -76,7 +76,7 @@ export class PromotionService {
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
       branchId: branchId,
-      ...(keyword && { name: { contains: keyword } }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
       ...(orderProducts && {
         startDate: {
           lte: new Date(new Date().setHours(23, 59, 59, 999)),
