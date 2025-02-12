@@ -13,7 +13,7 @@ import {
   Query,
 } from "@nestjs/common";
 import { SupplierService } from "./supplier.service";
-import { CreateSupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
+import { CreateSupplierDto, FindManySupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
 import { JwtAuthGuard } from "guards/jwt-auth.guard";
 import { TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -38,7 +38,7 @@ export class SupplierController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles("CREATE_SUPPLIER", "UPDATE_SUPPLIER", "DELETE_SUPPLIER", "VIEW_SUPPLIER", SPECIAL_ROLE.MANAGER)
-  findAll(@Query() data: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManySupplierDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.supplierService.findAll(data, tokenPayload);

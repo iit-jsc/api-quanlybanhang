@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { CreateSupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
+import { CreateSupplierDto, FindManySupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
 import { Prisma } from "@prisma/client";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -66,8 +66,8 @@ export class SupplierService {
     return result;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy } = params;
+  async findAll(params: FindManySupplierDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, orderBy, supplierTypeIds } = params;
 
     const keySearch = ["name"];
 
@@ -78,6 +78,11 @@ export class SupplierService {
         OR: keySearch.map((key) => ({
           [key]: { contains: keyword },
         })),
+      }),
+      ...(supplierTypeIds?.length > 0 && {
+        supplierType: {
+          id: { in: supplierTypeIds },
+        },
       }),
     };
 
