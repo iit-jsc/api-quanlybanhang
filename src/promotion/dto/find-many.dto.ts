@@ -12,6 +12,11 @@ export class FindManyPromotionDto extends FindManyDto {
   })
   isSort?: boolean;
 
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isActive: boolean;
+
   @IsOptional()
   @Transform(({ value }) => JSON.parse(value))
   @ValidateNested({ each: true })

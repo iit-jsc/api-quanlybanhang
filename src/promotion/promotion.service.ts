@@ -7,7 +7,7 @@ import { PrismaService } from "nestjs-prisma";
 import { customPaginate, removeDiacritics } from "utils/Helps";
 import { CommonService } from "src/common/common.service";
 import { ACTIVITY_LOG_TYPE, PROMOTION_TYPE } from "enums/common.enum";
-import { FindManyPromotionDto, OrderProductDto } from "./dto/find-many.dto";
+import { FindManyPromotionDto } from "./dto/find-many.dto";
 
 @Injectable()
 export class PromotionService {
@@ -71,7 +71,7 @@ export class PromotionService {
   }
 
   async findAll(params: FindManyPromotionDto) {
-    const { page, perPage, keyword, isSort, branchId, orderBy, orderProducts, types } = params;
+    const { page, perPage, keyword, isSort, branchId, orderBy, orderProducts, types, isActive } = params;
 
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
@@ -123,6 +123,7 @@ export class PromotionService {
         ],
       }),
       ...(types.length > 0 && { type: { in: types } }),
+      ...(typeof isActive !== "undefined" && { isActive: isActive }),
     };
 
     return await customPaginate(
