@@ -71,7 +71,7 @@ export class PromotionService {
   }
 
   async findAll(params: FindManyPromotionDto) {
-    const { page, perPage, keyword, isSort, branchId, orderBy, orderProducts } = params;
+    const { page, perPage, keyword, isSort, branchId, orderBy, orderProducts, types } = params;
 
     const where: Prisma.PromotionWhereInput = {
       isPublic: true,
@@ -122,6 +122,7 @@ export class PromotionService {
           }
         ],
       }),
+      ...(types.length > 0 && { type: { in: types } }),
     };
 
     return await customPaginate(

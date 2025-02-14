@@ -18,6 +18,11 @@ export class FindManyPromotionDto extends FindManyDto {
   @ArrayMinSize(1, { message: 'Danh sách không được rỗng!' })
   @Type(() => OrderProductDto)
   orderProducts: OrderProductDto[];
+
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: number) => +id);
+  })
+  types?: number[];
 }
 
 export class OrderProductDto {
