@@ -122,7 +122,7 @@ export class PromotionService {
           }
         ],
       }),
-      ...(types.length > 0 && { type: { in: types } }),
+      ...(types?.length > 0 && { type: { in: types } }),
       ...(typeof isActive !== "undefined" && { isActive: isActive }),
     };
 
