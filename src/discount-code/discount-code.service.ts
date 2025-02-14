@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from "@nestjs/common";
-import { CheckAvailableDto, CreateDiscountCodeDto } from "./dto/discount-code.dto";
+import { CheckAvailableDto, CreateDiscountCodeDto, FindManyDiscountCodeDto } from "./dto/discount-code.dto";
 import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
 import { Prisma } from "@prisma/client";
 import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
@@ -78,12 +78,19 @@ export class DiscountCodeService {
     return { ...count, ids: data.ids } as DeleteManyResponse;
   }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy } = params;
+  async findAll(params: FindManyDiscountCodeDto, tokenPayload: TokenPayload) {
+    let { page, perPage, keyword, orderBy, isUsed, discountIssueIds } = params;
     let where: Prisma.DiscountCodeWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
+      ...(isUsed !== undefined && { isUsed }),
+      ...(discountIssueIds?.length > 0 && {
+        discountIssue: {
+          id: { in: discountIssueIds },
+          isPublic: true,
+        },
+      }),
     };
  
     return await customPaginate(

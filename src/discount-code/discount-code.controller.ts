@@ -18,7 +18,7 @@ import { SPECIAL_ROLE } from 'enums/common.enum';
 import { Roles } from 'guards/roles.decorator';
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
 import { TokenPayload } from 'interfaces/common.interface';
-import { CreateDiscountCodeDto, CheckAvailableDto } from './dto/discount-code.dto';
+import { CreateDiscountCodeDto, CheckAvailableDto, FindManyDiscountCodeDto } from './dto/discount-code.dto';
 
 @Controller('discount-code')
 export class DiscountCodeController {
@@ -47,7 +47,7 @@ export class DiscountCodeController {
     'VIEW_DISCOUNT_ISSUE',
     SPECIAL_ROLE.MANAGER,
   )
-  findAll(@Query() data: FindManyDto, @Req() req: any) {
+  findAll(@Query() data: FindManyDiscountCodeDto, @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
     return this.discountCodeService.findAll(data, tokenPayload);

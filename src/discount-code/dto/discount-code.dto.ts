@@ -1,5 +1,6 @@
-import { Transform, TransformFnParams } from 'class-transformer';
+import { Transform, TransformFnParams, Type } from 'class-transformer';
 import { IsNotEmpty, IsNumber, IsOptional, IsString, Length, Max } from 'class-validator';
+import { FindManyDto } from 'utils/Common.dto';
 
 export class CreateDiscountCodeDto {
   @IsOptional()
@@ -36,4 +37,16 @@ export class CheckAvailableDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   totalOrder: number;
+}
+
+export class FindManyDiscountCodeDto extends FindManyDto {
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value);
+  })
+  isUsed?: boolean;
+
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(",").map((id: string) => id.trim());
+  })
+  discountIssueIds: string[];
 }
