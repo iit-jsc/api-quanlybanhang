@@ -99,16 +99,7 @@ export class DiscountCodeService {
         orderBy: orderBy || { createdAt: "desc" },
         where,
         include: {
-          discountIssue: {
-            select: {
-              id: true,
-              code: true,
-              name: true,
-              amount: true,
-              updatedAt: true,
-              description: true
-            }
-          }
+          discountIssue: true
         }
       },
       {
