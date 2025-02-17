@@ -1,6 +1,6 @@
 import * as bcrypt from "bcrypt";
 import { LoginForCustomerDto, LoginDto } from "./dto/login.dto";
-import { HttpStatus, Injectable } from "@nestjs/common";
+import { HttpStatus, Injectable, Res } from "@nestjs/common";
 import { PrismaService } from "nestjs-prisma";
 import { JwtService } from "@nestjs/jwt";
 import { mapResponseLogin } from "map-responses/account.map-response";
@@ -14,6 +14,7 @@ import { ChangeMyPasswordDto, ChangePasswordDto } from "./dto/change-password.dt
 import { ChangeAvatarDto } from "./dto/change-information.dto";
 import { TransporterService } from "src/transporter/transporter.service";
 import { v4 as uuidv4 } from "uuid";
+import { Response } from "express";
 
 @Injectable()
 export class AuthService {
@@ -21,7 +22,6 @@ export class AuthService {
     private readonly prisma: PrismaService,
     private jwtService: JwtService,
     private commonService: CommonService,
-    private transporterService: TransporterService,
   ) { }
 
   async login(data: LoginDto) {
@@ -92,7 +92,7 @@ export class AuthService {
     };
   }
 
-  async accessBranch(accessBranchDto: AccessBranchDto, tokenPayload: TokenPayload, req?: AnyObject) {
+  async accessBranch(accessBranchDto: AccessBranchDto, tokenPayload: TokenPayload, res: Response, req?: AnyObject) {
     const account = await this.getAccountAccess(tokenPayload.accountId, accessBranchDto.branchId);
 
     if (!account) {
@@ -109,6 +109,13 @@ export class AuthService {
       tokenPayload.deviceId,
       req,
     );
+
+    res.cookie('refreshToken', data.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: 'strict',
+      path: '/api/auth/refresh-token',
+    });
 
     return {
       accessToken: await this.jwtService.signAsync(
@@ -422,6 +429,7 @@ export class AuthService {
       if (payload.branchId) await this.checkValidDeviceAndUpdateLastLogin(payload.deviceId);
 
       const shops = await this.commonService.findManyShopByAccountId(payload.accountId);
+
 
       const account = await this.getAccountAccess(payload.accountId, payload.branchId);
 

@@ -1,3 +1,4 @@
+import * as cookieParser from 'cookie-parser';
 import { NestFactory } from "@nestjs/core";
 import { ConfigService } from "@nestjs/config";
 import { AppModule } from "./app.module";
@@ -15,10 +16,11 @@ async function bootstrap() {
     app.enableCors({ origin: true });
     app.use("/uploads", static_("uploads"));
     app.use(json({ limit: "2mb" }));
+    app.use(cookieParser());
     app.useGlobalFilters(new PrismaExceptionFilter());
     app.useGlobalInterceptors(new TransformInterceptor());
     app.setGlobalPrefix("api");
-
+    
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,

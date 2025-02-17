@@ -79,7 +79,7 @@ export class ShopService {
       return { newShop, accountId: ownerShop.account.id };
     });
 
-    return await this.authService.accessBranch({ branchId: newShop?.branches?.[0]?.id }, { accountId }, req);
+    return;
   }
 
   async create(data: CreateShopDto, tokenPayload: TokenPayload) {

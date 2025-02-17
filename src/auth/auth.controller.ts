@@ -1,4 +1,5 @@
-import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Patch, Post, Req, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
+import { Response, Request } from 'express';
 import { LoginForCustomerDto, LoginForManagerDto, LoginDto } from "./dto/login.dto";
 import { AuthService } from "./auth.service";
 import { AccessBranchDto } from "./dto/access-branch.dto";
@@ -30,10 +31,13 @@ export class AuthController {
   @Post("/access-branch")
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessBranchGuard)
-  async accessBranch(@Body() accessBranchDto: AccessBranchDto, @Req() req: any) {
+  async accessBranch(
+    @Body() accessBranchDto: AccessBranchDto,
+    @Res({ passthrough: true }) res: Response,
+    @Req() req: any) {
     const tokenPayload = req.tokenPayload as TokenPayload;
 
-    return this.authService.accessBranch({ ...accessBranchDto }, tokenPayload, req);
+    return this.authService.accessBranch({ ...accessBranchDto }, tokenPayload, res, req);
   }
 
   @Post("/verify-contact")
@@ -94,18 +98,14 @@ export class AuthController {
 
   @Post("/refresh-token")
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
-  refreshToken(@Headers("authorization") authHeader: string) {
-    if (!authHeader) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Không tìm thấy auth header!");
-    }
-
-    const [_, token] = authHeader.split(" ");
-
-    if (!token) {
+  refreshToken(@Req() req: Request, res: Response) {
+    const refreshToken = req.cookies['refreshToken'];
+    
+    if (!refreshToken) {
       throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Không tìm thấy token!");
     }
-    return this.authService.refreshToken(token);
+
+    return this.authService.refreshToken(refreshToken);
   }
 
   @Get("/device")
