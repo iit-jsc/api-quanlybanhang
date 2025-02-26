@@ -24,7 +24,7 @@ export abstract class BaseGateway implements OnGatewayInit, OnGatewayConnection,
   }
 
   handleConnection(client: Socket) {
-    // console.log("Client connected:", client.id);
+    console.log("Client connected:", client.id);
   }
 
   async handleDisconnect(client: Socket) {

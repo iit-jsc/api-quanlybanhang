@@ -5,7 +5,6 @@ import { PrismaService } from "nestjs-prisma";
 import { CustomerRequest } from "@prisma/client";
 import { BaseGateway } from "./base.gateway";
 
-@UseGuards(JwtAuthGuard)
 @WebSocketGateway()
 export class CustomerRequestGateway extends BaseGateway {
   constructor(protected readonly prisma: PrismaService) {
@@ -13,7 +12,6 @@ export class CustomerRequestGateway extends BaseGateway {
   }
 
   async handleCreateCustomerRequest(payload: CustomerRequest) {
-
     this.server.to(payload.branchId).emit("customer-request", payload);
   }
 }

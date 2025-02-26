@@ -6,7 +6,6 @@ import { Table } from "@prisma/client";
 import { BaseGateway } from "./base.gateway"; // Import BaseGateway
 import { FirebaseService } from "src/firebase/firebase.service";
 
-@UseGuards(JwtAuthGuard)
 @WebSocketGateway()
 export class TableGateway extends BaseGateway {
   constructor(protected readonly prisma: PrismaService) {

@@ -17,7 +17,7 @@ export class JwtAuthGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = this.getRequest(context);
 
-    const authHeader = request.headers?.authorization;
+    const authHeader = this.getAuthHeader(context);
 
     if (!authHeader) return false;
 
@@ -90,6 +90,18 @@ export class JwtAuthGuard implements CanActivate {
       return context.switchToWs().getClient().handshake;
     }
     return context.switchToHttp().getRequest();
+  }
+
+
+  private getAuthHeader(context: ExecutionContext) {
+    if (context.getType() === "ws") {
+      const request = context.switchToWs().getClient().handshake;
+      return request.auth?.authorization
+    }
+    else {
+      const request = context.switchToHttp().getRequest();
+      return request.headers?.authorization
+    }
   }
 }
 
