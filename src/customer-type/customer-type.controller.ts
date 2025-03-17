@@ -19,7 +19,7 @@ import { RolesGuard } from 'guards/roles.guard'
 import { Roles } from 'guards/roles.decorator'
 import { RequestJWT } from 'interfaces/common.interface'
 import { FindManyDto, DeleteManyDto } from 'utils/Common.dto'
-import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from './dto/create-customer-type'
+import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from './dto/customer-type.dto'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
 
