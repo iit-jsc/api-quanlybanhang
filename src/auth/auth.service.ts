@@ -40,7 +40,8 @@ export class AuthService {
     if (!account || !(await bcrypt.compare(data.password, account.password)))
       throw new HttpException(`Tài khoản hoặc mật khẩu không chính xác!`, HttpStatus.UNAUTHORIZED)
 
-    if (account.status == AccountStatus.INACTIVE) throw new HttpException(`Tài khoản đã bị khóa!`, HttpStatus.FORBIDDEN)
+    if (account.status == AccountStatus.INACTIVE)
+      throw new HttpException(`Tài khoản đã bị khóa!`, HttpStatus.FORBIDDEN)
 
     const shops = await this.findShopsByAccountId(account.id)
 
@@ -171,40 +172,4 @@ export class AuthService {
       }
     )
   }
-
-  // async refreshToken(refreshToken: string) {
-  // const device = await this.prisma.authToken.findFirst({
-  //   where: { refreshToken }
-  // })
-  // if (!refreshToken) throw new CustomHttpException(HttpStatus.NOT_FOUND, 'Không tìm thấy token hoặc đã hết hạn!')
-  // try {
-  //   const payload: TokenPayload = await this.jwtService.verifyAsync(refreshToken, {
-  //     secret: process.env.SECRET_KEY
-  //   })
-  //   // Nếu đã truy cập vào chi nhánh thì kiểm tra có device hay không
-  //   const shops = await this.findShopsByAccountId(payload.accountId)
-  //   const account = await this.getAccountAccess(payload.accountId, payload.branchId)
-  //   const currentShop = await this.getCurrentShopFromShops(shops, payload.branchId)
-  //   if (!account) {
-  //     throw new CustomHttpException(HttpStatus.NOT_FOUND, 'Không tìm thấy tài nguyên!')
-  //   }
-  //   return {
-  //     accessToken: await this.jwtService.signAsync(
-  //       {
-  //         accountId: payload.accountId,
-  //         branchId: payload.branchId,
-  //         deviceId: payload.deviceId
-  //       } as TokenPayload,
-  //       {
-  //         expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
-  //         secret: process.env.SECRET_KEY
-  //       }
-  //     ),
-  //     ...mapResponseLogin({ account, shops, currentShop })
-  //   }
-  // } catch (error) {
-  //   // console.log(error);
-  //   throw error
-  // }
-  // }
 }

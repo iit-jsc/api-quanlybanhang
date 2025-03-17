@@ -25,21 +25,21 @@ export class AuthController {
 
   @Post('/login')
   @HttpCode(HttpStatus.OK)
-  login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto)
+  login(@Body() data: LoginDto) {
+    return this.authService.login(data)
   }
 
   @Post('/access-branch')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessBranchGuard)
   async accessBranch(
-    @Body() accessBranchDto: AccessBranchDto,
+    @Body() data: AccessBranchDto,
     @Res({ passthrough: true }) res: Response,
     @Req() req: RequestJWT
   ) {
     const { accountId } = req
 
-    return this.authService.accessBranch(accountId, accessBranchDto, res)
+    return this.authService.accessBranch(accountId, data, res)
   }
 
   @Get('/get-me')
@@ -54,79 +54,4 @@ export class AuthController {
 
     return this.authService.getMe(token)
   }
-
-  // @Post('/verify-contact')
-  // @HttpCode(HttpStatus.OK)
-  // verifyContact(@Body() verifyContactDto: VerifyContactDto) {
-  //   return this.authService.verifyContact(verifyContactDto)
-  // }
-
-  // @Post('/logout')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // logout(@Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-
-  //   return this.authService.logout(tokenPayload)
-  // }
-
-  // @Patch('/change-password')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // @Roles('UPDATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
-  // changePassword(
-  //   @Body() changePasswordDto: ChangePasswordDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.authService.changePassword(changePasswordDto, tokenPayload)
-  // }
-
-  // @Patch('/change-my-password')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // changeMyPassword(
-  //   @Body() changeMyPasswordDto: ChangeMyPasswordDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.authService.changeMyPassword(changeMyPasswordDto, tokenPayload)
-  // }
-
-  // @Patch('/change-information')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // changeInformation(
-  //   @Body() changeInformationDto: ChangeAvatarDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.authService.changeInformation(
-  //     changeInformationDto,
-  //     tokenPayload
-  //   )
-  // }
-
-  // @Post('/refresh-token')
-  // @HttpCode(HttpStatus.OK)
-  // refreshToken(@Req() req: Request) {
-  //   const refreshToken = req.cookies['refreshToken']
-
-  //   if (!refreshToken) {
-  //     throw new CustomHttpException(
-  //       HttpStatus.UNAUTHORIZED,
-  //       'Không tìm thấy token!'
-  //     )
-  //   }
-
-  //   return this.authService.refreshToken(refreshToken)
-  // }
-
-  // @Get('/device')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // getDevice(@Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.authService.getDevice(tokenPayload)
-  // }
 }
