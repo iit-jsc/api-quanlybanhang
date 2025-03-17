@@ -1,35 +1,23 @@
 import { PartialType } from '@nestjs/swagger'
+import { DiscountType } from '@prisma/client'
 import { Transform, TransformFnParams } from 'class-transformer'
-import {
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Validate
-} from 'class-validator'
-import { DISCOUNT_TYPE } from 'enums/common.enum'
+import { IsEnum, IsNotEmpty, IsOptional, IsString, Validate } from 'class-validator'
 import { DiscountConstraint } from 'utils/CustomValidates'
 
 export class CreateCustomerTypeDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   name: string
 
   @IsOptional()
-  @IsString()
-  description: string
+  @IsEnum(DiscountType)
+  discountType: DiscountType
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  @IsEnum(DISCOUNT_TYPE, { message: 'Loại giảm giá không hợp lệ!' })
-  discountType: number
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
   @Validate(DiscountConstraint)
-  discount: number
+  discount?: number
+
+  description?: string
 }
 
 export class UpdateCustomerTypeDto extends PartialType(CreateCustomerTypeDto) {}

@@ -1,93 +1,74 @@
-import { Controller } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards
+} from '@nestjs/common'
 
 import { CustomerTypeService } from './customer-type.service'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { RolesGuard } from 'guards/roles.guard'
+import { Roles } from 'guards/roles.decorator'
+import { RequestJWT } from 'interfaces/common.interface'
+import { FindManyDto, DeleteManyDto } from 'utils/Common.dto'
+import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from './dto/create-customer-type'
+import { permissions } from 'enums/permissions.enum'
+import { extractPermissions } from 'utils/Helps'
 
 @Controller('customer-type')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class CustomerTypeController {
   constructor(private readonly customerTypeService: CustomerTypeService) {}
 
-  // @Post('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('CREATE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
-  // create(
-  //   @Body() createCustomerTypeDto: CreateCustomerTypeDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  @Post('')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.customerType.create)
+  create(@Body() data: CreateCustomerTypeDto, @Req() req: RequestJWT) {
+    const { shopId, accountId } = req
+    return this.customerTypeService.create(data, accountId, shopId)
+  }
 
-  //   return this.customerTypeService.create(createCustomerTypeDto, tokenPayload)
-  // }
+  @Get('')
+  @HttpCode(HttpStatus.OK)
+  @Roles(...extractPermissions(permissions.customerType))
+  findAll(@Query() data: FindManyDto, @Req() req: RequestJWT) {
+    const { shopId } = req
 
-  // @Get('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(
-  //   'CREATE_CUSTOMER_TYPE',
-  //   'UPDATE_CUSTOMER_TYPE',
-  //   'DELETE_CUSTOMER_TYPE',
-  //   'VIEW_CUSTOMER_TYPE',
-  //   SPECIAL_ROLE.MANAGER
-  // )
-  // findAll(@Query() data: FindManyDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+    return this.customerTypeService.findAll(data, shopId)
+  }
 
-  //   return this.customerTypeService.findAll(data, tokenPayload)
-  // }
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(...extractPermissions(permissions.customerType))
+  findUniq(@Param('id') id: string, @Req() req: RequestJWT) {
+    const { shopId } = req
 
-  // @Get(':id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(
-  //   'CREATE_CUSTOMER_TYPE',
-  //   'UPDATE_CUSTOMER_TYPE',
-  //   'DELETE_CUSTOMER_TYPE',
-  //   'VIEW_CUSTOMER_TYPE',
-  //   SPECIAL_ROLE.MANAGER
-  // )
-  // findUniq(@Param('id') id: string, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+    return this.customerTypeService.findUniq(id, shopId)
+  }
 
-  //   return this.customerTypeService.findUniq(
-  //     {
-  //       id
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.customerType.update)
+  update(@Param('id') id: string, @Body() data: UpdateCustomerTypeDto, @Req() req: RequestJWT) {
+    const { accountId, shopId } = req
 
-  // @Patch(':id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('UPDATE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
-  // update(
-  //   @Param('id') id: string,
-  //   @Body() updateCustomerTypeDto: UpdateCustomerTypeDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.customerTypeService.update(
-  //     {
-  //       where: {
-  //         id
-  //       },
-  //       data: updateCustomerTypeDto
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+    return this.customerTypeService.update(id, data, accountId, shopId)
+  }
 
-  // @Delete('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('DELETE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
-  // deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.customerTypeService.deleteMany(
-  //     {
-  //       ids: deleteManyDto.ids
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+  @Delete('')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.customerType.delete)
+  deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
+    const { accountId, shopId } = req
+
+    return this.customerTypeService.deleteMany(data, accountId, shopId)
+  }
 }
