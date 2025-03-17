@@ -1,21 +1,21 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
-import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
 import { PrismaService } from 'nestjs-prisma'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
 import { CreateAreaDto, FindManyAreaDto, UpdateAreaDto } from './dto/area.dto'
-import { CommonService } from 'src/common/common.service'
-import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
+import { areaSelect } from 'responses/area.response'
+import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
+import { TrashService } from 'src/trash/trash.service'
 
 @Injectable()
 export class AreaService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService
+    private readonly trashService: TrashService
   ) {}
 
-  async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
+  async create(data: CreateAreaDto, accountId: string, branchId: string) {
     const area = await this.prisma.area.create({
       data: {
         name: data.name,
@@ -23,34 +23,19 @@ export class AreaService {
         tables: {
           create: {
             name: 'Bàn 01',
-            branchId: tokenPayload.branchId
+            branchId
           }
         },
-        branch: {
-          connect: {
-            id: tokenPayload.branchId
-          }
-        },
-        creator: {
-          connect: {
-            id: tokenPayload.accountId
-          }
-        }
+        branchId,
+        createdBy: accountId
       }
     })
-
-    await this.commonService.createActivityLog(
-      [area.id],
-      'Area',
-      ACTIVITY_LOG_TYPE.CREATE,
-      tokenPayload
-    )
 
     return area
   }
 
-  async findAll(params: FindManyAreaDto, tokenPayload: TokenPayload) {
-    const { page, perPage, keyword, tableKeyword, orderBy, areaIds } = params
+  async findAll(params: FindManyAreaDto, branchId: string) {
+    const { page, perPage, keyword, orderBy, areaIds } = params
 
     const keySearch = ['name']
 
@@ -60,23 +45,12 @@ export class AreaService {
           in: areaIds
         }
       }),
-      tables: {
-        some: {
-          ...(tableKeyword && {
-            OR: keySearch.map(key => ({
-              [key]: { contains: tableKeyword }
-            }))
-          })
-        }
-      },
       ...(keyword && {
         OR: keySearch.map(key => ({
           [key]: { contains: removeDiacritics(keyword) }
         }))
       }),
-      branch: {
-        id: tokenPayload.branchId
-      }
+      branchId
     }
 
     return await customPaginate(
@@ -84,43 +58,7 @@ export class AreaService {
       {
         orderBy: orderBy || { createdAt: 'desc' },
         where,
-        select: {
-          id: true,
-          name: true,
-          photoURL: true,
-          updatedAt: true,
-          tables: {
-            where: {
-              isPublic: true,
-              ...(tableKeyword && {
-                OR: keySearch.map(key => ({
-                  [key]: { contains: tableKeyword }
-                }))
-              })
-            },
-            select: {
-              id: true,
-              name: true,
-              seat: true,
-              updatedAt: true,
-              orderDetails: {
-                where: {
-                  isPublic: true
-                },
-                orderBy: { createdAt: 'asc' },
-                select: {
-                  id: true,
-                  amount: true,
-                  note: true,
-                  status: true,
-                  createdAt: true,
-                  product: true,
-                  productOptions: true
-                }
-              }
-            }
-          }
-        }
+        select: areaSelect
       },
       {
         page,
@@ -129,92 +67,52 @@ export class AreaService {
     )
   }
 
-  async findUniq(
-    where: Prisma.AreaWhereUniqueInput,
-    tokenPayload: TokenPayload
-  ) {
+  async findUniq(id: string, branchId: string) {
     return this.prisma.area.findUniqueOrThrow({
       where: {
-        ...where,
-        branch: {
-          id: tokenPayload.branchId
-        }
+        id,
+        branchId
       },
-      include: {
-        tables: {
-          where: {
-            branchId: tokenPayload.branchId
-          }
-        }
-      }
+      select: areaSelect
     })
   }
 
-  async update(
-    params: {
-      where: Prisma.AreaWhereUniqueInput
-      data: UpdateAreaDto
-    },
-    tokenPayload: TokenPayload
-  ) {
-    const { where, data } = params
-
-    const area = await this.prisma.area.update({
+  async update(id: string, data: UpdateAreaDto, accountId: string, branchId: string) {
+    return await this.prisma.area.update({
       where: {
-        id: where.id,
-        branch: {
-          id: tokenPayload.branchId
-        }
+        id,
+        branchId: branchId
       },
       data: {
         name: data.name,
         photoURL: data.photoURL,
-        updatedBy: tokenPayload.accountId
-      }
+        updatedBy: accountId
+      },
+      select: areaSelect
     })
-
-    await this.commonService.createActivityLog(
-      [area.id],
-      'Area',
-      ACTIVITY_LOG_TYPE.UPDATE,
-      tokenPayload
-    )
-
-    return area
   }
 
-  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = await this.prisma.area.updateMany({
-      where: {
-        id: {
-          in: data.ids
-        },
-        branch: {
-          id: tokenPayload.branchId
+  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const dataTrash: CreateManyTrashDto = {
+        ids: data.ids,
+        accountId,
+        modelName: 'Area',
+        include: {
+          tables: true
         }
-      },
-      data: {
-        updatedBy: tokenPayload.accountId
       }
+
+      await this.trashService.createMany(dataTrash, prisma)
+
+      return prisma.area.deleteMany({
+        where: {
+          id: {
+            in: data.ids
+          },
+          branchId
+        }
+      })
     })
-
-    // await this.prisma.table.updateMany({
-    //   where: {
-    //     area: {
-    //       id: {
-    //         in: data.ids
-    //       }
-    //     }
-    //   }
-    // })
-
-    await this.commonService.createActivityLog(
-      data.ids,
-      'Area',
-      ACTIVITY_LOG_TYPE.DELETE,
-      tokenPayload
-    )
-
-    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 }
