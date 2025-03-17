@@ -1,58 +1,33 @@
+import { Prisma, PrismaClient } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
-import {
-  CreateTableDto,
-  FindManyTableDto,
-  UpdateTableDto
-} from './dto/table.dto'
 import { PrismaService } from 'nestjs-prisma'
-import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { CreateTableDto, FindManyTableDto, UpdateTableDto } from './dto/table.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { Prisma } from '@prisma/client'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
-import { CommonService } from 'src/common/common.service'
-import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
+import { tableSelect } from 'responses/table.response'
+import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
+import { TrashService } from 'src/trash/trash.service'
 
 @Injectable()
 export class TableService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService
+    private readonly trashService: TrashService
   ) {}
 
-  async create(data: CreateTableDto, tokenPayload: TokenPayload) {
-    const result = await this.prisma.table.create({
+  async create(data: CreateTableDto, accountId: string, branchId: string) {
+    return await this.prisma.table.create({
       data: {
         name: data.name,
         seat: data.seat,
-        area: {
-          connect: {
-            id: data.areaId
-          }
-        },
-        branch: {
-          connect: {
-            id: tokenPayload.branchId
-          }
-        },
-        creator: {
-          connect: {
-            id: tokenPayload.accountId
-          }
-        }
+        areaId: data.areaId,
+        branchId,
+        createdBy: accountId
       }
     })
-
-    await this.commonService.createActivityLog(
-      [result.id],
-      'Table',
-      ACTIVITY_LOG_TYPE.CREATE,
-      tokenPayload
-    )
-
-    return result
   }
 
-  async findAll(params: FindManyTableDto, tokenPayload: TokenPayload) {
+  async findAll(params: FindManyTableDto, branchId: string) {
     const { page, perPage, keyword, areaIds, orderBy } = params
 
     const keySearch = ['name', 'code']
@@ -63,14 +38,12 @@ export class TableService {
           [key]: { contains: removeDiacritics(keyword) }
         }))
       }),
-      ...(areaIds?.length > 0 && {
+      ...(areaIds?.length && {
         area: {
           id: { in: areaIds }
         }
       }),
-      branch: {
-        id: tokenPayload.branchId
-      }
+      branchId
     }
 
     return await customPaginate(
@@ -78,35 +51,7 @@ export class TableService {
       {
         orderBy: orderBy || { createdAt: 'desc' },
         where,
-        select: {
-          id: true,
-          name: true,
-          seat: true,
-          areaId: true,
-          area: {
-            select: {
-              id: true,
-              name: true,
-              photoURL: true
-            }
-          },
-          orderDetails: {
-            where: {
-              isPublic: true
-            },
-            orderBy: { createdAt: 'asc' },
-            select: {
-              id: true,
-              amount: true,
-              note: true,
-              status: true,
-              createdAt: true,
-              product: true,
-              productOptions: true
-            }
-          },
-          updatedAt: true
-        }
+        select: tableSelect
       },
       {
         page,
@@ -120,86 +65,43 @@ export class TableService {
       where: {
         ...where
       },
-      include: {
-        area: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true
-          }
-        },
-        orderDetails: {
-          orderBy: { createdAt: 'asc' }
-        }
-      }
+      select: tableSelect
     })
   }
 
-  async update(
-    params: {
-      where: Prisma.TableWhereUniqueInput
-      data: UpdateTableDto
-    },
-    tokenPayload: TokenPayload
-  ) {
-    const { where, data } = params
-
-    const result = await this.prisma.table.update({
+  async update(id: string, data: UpdateTableDto, accountId: string, branchId: string) {
+    return await this.prisma.table.update({
       where: {
-        id: where.id,
-        branchId: tokenPayload.branchId
+        id,
+        branchId
       },
       data: {
         name: data.name,
         seat: data.seat,
-        ...(data.areaId && {
-          area: {
-            connect: {
-              id: data.areaId,
-              isPublic: true
-            }
-          }
-        }),
-        updater: {
-          connect: {
-            id: tokenPayload.accountId
-          }
-        }
+        areaId: data.areaId,
+        updatedBy: accountId
       }
     })
-
-    await this.commonService.createActivityLog(
-      [result.id],
-      'Table',
-      ACTIVITY_LOG_TYPE.UPDATE,
-      tokenPayload
-    )
-
-    return result
   }
 
-  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = await this.prisma.table.updateMany({
-      where: {
-        id: {
-          in: data.ids
-        },
-        branch: {
-          id: tokenPayload.branchId
-        }
-      },
-      data: {
-        updatedBy: tokenPayload.accountId
+  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const dataTrash: CreateManyTrashDto = {
+        ids: data.ids,
+        accountId,
+        modelName: 'Table'
       }
+
+      await this.trashService.createMany(dataTrash, prisma)
+
+      return prisma.table.deleteMany({
+        where: {
+          id: {
+            in: data.ids
+          },
+          branchId
+        }
+      })
     })
-
-    await this.commonService.createActivityLog(
-      data.ids,
-      'Table',
-      ACTIVITY_LOG_TYPE.DELETE,
-      tokenPayload
-    )
-
-    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 }

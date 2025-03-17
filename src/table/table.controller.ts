@@ -10,23 +10,17 @@ import {
   Post,
   Query,
   Req,
-  UploadedFile,
-  UseGuards,
-  UseInterceptors
+  UseGuards
 } from '@nestjs/common'
 import { TableService } from './table.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
-import { CustomFileInterceptor } from 'utils/Helps'
-import { TokenPayload } from 'interfaces/common.interface'
+import { RequestJWT } from 'interfaces/common.interface'
 import { DeleteManyDto } from 'utils/Common.dto'
-import {
-  CreateTableDto,
-  FindManyTableDto,
-  UpdateTableDto
-} from './dto/table.dto'
+import { CreateTableDto, FindManyTableDto, UpdateTableDto } from './dto/table.dto'
 import { Roles } from 'guards/roles.decorator'
-import { SPECIAL_ROLE } from 'enums/common.enum'
 import { RolesGuard } from 'guards/roles.guard'
+import { permissions } from 'enums/permissions.enum'
+import { extractPermissions } from 'utils/Helps'
 
 @Controller('table')
 export class TableController {
@@ -35,53 +29,35 @@ export class TableController {
   @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('CREATE_TABLE', SPECIAL_ROLE.MANAGER)
+  @Roles(permissions.table.create)
   create(
-    @Body() createTableDto: CreateTableDto,
+    @Body() data: CreateTableDto,
 
-    @Req() req: any
+    @Req() req: RequestJWT
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload
+    const { accountId, branchId } = req
 
-    return this.tableService.create(createTableDto, tokenPayload)
+    return this.tableService.create(data, accountId, branchId)
   }
 
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('UPDATE_TABLE', SPECIAL_ROLE.MANAGER)
-  update(
-    @Param('id') id: string,
-    @Body() updateTableDto: UpdateTableDto,
-    @Req() req: any
-  ) {
-    const tokenPayload = req.tokenPayload as TokenPayload
+  @Roles(permissions.table.update)
+  update(@Param('id') id: string, @Body() data: UpdateTableDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
 
-    return this.tableService.update(
-      {
-        where: {
-          id
-        },
-        data: updateTableDto
-      },
-      tokenPayload
-    )
+    return this.tableService.update(id, data, accountId, branchId)
   }
 
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_TABLE',
-    'UPDATE_TABLE',
-    'DELETE_TABLE',
-    'VIEW_TABLE',
-    SPECIAL_ROLE.MANAGER
-  )
-  findAll(@Query() data: FindManyTableDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload
+  @Roles(...extractPermissions(permissions.table))
+  findAll(@Query() data: FindManyTableDto, @Req() req: RequestJWT) {
+    const { branchId } = req
 
-    return this.tableService.findAll(data, tokenPayload)
+    return this.tableService.findAll(data, branchId)
   }
 
   @Get(':id')
@@ -95,14 +71,10 @@ export class TableController {
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('DELETE_TABLE', SPECIAL_ROLE.MANAGER)
-  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload
-    return this.tableService.deleteMany(
-      {
-        ids: deleteManyDto.ids
-      },
-      tokenPayload
-    )
+  @Roles(permissions.table.delete)
+  deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+
+    return this.tableService.deleteMany(data, accountId, branchId)
   }
 }
