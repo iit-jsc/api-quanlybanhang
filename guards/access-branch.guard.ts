@@ -19,56 +19,53 @@ export class AccessBranchGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = this.getRequest(context)
+    // const request = this.getRequest(context)
 
-    const authHeader = request.headers?.authorization
+    // const authHeader = request.headers?.authorization
 
-    if (!authHeader) return false
+    // if (!authHeader) return false
 
-    const [_, token] = authHeader.split(' ')
+    // const [_, token] = authHeader.split(' ')
 
-    if (!token)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        'Không tìm thấy token!'
-      )
+    // if (!token)
+    //   throw new CustomHttpException(
+    //     HttpStatus.NOT_FOUND,
+    //     'Không tìm thấy token!'
+    //   )
 
     try {
-      const payload = (await this.jwtService.verifyAsync(token, {
-        secret: process.env.SECRET_KEY
-      })) as TokenPayload
-
-      const account = await this.prisma.account.findUniqueOrThrow({
-        where: {
-          id: payload.accountId,
-          isPublic: true,
-          status: ACCOUNT_STATUS.ACTIVE,
-          branches: { some: { id: payload.branchId, isPublic: true } }
-        },
-        select: {
-          id: true,
-          type: true,
-          userId: true,
-          branches: {
-            select: { shopId: true, id: true },
-            where: { id: payload.branchId }
-          }
-        }
-      })
-
-      if (!account)
-        throw new CustomHttpException(
-          HttpStatus.CONFLICT,
-          'Thông tin đăng nhập không hợp lệ!'
-        )
-
-      request.tokenPayload = {
-        ...payload,
-        type: account.type,
-        userId: account.userId,
-        shopId: account.branches?.[0]?.shopId,
-        accountId: account.id
-      } as TokenPayload
+      //   const payload = (await this.jwtService.verifyAsync(token, {
+      //     secret: process.env.SECRET_KEY
+      //   })) as TokenPayload
+      //   const account = await this.prisma.account.findUniqueOrThrow({
+      //     where: {
+      //       id: payload.accountId,
+      //       isPublic: true,
+      //       status: ACCOUNT_STATUS.ACTIVE,
+      //       branches: { some: { id: payload.branchId, isPublic: true } }
+      //     },
+      //     select: {
+      //       id: true,
+      //       type: true,
+      //       userId: true,
+      //       branches: {
+      //         select: { shopId: true, id: true },
+      //         where: { id: payload.branchId }
+      //       }
+      //     }
+      //   })
+      //   if (!account)
+      //     throw new CustomHttpException(
+      //       HttpStatus.CONFLICT,
+      //       'Thông tin đăng nhập không hợp lệ!'
+      //     )
+      //   request.tokenPayload = {
+      //     ...payload,
+      //     type: account.type,
+      //     userId: account.userId,
+      //     shopId: account.branches?.[0]?.shopId,
+      //     accountId: account.id
+      //   } as TokenPayload
     } catch (error) {
       throw new CustomHttpException(
         HttpStatus.UNAUTHORIZED,

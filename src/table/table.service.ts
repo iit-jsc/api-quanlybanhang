@@ -26,8 +26,7 @@ export class TableService {
         seat: data.seat,
         area: {
           connect: {
-            id: data.areaId,
-            isPublic: true
+            id: data.areaId
           }
         },
         branch: {
@@ -59,7 +58,6 @@ export class TableService {
     const keySearch = ['name', 'code']
 
     const where: Prisma.TableWhereInput = {
-      isPublic: true,
       ...(keyword && {
         OR: keySearch.map(key => ({
           [key]: { contains: removeDiacritics(keyword) }
@@ -71,8 +69,7 @@ export class TableService {
         }
       }),
       branch: {
-        id: tokenPayload.branchId,
-        isPublic: true
+        id: tokenPayload.branchId
       }
     }
 
@@ -121,8 +118,7 @@ export class TableService {
   async findUniq(where: Prisma.TableWhereUniqueInput) {
     return this.prisma.table.findUniqueOrThrow({
       where: {
-        ...where,
-        isPublic: true
+        ...where
       },
       include: {
         area: {
@@ -133,29 +129,7 @@ export class TableService {
           }
         },
         orderDetails: {
-          where: { isPublic: true },
           orderBy: { createdAt: 'asc' }
-        },
-        tableTransactions: {
-          where: { isPublic: true },
-          orderBy: { createdAt: 'desc' },
-          select: {
-            id: true,
-            type: true,
-            orderDetails: {
-              where: {
-                isPublic: true
-              },
-              select: {
-                id: true,
-                status: true,
-                amount: true,
-                note: true,
-                product: true,
-                productOptions: true
-              }
-            }
-          }
         }
       }
     })
@@ -173,7 +147,6 @@ export class TableService {
     const result = await this.prisma.table.update({
       where: {
         id: where.id,
-        isPublic: true,
         branchId: tokenPayload.branchId
       },
       data: {
@@ -211,14 +184,11 @@ export class TableService {
         id: {
           in: data.ids
         },
-        isPublic: true,
         branch: {
-          id: tokenPayload.branchId,
-          isPublic: true
+          id: tokenPayload.branchId
         }
       },
       data: {
-        isPublic: false,
         updatedBy: tokenPayload.accountId
       }
     })

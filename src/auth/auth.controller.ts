@@ -117,6 +117,7 @@ export class AuthController {
       )
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [_, token] = authHeader.split(' ')
 
     if (!token) {
@@ -131,7 +132,7 @@ export class AuthController {
 
   @Post('/refresh-token')
   @HttpCode(HttpStatus.OK)
-  refreshToken(@Req() req: Request, res: Response) {
+  refreshToken(@Req() req: Request) {
     const refreshToken = req.cookies['refreshToken']
 
     if (!refreshToken) {

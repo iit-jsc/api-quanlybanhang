@@ -23,7 +23,6 @@ export class AreaService {
         tables: {
           create: {
             name: 'Bàn 01',
-            isPublic: true,
             branchId: tokenPayload.branchId
           }
         },
@@ -56,7 +55,6 @@ export class AreaService {
     const keySearch = ['name']
 
     const where: Prisma.AreaWhereInput = {
-      isPublic: true,
       ...(areaIds && {
         id: {
           in: areaIds
@@ -77,8 +75,7 @@ export class AreaService {
         }))
       }),
       branch: {
-        id: tokenPayload.branchId,
-        isPublic: true
+        id: tokenPayload.branchId
       }
     }
 
@@ -139,17 +136,14 @@ export class AreaService {
     return this.prisma.area.findUniqueOrThrow({
       where: {
         ...where,
-        isPublic: true,
         branch: {
-          isPublic: true,
           id: tokenPayload.branchId
         }
       },
       include: {
         tables: {
           where: {
-            branchId: tokenPayload.branchId,
-            isPublic: true
+            branchId: tokenPayload.branchId
           }
         }
       }
@@ -168,10 +162,8 @@ export class AreaService {
     const area = await this.prisma.area.update({
       where: {
         id: where.id,
-        isPublic: true,
         branch: {
-          id: tokenPayload.branchId,
-          isPublic: true
+          id: tokenPayload.branchId
         }
       },
       data: {
@@ -197,31 +189,24 @@ export class AreaService {
         id: {
           in: data.ids
         },
-        isPublic: true,
         branch: {
-          id: tokenPayload.branchId,
-          isPublic: true
+          id: tokenPayload.branchId
         }
       },
       data: {
-        isPublic: false,
         updatedBy: tokenPayload.accountId
       }
     })
 
-    await this.prisma.table.updateMany({
-      where: {
-        area: {
-          id: {
-            in: data.ids
-          }
-        },
-        isPublic: true
-      },
-      data: {
-        isPublic: false
-      }
-    })
+    // await this.prisma.table.updateMany({
+    //   where: {
+    //     area: {
+    //       id: {
+    //         in: data.ids
+    //       }
+    //     }
+    //   }
+    // })
 
     await this.commonService.createActivityLog(
       data.ids,

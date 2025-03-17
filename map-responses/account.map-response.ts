@@ -6,19 +6,20 @@ export function mapResponseLogin(data: AnyObject) {
   const allRoles = account.permissions.flatMap(
     (permission: Prisma.PermissionCreateInput) => permission.roles
   )
+  return
 
-  const uniqueRoles = Array.from(
-    new Set(allRoles.map((role: Prisma.RoleCreateInput) => role.code))
-  ).map(code =>
-    allRoles.find((role: Prisma.RoleCreateInput) => role.code === code)
-  )
+  // const uniqueRoles = Array.from(
+  //   new Set(allRoles.map((role: Prisma.RoleCreateInput) => role.code))
+  // ).map(code =>
+  //   allRoles.find((role: Prisma.RoleCreateInput) => role.code === code)
+  // )
 
-  return {
-    type: account.type,
-    username: account.username,
-    user: currentShop ? account.user : undefined,
-    permissions: currentShop ? uniqueRoles : undefined,
-    currentShop: currentShop,
-    shops: shops
-  }
+  // return {
+  //   type: account.type,
+  //   username: account.username,
+  //   user: currentShop ? account.user : undefined,
+  //   permissions: currentShop ? uniqueRoles : undefined,
+  //   currentShop: currentShop,
+  //   shops: shops
+  // }
 }

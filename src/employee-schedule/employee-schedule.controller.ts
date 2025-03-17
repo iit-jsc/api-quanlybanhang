@@ -31,90 +31,90 @@ export class EmployeeScheduleController {
     private readonly employeeScheduleService: EmployeeScheduleService
   ) {}
 
-  @Post('')
-  @HttpCode(HttpStatus.OK)
-  @Roles('CREATE_EMPLOYEE_SCHEDULE', SPECIAL_ROLE.MANAGER)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  create(@Body() registerScheduleDto: RegisterScheduleDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload
+  // @Post('')
+  // @HttpCode(HttpStatus.OK)
+  // @Roles('CREATE_EMPLOYEE_SCHEDULE', SPECIAL_ROLE.MANAGER)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // create(@Body() registerScheduleDto: RegisterScheduleDto, @Req() req: any) {
+  //   const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.employeeScheduleService.registerSchedule(
-      registerScheduleDto,
-      tokenPayload
-    )
-  }
+  //   return this.employeeScheduleService.registerSchedule(
+  //     registerScheduleDto,
+  //     tokenPayload
+  //   )
+  // }
 
-  @Get('')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_EMPLOYEE_SCHEDULE',
-    'UPDATE_EMPLOYEE_SCHEDULE',
-    'DELETE_EMPLOYEE_SCHEDULE',
-    'VIEW_EMPLOYEE_SCHEDULE',
-    SPECIAL_ROLE.MANAGER
-  )
-  findAll(@Query() data: FindManyEmployeeScheduleDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload
+  // @Get('')
+  // @HttpCode(HttpStatus.OK)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(
+  //   'CREATE_EMPLOYEE_SCHEDULE',
+  //   'UPDATE_EMPLOYEE_SCHEDULE',
+  //   'DELETE_EMPLOYEE_SCHEDULE',
+  //   'VIEW_EMPLOYEE_SCHEDULE',
+  //   SPECIAL_ROLE.MANAGER
+  // )
+  // findAll(@Query() data: FindManyEmployeeScheduleDto, @Req() req: any) {
+  //   const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.employeeScheduleService.findAll(data, tokenPayload)
-  }
+  //   return this.employeeScheduleService.findAll(data, tokenPayload)
+  // }
 
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(
-    'CREATE_EMPLOYEE_SCHEDULE',
-    'UPDATE_EMPLOYEE_SCHEDULE',
-    'DELETE_EMPLOYEE_SCHEDULE',
-    'VIEW_EMPLOYEE_SCHEDULE',
-    SPECIAL_ROLE.MANAGER
-  )
-  findUniq(@Param('id') id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload
+  // @Get(':id')
+  // @HttpCode(HttpStatus.OK)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // @Roles(
+  //   'CREATE_EMPLOYEE_SCHEDULE',
+  //   'UPDATE_EMPLOYEE_SCHEDULE',
+  //   'DELETE_EMPLOYEE_SCHEDULE',
+  //   'VIEW_EMPLOYEE_SCHEDULE',
+  //   SPECIAL_ROLE.MANAGER
+  // )
+  // findUniq(@Param('id') id: string, @Req() req: any) {
+  //   const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.employeeScheduleService.findUniq(
-      {
-        id
-      },
-      tokenPayload
-    )
-  }
+  //   return this.employeeScheduleService.findUniq(
+  //     {
+  //       id
+  //     },
+  //     tokenPayload
+  //   )
+  // }
 
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  @Roles('UPDATE_EMPLOYEE_SCHEDULE', SPECIAL_ROLE.MANAGER)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  update(
-    @Param('id') id: string,
-    @Body() updateRegisterScheduleDto: UpdateRegisterScheduleDto,
-    @Req() req: any
-  ) {
-    const tokenPayload = req.tokenPayload as TokenPayload
+  // @Patch(':id')
+  // @HttpCode(HttpStatus.OK)
+  // @Roles('UPDATE_EMPLOYEE_SCHEDULE', SPECIAL_ROLE.MANAGER)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // update(
+  //   @Param('id') id: string,
+  //   @Body() updateRegisterScheduleDto: UpdateRegisterScheduleDto,
+  //   @Req() req: any
+  // ) {
+  //   const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.employeeScheduleService.update(
-      {
-        where: {
-          id
-        },
-        data: updateRegisterScheduleDto
-      },
-      tokenPayload
-    )
-  }
+  //   return this.employeeScheduleService.update(
+  //     {
+  //       where: {
+  //         id
+  //       },
+  //       data: updateRegisterScheduleDto
+  //     },
+  //     tokenPayload
+  //   )
+  // }
 
-  @Delete('')
-  @HttpCode(HttpStatus.OK)
-  @Roles('DELETE_EMPLOYEE_SCHEDULE', SPECIAL_ROLE.MANAGER)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload
+  // @Delete('')
+  // @HttpCode(HttpStatus.OK)
+  // @Roles('DELETE_EMPLOYEE_SCHEDULE', SPECIAL_ROLE.MANAGER)
+  // @UseGuards(JwtAuthGuard, RolesGuard)
+  // deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
+  //   const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.employeeScheduleService.deleteMany(
-      {
-        ids: deleteManyDto.ids
-      },
-      tokenPayload
-    )
-  }
+  //   return this.employeeScheduleService.deleteMany(
+  //     {
+  //       ids: deleteManyDto.ids
+  //     },
+  //     tokenPayload
+  //   )
+  // }
 }

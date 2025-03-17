@@ -1,15 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import {
-  CreateMeasurementUnitDto,
-  UpdateMeasurementUnitDto
-} from './dto/measurement-unit.dto'
-import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
-import { customPaginate, removeDiacritics } from 'utils/Helps'
-import { Prisma } from '@prisma/client'
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
 import { CommonService } from 'src/common/common.service'
-import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class MeasurementUnitService {
@@ -18,132 +9,132 @@ export class MeasurementUnitService {
     private commonService: CommonService
   ) {}
 
-  async create(data: CreateMeasurementUnitDto, tokenPayload: TokenPayload) {
-    const result = await this.prisma.measurementUnit.create({
-      data: {
-        name: data.name,
-        code: data.code,
-        creator: {
-          connect: {
-            id: tokenPayload.accountId
-          }
-        },
-        branch: {
-          connect: {
-            id: tokenPayload.branchId
-          }
-        }
-      }
-    })
+  // async create(data: CreateMeasurementUnitDto, tokenPayload: TokenPayload) {
+  //   const result = await this.prisma.measurementUnit.create({
+  //     data: {
+  //       name: data.name,
+  //       code: data.code,
+  //       creator: {
+  //         connect: {
+  //           id: tokenPayload.accountId
+  //         }
+  //       },
+  //       branch: {
+  //         connect: {
+  //           id: tokenPayload.branchId
+  //         }
+  //       }
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog(
-      [result.id],
-      'MeasurementUnit',
-      ACTIVITY_LOG_TYPE.CREATE,
-      tokenPayload
-    )
+  //   await this.commonService.createActivityLog(
+  //     [result.id],
+  //     'MeasurementUnit',
+  //     ACTIVITY_LOG_TYPE.CREATE,
+  //     tokenPayload
+  //   )
 
-    return result
-  }
+  //   return result
+  // }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy } = params
+  // async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+  //   let { page, perPage, keyword, orderBy } = params
 
-    let where: Prisma.MeasurementUnitWhereInput = {
-      isPublic: true,
-      branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: removeDiacritics(keyword) } })
-    }
+  //   let where: Prisma.MeasurementUnitWhereInput = {
+  //     isPublic: true,
+  //     branchId: tokenPayload.branchId,
+  //     ...(keyword && { name: { contains: removeDiacritics(keyword) } })
+  //   }
 
-    return await customPaginate(
-      this.prisma.measurementUnit,
-      {
-        orderBy: orderBy || { createdAt: 'desc' },
-        where
-      },
-      {
-        page,
-        perPage
-      }
-    )
-  }
+  //   return await customPaginate(
+  //     this.prisma.measurementUnit,
+  //     {
+  //       orderBy: orderBy || { createdAt: 'desc' },
+  //       where
+  //     },
+  //     {
+  //       page,
+  //       perPage
+  //     }
+  //   )
+  // }
 
-  async findUniq(
-    where: Prisma.MeasurementUnitWhereUniqueInput,
-    tokenPayload: TokenPayload
-  ) {
-    return this.prisma.measurementUnit.findUniqueOrThrow({
-      where: {
-        ...where,
-        isPublic: true,
-        branchId: tokenPayload.branchId
-      },
-      select: {
-        id: true,
-        code: true,
-        name: true
-      }
-    })
-  }
+  // async findUniq(
+  //   where: Prisma.MeasurementUnitWhereUniqueInput,
+  //   tokenPayload: TokenPayload
+  // ) {
+  //   return this.prisma.measurementUnit.findUniqueOrThrow({
+  //     where: {
+  //       ...where,
+  //       isPublic: true,
+  //       branchId: tokenPayload.branchId
+  //     },
+  //     select: {
+  //       id: true,
+  //       code: true,
+  //       name: true
+  //     }
+  //   })
+  // }
 
-  async update(
-    params: {
-      where: Prisma.MeasurementUnitWhereUniqueInput
-      data: UpdateMeasurementUnitDto
-    },
-    tokenPayload: TokenPayload
-  ) {
-    const { where, data } = params
+  // async update(
+  //   params: {
+  //     where: Prisma.MeasurementUnitWhereUniqueInput
+  //     data: UpdateMeasurementUnitDto
+  //   },
+  //   tokenPayload: TokenPayload
+  // ) {
+  //   const { where, data } = params
 
-    const result = await this.prisma.measurementUnit.update({
-      data: {
-        name: data.name,
-        code: data.code,
-        updater: {
-          connect: {
-            id: tokenPayload.accountId
-          }
-        }
-      },
-      where: {
-        ...where,
-        isPublic: true,
-        branchId: tokenPayload.branchId
-      }
-    })
+  //   const result = await this.prisma.measurementUnit.update({
+  //     data: {
+  //       name: data.name,
+  //       code: data.code,
+  //       updater: {
+  //         connect: {
+  //           id: tokenPayload.accountId
+  //         }
+  //       }
+  //     },
+  //     where: {
+  //       ...where,
+  //       isPublic: true,
+  //       branchId: tokenPayload.branchId
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog(
-      [result.id],
-      'MeasurementUnit',
-      ACTIVITY_LOG_TYPE.UPDATE,
-      tokenPayload
-    )
+  //   await this.commonService.createActivityLog(
+  //     [result.id],
+  //     'MeasurementUnit',
+  //     ACTIVITY_LOG_TYPE.UPDATE,
+  //     tokenPayload
+  //   )
 
-    return result
-  }
+  //   return result
+  // }
 
-  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = await this.prisma.measurementUnit.updateMany({
-      where: {
-        id: {
-          in: data.ids
-        },
-        isPublic: true,
-        branchId: tokenPayload.branchId
-      },
-      data: {
-        isPublic: false,
-        updatedBy: tokenPayload.accountId
-      }
-    })
+  // async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+  //   const count = await this.prisma.measurementUnit.updateMany({
+  //     where: {
+  //       id: {
+  //         in: data.ids
+  //       },
+  //       isPublic: true,
+  //       branchId: tokenPayload.branchId
+  //     },
+  //     data: {
+  //       isPublic: false,
+  //       updatedBy: tokenPayload.accountId
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog(
-      data.ids,
-      'MeasurementUnit',
-      ACTIVITY_LOG_TYPE.CREATE,
-      tokenPayload
-    )
+  //   await this.commonService.createActivityLog(
+  //     data.ids,
+  //     'MeasurementUnit',
+  //     ACTIVITY_LOG_TYPE.CREATE,
+  //     tokenPayload
+  //   )
 
-    return { ...count, ids: data.ids } as DeleteManyResponse
-  }
+  //   return { ...count, ids: data.ids } as DeleteManyResponse
+  // }
 }

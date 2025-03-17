@@ -18,152 +18,152 @@ export class CustomerTypeService {
     private commonService: CommonService
   ) {}
 
-  async create(data: CreateCustomerTypeDto, tokenPayload: TokenPayload) {
-    const customerType = await this.prisma.customerType.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        discountType: data.discountType,
-        discount: data.discount,
-        shop: {
-          connect: {
-            id: tokenPayload.shopId
-          }
-        },
-        creator: {
-          connect: {
-            id: tokenPayload.accountId
-          }
-        }
-      }
-    })
+  // async create(data: CreateCustomerTypeDto, tokenPayload: TokenPayload) {
+  //   const customerType = await this.prisma.customerType.create({
+  //     data: {
+  //       name: data.name,
+  //       description: data.description,
+  //       discountType: data.discountType,
+  //       discount: data.discount,
+  //       shop: {
+  //         connect: {
+  //           id: tokenPayload.shopId
+  //         }
+  //       },
+  //       creator: {
+  //         connect: {
+  //           id: tokenPayload.accountId
+  //         }
+  //       }
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog(
-      [customerType.id],
-      'CustomerType',
-      ACTIVITY_LOG_TYPE.CREATE,
-      tokenPayload
-    )
+  //   await this.commonService.createActivityLog(
+  //     [customerType.id],
+  //     'CustomerType',
+  //     ACTIVITY_LOG_TYPE.CREATE,
+  //     tokenPayload
+  //   )
 
-    return customerType
-  }
+  //   return customerType
+  // }
 
-  async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy } = params
-    let where: Prisma.CustomerTypeWhereInput = {
-      isPublic: true,
-      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
-      shop: {
-        id: tokenPayload.shopId,
-        isPublic: true
-      }
-    }
+  // async findAll(params: FindManyDto, tokenPayload: TokenPayload) {
+  //   let { page, perPage, keyword, orderBy } = params
+  //   let where: Prisma.CustomerTypeWhereInput = {
+  //     isPublic: true,
+  //     ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
+  //     shop: {
+  //       id: tokenPayload.shopId,
+  //       isPublic: true
+  //     }
+  //   }
 
-    return await customPaginate(
-      this.prisma.customerType,
-      {
-        orderBy: orderBy || { createdAt: 'desc' },
-        where,
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          discount: true,
-          discountType: true,
-          updatedAt: true
-        }
-      },
-      {
-        page,
-        perPage
-      }
-    )
-  }
+  //   return await customPaginate(
+  //     this.prisma.customerType,
+  //     {
+  //       orderBy: orderBy || { createdAt: 'desc' },
+  //       where,
+  //       select: {
+  //         id: true,
+  //         name: true,
+  //         description: true,
+  //         discount: true,
+  //         discountType: true,
+  //         updatedAt: true
+  //       }
+  //     },
+  //     {
+  //       page,
+  //       perPage
+  //     }
+  //   )
+  // }
 
-  async findUniq(
-    where: Prisma.CustomerTypeWhereUniqueInput,
-    tokenPayload: TokenPayload
-  ) {
-    return this.prisma.customerType.findUniqueOrThrow({
-      where: {
-        ...where,
-        isPublic: true,
-        shop: {
-          id: tokenPayload.shopId,
-          isPublic: true
-        }
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        discount: true,
-        discountType: true
-      }
-    })
-  }
+  // async findUniq(
+  //   where: Prisma.CustomerTypeWhereUniqueInput,
+  //   tokenPayload: TokenPayload
+  // ) {
+  //   return this.prisma.customerType.findUniqueOrThrow({
+  //     where: {
+  //       ...where,
+  //       isPublic: true,
+  //       shop: {
+  //         id: tokenPayload.shopId,
+  //         isPublic: true
+  //       }
+  //     },
+  //     select: {
+  //       id: true,
+  //       name: true,
+  //       description: true,
+  //       discount: true,
+  //       discountType: true
+  //     }
+  //   })
+  // }
 
-  async update(
-    params: {
-      where: Prisma.CustomerTypeWhereUniqueInput
-      data: UpdateCustomerTypeDto
-    },
-    tokenPayload: TokenPayload
-  ) {
-    const { where, data } = params
-    const customerType = await this.prisma.customerType.update({
-      where: {
-        id: where.id,
-        isPublic: true,
-        shop: {
-          id: tokenPayload.shopId,
-          isPublic: true
-        }
-      },
-      data: {
-        name: data.name,
-        description: data.description,
-        discountType: data.discountType,
-        discount: data.discount,
-        updatedBy: tokenPayload.accountId
-      }
-    })
+  // async update(
+  //   params: {
+  //     where: Prisma.CustomerTypeWhereUniqueInput
+  //     data: UpdateCustomerTypeDto
+  //   },
+  //   tokenPayload: TokenPayload
+  // ) {
+  //   const { where, data } = params
+  //   const customerType = await this.prisma.customerType.update({
+  //     where: {
+  //       id: where.id,
+  //       isPublic: true,
+  //       shop: {
+  //         id: tokenPayload.shopId,
+  //         isPublic: true
+  //       }
+  //     },
+  //     data: {
+  //       name: data.name,
+  //       description: data.description,
+  //       discountType: data.discountType,
+  //       discount: data.discount,
+  //       updatedBy: tokenPayload.accountId
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog(
-      [customerType.id],
-      'CustomerType',
-      ACTIVITY_LOG_TYPE.UPDATE,
-      tokenPayload
-    )
+  //   await this.commonService.createActivityLog(
+  //     [customerType.id],
+  //     'CustomerType',
+  //     ACTIVITY_LOG_TYPE.UPDATE,
+  //     tokenPayload
+  //   )
 
-    return customerType
-  }
+  //   return customerType
+  // }
 
-  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = await this.prisma.customerType.updateMany({
-      where: {
-        id: {
-          in: data.ids
-        },
-        isPublic: true,
-        shop: {
-          id: tokenPayload.shopId,
-          isPublic: true
-        }
-      },
-      data: {
-        isPublic: false,
-        updatedBy: tokenPayload.accountId
-      }
-    })
+  // async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+  //   const count = await this.prisma.customerType.updateMany({
+  //     where: {
+  //       id: {
+  //         in: data.ids
+  //       },
+  //       isPublic: true,
+  //       shop: {
+  //         id: tokenPayload.shopId,
+  //         isPublic: true
+  //       }
+  //     },
+  //     data: {
+  //       isPublic: false,
+  //       updatedBy: tokenPayload.accountId
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog(
-      data.ids,
-      'CustomerType',
-      ACTIVITY_LOG_TYPE.DELETE,
-      tokenPayload
-    )
+  //   await this.commonService.createActivityLog(
+  //     data.ids,
+  //     'CustomerType',
+  //     ACTIVITY_LOG_TYPE.DELETE,
+  //     tokenPayload
+  //   )
 
-    return { ...count, ids: data.ids } as DeleteManyResponse
-  }
+  //   return { ...count, ids: data.ids } as DeleteManyResponse
+  // }
 }

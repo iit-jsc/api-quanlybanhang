@@ -1,52 +1,42 @@
-import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
-import {
-  FindManyCompensationEmployeeDto,
-  UpdateCompensationEmployeeDto
-} from './dto/compensation-employee.dto'
-import { TokenPayload } from 'interfaces/common.interface'
-import { customPaginate } from 'utils/Helps'
-
-@Injectable()
 export class CompensationEmployeeService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async update(
-    params: {
-      where: Prisma.CompensationEmployeeWhereUniqueInput
-      data: UpdateCompensationEmployeeDto
-    },
-    tokenPayload: TokenPayload
-  ) {
-    const { where, data } = params
+  // async update(
+  //   params: {
+  //     where: Prisma.CompensationEmployeeWhereUniqueInput
+  //     data: UpdateCompensationEmployeeDto
+  //   },
+  //   tokenPayload: TokenPayload
+  // ) {
+  //   const { where, data } = params
 
-    return await this.prisma.compensationEmployee.update({
-      where: { id: where.id, branchId: tokenPayload.branchId },
-      data: { value: data.value, updatedBy: tokenPayload.accountId }
-    })
-  }
+  //   return await this.prisma.compensationEmployee.update({
+  //     where: { id: where.id, branchId: tokenPayload.branchId },
+  //     data: { value: data.value, updatedBy: tokenPayload.accountId }
+  //   })
+  // }
 
-  async findAll(
-    params: FindManyCompensationEmployeeDto,
-    tokenPayload: TokenPayload
-  ) {
-    let { page, perPage, employeeIds, orderBy } = params
-    let where: Prisma.CompensationEmployeeWhereInput = {
-      ...(employeeIds && { employeeId: { in: employeeIds } }),
-      branchId: tokenPayload.branchId
-    }
+  // async findAll(
+  //   params: FindManyCompensationEmployeeDto,
+  //   tokenPayload: TokenPayload
+  // ) {
+  //   let { page, perPage, employeeIds, orderBy } = params
+  //   let where: Prisma.CompensationEmployeeWhereInput = {
+  //     ...(employeeIds && { employeeId: { in: employeeIds } }),
+  //     branchId: tokenPayload.branchId
+  //   }
 
-    return await customPaginate(
-      this.prisma.compensationEmployee,
-      {
-        orderBy: orderBy || { createdAt: 'desc' },
-        where
-      },
-      {
-        page,
-        perPage
-      }
-    )
-  }
+  //   return await customPaginate(
+  //     this.prisma.compensationEmployee,
+  //     {
+  //       orderBy: orderBy || { createdAt: 'desc' },
+  //       where
+  //     },
+  //     {
+  //       page,
+  //       perPage
+  //     }
+  //   )
+  // }
 }

@@ -107,51 +107,45 @@ export class AuthService {
     res: Response,
     req?: AnyObject
   ) {
-    const account = await this.getAccountAccess(
-      tokenPayload.accountId,
-      accessBranchDto.branchId
-    )
-
-    if (!account) {
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        'Không tìm thấy tài nguyên!'
-      )
-    }
-
-    const currentShop = await this.getCurrentShop(accessBranchDto.branchId)
-
-    const shops = await this.commonService.findManyShopByAccountId(account.id)
-
-    const data = await this.createRefreshTokenAndDevice(
-      account.id,
-      accessBranchDto,
-      tokenPayload.deviceId,
-      req
-    )
-
-    res.cookie('refreshToken', data.refreshToken, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'strict',
-      path: '/api/auth/refresh-token'
-    })
-
-    return {
-      accessToken: await this.jwtService.signAsync(
-        {
-          accountId: tokenPayload.accountId,
-          branchId: accessBranchDto.branchId,
-          deviceId: data.deviceId
-        } as TokenPayload,
-        {
-          expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
-          secret: process.env.SECRET_KEY
-        }
-      ),
-      refreshToken: data.refreshToken,
-      ...mapResponseLogin({ account, shops, currentShop })
-    }
+    // const account = await this.getAccountAccess(
+    //   tokenPayload.accountId,
+    //   accessBranchDto.branchId
+    // )
+    // if (!account) {
+    //   throw new CustomHttpException(
+    //     HttpStatus.NOT_FOUND,
+    //     'Không tìm thấy tài nguyên!'
+    //   )
+    // }
+    // const currentShop = await this.getCurrentShop(accessBranchDto.branchId)
+    // const shops = await this.commonService.findManyShopByAccountId(account.id)
+    // const data = await this.createRefreshTokenAndDevice(
+    //   account.id,
+    //   accessBranchDto,
+    //   tokenPayload.deviceId,
+    //   req
+    // )
+    // res.cookie('refreshToken', data.refreshToken, {
+    //   httpOnly: true,
+    //   secure: true,
+    //   sameSite: 'strict',
+    //   path: '/api/auth/refresh-token'
+    // })
+    // return {
+    //   accessToken: await this.jwtService.signAsync(
+    //     {
+    //       accountId: tokenPayload.accountId,
+    //       branchId: accessBranchDto.branchId,
+    //       deviceId: data.deviceId
+    //     } as TokenPayload,
+    //     {
+    //       expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
+    //       secret: process.env.SECRET_KEY
+    //     }
+    //   ),
+    //   refreshToken: data.refreshToken,
+    //   ...mapResponseLogin({ account, shops, currentShop })
+    // }
   }
 
   async verifyContact(data: VerifyContactDto) {
@@ -197,10 +191,10 @@ export class AuthService {
 
   async checkValidDeviceAndUpdateLastLogin(deviceId: string) {
     try {
-      await this.prisma.authToken.update({
-        where: { deviceId: deviceId },
-        data: { lastLogin: new Date() }
-      })
+      // await this.prisma.authToken.update({
+      //   where: { deviceId: deviceId },
+      //   data: { lastLogin: new Date() }
+      // })
     } catch (error) {
       if (error.code === 'P2025') {
         throw new CustomHttpException(
@@ -247,7 +241,7 @@ export class AuthService {
         )
       }
 
-      return { ...mapResponseLogin({ account, shops, currentShop }) }
+      // return { ...mapResponseLogin({ account, shops, currentShop }) }
     } catch (error) {
       throw new CustomHttpException(
         HttpStatus.UNAUTHORIZED,
@@ -261,9 +255,8 @@ export class AuthService {
 
     return await this.prisma.shop.findFirst({
       where: {
-        isPublic: true,
         branches: {
-          some: { id: branchId, isPublic: true }
+          some: { id: branchId }
         }
       },
       select: {
@@ -280,19 +273,10 @@ export class AuthService {
             name: true,
             address: true,
             photoURL: true,
-            bannerURL: true,
-            others: true
-          },
-          where: {
-            isPublic: true,
-            id: branchId
+            bannerURL: true
           }
         },
-        businessType: {
-          where: {
-            isPublic: true
-          }
-        }
+        businessType: true
       }
     })
   }
@@ -335,42 +319,38 @@ export class AuthService {
     data: ChangeMyPasswordDto,
     tokenPayload: TokenPayload
   ) {
-    const account = await this.prisma.account.findFirst({
-      where: {
-        id: tokenPayload.accountId
-      }
-    })
-
-    if (!account || !bcrypt.compareSync(data.oldPassword, account.password))
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        'Mật khẩu cũ không chính xác!'
-      )
-
-    if (data.isLoggedOutAll)
-      await this.prisma.authToken.deleteMany({
-        where: {
-          accountId: tokenPayload.accountId,
-          deviceId: {
-            not: tokenPayload.deviceId
-          }
-        }
-      })
-
-    return await this.prisma.account.update({
-      where: {
-        id: tokenPayload.accountId
-      },
-      data: {
-        password: bcrypt.hashSync(data.newPassword, 10)
-      }
-    })
+    // const account = await this.prisma.account.findFirst({
+    //   where: {
+    //     id: tokenPayload.accountId
+    //   }
+    // })
+    // if (!account || !bcrypt.compareSync(data.oldPassword, account.password))
+    //   throw new CustomHttpException(
+    //     HttpStatus.CONFLICT,
+    //     'Mật khẩu cũ không chính xác!'
+    //   )
+    // if (data.isLoggedOutAll)
+    //   await this.prisma.authToken.deleteMany({
+    //     where: {
+    //       accountId: tokenPayload.accountId,
+    //       deviceId: {
+    //         not: tokenPayload.deviceId
+    //       }
+    //     }
+    //   })
+    // return await this.prisma.account.update({
+    //   where: {
+    //     id: tokenPayload.accountId
+    //   },
+    //   data: {
+    //     password: bcrypt.hashSync(data.newPassword, 10)
+    //   }
+    // })
   }
 
   async changeInformation(data: ChangeAvatarDto, tokenPayload: TokenPayload) {
     const user = await this.prisma.user.findFirst({
       where: {
-        isPublic: true,
         account: {
           id: tokenPayload.accountId
         }
@@ -380,8 +360,7 @@ export class AuthService {
     return this.prisma.user.update({
       data: { photoURL: data.photoURL },
       where: {
-        id: user.id,
-        isPublic: true
+        id: user.id
       }
     })
   }
@@ -393,119 +372,106 @@ export class AuthService {
     req: AnyObject
   ) {
     // Lưu thông tin thiết bị
-    const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
-
-    const userAgent = req.headers['user-agent']
-
-    const validDeviceId = deviceId || uuidv4()
-
-    // Tạo refresh token
-    const refreshToken = await this.jwtService.signAsync(
-      {
-        accountId: accountId,
-        branchId: accessBranchDto.branchId,
-        deviceId: validDeviceId
-      },
-      {
-        expiresIn: process.env.EXPIRES_IN_REFRESH_TOKEN,
-        secret: process.env.SECRET_KEY
-      }
-    )
-
-    return await this.prisma.authToken.upsert({
-      where: { deviceId: validDeviceId },
-      create: {
-        accountId: accountId,
-        deviceId: validDeviceId,
-        firebaseToken: accessBranchDto.firebaseToken,
-        refreshToken,
-        ip: ip,
-        userAgent: userAgent,
-        lastLogin: new Date()
-      },
-      update: { refreshToken }
-    })
+    // const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress
+    // const userAgent = req.headers['user-agent']
+    // const validDeviceId = deviceId || uuidv4()
+    // // Tạo refresh token
+    // const refreshToken = await this.jwtService.signAsync(
+    //   {
+    //     accountId: accountId,
+    //     branchId: accessBranchDto.branchId,
+    //     deviceId: validDeviceId
+    //   },
+    //   {
+    //     expiresIn: process.env.EXPIRES_IN_REFRESH_TOKEN,
+    //     secret: process.env.SECRET_KEY
+    //   }
+    // )
+    // return await this.prisma.authToken.upsert({
+    //   where: { deviceId: validDeviceId },
+    //   create: {
+    //     accountId: accountId,
+    //     deviceId: validDeviceId,
+    //     firebaseToken: accessBranchDto.firebaseToken,
+    //     refreshToken,
+    //     ip: ip,
+    //     userAgent: userAgent,
+    //     lastLogin: new Date()
+    //   },
+    //   update: { refreshToken }
+    // })
   }
 
   async logout(tokenPayload: TokenPayload) {
-    return this.prisma.authToken.deleteMany({
-      where: {
-        deviceId: tokenPayload.deviceId
-      }
-    })
+    // return this.prisma.authToken.deleteMany({
+    //   where: {
+    //     deviceId: tokenPayload.deviceId
+    //   }
+    // })
   }
 
   async getDevice(tokenPayload: TokenPayload) {
-    return this.prisma.authToken.findMany({
-      where: { accountId: tokenPayload.accountId },
-      select: {
-        ip: true,
-        deviceId: true,
-        lastLogin: true,
-        userAgent: true
-      }
-    })
+    // return this.prisma.authToken.findMany({
+    //   where: { accountId: tokenPayload.accountId },
+    //   select: {
+    //     ip: true,
+    //     deviceId: true,
+    //     lastLogin: true,
+    //     userAgent: true
+    //   }
+    // })
   }
 
   async refreshToken(refreshToken: string) {
-    const device = await this.prisma.authToken.findFirst({
-      where: { refreshToken }
-    })
-
-    if (!refreshToken || !device)
-      throw new CustomHttpException(
-        HttpStatus.NOT_FOUND,
-        'Không tìm thấy token hoặc đã hết hạn!'
-      )
-
-    try {
-      const payload: TokenPayload = await this.jwtService.verifyAsync(
-        refreshToken,
-        {
-          secret: process.env.SECRET_KEY
-        }
-      )
-
-      // Nếu đã truy cập vào chi nhánh thì kiểm tra có device hay không
-
-      if (payload.branchId)
-        await this.checkValidDeviceAndUpdateLastLogin(payload.deviceId)
-
-      const shops = await this.commonService.findManyShopByAccountId(
-        payload.accountId
-      )
-
-      const account = await this.getAccountAccess(
-        payload.accountId,
-        payload.branchId
-      )
-
-      const currentShop = await this.getCurrentShop(payload.branchId)
-
-      if (!account) {
-        throw new CustomHttpException(
-          HttpStatus.NOT_FOUND,
-          'Không tìm thấy tài nguyên!'
-        )
-      }
-
-      return {
-        accessToken: await this.jwtService.signAsync(
-          {
-            accountId: payload.accountId,
-            branchId: payload.branchId,
-            deviceId: payload.deviceId
-          } as TokenPayload,
-          {
-            expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
-            secret: process.env.SECRET_KEY
-          }
-        ),
-        ...mapResponseLogin({ account, shops, currentShop })
-      }
-    } catch (error) {
-      // console.log(error);
-      throw error
-    }
+    // const device = await this.prisma.authToken.findFirst({
+    //   where: { refreshToken }
+    // })
+    // if (!refreshToken || !device)
+    //   throw new CustomHttpException(
+    //     HttpStatus.NOT_FOUND,
+    //     'Không tìm thấy token hoặc đã hết hạn!'
+    //   )
+    // try {
+    //   const payload: TokenPayload = await this.jwtService.verifyAsync(
+    //     refreshToken,
+    //     {
+    //       secret: process.env.SECRET_KEY
+    //     }
+    //   )
+    //   // Nếu đã truy cập vào chi nhánh thì kiểm tra có device hay không
+    //   if (payload.branchId)
+    //     await this.checkValidDeviceAndUpdateLastLogin(payload.deviceId)
+    //   const shops = await this.commonService.findManyShopByAccountId(
+    //     payload.accountId
+    //   )
+    //   const account = await this.getAccountAccess(
+    //     payload.accountId,
+    //     payload.branchId
+    //   )
+    //   const currentShop = await this.getCurrentShop(payload.branchId)
+    //   if (!account) {
+    //     throw new CustomHttpException(
+    //       HttpStatus.NOT_FOUND,
+    //       'Không tìm thấy tài nguyên!'
+    //     )
+    //   }
+    //   return {
+    //     accessToken: await this.jwtService.signAsync(
+    //       {
+    //         accountId: payload.accountId,
+    //         branchId: payload.branchId,
+    //         deviceId: payload.deviceId
+    //       } as TokenPayload,
+    //       {
+    //         expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
+    //         secret: process.env.SECRET_KEY
+    //       }
+    //     ),
+    //     ...mapResponseLogin({ account, shops, currentShop })
+    //   }
+    // } catch (error) {
+    //   // console.log(error);
+    //   throw error
+    // }
   }
 }

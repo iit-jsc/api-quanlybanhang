@@ -1,14 +1,4 @@
-import {
-  Branch,
-  Customer,
-  CustomerType,
-  DiscountCode,
-  DiscountIssue,
-  OrderDetail,
-  Product,
-  ProductOption,
-  Promotion
-} from '@prisma/client'
+import { CustomerType, Product, ProductOption } from '@prisma/client'
 
 export interface TokenPayload {
   accountId?: string
