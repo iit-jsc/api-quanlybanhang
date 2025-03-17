@@ -1,22 +1,28 @@
-import { PartialType } from "@nestjs/swagger";
-import { IsArray, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
+import { PartialType } from '@nestjs/swagger'
+import {
+  IsArray,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString
+} from 'class-validator'
 
 export class CreateOrderRatingDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  orderId: string;
+  orderId: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  ratingValue: number;
+  ratingValue: number
 
   @IsOptional()
   @IsString()
-  comment: string;
+  comment: string
 
   @IsOptional()
   @IsArray()
-  photoURLs: string[];
+  photoURLs: string[]
 }
 
 export class UpdateOrderRatingDto extends PartialType(CreateOrderRatingDto) {}

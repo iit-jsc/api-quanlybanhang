@@ -1,18 +1,22 @@
-import { Injectable } from "@nestjs/common";
-import { CreateSupplierDto, FindManySupplierDto, UpdateSupplierDto } from "./dto/supplier.dto";
-import { Prisma } from "@prisma/client";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { PrismaService } from "nestjs-prisma";
-import { customPaginate, removeDiacritics } from "utils/Helps";
-import { CommonService } from "src/common/common.service";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { Injectable } from '@nestjs/common'
+import {
+  CreateSupplierDto,
+  FindManySupplierDto,
+  UpdateSupplierDto
+} from './dto/supplier.dto'
+import { Prisma } from '@prisma/client'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+import { PrismaService } from 'nestjs-prisma'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { CommonService } from 'src/common/common.service'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class SupplierService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly commonService: CommonService,
+    private readonly commonService: CommonService
   ) {}
 
   async create(data: CreateSupplierDto, tokenPayload: TokenPayload) {
@@ -27,23 +31,28 @@ export class SupplierService {
         representativePhone: data.representativePhone,
         supplierTypeId: data.supplierTypeId,
         createdBy: tokenPayload.accountId,
-        branchId: tokenPayload.branchId,
-      },
-    });
+        branchId: tokenPayload.branchId
+      }
+    })
 
-    await this.commonService.createActivityLog([result.id], "Supplier", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [result.id],
+      'Supplier',
+      ACTIVITY_LOG_TYPE.CREATE,
+      tokenPayload
+    )
 
-    return result;
+    return result
   }
 
   async update(
     params: {
-      where: Prisma.SupplierWhereUniqueInput;
-      data: UpdateSupplierDto;
+      where: Prisma.SupplierWhereUniqueInput
+      data: UpdateSupplierDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { where, data } = params;
+    const { where, data } = params
 
     const result = await this.prisma.supplier.update({
       where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId },
@@ -57,39 +66,44 @@ export class SupplierService {
         representativePhone: data.representativePhone,
         supplierTypeId: data.supplierTypeId,
         branchId: tokenPayload.branchId,
-        createdBy: tokenPayload.accountId,
-      },
-    });
+        createdBy: tokenPayload.accountId
+      }
+    })
 
-    await this.commonService.createActivityLog([result.id], "Supplier", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [result.id],
+      'Supplier',
+      ACTIVITY_LOG_TYPE.UPDATE,
+      tokenPayload
+    )
 
-    return result;
+    return result
   }
 
   async findAll(params: FindManySupplierDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy, supplierTypeIds } = params;
+    let { page, perPage, keyword, orderBy, supplierTypeIds } = params
 
-    const keySearch = ["name"];
+    const keySearch = ['name']
 
     let where: Prisma.SupplierWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
       ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: removeDiacritics(keyword) },
-        })),
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
       }),
       ...(supplierTypeIds?.length > 0 && {
         supplierType: {
-          id: { in: supplierTypeIds },
-        },
-      }),
-    };
+          id: { in: supplierTypeIds }
+        }
+      })
+    }
 
     return await customPaginate(
       this.prisma.supplier,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         select: {
           id: true,
@@ -104,18 +118,17 @@ export class SupplierService {
             select: {
               id: true,
               name: true,
-              description: true,
-            },
+              description: true
+            }
           },
-          updatedAt: true,
-        },
+          updatedAt: true
+        }
       },
       {
         page,
-        perPage,
-      },
-    );
-
+        perPage
+      }
+    )
   }
 
   findUniq(where: Prisma.SupplierWhereUniqueInput, tokenPayload: TokenPayload) {
@@ -123,7 +136,7 @@ export class SupplierService {
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       select: {
         id: true,
@@ -138,30 +151,35 @@ export class SupplierService {
           select: {
             id: true,
             name: true,
-            description: true,
-          },
-        },
-      },
-    });
+            description: true
+          }
+        }
+      }
+    })
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     const count = await this.prisma.supplier.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: data.ids
         },
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       data: {
         isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    await this.commonService.createActivityLog(data.ids, "Supplier", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(
+      data.ids,
+      'Supplier',
+      ACTIVITY_LOG_TYPE.DELETE,
+      tokenPayload
+    )
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 }

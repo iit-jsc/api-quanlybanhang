@@ -10,96 +10,106 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
-} from "@nestjs/common";
-import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { CustomerTypeService } from "./customer-type.service";
-import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from "./dto/create-customer-type";
-import { Roles } from "guards/roles.decorator";
-import { RolesGuard } from "guards/roles.guard";
-import { SPECIAL_ROLE } from "enums/common.enum";
+  UseGuards
+} from '@nestjs/common'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { TokenPayload } from 'interfaces/common.interface'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+import { CustomerTypeService } from './customer-type.service'
+import {
+  CreateCustomerTypeDto,
+  UpdateCustomerTypeDto
+} from './dto/create-customer-type'
+import { Roles } from 'guards/roles.decorator'
+import { RolesGuard } from 'guards/roles.guard'
+import { SPECIAL_ROLE } from 'enums/common.enum'
 
-@Controller("customer-type")
+@Controller('customer-type')
 export class CustomerTypeController {
   constructor(private readonly customerTypeService: CustomerTypeService) {}
 
-  @Post("")
+  @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_CUSTOMER_TYPE", SPECIAL_ROLE.MANAGER)
-  create(@Body() createCustomerTypeDto: CreateCustomerTypeDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('CREATE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
+  create(
+    @Body() createCustomerTypeDto: CreateCustomerTypeDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.customerTypeService.create(createCustomerTypeDto, tokenPayload);
+    return this.customerTypeService.create(createCustomerTypeDto, tokenPayload)
   }
 
-  @Get("")
+  @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    "CREATE_CUSTOMER_TYPE",
-    "UPDATE_CUSTOMER_TYPE",
-    "DELETE_CUSTOMER_TYPE",
-    "VIEW_CUSTOMER_TYPE",
-    SPECIAL_ROLE.MANAGER,
+    'CREATE_CUSTOMER_TYPE',
+    'UPDATE_CUSTOMER_TYPE',
+    'DELETE_CUSTOMER_TYPE',
+    'VIEW_CUSTOMER_TYPE',
+    SPECIAL_ROLE.MANAGER
   )
   findAll(@Query() data: FindManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.customerTypeService.findAll(data, tokenPayload);
+    return this.customerTypeService.findAll(data, tokenPayload)
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    "CREATE_CUSTOMER_TYPE",
-    "UPDATE_CUSTOMER_TYPE",
-    "DELETE_CUSTOMER_TYPE",
-    "VIEW_CUSTOMER_TYPE",
-    SPECIAL_ROLE.MANAGER,
+    'CREATE_CUSTOMER_TYPE',
+    'UPDATE_CUSTOMER_TYPE',
+    'DELETE_CUSTOMER_TYPE',
+    'VIEW_CUSTOMER_TYPE',
+    SPECIAL_ROLE.MANAGER
   )
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  findUniq(@Param('id') id: string, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.customerTypeService.findUniq(
       {
-        id,
+        id
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("UPDATE_CUSTOMER_TYPE", SPECIAL_ROLE.MANAGER)
-  update(@Param("id") id: string, @Body() updateCustomerTypeDto: UpdateCustomerTypeDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('UPDATE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
+  update(
+    @Param('id') id: string,
+    @Body() updateCustomerTypeDto: UpdateCustomerTypeDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.customerTypeService.update(
       {
         where: {
-          id,
+          id
         },
-        data: updateCustomerTypeDto,
+        data: updateCustomerTypeDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Delete("")
+  @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("DELETE_CUSTOMER_TYPE", SPECIAL_ROLE.MANAGER)
+  @Roles('DELETE_CUSTOMER_TYPE', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.customerTypeService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

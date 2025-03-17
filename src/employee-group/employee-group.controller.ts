@@ -10,98 +10,111 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
-} from "@nestjs/common";
-import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { EmployeeGroupService } from "./employee-group.service";
-import { CreateEmployeeGroupDto, UpdateEmployeeGroupDto } from "./dto/employee-group.dto";
-import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { RolesGuard } from "guards/roles.guard";
-import { Roles } from "guards/roles.decorator";
-import { SPECIAL_ROLE } from "enums/common.enum";
+  UseGuards
+} from '@nestjs/common'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { EmployeeGroupService } from './employee-group.service'
+import {
+  CreateEmployeeGroupDto,
+  UpdateEmployeeGroupDto
+} from './dto/employee-group.dto'
+import { TokenPayload } from 'interfaces/common.interface'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+import { RolesGuard } from 'guards/roles.guard'
+import { Roles } from 'guards/roles.decorator'
+import { SPECIAL_ROLE } from 'enums/common.enum'
 
-@Controller("employee-group")
+@Controller('employee-group')
 export class EmployeeGroupController {
   constructor(private readonly employeeGroupService: EmployeeGroupService) {}
 
-  @Post("")
+  @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_EMPLOYEE_GROUP", SPECIAL_ROLE.MANAGER)
-  create(@Body() createEmployeeGroupDto: CreateEmployeeGroupDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('CREATE_EMPLOYEE_GROUP', SPECIAL_ROLE.MANAGER)
+  create(
+    @Body() createEmployeeGroupDto: CreateEmployeeGroupDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.employeeGroupService.create(createEmployeeGroupDto, tokenPayload);
+    return this.employeeGroupService.create(
+      createEmployeeGroupDto,
+      tokenPayload
+    )
   }
 
-  @Get("")
+  @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    "CREATE_EMPLOYEE_GROUP",
-    "UPDATE_EMPLOYEE_GROUP",
-    "DELETE_EMPLOYEE_GROUP",
-    "VIEW_EMPLOYEE_GROUP",
-    SPECIAL_ROLE.MANAGER,
+    'CREATE_EMPLOYEE_GROUP',
+    'UPDATE_EMPLOYEE_GROUP',
+    'DELETE_EMPLOYEE_GROUP',
+    'VIEW_EMPLOYEE_GROUP',
+    SPECIAL_ROLE.MANAGER
   )
   findAll(@Query() data: FindManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.employeeGroupService.findAll(data, tokenPayload);
+    return this.employeeGroupService.findAll(data, tokenPayload)
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    "CREATE_EMPLOYEE_GROUP",
-    "UPDATE_EMPLOYEE_GROUP",
-    "DELETE_EMPLOYEE_GROUP",
-    "VIEW_EMPLOYEE_GROUP",
-    SPECIAL_ROLE.MANAGER,
+    'CREATE_EMPLOYEE_GROUP',
+    'UPDATE_EMPLOYEE_GROUP',
+    'DELETE_EMPLOYEE_GROUP',
+    'VIEW_EMPLOYEE_GROUP',
+    SPECIAL_ROLE.MANAGER
   )
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  findUniq(@Param('id') id: string, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.employeeGroupService.findUniq(
       {
-        id,
+        id
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("UPDATE_EMPLOYEE_GROUP", SPECIAL_ROLE.MANAGER)
-  update(@Param("id") id: string, @Body() updateEmployeeGroupDto: UpdateEmployeeGroupDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('UPDATE_EMPLOYEE_GROUP', SPECIAL_ROLE.MANAGER)
+  update(
+    @Param('id') id: string,
+    @Body() updateEmployeeGroupDto: UpdateEmployeeGroupDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.employeeGroupService.update(
       {
         where: {
-          id,
+          id
         },
-        data: updateEmployeeGroupDto,
+        data: updateEmployeeGroupDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Delete("")
+  @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("DELETE_EMPLOYEE_GROUP", SPECIAL_ROLE.MANAGER)
+  @Roles('DELETE_EMPLOYEE_GROUP', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.employeeGroupService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

@@ -1,85 +1,101 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
-import { CheckAvailableDto, CreateDiscountCodeDto, FindManyDiscountCodeDto } from "./dto/discount-code.dto";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { Prisma } from "@prisma/client";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { PrismaService } from "nestjs-prisma";
-import { customPaginate, generateSortCode, removeDiacritics } from "utils/Helps";
-import { CustomHttpException } from "utils/ApiErrors";
-import { CommonService } from "src/common/common.service";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { HttpStatus, Injectable } from '@nestjs/common'
+import {
+  CheckAvailableDto,
+  CreateDiscountCodeDto,
+  FindManyDiscountCodeDto
+} from './dto/discount-code.dto'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { Prisma } from '@prisma/client'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+import { PrismaService } from 'nestjs-prisma'
+import { customPaginate, generateSortCode, removeDiacritics } from 'utils/Helps'
+import { CustomHttpException } from 'utils/ApiErrors'
+import { CommonService } from 'src/common/common.service'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class DiscountCodeService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
-  ) { }
+    private commonService: CommonService
+  ) {}
 
   async create(data: CreateDiscountCodeDto, tokenPayload: TokenPayload) {
-    const discountCodeData = [];
+    const discountCodeData = []
 
-    await this.checkAmountValid(data.amount, data.discountIssueId);
+    await this.checkAmountValid(data.amount, data.discountIssueId)
 
     for (let i = 0; i < data.amount; i++) {
       discountCodeData.push({
-        code: `${data.prefix || ""}${generateSortCode()}${data.suffixes || ""}`,
+        code: `${data.prefix || ''}${generateSortCode()}${data.suffixes || ''}`,
         branchId: tokenPayload.branchId,
         discountIssueId: data.discountIssueId,
-        createdBy: tokenPayload.accountId,
-      });
+        createdBy: tokenPayload.accountId
+      })
     }
 
-    const discountCodes = await this.prisma.discountCode.createMany({ data: discountCodeData });
+    const discountCodes = await this.prisma.discountCode.createMany({
+      data: discountCodeData
+    })
 
     await this.commonService.createActivityLog(
       [data.discountIssueId],
-      "DiscountCode",
+      'DiscountCode',
       ACTIVITY_LOG_TYPE.CREATE,
-      tokenPayload,
-    );
+      tokenPayload
+    )
 
-    return discountCodes;
+    return discountCodes
   }
 
   async checkAmountValid(amount: number, discountIssueId: string) {
     const discountIssue = await this.prisma.discountIssue.findUnique({
-      where: { id: discountIssueId, isPublic: true },
-    });
+      where: { id: discountIssueId, isPublic: true }
+    })
 
     const currentAmount = await this.prisma.discountCode.count({
-      where: { isPublic: true, discountIssueId },
-    });
+      where: { isPublic: true, discountIssueId }
+    })
 
-    if (discountIssue.isLimit && (amount + currentAmount > discountIssue.amount))
-      throw new CustomHttpException(HttpStatus.CONFLICT, "Số lượng vượt quá đợt khuyến mãi!", [], {
-        currentAmount,
-        maxAmount: discountIssue.amount,
-      });
+    if (discountIssue.isLimit && amount + currentAmount > discountIssue.amount)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        'Số lượng vượt quá đợt khuyến mãi!',
+        [],
+        {
+          currentAmount,
+          maxAmount: discountIssue.amount
+        }
+      )
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     const count = await this.prisma.discountCode.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: data.ids
         },
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       data: {
         isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    await this.commonService.createActivityLog(data.ids, "DiscountCode", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(
+      data.ids,
+      'DiscountCode',
+      ACTIVITY_LOG_TYPE.DELETE,
+      tokenPayload
+    )
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 
   async findAll(params: FindManyDiscountCodeDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy, isUsed, discountIssueIds } = params;
+    let { page, perPage, keyword, orderBy, isUsed, discountIssueIds } = params
     let where: Prisma.DiscountCodeWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
@@ -88,15 +104,15 @@ export class DiscountCodeService {
       ...(discountIssueIds?.length > 0 && {
         discountIssue: {
           id: { in: discountIssueIds },
-          isPublic: true,
-        },
-      }),
-    };
- 
+          isPublic: true
+        }
+      })
+    }
+
     return await customPaginate(
       this.prisma.discountCode,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         include: {
           discountIssue: true
@@ -104,23 +120,25 @@ export class DiscountCodeService {
       },
       {
         page,
-        perPage,
-      },
-    );
-
+        perPage
+      }
+    )
   }
 
-  async findUniq(where: Prisma.DiscountCodeWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(
+    where: Prisma.DiscountCodeWhereUniqueInput,
+    tokenPayload: TokenPayload
+  ) {
     return this.prisma.discountCode.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       include: {
         discountIssue: true
       }
-    });
+    })
   }
 
   async checkAvailable(data: CheckAvailableDto) {
@@ -134,26 +152,26 @@ export class DiscountCodeService {
         isUsed: false,
         discountIssue: {
           startDate: {
-            lte: new Date(new Date().setHours(23, 59, 59, 999)),
+            lte: new Date(new Date().setHours(23, 59, 59, 999))
           },
           isPublic: true,
           minTotalOrder: {
-            lte: data.totalOrder,
+            lte: data.totalOrder
           },
           AND: [
             {
               OR: [
                 {
                   endDate: {
-                    gte: new Date(new Date().setHours(0, 0, 0, 0)),
-                  },
+                    gte: new Date(new Date().setHours(0, 0, 0, 0))
+                  }
                 },
                 {
-                  isEndDateDisabled: true,
-                },
-              ],
-            },
-          ],
+                  isEndDateDisabled: true
+                }
+              ]
+            }
+          ]
         }
       }
     })

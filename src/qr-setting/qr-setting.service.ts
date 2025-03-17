@@ -1,9 +1,9 @@
-import { Injectable } from "@nestjs/common";
-import { TokenPayload } from "interfaces/common.interface";
-import { UpdateQRSettingDto } from "./dto/qr-setting.dto";
-import { PrismaService } from "nestjs-prisma";
-import { CommonService } from "src/common/common.service";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { Injectable } from '@nestjs/common'
+import { TokenPayload } from 'interfaces/common.interface'
+import { UpdateQRSettingDto } from './dto/qr-setting.dto'
+import { PrismaService } from 'nestjs-prisma'
+import { CommonService } from 'src/common/common.service'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class QrSettingService {
@@ -20,7 +20,7 @@ export class QrSettingService {
         isShowTable: data.isShowTable,
         description: data.description,
         updatedBy: tokenPayload.accountId,
-        shopId: tokenPayload.shopId,
+        shopId: tokenPayload.shopId
       },
       update: {
         isShowLogo: data.isShowLogo,
@@ -29,18 +29,18 @@ export class QrSettingService {
         isShowShopName: data.isShowShopName,
         isShowBranchName: data.isShowBranchName,
         description: data.description,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    return result;
+    return result
   }
 
   async findUniq(tokenPayload: TokenPayload) {
     return this.prisma.qRSetting.findFirstOrThrow({
       where: {
-        shopId: tokenPayload.shopId,
-      },
-    });
+        shopId: tokenPayload.shopId
+      }
+    })
   }
 }

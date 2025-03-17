@@ -1,20 +1,20 @@
-import { IsString, IsNotEmpty, IsOptional } from "class-validator";
+import { IsString, IsNotEmpty, IsOptional } from 'class-validator'
 
 export class ChangePasswordDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  newPassword: string;
+  newPassword: string
 }
 
 export class ChangeMyPasswordDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  newPassword: string;
+  newPassword: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  oldPassword: string;
+  oldPassword: string
 
   @IsOptional()
-  isLoggedOutAll: boolean;
+  isLoggedOutAll: boolean
 }

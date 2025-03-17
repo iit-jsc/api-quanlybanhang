@@ -1,58 +1,65 @@
-import { PartialType } from "@nestjs/swagger";
-import { Transform, TransformFnParams } from "class-transformer";
-import { IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from "class-validator";
-import { FindManyDto } from "utils/Common.dto";
+import { PartialType } from '@nestjs/swagger'
+import { Transform, TransformFnParams } from 'class-transformer'
+import {
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested
+} from 'class-validator'
+import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateProductOptionGroupDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  name: string;
+  name: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @ValidateNested({ each: true })
-  productOptions: CreateProductOptionDto[];
+  productOptions: CreateProductOptionDto[]
 
   @IsOptional()
-  isMultiple: boolean;
+  isMultiple: boolean
 
   @IsOptional()
-  isRequired: boolean;
+  isRequired: boolean
 }
 
 export class CreateProductOptionDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  name: string;
+  name: string
 
   @IsOptional()
   @Min(0)
-  price: number;
+  price: number
 
   @IsOptional()
-  isDefault: boolean;
+  isDefault: boolean
 
   @IsOptional()
-  colors: string[];
+  colors: string[]
 
   @IsOptional()
-  photoURL: string;
+  photoURL: string
 
   @IsOptional()
-  id: string;
+  id: string
 }
 
 export class FindManyProductOptionGroupDto extends FindManyDto {
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(",").map((id: string) => id.trim());
+    return value?.split(',').map((id: string) => id.trim())
   })
-  productTypeIds?: string[];
+  productTypeIds?: string[]
 
   @IsNotEmpty()
   @IsString()
-  branchId: string;
+  branchId: string
 }
 
-export class UpdateProductOptionGroupDto extends PartialType(CreateProductOptionGroupDto) { }
-
+export class UpdateProductOptionGroupDto extends PartialType(
+  CreateProductOptionGroupDto
+) {}

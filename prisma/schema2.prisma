@@ -1,0 +1,1194 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider          = "mysql"
+  url               = env("DATABASE_URL")
+  shadowDatabaseUrl = env("SHADOW_DATABASE_URL")
+}
+
+model GroupRole {
+  name  String
+  code  String @unique
+  type  Int
+  roles Role[]
+}
+
+model Role {
+  name        String
+  code        String       @id @unique
+  groupCode   String
+  groupRole   GroupRole?   @relation(fields: [groupCode], references: [code])
+  permissions Permission[]
+}
+
+model BusinessType {
+  name        String
+  icon        String?
+  code        String   @id @unique
+  type        Int
+  description String?  @db.Text
+  isPublic    Boolean? @default(true)
+  shops       Shop[]
+}
+
+model Permission {
+  id          String    @id @default(uuid())
+  name        String
+  description String?   @db.Text
+  roles       Role[]
+  branch      Branch?   @relation(fields: [branchId], references: [id])
+  branchId    String?
+  accounts    Account[]
+  isPublic    Boolean?  @default(true)
+  createdBy   String?
+  updatedBy   String?
+  creator     Account?  @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?  @relation("updater", fields: [updatedBy], references: [id])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([branchId])
+}
+
+model Account {
+  id                          String                 @id @default(uuid())
+  status                      Int                    @default(1)
+  type                        Int?                   @default(3)
+  username                    String                 @unique
+  password                    String?
+  userId                      String                 @unique
+  user                        User?                  @relation(fields: [userId], references: [id])
+  isPublic                    Boolean?               @default(true)
+  branches                    Branch[]
+  createdBy                   String?
+  updatedBy                   String?
+  createdAt                   DateTime               @default(now())
+  updatedAt                   DateTime               @updatedAt
+  activityLogs                ActivityLog[]
+  permissions                 Permission[]
+  createOrders                Order[]                @relation("creator")
+  updateOrders                Order[]                @relation("updater")
+  creatorBranches             Branch[]               @relation("creator")
+  updaterBranches             Branch[]               @relation("updater")
+  creatorMeasurementUnits     MeasurementUnit[]      @relation("creator")
+  updaterMeasurementUnits     MeasurementUnit[]      @relation("updater")
+  creatorProductTypes         ProductType[]          @relation("creator")
+  updaterProductTypes         ProductType[]          @relation("updater")
+  creatorProducts             Product[]              @relation("creator")
+  updaterProducts             Product[]              @relation("updater")
+  creatorPermissions          Permission[]           @relation("creator")
+  updaterPermissions          Permission[]           @relation("updater")
+  creatorEmployeeGroups       EmployeeGroup[]        @relation("creator")
+  updaterEmployeeGroups       EmployeeGroup[]        @relation("updater")
+  creatorCustomerTypes        CustomerType[]         @relation("creator")
+  updaterCustomerTypes        CustomerType[]         @relation("updater")
+  creatorAreas                Area[]                 @relation("creator")
+  updaterAreas                Area[]                 @relation("updater")
+  creatorTables               Table[]                @relation("creator")
+  updaterTables               Table[]                @relation("updater")
+  creatorCustomers            Customer[]             @relation("creator")
+  updaterCustomers            Customer[]             @relation("updater")
+  creatorUsers                User[]                 @relation("creator")
+  updaterUsers                User[]                 @relation("updater")
+  creatorShops                Shop[]                 @relation("creator")
+  updaterShops                Shop[]                 @relation("updater")
+  creatorSupplierTypes        SupplierType[]         @relation("creator")
+  updaterSupplierTypes        SupplierType[]         @relation("updater")
+  creatorSupplier             Supplier[]             @relation("creator")
+  updaterSupplier             Supplier[]             @relation("updater")
+  creatorPromotion            Promotion[]            @relation("creator")
+  updaterPromotion            Promotion[]            @relation("updater")
+  creatorOrderDetail          OrderDetail[]          @relation("creator")
+  updaterOrderDetail          OrderDetail[]          @relation("updater")
+  creatorTableTransaction     TableTransaction[]     @relation("creator")
+  updaterTableTransaction     TableTransaction[]     @relation("updater")
+  creatorDiscountIssue        DiscountIssue[]        @relation("creator")
+  updaterDiscountIssue        DiscountIssue[]        @relation("updater")
+  creatorDiscountCode         DiscountCode[]         @relation("creator")
+  updaterDiscountCode         DiscountCode[]         @relation("updater")
+  updaterPointSetting         PointSetting[]         @relation("updater")
+  updaterPointAccumulation    PointAccumulation[]    @relation("updater")
+  creatorStock                Stock[]                @relation("creator")
+  updaterStock                Stock[]                @relation("updater")
+  creatorInventoryTransaction InventoryTransaction[] @relation("creator")
+  updaterInventoryTransaction InventoryTransaction[] @relation("updater")
+  updaterWarehouse            Warehouse[]            @relation("updater")
+  creatorWorkShift            WorkShift[]            @relation("creator")
+  updaterWorkShift            WorkShift[]            @relation("updater")
+  creatorEmployeeSchedule     EmployeeSchedule[]     @relation("creator")
+  updaterEmployeeSchedule     EmployeeSchedule[]     @relation("updater")
+  creatorTableSalary          TableSalary[]          @relation("creator")
+  confirmerTableSalary        TableSalary[]          @relation("confirmer")
+  updaterTableSalary          TableSalary[]          @relation("updater")
+  creatorEmployeeSalary       EmployeeSalary[]       @relation("creator")
+  updaterEmployeeSalary       EmployeeSalary[]       @relation("updater")
+  creatorCompensationSetting  CompensationSetting[]  @relation("creator")
+  updaterCompensationSetting  CompensationSetting[]  @relation("updater")
+  creatorCompensationEmployee CompensationEmployee[] @relation("creator")
+  updaterCompensationEmployee CompensationEmployee[] @relation("updater")
+  updaterQRSetting            QRSetting[]            @relation("updater")
+  updaterFeatureUsageSetting  FeatureUsageSetting[]  @relation("updater")
+  creatorPaymentMethod        PaymentMethod[]        @relation("creator")
+  updaterPaymentMethod        PaymentMethod[]        @relation("updater")
+  authTokens                  AuthToken[]
+  creatorProductOption        ProductOption[]        @relation("creator")
+  updaterProductOption        ProductOption[]        @relation("updater")
+  creatorProductOptionGroup   ProductOptionGroup[]   @relation("creator")
+  updaterProductOptionGroup   ProductOptionGroup[]   @relation("updater")
+  updaterCustomerRequest      CustomerRequest[]      @relation("updater")
+}
+
+model User {
+  id                    String                 @id @default(uuid())
+  name                  String
+  code                  String?                @unique
+  phone                 String                 @unique
+  email                 String?                @unique
+  photoURL              String?                @db.Text
+  address               String?                @db.Text
+  cardId                String?                @unique
+  cardDate              DateTime?
+  cardAddress           String?                @db.Text
+  birthday              DateTime?
+  sex                   Int?
+  startDate             DateTime?
+  employeeGroupId       String?
+  employeeGroup         EmployeeGroup?         @relation(fields: [employeeGroupId], references: [id])
+  isPublic              Boolean?               @default(true)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  employeeSchedules     EmployeeSchedule[]
+  createdBy             String?
+  updatedBy             String?
+  creator               Account?               @relation("creator", fields: [createdBy], references: [id])
+  updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
+  branch                Branch?                @relation(fields: [branchId], references: [id])
+  branchId              String?
+  account               Account?
+  employeeSalary        EmployeeSalary?
+  detailTableSalaries   DetailTableSalary[]
+  compensationEmployees CompensationEmployee[]
+
+  @@index([branchId])
+}
+
+model EmployeeGroup {
+  id              String   @id @default(uuid())
+  name            String
+  description     String?  @db.Text
+  users           User[]
+  branch          Branch?  @relation(fields: [branchId], references: [id])
+  branchId        String?
+  isPublic        Boolean? @default(true)
+  createdBy       String?
+  updatedBy       String?
+  creator         Account? @relation("creator", fields: [createdBy], references: [id])
+  updater         Account? @relation("updater", fields: [updatedBy], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  salarySettingId String?
+
+  @@index([branchId])
+}
+
+model Shop {
+  id                  String                @id @default(uuid())
+  code                String                @unique
+  businessTypeCode    String
+  status              Int                   @default(1)
+  businessType        BusinessType?         @relation(fields: [businessTypeCode], references: [code])
+  name                String
+  phone               String?
+  email               String?
+  address             String?               @db.Text
+  photoURL            String?               @db.Text
+  domain              Json?
+  isPublic            Boolean?              @default(true)
+  createdAt           DateTime              @default(now())
+  updatedAt           DateTime              @updatedAt
+  branches            Branch[]
+  pointSettings       PointSetting[]
+  customerTypes       CustomerType[]
+  customers           Customer[]
+  pointAccumulations  PointAccumulation[]
+  pointHistories      PointHistory[]
+  createdBy           String?
+  updatedBy           String?
+  creator             Account?              @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?              @relation("updater", fields: [updatedBy], references: [id])
+  printTemplates      PrintTemplate[]
+  qRSetting           QRSetting?
+  FeatureUsageSetting FeatureUsageSetting[]
+}
+
+model PrintTemplate {
+  id        String   @id @default(uuid())
+  type      Int
+  isDefault Boolean? @default(false)
+  content   String?  @db.Text
+  shopId    String?
+  shop      Shop?    @relation(fields: [shopId], references: [id])
+  updatedBy String?
+  updatedAt DateTime @updatedAt
+
+  @@unique([shopId, type])
+  @@index([shopId])
+}
+
+model CurrencyUnit {
+  id         String   @id @default(uuid())
+  identifier String
+  name       String
+  code       String
+  isUsed     Boolean  @default(false)
+  branch     Branch?  @relation(fields: [branchId], references: [id])
+  branchId   String?
+  isPublic   Boolean? @default(true)
+  createdBy  String?
+  updatedBy  String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model MeasurementUnit {
+  id        String    @id @default(uuid())
+  name      String
+  code      String
+  branch    Branch?   @relation(fields: [branchId], references: [id])
+  branchId  String?
+  isPublic  Boolean?  @default(true)
+  createdBy String?
+  updatedBy String?
+  creator   Account?  @relation("creator", fields: [createdBy], references: [id])
+  updater   Account?  @relation("updater", fields: [updatedBy], references: [id])
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model ActivityLog {
+  id        String   @id @default(uuid())
+  tableName String
+  accountId String
+  type      String
+  recordIds Json?
+  branchId  String
+  createdAt DateTime @default(now())
+  account   Account? @relation(fields: [accountId], references: [id])
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
+}
+
+model ProductType {
+  id                     String                  @id @default(uuid())
+  branchId               String
+  branch                 Branch?                 @relation(fields: [branchId], references: [id])
+  name                   String
+  slug                   String
+  description            String?                 @db.Text
+  isPublic               Boolean?                @default(true)
+  createdAt              DateTime                @default(now())
+  updatedAt              DateTime                @updatedAt
+  otherAttributePatterns OtherAttributePattern[]
+  products               Product[]
+  createdBy              String?
+  updatedBy              String?
+  creator                Account?                @relation("creator", fields: [createdBy], references: [id])
+  updater                Account?                @relation("updater", fields: [updatedBy], references: [id])
+  productOptions         ProductOption[]
+  productOptionGroups    ProductOptionGroup[]
+
+  @@unique([branchId, slug])
+  @@index([branchId])
+}
+
+model OtherAttributePattern {
+  id            String       @id @default(uuid())
+  branchId      String
+  productTypeId String
+  label         String
+  amount        Int
+  type          Int
+  isPublic      Boolean?     @default(true)
+  createdBy     String?
+  updatedBy     String?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  branch        Branch?      @relation(fields: [branchId], references: [id])
+  productType   ProductType? @relation(fields: [productTypeId], references: [id])
+
+  @@index([branchId])
+}
+
+model Product {
+  id                          String                       @id @default(uuid())
+  branchId                    String
+  unitId                      String
+  name                        String
+  slug                        String
+  code                        String?
+  price                       Float                        @default(0)
+  oldPrice                    Float?
+  description                 String?                      @db.Text
+  content                     String?                      @db.Text
+  thumbnail                   String?                      @default("uploads/product.png") @db.Text
+  photoURLs                   Json?
+  otherAttributes             Json?
+  status                      Int?                         @default(1)
+  productTypeId               String
+  productType                 ProductType?                 @relation(fields: [productTypeId], references: [id])
+  isPublic                    Boolean?                     @default(true)
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+  branch                      Branch?                      @relation(fields: [branchId], references: [id])
+  measurementUnit             MeasurementUnit?             @relation(fields: [unitId], references: [id])
+  stocks                      Stock[]
+  promotionConditionProducts  PromotionCondition[]
+  promotionProducts           PromotionProduct[]
+  createdBy                   String?
+  updatedBy                   String?
+  creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])
+  updater                     Account?                     @relation("updater", fields: [updatedBy], references: [id])
+  inventoryTransactionDetails InventoryTransactionDetail[]
+
+  @@unique([branchId, slug])
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model ProductOption {
+  id                   String              @id @default(uuid())
+  name                 String
+  isDefault            Boolean?            @default(false)
+  price                Float?              @default(0)
+  photoURL             String?             @db.Text
+  branchId             String
+  colors               Json?
+  branch               Branch?             @relation(fields: [branchId], references: [id])
+  isPublic             Boolean?            @default(true)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+  createdBy            String?
+  updatedBy            String?
+  creator              Account?            @relation("creator", fields: [createdBy], references: [id])
+  updater              Account?            @relation("updater", fields: [updatedBy], references: [id])
+  productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id])
+  productOptionGroupId String?
+  productTypes         ProductType[]
+
+  @@index([branchId])
+}
+
+model ProductOptionGroup {
+  id             String          @id @default(uuid())
+  name           String
+  isMultiple     Boolean?        @default(false)
+  isRequired     Boolean?        @default(false)
+  productOptions ProductOption[]
+  branchId       String
+  branch         Branch?         @relation(fields: [branchId], references: [id])
+  isPublic       Boolean?        @default(true)
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  createdBy      String?
+  updatedBy      String?
+  creator        Account?        @relation("creator", fields: [createdBy], references: [id])
+  updater        Account?        @relation("updater", fields: [updatedBy], references: [id])
+  productTypes   ProductType[]
+
+  @@index([branchId])
+}
+
+model Warehouse {
+  id                    String                 @id @default(uuid())
+  branchId              String
+  name                  String
+  photoURLs             Json?
+  address               String?                @db.Text
+  branch                Branch?                @relation(fields: [branchId], references: [id])
+  isPublic              Boolean?               @default(true)
+  inventoryTransactions InventoryTransaction[]
+  updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
+  updatedBy             String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  stocks                Stock[]
+
+  @@index([branchId])
+}
+
+model Stock {
+  id          String     @id @default(uuid())
+  branchId    String
+  productId   String
+  quantity    Float?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  product     Product?   @relation(fields: [productId], references: [id])
+  warehouseId String
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id])
+  createdBy   String?
+  updatedBy   String?
+  creator     Account?   @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?   @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([productId, warehouseId])
+  @@index([branchId])
+}
+
+model InventoryTransaction {
+  id                          String                       @id @default(uuid())
+  status                      Int
+  warehouseId                 String
+  warehouse                   Warehouse?                   @relation(fields: [warehouseId], references: [id])
+  supplierId                  String?
+  type                        Int
+  supplier                    Supplier?                    @relation(fields: [supplierId], references: [id])
+  code                        String?
+  importWarehouse             String?
+  importAddress               String?                      @db.Text
+  importOrderCode             String?
+  branch                      Branch?                      @relation(fields: [branchId], references: [id])
+  branchId                    String?
+  isPublic                    Boolean?                     @default(true)
+  createdAt                   DateTime                     @default(now())
+  updatedAt                   DateTime                     @updatedAt
+  createdBy                   String?
+  updatedBy                   String?
+  creator                     Account?                     @relation("creator", fields: [createdBy], references: [id])
+  updater                     Account?                     @relation("updater", fields: [updatedBy], references: [id])
+  inventoryTransactionDetails InventoryTransactionDetail[]
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model InventoryTransactionDetail {
+  id                     String                @id @default(uuid())
+  inventoryTransactionId String
+  inventoryTransaction   InventoryTransaction? @relation(fields: [inventoryTransactionId], references: [id])
+  productId              String?
+  product                Product?              @relation(fields: [productId], references: [id])
+  price                  Float                 @default(0)
+  documentQuantity       Float?
+  actualQuantity         Float
+  isPublic               Boolean?              @default(true)
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+}
+
+model CustomerType {
+  id           String     @id @default(uuid())
+  name         String
+  description  String?    @db.Text
+  discount     Float?     @default(0)
+  discountType Int?       @default(1)
+  isPublic     Boolean?   @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  shopId       String
+  shop         Shop?      @relation(fields: [shopId], references: [id])
+  customers    Customer[]
+  createdBy    String?
+  updatedBy    String?
+  creator      Account?   @relation("creator", fields: [createdBy], references: [id])
+  updater      Account?   @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([shopId])
+}
+
+model Customer {
+  id                  String              @id @default(uuid())
+  name                String
+  customerTypeId      String?
+  email               String?
+  phone               String
+  isOrganize          Boolean             @default(false)
+  address             String?             @db.Text
+  description         String?             @db.Text
+  representativeName  String?
+  representativePhone String?
+  birthday            DateTime?
+  endow               Int?                @default(2)
+  discount            Float?              @default(0)
+  discountType        Int?                @default(1)
+  sex                 Int?
+  fax                 String?
+  tax                 String?
+  isPublic            Boolean?            @default(true)
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  shopId              String
+  createdBy           String?
+  updatedBy           String?
+  shop                Shop?               @relation(fields: [shopId], references: [id])
+  customerType        CustomerType?       @relation(fields: [customerTypeId], references: [id])
+  orders              Order[]
+  pointAccumulations  PointAccumulation[]
+  pointHistories      PointHistory[]
+  creator             Account?            @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([shopId, phone])
+  @@index([shopId])
+}
+
+model SupplierType {
+  id          String     @id @default(uuid())
+  branchId    String
+  name        String
+  description String?    @db.Text
+  isPublic    Boolean?   @default(true)
+  createdBy   String?
+  updatedBy   String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  suppliers   Supplier[]
+  creator     Account?   @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?   @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([branchId])
+}
+
+model Supplier {
+  id                    String                 @id @default(uuid())
+  branchId              String
+  name                  String
+  email                 String?
+  phone                 String
+  address               String?                @db.Text
+  note                  String?                @db.Text
+  representativeName    String?
+  representativePhone   String?
+  supplierTypeId        String?
+  isPublic              Boolean?               @default(true)
+  createdBy             String?
+  updatedBy             String?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  branch                Branch?                @relation(fields: [branchId], references: [id])
+  supplierType          SupplierType?          @relation(fields: [supplierTypeId], references: [id])
+  creator               Account?               @relation("creator", fields: [createdBy], references: [id])
+  updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
+  inventoryTransactions InventoryTransaction[]
+
+  @@unique([branchId, email])
+  @@unique([branchId, phone])
+  @@index([branchId])
+}
+
+model Promotion {
+  id                  String               @id @default(uuid())
+  branchId            String
+  name                String
+  code                String?
+  startDate           DateTime
+  endDate             DateTime?
+  isEndDateDisabled   Boolean?             @default(true)
+  amount              Int
+  amountApplied       Int?                 @default(0)
+  maxValue            Float?
+  isActive            Boolean?             @default(true)
+  description         String?              @db.Text
+  discount            Float?               @default(0)
+  discountType        Int?                 @default(1)
+  type                Int
+  isPublic            Boolean?             @default(true)
+  createdAt           DateTime             @default(now())
+  updatedAt           DateTime             @updatedAt
+  branch              Branch?              @relation(fields: [branchId], references: [id])
+  promotionConditions PromotionCondition[]
+  promotionProducts   PromotionProduct[]
+  createdBy           String?
+  updatedBy           String?
+  creator             Account?             @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?             @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model PromotionCondition {
+  id          String     @id @default(uuid())
+  branchId    String
+  promotionId String
+  productId   String
+  amount      Int
+  isPublic    Boolean?   @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  product     Product?   @relation(fields: [productId], references: [id])
+
+  @@index([branchId])
+}
+
+model PromotionProduct {
+  id          String     @id @default(uuid())
+  branchId    String
+  promotionId String
+  productId   String?
+  amount      Int
+  name        String?
+  photoURL    String?    @db.Text
+  isPublic    Boolean?   @default(true)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  promotion   Promotion? @relation(fields: [promotionId], references: [id])
+  product     Product?   @relation(fields: [productId], references: [id])
+
+  @@index([branchId])
+}
+
+model Order {
+  id                  String         @id @default(uuid())
+  branchId            String
+  customerId          String?
+  code                String
+  cancelReason        String?
+  cancelDate          DateTime?
+  note                String?
+  convertedPointValue Float?         @default(0)
+  promotion           Json?
+  discountCode        Json?
+  customerDiscount    Json?
+  usedPoint           Float?         @default(0)
+  moneyReceived       Float?
+  orderType           Int
+  paymentMethodId     String?
+  bankingImages       Json?
+  paymentMethod       PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
+  isPaid              Boolean?       @default(false)
+  isSave              Boolean?       @default(false)
+  orderStatus         Int
+  isPublic            Boolean?       @default(true)
+  createdBy           String?
+  updatedBy           String?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  paymentAt           DateTime?
+  branch              Branch?        @relation(fields: [branchId], references: [id])
+  customer            Customer?      @relation(fields: [customerId], references: [id])
+  orderDetails        OrderDetail[]
+  orderRatings        OrderRating[]
+  creator             Account?       @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?       @relation("updater", fields: [updatedBy], references: [id])
+  pointHistories      PointHistory[]
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model OrderDetail {
+  id                String             @id @default(uuid())
+  branchId          String
+  orderId           String?
+  amount            Float
+  note              String?
+  status            Int?               @default(1)
+  productOptions    Json?
+  product           Json?
+  isPublic          Boolean?           @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  branch            Branch?            @relation(fields: [branchId], references: [id])
+  order             Order?             @relation(fields: [orderId], references: [id])
+  table             Table?             @relation(fields: [tableId], references: [id])
+  tableId           String?
+  createdBy         String?
+  updatedBy         String?
+  creator           Account?           @relation("creator", fields: [createdBy], references: [id])
+  updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
+  tableTransactions TableTransaction[]
+
+  @@index([branchId])
+}
+
+model TableTransaction {
+  id           String        @id @default(uuid())
+  branchId     String
+  type         Int
+  tableId      String
+  isPublic     Boolean?      @default(true)
+  createdBy    String?
+  updatedBy    String?
+  creator      Account?      @relation("creator", fields: [createdBy], references: [id])
+  updater      Account?      @relation("updater", fields: [updatedBy], references: [id])
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  branch       Branch?       @relation(fields: [branchId], references: [id])
+  table        Table?        @relation(fields: [tableId], references: [id])
+  orderDetails OrderDetail[]
+
+  @@index([branchId])
+}
+
+model Area {
+  id        String   @id @unique @default(uuid())
+  branchId  String
+  name      String
+  photoURL  String?  @default("uploads/area.png") @db.Text
+  isPublic  Boolean? @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  branch    Branch?  @relation(fields: [branchId], references: [id])
+  tables    Table[]
+  createdBy String?
+  updatedBy String?
+  creator   Account? @relation("creator", fields: [createdBy], references: [id])
+  updater   Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([branchId])
+}
+
+model Table {
+  id                String             @id @default(uuid())
+  branchId          String
+  areaId            String
+  name              String
+  seat              Int?
+  orderDetails      OrderDetail[]
+  isPublic          Boolean?           @default(true)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  branch            Branch?            @relation(fields: [branchId], references: [id])
+  area              Area?              @relation(fields: [areaId], references: [id])
+  tableTransactions TableTransaction[]
+  createdBy         String?
+  updatedBy         String?
+  creator           Account?           @relation("creator", fields: [createdBy], references: [id])
+  updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
+  customerRequests  CustomerRequest[]
+
+  @@index([branchId])
+}
+
+model DiscountIssue {
+  id                String         @id @default(uuid())
+  branchId          String
+  name              String
+  code              String?
+  discount          Float?         @default(0)
+  discountType      Int?           @default(1)
+  startDate         DateTime
+  endDate           DateTime?
+  isEndDateDisabled Boolean?       @default(true)
+  description       String?        @db.Text
+  amount            Int?
+  isLimit           Boolean        @default(false)
+  minTotalOrder     Float?
+  maxValue          Float?
+  isPublic          Boolean?       @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+  branch            Branch?        @relation(fields: [branchId], references: [id])
+  discountCodes     DiscountCode[]
+  createdBy         String?
+  updatedBy         String?
+  creator           Account?       @relation("creator", fields: [createdBy], references: [id])
+  updater           Account?       @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model DiscountCode {
+  id              String         @id @default(uuid())
+  branchId        String
+  code            String
+  isUsed          Boolean        @default(false)
+  discountIssueId String
+  isPublic        Boolean?       @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  branch          Branch?        @relation(fields: [branchId], references: [id])
+  discountIssue   DiscountIssue? @relation(fields: [discountIssueId], references: [id])
+  createdBy       String?
+  updatedBy       String?
+  creator         Account?       @relation("creator", fields: [createdBy], references: [id])
+  updater         Account?       @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([branchId, code])
+  @@index([branchId])
+}
+
+model PointSetting {
+  id        String   @id @default(uuid())
+  shopId    String   @unique
+  point     Float
+  value     Float
+  active    Boolean
+  updatedBy String?
+  updater   Account? @relation("updater", fields: [updatedBy], references: [id])
+  shop      Shop?    @relation(fields: [shopId], references: [id])
+
+  @@index([shopId])
+}
+
+model PointAccumulation {
+  id         String    @id @default(uuid())
+  customerId String    @unique
+  point      Float
+  isPublic   Boolean?  @default(true)
+  updatedBy  String?
+  updater    Account?  @relation("updater", fields: [updatedBy], references: [id])
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  shop       Shop?     @relation(fields: [shopId], references: [id])
+  shopId     String
+
+  @@index([shopId])
+}
+
+model PointHistory {
+  id         String    @id @default(uuid())
+  customerId String
+  orderId    String
+  point      Float
+  type       Int
+  createdAt  DateTime  @default(now())
+  customer   Customer? @relation(fields: [customerId], references: [id])
+  order      Order?    @relation(fields: [orderId], references: [id])
+  shop       Shop?     @relation(fields: [shopId], references: [id])
+  shopId     String
+
+  @@index([shopId])
+}
+
+model CustomerRequest {
+  id          String   @id @default(uuid())
+  branchId    String
+  tableId     String
+  requestType String
+  content     String   @db.Text
+  status      String?
+  isPublic    Boolean? @default(true)
+  updatedBy   String?
+  updater     Account? @relation("updater", fields: [updatedBy], references: [id])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  branch      Branch?  @relation(fields: [branchId], references: [id])
+  table       Table?   @relation(fields: [tableId], references: [id])
+
+  @@index([branchId])
+}
+
+model OrderRating {
+  id          String   @id @default(uuid())
+  orderId     String
+  ratingValue Int
+  comment     String
+  photoURLs   Json?
+  isPublic    Boolean? @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  order       Order?   @relation(fields: [orderId], references: [id])
+
+  @@index([orderId])
+}
+
+model Branch {
+  id                         String                  @id @default(uuid())
+  shopId                     String
+  shop                       Shop?                   @relation(fields: [shopId], references: [id])
+  photoURL                   String?                 @db.Text
+  bannerURL                  String?                 @db.Text
+  name                       String
+  address                    String?                 @db.Text
+  phone                      String?
+  isPublic                   Boolean?                @default(true)
+  createdBy                  String?
+  updatedBy                  String?
+  creator                    Account?                @relation("creator", fields: [createdBy], references: [id])
+  updater                    Account?                @relation("updater", fields: [updatedBy], references: [id])
+  createdAt                  DateTime                @default(now())
+  updatedAt                  DateTime                @updatedAt
+  others                     Json?
+  currencyUnits              CurrencyUnit[]
+  measurementUnits           MeasurementUnit[]
+  activityLogs               ActivityLog[]
+  productTypes               ProductType[]
+  products                   Product[]
+  stocks                     Stock[]
+  supplierTypes              SupplierType[]
+  suppliers                  Supplier[]
+  promotions                 Promotion[]
+  promotionConditionProducts PromotionCondition[]
+  promotionProducts          PromotionProduct[]
+  orders                     Order[]
+  areas                      Area[]
+  discountIssues             DiscountIssue[]
+  discountCodes              DiscountCode[]
+  orderDetails               OrderDetail[]
+  customerRequests           CustomerRequest[]
+  workShifts                 WorkShift[]
+  employeeSchedules          EmployeeSchedule[]
+  tableTransactions          TableTransaction[]
+  otherAttributePatterns     OtherAttributePattern[]
+  tables                     Table[]
+  permissions                Permission[]
+  employeeGroups             EmployeeGroup[]
+  accounts                   Account[]
+  users                      User[]
+  warehouses                 Warehouse[]
+  inventoryTransactions      InventoryTransaction[]
+  tableSalaries              TableSalary[]
+  employeeSalaries           EmployeeSalary[]
+  compensationSettings       CompensationSetting[]
+  detailTableSalaries        DetailTableSalary[]
+  compensationEmployees      CompensationEmployee[]
+  paymentMethods             PaymentMethod[]
+  productOptionGroups        ProductOptionGroup[]
+  productOptions             ProductOption[]
+
+  @@index([shopId])
+}
+
+model WorkShift {
+  id                 String             @id @default(uuid())
+  branchId           String
+  name               String
+  startTime          Int
+  endTime            Int
+  limitEmployee      Int?
+  isNotLimitEmployee Boolean?           @default(true)
+  description        String?            @db.Text
+  isPublic           Boolean?           @default(true)
+  createdBy          String?
+  updatedBy          String?
+  creator            Account?           @relation("creator", fields: [createdBy], references: [id])
+  updater            Account?           @relation("updater", fields: [updatedBy], references: [id])
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+  branch             Branch?            @relation(fields: [branchId], references: [id])
+  employeeSchedules  EmployeeSchedule[]
+
+  @@index([branchId])
+}
+
+model EmployeeSchedule {
+  id          String     @id @default(uuid())
+  branchId    String
+  employeeId  String
+  workShiftId String
+  startTime   Int
+  endTime     Int
+  date        DateTime
+  isPublic    Boolean?   @default(true)
+  createdBy   String?
+  updatedBy   String?
+  creator     Account?   @relation("creator", fields: [createdBy], references: [id])
+  updater     Account?   @relation("updater", fields: [updatedBy], references: [id])
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  branch      Branch?    @relation(fields: [branchId], references: [id])
+  employee    User?      @relation(fields: [employeeId], references: [id])
+  workShift   WorkShift? @relation(fields: [workShiftId], references: [id])
+
+  @@index([branchId])
+}
+
+model TableSalary {
+  id                  String              @id @default(uuid())
+  name                String
+  description         String              @db.Text
+  isFulltime          Boolean             @default(true)
+  branchId            String
+  branch              Branch?             @relation(fields: [branchId], references: [id])
+  allowanceLabel      Json?
+  deductionLabel      Json?
+  isPublic            Boolean?            @default(true)
+  isConfirm           Boolean?            @default(false)
+  confirmBy           String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+  createdBy           String?
+  updatedBy           String?
+  creator             Account?            @relation("creator", fields: [createdBy], references: [id])
+  updater             Account?            @relation("updater", fields: [updatedBy], references: [id])
+  confirmer           Account?            @relation("confirmer", fields: [confirmBy], references: [id])
+  detailTableSalaries DetailTableSalary[]
+
+  @@index([branchId])
+}
+
+model DetailTableSalary {
+  id             String       @id @default(uuid())
+  tableSalaryId  String
+  tableSalary    TableSalary? @relation(fields: [tableSalaryId], references: [id])
+  allowanceValue Json?
+  deductionValue Json?
+  baseSalary     Float        @default(0)
+  workDay        Float?
+  totalHours     Float?
+  employeeId     String
+  employee       User?        @relation(fields: [employeeId], references: [id])
+  branch         Branch?      @relation(fields: [branchId], references: [id])
+  branchId       String?
+
+  @@unique([tableSalaryId, employeeId])
+  @@index([branchId])
+}
+
+model CompensationSetting {
+  id                    String                 @id @default(uuid())
+  name                  String
+  description           String?                @db.Text
+  type                  Int
+  defaultValue          Float
+  applyTo               Int                    @default(3)
+  branchId              String
+  branch                Branch?                @relation(fields: [branchId], references: [id])
+  isPublic              Boolean?               @default(true)
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  createdBy             String?
+  updatedBy             String?
+  creator               Account?               @relation("creator", fields: [createdBy], references: [id])
+  updater               Account?               @relation("updater", fields: [updatedBy], references: [id])
+  compensationEmployees CompensationEmployee[]
+
+  @@index([branchId])
+}
+
+model CompensationEmployee {
+  id                    String               @id @default(uuid())
+  employeeId            String
+  employee              User?                @relation(fields: [employeeId], references: [id])
+  compensationSettingId String
+  compensationSetting   CompensationSetting? @relation(fields: [compensationSettingId], references: [id])
+  type                  Int
+  value                 Float
+  branchId              String
+  branch                Branch?              @relation(fields: [branchId], references: [id])
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  createdBy             String?
+  updatedBy             String?
+  creator               Account?             @relation("creator", fields: [createdBy], references: [id])
+  updater               Account?             @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([compensationSettingId, employeeId])
+  @@index([branchId])
+}
+
+model EmployeeSalary {
+  id         String   @id @default(uuid())
+  employeeId String   @unique
+  employee   User?    @relation(fields: [employeeId], references: [id])
+  baseSalary Float    @default(0)
+  isFulltime Boolean  @default(true)
+  isPublic   Boolean? @default(true)
+  branchId   String
+  branch     Branch?  @relation(fields: [branchId], references: [id])
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  createdBy  String?
+  updatedBy  String?
+  creator    Account? @relation("creator", fields: [createdBy], references: [id])
+  updater    Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([branchId])
+}
+
+model ContactVerification {
+  id        String   @id @default(uuid())
+  otp       String
+  phone     String?
+  email     String?
+  attempts  Int?     @default(0)
+  isUsed    Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model QRSetting {
+  shopId           String   @unique
+  shop             Shop?    @relation(fields: [shopId], references: [id])
+  isShowLogo       Boolean  @default(true)
+  isShowWifi       Boolean  @default(true)
+  isShowTable      Boolean  @default(true)
+  description      String?
+  isShowShopName   Boolean  @default(true)
+  isShowBranchName Boolean  @default(true)
+  updatedAt        DateTime @updatedAt
+  updatedBy        String?
+  updater          Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@index([shopId])
+}
+
+model FeatureUsageSetting {
+  shopId      String
+  shop        Shop?    @relation(fields: [shopId], references: [id])
+  featureCode String
+  isUsed      Boolean  @default(true)
+  updatedAt   DateTime @updatedAt
+  updatedBy   String?
+  updater     Account? @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([shopId, featureCode])
+  @@index([shopId])
+}
+
+model AccountSocket {
+  socketId  String   @unique
+  branchId  String
+  shopId    String
+  accountId String
+  createdAt DateTime @default(now())
+
+  @@index([shopId])
+  @@index([branchId])
+}
+
+model PaymentMethod {
+  id             String   @id @default(uuid())
+  branchId       String
+  branch         Branch?  @relation(fields: [branchId], references: [id])
+  name           String   @default("")
+  bankName       String?
+  bankCode       String?
+  representative String?
+  photoURL       String?
+  type           String
+  active         Boolean  @default(true)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  createdBy      String?
+  updatedBy      String?
+  creator        Account? @relation("creator", fields: [createdBy], references: [id])
+  updater        Account? @relation("updater", fields: [updatedBy], references: [id])
+  orders         Order[]
+
+  @@unique([type, branchId])
+  @@index([branchId])
+}
+
+model AuthToken {
+  accountId     String
+  account       Account?  @relation(fields: [accountId], references: [id])
+  ip            String?
+  userAgent     String?
+  firebaseToken String?   @db.Text
+  lastLogin     DateTime?
+  refreshToken  String    @db.Text
+  deviceId      String    @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  @@index([accountId])
+}

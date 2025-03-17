@@ -1,8 +1,16 @@
-import { Transform, TransformFnParams, Type } from "class-transformer";
-import { ArrayNotEmpty, IsDate, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { FIND_UNIQ_TYPE } from "enums/common.enum";
-import { ORDER_TYPE } from "enums/order.enum";
-import { AnyObject } from "interfaces/common.interface";
+import { Transform, TransformFnParams, Type } from 'class-transformer'
+import {
+  ArrayNotEmpty,
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString
+} from 'class-validator'
+import { FIND_UNIQ_TYPE } from 'enums/common.enum'
+import { ORDER_TYPE } from 'enums/order.enum'
+import { AnyObject } from 'interfaces/common.interface'
 
 // export class FindManyDto {
 //   @Type(() => Number)
@@ -178,7 +186,6 @@ import { AnyObject } from "interfaces/common.interface";
 //   @IsOptional()
 //   tableId: string;
 
-
 //   @IsOptional()
 //   @Transform(({ value }: TransformFnParams) => {
 //     return Boolean(+value);
@@ -207,64 +214,64 @@ import { AnyObject } from "interfaces/common.interface";
 export class FindBySlugDto {
   @IsNotEmpty()
   @IsString()
-  branchId: string;
+  branchId: string
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value);
+    return Boolean(+value)
   })
-  isSlug?: boolean = false;
+  isSlug?: boolean = false
 }
 
 export class DeleteManyDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @ArrayNotEmpty({ message: "Danh sách ids!" })
-  ids: string[];
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách ids!' })
+  ids: string[]
 }
 
 export class DeleteManyWithIdentifierDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @ArrayNotEmpty({ message: "Danh sách identifier không được rỗng!" })
-  identifiers: string[];
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách identifier không được rỗng!' })
+  identifiers: string[]
 
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @ArrayNotEmpty({ message: "Danh sách chi nhánh không được rỗng!" })
-  branchIds: string[];
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách chi nhánh không được rỗng!' })
+  branchIds: string[]
 }
 
 export class FindUniqDto {
   @IsOptional()
   @IsNumber()
   @Transform(({ value }: TransformFnParams) => {
-    return +value;
+    return +value
   })
-  type: number = FIND_UNIQ_TYPE.ID;
+  type: number = FIND_UNIQ_TYPE.ID
 
   @IsOptional()
   @IsString()
-  shopId: string;
+  shopId: string
 
   @IsOptional()
   @IsString()
-  branchId: string;
+  branchId: string
 }
 
 export class FindManyDto {
-  page?: number;
-  perPage?: number;
-  
+  page?: number
+  perPage?: number
+
   @Transform(({ value }) => {
     if (value) {
-      const [field, direction] = value.split("_");
+      const [field, direction] = value.split('_')
       if (field && direction) {
-        return { [field]: direction };
+        return { [field]: direction }
       }
     }
-    return { createdAt: "desc" };
+    return { createdAt: 'desc' }
   })
-  orderBy?: AnyObject;
+  orderBy?: AnyObject
 
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @Type(() => String)
-  keyword?: string;
+  keyword?: string
 }

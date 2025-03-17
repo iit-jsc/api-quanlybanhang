@@ -1,25 +1,27 @@
-import { Injectable } from "@nestjs/common";
-import { MailerService } from "@nestjs-modules/mailer";
+import { Injectable } from '@nestjs/common'
+import { MailerService } from '@nestjs-modules/mailer'
 
 @Injectable()
 export class TransporterService {
   constructor(private readonly mailerService: MailerService) {}
 
   async sendOTP(email: string, otp: string) {
-    if (!email) return null;
+    if (!email) return null
 
     await this.mailerService
       .sendMail({
         to: email,
         from: process.env.EMAIL_ID,
-        subject: "Xác minh tài khoản của bạn",
-        html: "<span>Đây là mã xác minh của bạn: </span>" + `<strong>${otp}</strong>`,
+        subject: 'Xác minh tài khoản của bạn',
+        html:
+          '<span>Đây là mã xác minh của bạn: </span>' +
+          `<strong>${otp}</strong>`
       })
-      .then((success) => {
+      .then(success => {
         // console.log(success);
       })
-      .catch((err) => {
+      .catch(err => {
         // console.log(err);
-      });
+      })
   }
 }

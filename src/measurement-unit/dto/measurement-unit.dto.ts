@@ -1,17 +1,19 @@
-import { PartialType } from "@nestjs/swagger";
-import { Transform, TransformFnParams } from "class-transformer";
-import { ArrayNotEmpty, IsNotEmpty, IsString } from "class-validator";
+import { PartialType } from '@nestjs/swagger'
+import { Transform, TransformFnParams } from 'class-transformer'
+import { ArrayNotEmpty, IsNotEmpty, IsString } from 'class-validator'
 
 export class CreateMeasurementUnitDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  name: string;
+  name: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  code?: string;
+  code?: string
 }
 
-export class UpdateMeasurementUnitDto extends PartialType(CreateMeasurementUnitDto) {}
+export class UpdateMeasurementUnitDto extends PartialType(
+  CreateMeasurementUnitDto
+) {}

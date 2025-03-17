@@ -1,28 +1,27 @@
-import { PartialType } from "@nestjs/swagger";
-import { Transform, TransformFnParams } from "class-transformer";
-import { IsArray, IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { FindManyDto } from "utils/Common.dto";
+import { PartialType } from '@nestjs/swagger'
+import { Transform, TransformFnParams } from 'class-transformer'
+import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateWarehouseDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  name: string;
+  name: string
 
   @IsOptional()
   @IsArray()
-  photoURLs: string[];
+  photoURLs: string[]
 
   @IsOptional()
   @IsString()
-  address: string;
+  address: string
 
   @IsString()
-  @IsNotEmpty({ message: "Không được để trống!" })
-  branchId: string;
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  branchId: string
 }
 
-export class FindManyWarehouseDto extends FindManyDto {
-}
+export class FindManyWarehouseDto extends FindManyDto {}
 
 export class UpdateWarehouseDto extends PartialType(CreateWarehouseDto) {}

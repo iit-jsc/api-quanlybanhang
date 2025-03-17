@@ -1,26 +1,29 @@
-import { Injectable } from "@nestjs/common";
-import { PrismaService } from "nestjs-prisma";
-import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from "./dto/payment-method.dto";
-import { TokenPayload } from "interfaces/common.interface";
-import { Prisma } from "@prisma/client";
-import { customPaginate, removeDiacritics } from "utils/Helps";
-import { CommonService } from "src/common/common.service";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from 'nestjs-prisma'
+import {
+  FindManyPaymentMethodDto,
+  UpdatePaymentMethodDto
+} from './dto/payment-method.dto'
+import { TokenPayload } from 'interfaces/common.interface'
+import { Prisma } from '@prisma/client'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { CommonService } from 'src/common/common.service'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class PaymentMethodService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
-  ) { }
+    private commonService: CommonService
+  ) {}
 
   async create(
     params: {
-      data: UpdatePaymentMethodDto;
+      data: UpdatePaymentMethodDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { data } = params;
+    const { data } = params
 
     return this.prisma.paymentMethod.create({
       data: {
@@ -30,24 +33,24 @@ export class PaymentMethodService {
         photoURL: data.photoURL,
         createdBy: tokenPayload.accountId,
         type: data.type,
-        branchId: tokenPayload.branchId,
-      },
-    });
+        branchId: tokenPayload.branchId
+      }
+    })
   }
 
   async update(
     params: {
-      data: UpdatePaymentMethodDto;
-      where: Prisma.PaymentMethodWhereUniqueInput;
+      data: UpdatePaymentMethodDto
+      where: Prisma.PaymentMethodWhereUniqueInput
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { data, where } = params;
+    const { data, where } = params
 
     const result = await this.prisma.paymentMethod.update({
       where: {
         id: where.id,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       data: {
         active: data.active,
@@ -55,49 +58,56 @@ export class PaymentMethodService {
         representative: data.representative,
         bankName: data.bankName,
         photoURL: data.photoURL,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    await this.commonService.createActivityLog([result.id], "PaymentMethod", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [result.id],
+      'PaymentMethod',
+      ACTIVITY_LOG_TYPE.UPDATE,
+      tokenPayload
+    )
 
-    return result;
+    return result
   }
 
-  async findUniq(where: Prisma.PaymentMethodWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(
+    where: Prisma.PaymentMethodWhereUniqueInput,
+    tokenPayload: TokenPayload
+  ) {
     return this.prisma.paymentMethod.findUniqueOrThrow({
       where: {
         id: where.id,
-        branchId: tokenPayload.branchId,
-      },
-    });
+        branchId: tokenPayload.branchId
+      }
+    })
   }
 
   async findAll(params: FindManyPaymentMethodDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy, active } = params;
-    const keySearch = ["bankName", "bankCode", "representative", "type"];
+    let { page, perPage, keyword, orderBy, active } = params
+    const keySearch = ['bankName', 'bankCode', 'representative', 'type']
 
     let where: Prisma.PaymentMethodWhereInput = {
       branchId: tokenPayload.branchId,
-      ...(typeof active !== "undefined" && { active: active }),
+      ...(typeof active !== 'undefined' && { active: active }),
       ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: removeDiacritics(keyword) },
-        })),
-      }),
-    };
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
+      })
+    }
 
     return await customPaginate(
       this.prisma.paymentMethod,
       {
-        orderBy: orderBy || { createdAt: "desc" },
-        where,
+        orderBy: orderBy || { createdAt: 'desc' },
+        where
       },
       {
         page,
-        perPage,
-      },
-    );
-
+        perPage
+      }
+    )
   }
 }

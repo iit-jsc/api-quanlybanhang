@@ -1,16 +1,16 @@
-import { Observable } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { Observable } from 'rxjs'
+import { map } from 'rxjs/operators'
 import {
   Injectable,
   NestInterceptor,
   ExecutionContext,
-  CallHandler,
-} from '@nestjs/common';
+  CallHandler
+} from '@nestjs/common'
 
 export interface Response<T> {
-  statusCode: number;
-  message: string;
-  data: T;
+  statusCode: number
+  message: string
+  data: T
 }
 
 @Injectable()
@@ -19,14 +19,14 @@ export class TransformInterceptor<T>
 {
   intercept(
     context: ExecutionContext,
-    next: CallHandler,
+    next: CallHandler
   ): Observable<Response<T>> {
     return next.handle().pipe(
       map((data: any) => ({
         statusCode: context.switchToHttp().getResponse().statusCode,
         message: data?.message ?? 'Thành công!',
-        data: data as T,
-      })),
-    );
+        data: data as T
+      }))
+    )
   }
 }

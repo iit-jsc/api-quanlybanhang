@@ -1,9 +1,9 @@
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
 
 export class AccessBranchDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  branchId: string;
+  branchId: string
 
-  firebaseToken?: string;
+  firebaseToken?: string
 }

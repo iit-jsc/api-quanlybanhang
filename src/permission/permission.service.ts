@@ -1,179 +1,190 @@
-import { Injectable } from "@nestjs/common";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { PrismaService } from "nestjs-prisma";
-import { CreatePermissionDto, FindManyPermissionDto, UpdatePermissionDto } from "./dto/permission.dto";
-import { customPaginate, removeDiacritics } from "utils/Helps";
-import { Prisma } from "@prisma/client";
-import { DeleteManyDto } from "utils/Common.dto";
-import { CommonService } from "src/common/common.service";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from 'nestjs-prisma'
+
+import { CommonService } from 'src/common/common.service'
 
 @Injectable()
 export class PermissionService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
+    private commonService: CommonService
   ) {}
 
-  async create(data: CreatePermissionDto, tokenPayload: TokenPayload) {
-    const result = await this.prisma.permission.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        branch: {
-          connect: {
-            id: tokenPayload.branchId,
-          },
-        },
-        ...(data.roleCodes && {
-          roles: {
-            connect: data.roleCodes.map((code) => ({
-              code,
-            })),
-          },
-        }),
-        creator: {
-          connect: {
-            id: tokenPayload.accountId,
-          },
-        },
-      },
-      include: {
-        roles: true,
-      },
-    });
+  // async create(data: CreatePermissionDto, tokenPayload: TokenPayload) {
+  //   const result = await this.prisma.permission.create({
+  //     data: {
+  //       name: data.name,
+  //       description: data.description,
+  //       branch: {
+  //         connect: {
+  //           id: tokenPayload.branchId
+  //         }
+  //       },
+  //       ...(data.roleCodes && {
+  //         roles: {
+  //           connect: data.roleCodes.map(code => ({
+  //             code
+  //           }))
+  //         }
+  //       }),
+  //       creator: {
+  //         connect: {
+  //           id: tokenPayload.accountId
+  //         }
+  //       }
+  //     },
+  //     include: {
+  //       roles: true
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog([result.id], "Permission", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+  //   await this.commonService.createActivityLog(
+  //     [result.id],
+  //     'Permission',
+  //     ACTIVITY_LOG_TYPE.CREATE,
+  //     tokenPayload
+  //   )
 
-    return result;
-  }
+  //   return result
+  // }
 
-  async findAll(params: FindManyPermissionDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy } = params;
+  // async findAll(params: FindManyPermissionDto, tokenPayload: TokenPayload) {
+  //   const { page, perPage, keyword, orderBy } = params
 
-    const where: Prisma.PermissionWhereInput = {
-      isPublic: true,
-      branchId: tokenPayload.branchId,
-      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
-    };
+  //   const where: Prisma.PermissionWhereInput = {
+  //     isPublic: true,
+  //     branchId: tokenPayload.branchId,
+  //     ...(keyword && { name: { contains: removeDiacritics(keyword) } })
+  //   }
 
-    return await customPaginate(
-      this.prisma.permission,
-      {
-        orderBy: orderBy || { createdAt: "desc" },
-        where,
-        select: {
-          id: true,
-          name: true,
-          description: true,
-          branch: {
-            select: {
-              id: true,
-              photoURL: true,
-              name: true,
-              address: true,
-              createdAt: true,
-            },
-            where: { isPublic: true },
-          },
-          roles: {
-            select: {
-              name: true,
-              code: true,
-            },
-          },
-          updatedAt: true,
-        },
-      },
-      {
-        page,
-        perPage,
-      },
-    );
-  }
+  //   return await customPaginate(
+  //     this.prisma.permission,
+  //     {
+  //       orderBy: orderBy || { createdAt: 'desc' },
+  //       where,
+  //       select: {
+  //         id: true,
+  //         name: true,
+  //         description: true,
+  //         branch: {
+  //           select: {
+  //             id: true,
+  //             photoURL: true,
+  //             name: true,
+  //             address: true,
+  //             createdAt: true
+  //           },
+  //           where: { isPublic: true }
+  //         },
+  //         roles: {
+  //           select: {
+  //             name: true,
+  //             code: true
+  //           }
+  //         },
+  //         updatedAt: true
+  //       }
+  //     },
+  //     {
+  //       page,
+  //       perPage
+  //     }
+  //   )
+  // }
 
-  async update(
-    params: {
-      where: Prisma.PermissionWhereUniqueInput;
-      data: UpdatePermissionDto;
-    },
-    tokenPayload: TokenPayload,
-  ) {
-    const { where, data } = params;
+  // async update(
+  //   params: {
+  //     where: Prisma.PermissionWhereUniqueInput
+  //     data: UpdatePermissionDto
+  //   },
+  //   tokenPayload: TokenPayload
+  // ) {
+  //   const { where, data } = params
 
-    const result = await this.prisma.permission.update({
-      data: {
-        name: data.name,
-        description: data.description,
-        ...(data.roleCodes && {
-          roles: {
-            set: data.roleCodes.map((code) => ({
-              code,
-            })),
-          },
-        }),
-        updatedBy: tokenPayload.accountId,
-      },
-      where: {
-        ...where,
-        isPublic: true,
-        branchId: tokenPayload.branchId,
-      },
-    });
+  //   const result = await this.prisma.permission.update({
+  //     data: {
+  //       name: data.name,
+  //       description: data.description,
+  //       ...(data.roleCodes && {
+  //         roles: {
+  //           set: data.roleCodes.map(code => ({
+  //             code
+  //           }))
+  //         }
+  //       }),
+  //       updatedBy: tokenPayload.accountId
+  //     },
+  //     where: {
+  //       ...where,
+  //       isPublic: true,
+  //       branchId: tokenPayload.branchId
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog([result.id], "Permission", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+  //   await this.commonService.createActivityLog(
+  //     [result.id],
+  //     'Permission',
+  //     ACTIVITY_LOG_TYPE.UPDATE,
+  //     tokenPayload
+  //   )
 
-    return result;
-  }
+  //   return result
+  // }
 
-  async findUniq(where: Prisma.PermissionWhereUniqueInput, tokenPayload: TokenPayload) {
-    return this.prisma.permission.findUniqueOrThrow({
-      where: {
-        ...where,
-        isPublic: true,
-        branchId: tokenPayload.branchId,
-      },
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        branch: {
-          select: {
-            id: true,
-            photoURL: true,
-            name: true,
-            address: true,
-            createdAt: true,
-          },
-          where: { isPublic: true },
-        },
-        roles: {
-          select: {
-            name: true,
-            code: true,
-          },
-        },
-      },
-    });
-  }
+  // async findUniq(
+  //   where: Prisma.PermissionWhereUniqueInput,
+  //   tokenPayload: TokenPayload
+  // ) {
+  //   return this.prisma.permission.findUniqueOrThrow({
+  //     where: {
+  //       ...where,
+  //       branchId: tokenPayload.branchId
+  //     },
+  //     select: {
+  //       id: true,
+  //       name: true,
+  //       description: true,
+  //       branch: {
+  //         select: {
+  //           id: true,
+  //           photoURL: true,
+  //           name: true,
+  //           address: true,
+  //           createdAt: true
+  //         },
+  //         where: { isPublic: true }
+  //       },
+  //       roles: {
+  //         select: {
+  //           name: true,
+  //           code: true
+  //         }
+  //       }
+  //     }
+  //   })
+  // }
 
-  async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    const count = await this.prisma.permission.updateMany({
-      where: {
-        id: {
-          in: data.ids,
-        },
-        isPublic: true,
-        branchId: tokenPayload.branchId,
-      },
-      data: {
-        isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+  // async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
+  //   const count = await this.prisma.permission.updateMany({
+  //     where: {
+  //       id: {
+  //         in: data.ids
+  //       },
+  //       isPublic: true,
+  //       branchId: tokenPayload.branchId
+  //     },
+  //     data: {
+  //       updatedBy: tokenPayload.accountId
+  //     }
+  //   })
 
-    await this.commonService.createActivityLog(data.ids, "Permission", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+  //   await this.commonService.createActivityLog(
+  //     data.ids,
+  //     'Permission',
+  //     ACTIVITY_LOG_TYPE.DELETE,
+  //     tokenPayload
+  //   )
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
-  }
+  //   return { ...count, ids: data.ids } as DeleteManyResponse
+  // }
 }

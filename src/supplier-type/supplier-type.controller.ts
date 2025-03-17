@@ -10,96 +10,106 @@ import {
   UseGuards,
   HttpStatus,
   HttpCode,
-  Query,
-} from "@nestjs/common";
-import { CreateSupplierTypeDto, UpdateSupplierTypeDto } from "./dto/supplier-type.dto";
-import { SupplierTypeService } from "./supplier-type.service";
-import { TokenPayload } from "interfaces/common.interface";
-import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { SPECIAL_ROLE } from "enums/common.enum";
-import { Roles } from "guards/roles.decorator";
-import { RolesGuard } from "guards/roles.guard";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
+  Query
+} from '@nestjs/common'
+import {
+  CreateSupplierTypeDto,
+  UpdateSupplierTypeDto
+} from './dto/supplier-type.dto'
+import { SupplierTypeService } from './supplier-type.service'
+import { TokenPayload } from 'interfaces/common.interface'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { SPECIAL_ROLE } from 'enums/common.enum'
+import { Roles } from 'guards/roles.decorator'
+import { RolesGuard } from 'guards/roles.guard'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
 
-@Controller("supplier-type")
+@Controller('supplier-type')
 export class SupplierTypeController {
   constructor(private readonly supplierTypeService: SupplierTypeService) {}
 
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_SUPPLIER_TYPE", SPECIAL_ROLE.MANAGER)
-  @Post("")
-  create(@Body() createSupplierTypeDto: CreateSupplierTypeDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.supplierTypeService.create(createSupplierTypeDto, tokenPayload);
+  @Roles('CREATE_SUPPLIER_TYPE', SPECIAL_ROLE.MANAGER)
+  @Post('')
+  create(
+    @Body() createSupplierTypeDto: CreateSupplierTypeDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
+    return this.supplierTypeService.create(createSupplierTypeDto, tokenPayload)
   }
 
-  @Get("")
+  @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    "CREATE_SUPPLIER_TYPE",
-    "UPDATE_SUPPLIER_TYPE",
-    "DELETE_SUPPLIER_TYPE",
-    "VIEW_SUPPLIER_TYPE",
-    SPECIAL_ROLE.MANAGER,
+    'CREATE_SUPPLIER_TYPE',
+    'UPDATE_SUPPLIER_TYPE',
+    'DELETE_SUPPLIER_TYPE',
+    'VIEW_SUPPLIER_TYPE',
+    SPECIAL_ROLE.MANAGER
   )
   findAll(@Query() data: FindManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.supplierTypeService.findAll(data, tokenPayload);
+    return this.supplierTypeService.findAll(data, tokenPayload)
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(
-    "CREATE_SUPPLIER_TYPE",
-    "UPDATE_SUPPLIER_TYPE",
-    "DELETE_SUPPLIER_TYPE",
-    "VIEW_SUPPLIER_TYPE",
-    SPECIAL_ROLE.MANAGER,
+    'CREATE_SUPPLIER_TYPE',
+    'UPDATE_SUPPLIER_TYPE',
+    'DELETE_SUPPLIER_TYPE',
+    'VIEW_SUPPLIER_TYPE',
+    SPECIAL_ROLE.MANAGER
   )
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  findUniq(@Param('id') id: string, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.supplierTypeService.findUniq(
       {
-        id,
+        id
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("UPDATE_SUPPLIER_TYPE", SPECIAL_ROLE.MANAGER)
-  update(@Param("id") id: string, @Body() updateSupplierTypeDto: UpdateSupplierTypeDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('UPDATE_SUPPLIER_TYPE', SPECIAL_ROLE.MANAGER)
+  update(
+    @Param('id') id: string,
+    @Body() updateSupplierTypeDto: UpdateSupplierTypeDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.supplierTypeService.update(
       {
         where: {
-          id,
+          id
         },
-        data: updateSupplierTypeDto,
+        data: updateSupplierTypeDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Delete("")
+  @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("DELETE_SUPPLIER_TYPE", SPECIAL_ROLE.MANAGER)
+  @Roles('DELETE_SUPPLIER_TYPE', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.supplierTypeService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

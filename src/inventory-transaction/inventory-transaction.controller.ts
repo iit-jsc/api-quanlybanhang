@@ -10,25 +10,25 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
-} from '@nestjs/common';
-import { InventoryTransactionService } from './inventory-transaction.service';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { RolesGuard } from 'guards/roles.guard';
-import { Roles } from 'guards/roles.decorator';
-import { SPECIAL_ROLE } from 'enums/common.enum';
-import { TokenPayload } from 'interfaces/common.interface';
-import { DeleteManyDto } from 'utils/Common.dto';
+  UseGuards
+} from '@nestjs/common'
+import { InventoryTransactionService } from './inventory-transaction.service'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { RolesGuard } from 'guards/roles.guard'
+import { Roles } from 'guards/roles.decorator'
+import { SPECIAL_ROLE } from 'enums/common.enum'
+import { TokenPayload } from 'interfaces/common.interface'
+import { DeleteManyDto } from 'utils/Common.dto'
 import {
   CreateInventoryTransactionDto,
   FindManInventTransDto,
-  UpdateInventoryTransactionDto,
-} from './dto/inventory-transaction.dto';
+  UpdateInventoryTransactionDto
+} from './dto/inventory-transaction.dto'
 
 @Controller('inventory-transaction')
 export class InventoryTransactionController {
   constructor(
-    private readonly inventoryTransactionService: InventoryTransactionService,
+    private readonly inventoryTransactionService: InventoryTransactionService
   ) {}
 
   @Post('')
@@ -37,14 +37,14 @@ export class InventoryTransactionController {
   @Roles('CREATE_WAREHOUSE', SPECIAL_ROLE.MANAGER)
   create(
     @Body() createInventoryTransactionDto: CreateInventoryTransactionDto,
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.inventoryTransactionService.create(
       createInventoryTransactionDto,
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
   @Get('')
@@ -55,12 +55,12 @@ export class InventoryTransactionController {
     'UPDATE_WAREHOUSE',
     'DELETE_WAREHOUSE',
     'VIEW_WAREHOUSE',
-    SPECIAL_ROLE.MANAGER,
+    SPECIAL_ROLE.MANAGER
   )
   findAll(@Query() data: FindManInventTransDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.inventoryTransactionService.findAll(data, tokenPayload);
+    return this.inventoryTransactionService.findAll(data, tokenPayload)
   }
 
   @Get(':id')
@@ -71,17 +71,17 @@ export class InventoryTransactionController {
     'UPDATE_WAREHOUSE',
     'DELETE_WAREHOUSE',
     'VIEW_WAREHOUSE',
-    SPECIAL_ROLE.MANAGER,
+    SPECIAL_ROLE.MANAGER
   )
   findUniq(@Param('id') id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.inventoryTransactionService.findUniq(
       {
-        id,
+        id
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
   @Patch(':id')
@@ -91,18 +91,18 @@ export class InventoryTransactionController {
   update(
     @Param('id') id: string,
     @Body() updateInventoryTransactionDto: UpdateInventoryTransactionDto,
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.inventoryTransactionService.update(
       {
         where: {
-          id,
+          id
         },
-        data: updateInventoryTransactionDto,
+        data: updateInventoryTransactionDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
   @Delete('')
@@ -110,12 +110,12 @@ export class InventoryTransactionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DELETE_WAREHOUSE', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.inventoryTransactionService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

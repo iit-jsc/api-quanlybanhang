@@ -1,4 +1,4 @@
-version: "3"
+version: '3'
 services:
   mysql:
     image: mysql:8.0
@@ -9,7 +9,7 @@ services:
       MYSQL_USER: root
       MYSQL_PASSWORD:
     ports:
-      - "3306:3306"
+      - '3306:3306'
     volumes:
       - ./data/mysql:/var/lib/mysql
 
@@ -17,7 +17,7 @@ services:
     build: .
     container_name: nestjs-app
     ports:
-      - "4001:4001"
+      - '4001:4001'
     depends_on:
       - mysql
     environment:

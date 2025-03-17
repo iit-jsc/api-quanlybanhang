@@ -1,28 +1,27 @@
-import { PartialType } from "@nestjs/swagger";
-import { Transform, TransformFnParams, Type } from "class-transformer";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { FindManyDto } from "utils/Common.dto";
+import { PartialType } from '@nestjs/swagger'
+import { Transform, TransformFnParams, Type } from 'class-transformer'
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateTableDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  name: string;
+  name: string
 
   @IsOptional()
-  seat?: number;
+  seat?: number
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  areaId: string;
+  areaId: string
 }
 
 export class FindManyTableDto extends FindManyDto {
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(",").map((id: string) => id.trim());
+    return value?.split(',').map((id: string) => id.trim())
   })
-  areaIds: string[];
+  areaIds: string[]
 }
 
-export class UpdateTableDto extends PartialType(CreateTableDto) { }
-
+export class UpdateTableDto extends PartialType(CreateTableDto) {}

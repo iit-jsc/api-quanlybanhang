@@ -1,28 +1,28 @@
-import { Transform, TransformFnParams, Type } from "class-transformer";
-import { IsBoolean, IsOptional, IsString } from "class-validator";
+import { Transform, TransformFnParams, Type } from 'class-transformer'
+import { IsBoolean, IsOptional, IsString } from 'class-validator'
 
 export class UpdateQRSettingDto {
   @IsOptional()
   @IsBoolean()
-  isShowLogo: boolean;
+  isShowLogo: boolean
 
   @IsOptional()
   @IsBoolean()
-  isShowWifi: boolean;
+  isShowWifi: boolean
 
   @IsOptional()
   @IsBoolean()
-  isShowTable: boolean;
+  isShowTable: boolean
 
   @IsOptional()
   @IsString()
-  description: string;
+  description: string
 
   @IsOptional()
   @IsBoolean()
-  isShowBranchName: boolean;
+  isShowBranchName: boolean
 
   @IsOptional()
   @IsBoolean()
-  isShowShopName: boolean;
+  isShowShopName: boolean
 }

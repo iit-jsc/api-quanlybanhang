@@ -1,23 +1,29 @@
-import { Injectable } from "@nestjs/common";
-import { TokenPayload } from "interfaces/common.interface";
-import { PrismaService } from "nestjs-prisma";
-import { CommonService } from "src/common/common.service";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
-import { FindUniqFutureUsageSettingDto, UpdateFeatureUsageSettingDto } from "./dto/update-future-usage-setting.dto";
+import { Injectable } from '@nestjs/common'
+import { TokenPayload } from 'interfaces/common.interface'
+import { PrismaService } from 'nestjs-prisma'
+import { CommonService } from 'src/common/common.service'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
+import {
+  FindUniqFutureUsageSettingDto,
+  UpdateFeatureUsageSettingDto
+} from './dto/update-future-usage-setting.dto'
 
 @Injectable()
 export class FeatureUsageSettingService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
+    private commonService: CommonService
   ) {}
 
-  async findUniq(featureCode: string, findUniqDto: FindUniqFutureUsageSettingDto) {
+  async findUniq(
+    featureCode: string,
+    findUniqDto: FindUniqFutureUsageSettingDto
+  ) {
     const { branchId, shopId } = findUniqDto
-    
+
     return this.prisma.featureUsageSetting.findFirst({
       where: {
-        ...(branchId && { 
+        ...(branchId && {
           shop: {
             branches: {
               some: {
@@ -27,7 +33,7 @@ export class FeatureUsageSettingService {
           }
         }),
         ...(shopId && { shopId }),
-        featureCode,
+        featureCode
       },
       include: {
         shop: {
@@ -57,37 +63,40 @@ export class FeatureUsageSettingService {
           }
         }
       }
-    });
+    })
   }
 
-  async update(params: { data: UpdateFeatureUsageSettingDto }, tokenPayload: TokenPayload) {
-    const { data } = params;
+  async update(
+    params: { data: UpdateFeatureUsageSettingDto },
+    tokenPayload: TokenPayload
+  ) {
+    const { data } = params
     const result = await this.prisma.featureUsageSetting.upsert({
       where: {
         shopId_featureCode: {
           featureCode: data.featureCode,
-          shopId: tokenPayload.shopId,
-        },
+          shopId: tokenPayload.shopId
+        }
       },
       create: {
         featureCode: data.featureCode,
         shopId: tokenPayload.shopId,
         isUsed: data.isUsed,
-        updatedBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId
       },
       update: {
         isUsed: data.isUsed,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
     await this.commonService.createActivityLog(
       [result.featureCode],
-      "FeatureUsageSetting",
+      'FeatureUsageSetting',
       ACTIVITY_LOG_TYPE.UPDATE,
-      tokenPayload,
-    );
+      tokenPayload
+    )
 
-    return result;
+    return result
   }
 }

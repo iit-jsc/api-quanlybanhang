@@ -1,108 +1,107 @@
 export const DEFAULT_OPTION_FIND = {
   DEFAULT_PAGE: 1,
-  DEFAULT_LIMIT: 20,
-};
+  DEFAULT_LIMIT: 20
+}
 
 export const DISCOUNT_TYPE = {
   PERCENT: 1,
-  VALUE: 2,
-};
+  VALUE: 2
+}
 
 export const PAYMENT_STATUS = {
   ACTIVE: 1,
-  DISABLE: 2,
-};
+  DISABLE: 2
+}
 
 export const SPECIAL_ROLE = {
-  STORE_OWNER: "STORE_OWNER",
-  MANAGER: "MANAGER",
-};
+  STORE_OWNER: 'STORE_OWNER',
+  MANAGER: 'MANAGER'
+}
 
 export const PROMOTION_TYPE = {
   VALUE: 1,
-  GIFT: 2,
-};
+  GIFT: 2
+}
 
 export const INVENTORY_TRANSACTION_TYPE = {
   IMPORT: 1,
-  EXPORT: 2,
-};
+  EXPORT: 2
+}
 
 export const INVENTORY_TRANSACTION_STATUS = {
   DRAFT: 1,
-  PROCESSED: 2,
-};
+  PROCESSED: 2
+}
 
 export const POINT_TYPE = {
   ADD: 1,
-  EXCHANGE: 2,
-};
+  EXCHANGE: 2
+}
 
 export const PRINT_TEMPLATE_TYPE = {
   TEMP_PAYMENT_FORM: 1,
   PAYMENT_FORM: 2,
-  ORDER_FORM: 3,
-};
+  ORDER_FORM: 3
+}
 
 export const FIND_UNIQ_TYPE = {
   ID: 1,
-  OTHER: 2,
-};
+  OTHER: 2
+}
 
 export const COMPENSATION_TYPE = {
   ALLOWANCE: 1,
-  DEDUCTION: 2,
-};
+  DEDUCTION: 2
+}
 
 export const COMPENSATION_APPLY_TO = {
   FULLTIME: 1,
   PART_TIME: 2,
-  ALL: 3,
-};
+  ALL: 3
+}
 
 export const REPORT_REVENUE_TYPE = {
   TOTAL_ORDER: 1,
-  TOTAL_REVENUE: 2,
-};
+  TOTAL_REVENUE: 2
+}
 
 export const TIME_TYPE = {
   YEAR: 1,
   MONTH: 2,
   DAY: 3,
-  HOUR: 4,
-};
+  HOUR: 4
+}
 
 export const FEATURE_CODE = {
-  QR_CODE: "QR_CODE",
-  ONLINE_SELLING: "ONLINE_SELLING",
-};
+  QR_CODE: 'QR_CODE',
+  ONLINE_SELLING: 'ONLINE_SELLING'
+}
 
 export const PAYMENT_METHOD_TYPE = {
-  QR_CODE: "QR_CODE",
-  BANKING: "BANKING",
-  CASH: "CASH",
-};
+  QR_CODE: 'QR_CODE',
+  BANKING: 'BANKING',
+  CASH: 'CASH'
+}
 
 export enum ACTIVITY_LOG_TYPE {
-  CREATE = "CREATE",
-  CREATE_TO_TABLE = "CREATE_TO_TABLE",
-  REGISTER = "REGISTER",
-  UPDATE = "UPDATE",
-  DELETE = "DELETE",
-  CONFIRM = "CONFIRM",
-  PAYMENT = "PAYMENT",
+  CREATE = 'CREATE',
+  CREATE_TO_TABLE = 'CREATE_TO_TABLE',
+  REGISTER = 'REGISTER',
+  UPDATE = 'UPDATE',
+  DELETE = 'DELETE',
+  CONFIRM = 'CONFIRM',
+  PAYMENT = 'PAYMENT'
 }
 
 export enum REQUEST_TYPE {
-  CALL_STAFF = "CALL_STAFF",
-  PAYMENT = "PAYMENT",
+  CALL_STAFF = 'CALL_STAFF',
+  PAYMENT = 'PAYMENT'
 }
 
-
 export enum REQUEST_STATUS {
-  "PENDING" = "PENDING",
-  "PROCESSING" = "PROCESSING",
-  "COMPLETED" = "COMPLETED",
+  'PENDING' = 'PENDING',
+  'PROCESSING' = 'PROCESSING',
+  'COMPLETED' = 'COMPLETED'
 }
 
 export const PER_PAGE = 20

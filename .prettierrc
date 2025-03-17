@@ -1,6 +1,9 @@
 {
-  "editor.wordWrap": "on",
-  "prettier.singleQuote": true,
-  "prettier.trailingComma": "all",
-  "printWidth": 120
+  "singleQuote": true,
+  "semi": false,
+  "tabWidth": 2,
+  "trailingComma": "none",
+  "endOfLine": "lf",
+  "arrowParens": "avoid",
+  "printWidth": 80
 }

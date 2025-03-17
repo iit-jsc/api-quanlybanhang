@@ -1,19 +1,23 @@
-import { Injectable } from '@nestjs/common';
-import { PrismaService } from 'nestjs-prisma';
-import { CreateCustomerRequestDto, FindManyCustomerRequestDto, UpdateCustomerRequestDto } from './dto/customer-request.dto';
-import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface';
-import { Prisma } from '@prisma/client';
-import { customPaginate, removeDiacritics } from 'utils/Helps';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { CustomerRequestGateway } from 'src/gateway/customer-request.gateway';
-import { REQUEST_STATUS } from 'enums/common.enum';
+import { Injectable } from '@nestjs/common'
+import { PrismaService } from 'nestjs-prisma'
+import {
+  CreateCustomerRequestDto,
+  FindManyCustomerRequestDto,
+  UpdateCustomerRequestDto
+} from './dto/customer-request.dto'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { Prisma } from '@prisma/client'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+import { CustomerRequestGateway } from 'src/gateway/customer-request.gateway'
+import { REQUEST_STATUS } from 'enums/common.enum'
 
 @Injectable()
 export class CustomerRequestService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly customerRequestGateway: CustomerRequestGateway,
-  ) { }
+    private readonly customerRequestGateway: CustomerRequestGateway
+  ) {}
 
   async create(data: CreateCustomerRequestDto) {
     const customerRequest = await this.prisma.customerRequest.create({
@@ -22,25 +26,29 @@ export class CustomerRequestService {
         tableId: data.tableId,
         branchId: data.branchId,
         requestType: data.requestType,
-        status: REQUEST_STATUS.PENDING,
+        status: REQUEST_STATUS.PENDING
       },
       include: {
-        table: true,
-      },
-    });
+        table: true
+      }
+    })
 
     // Gửi socket
-    await this.customerRequestGateway.handleCreateCustomerRequest(customerRequest);
+    await this.customerRequestGateway.handleCreateCustomerRequest(
+      customerRequest
+    )
 
     return customerRequest
   }
 
-
   async update(
-    params: { data: UpdateCustomerRequestDto; where: Prisma.CustomerRequestWhereUniqueInput },
-    tokenPayload: TokenPayload,
+    params: {
+      data: UpdateCustomerRequestDto
+      where: Prisma.CustomerRequestWhereUniqueInput
+    },
+    tokenPayload: TokenPayload
   ) {
-    const { data, where } = params;
+    const { data, where } = params
 
     return this.prisma.customerRequest.update({
       data: {
@@ -52,46 +60,55 @@ export class CustomerRequestService {
       },
       where: {
         id: where.id,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       }
-    });
+    })
   }
 
   async findAll(params: FindManyCustomerRequestDto) {
-    let { page, perPage, orderBy, keyword, branchId, tableIds, requestTypes, statuses } = params;
+    let {
+      page,
+      perPage,
+      orderBy,
+      keyword,
+      branchId,
+      tableIds,
+      requestTypes,
+      statuses
+    } = params
 
-    const keySearch = ["content"];
+    const keySearch = ['content']
 
     let where: Prisma.CustomerRequestWhereInput = {
       isPublic: true,
       branchId: branchId,
       ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: removeDiacritics(keyword) },
-        })),
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
       }),
       ...(tableIds && {
         table: {
           id: { in: tableIds },
-          isPublic: true,
-        },
+          isPublic: true
+        }
       }),
       ...(requestTypes && {
         requestType: {
           in: requestTypes
-        },
+        }
       }),
       ...(statuses && {
         status: {
           in: statuses
-        },
-      }),
-    };
+        }
+      })
+    }
 
     return await customPaginate(
       this.prisma.customerRequest,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         include: {
           updater: {
@@ -106,7 +123,7 @@ export class CustomerRequestService {
                   phone: true
                 }
               }
-            },
+            }
           },
           table: {
             select: {
@@ -115,7 +132,7 @@ export class CustomerRequestService {
                   id: true,
                   name: true,
                   updatedAt: true
-                },
+                }
               },
               id: true,
               name: true,
@@ -127,17 +144,20 @@ export class CustomerRequestService {
       },
       {
         page,
-        perPage,
-      },
-    );
+        perPage
+      }
+    )
   }
 
-  async findUniq(where: Prisma.CustomerRequestWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(
+    where: Prisma.CustomerRequestWhereUniqueInput,
+    tokenPayload: TokenPayload
+  ) {
     return this.prisma.customerRequest.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       include: {
         updater: {
@@ -152,32 +172,32 @@ export class CustomerRequestService {
                 phone: true
               }
             }
-          },
+          }
         },
         table: {
           select: {
-            area: true,
+            area: true
           }
         }
       }
-    });
+    })
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     const count = await this.prisma.customerRequest.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: data.ids
         },
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       data: {
         isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 }

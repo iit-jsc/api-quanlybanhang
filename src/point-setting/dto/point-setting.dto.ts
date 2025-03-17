@@ -1,15 +1,15 @@
-import { IsBoolean, IsNotEmpty, IsNumber } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsNumber } from 'class-validator'
 
 export class UpdatePointSettingDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  point: number;
+  point: number
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  value: number;
+  value: number
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsBoolean()
-  active: boolean;
+  active: boolean
 }

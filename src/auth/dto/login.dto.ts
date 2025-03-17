@@ -1,70 +1,76 @@
-import { Transform, TransformFnParams } from "class-transformer";
-import { IsString, IsNotEmpty, IsOptional, IsDate, IsEmail } from "class-validator";
-import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
+import { Transform, TransformFnParams } from 'class-transformer'
+import {
+  IsString,
+  IsNotEmpty,
+  IsOptional,
+  IsDate,
+  IsEmail
+} from 'class-validator'
+import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class LoginForManagerDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsVietnamesePhoneNumber()
-  phone: string;
+  phone: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  password: string;
+  password: string
 
   @IsOptional()
   @IsString()
-  accessToken: string;
+  accessToken: string
 }
 
 export class LoginForCustomerDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  otp: string;
+  otp: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsEmail()
-  email: string;
+  email: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  shopId: string;
+  shopId: string
 }
 
 export class LoginDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  username: string;
+  username: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  password: string;
+  password: string
 }
 
 export class CreateRefreshTokenDto {
   @IsOptional()
   @IsString()
-  accountId: string;
+  accountId: string
 
   @IsOptional()
   @IsString()
-  branchId: string;
+  branchId: string
 
   @IsOptional()
   @IsString()
-  deviceId: string;
+  deviceId: string
 
   @IsOptional()
   @IsString()
-  ip: string;
+  ip: string
 
   @IsOptional()
   @IsString()
-  userAgent: string;
+  userAgent: string
 
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: "Ngày tháng không hợp lệ!" })
-  lastLogin: Date;
+  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
+  lastLogin: Date
 }

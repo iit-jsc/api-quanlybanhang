@@ -1,24 +1,32 @@
-import { HttpStatus, Injectable } from "@nestjs/common";
-import { Prisma, PrismaClient } from "@prisma/client";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { PrismaService } from "nestjs-prisma";
-import { CreateDiscountIssueDto, FindManyDiscountIssueDto, findUniqByDiscountCodeDto, UpdateDiscountIssueDto } from "./dto/discount-issue.dto";
-import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate, removeDiacritics } from "utils/Helps";
-import { CommonService } from "src/common/common.service";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
-import { CustomHttpException } from "utils/ApiErrors";
+import { HttpStatus, Injectable } from '@nestjs/common'
+import { Prisma, PrismaClient } from '@prisma/client'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { PrismaService } from 'nestjs-prisma'
+import {
+  CreateDiscountIssueDto,
+  FindManyDiscountIssueDto,
+  findUniqByDiscountCodeDto,
+  UpdateDiscountIssueDto
+} from './dto/discount-issue.dto'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { CommonService } from 'src/common/common.service'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
+import { CustomHttpException } from 'utils/ApiErrors'
 
 @Injectable()
 export class DiscountIssueService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
-  ) { }
+    private commonService: CommonService
+  ) {}
 
   async create(data: CreateDiscountIssueDto, tokenPayload: TokenPayload) {
     if (data.endDate && data.startDate && data.endDate < data.startDate)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "Ngày kết thúc không hợp lệ!");
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        'Ngày kết thúc không hợp lệ!'
+      )
 
     const discountIssue = await this.prisma.discountIssue.create({
       data: {
@@ -35,31 +43,34 @@ export class DiscountIssueService {
         minTotalOrder: data.minTotalOrder,
         maxValue: data.maxValue,
         branchId: tokenPayload.branchId,
-        createdBy: tokenPayload.accountId,
-      },
-    });
+        createdBy: tokenPayload.accountId
+      }
+    })
 
     await this.commonService.createActivityLog(
       [discountIssue.id],
-      "DiscountIssue",
+      'DiscountIssue',
       ACTIVITY_LOG_TYPE.CREATE,
-      tokenPayload,
-    );
+      tokenPayload
+    )
 
-    return discountIssue;
+    return discountIssue
   }
 
   async update(
     params: {
-      where: Prisma.DiscountIssueWhereUniqueInput;
-      data: UpdateDiscountIssueDto;
+      where: Prisma.DiscountIssueWhereUniqueInput
+      data: UpdateDiscountIssueDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { where, data } = params;
+    const { where, data } = params
 
     if (data.endDate && data.startDate && data.endDate < data.startDate)
-      throw new CustomHttpException(HttpStatus.CONFLICT, "Ngày kết thúc không hợp lệ!");
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        'Ngày kết thúc không hợp lệ!'
+      )
 
     const discountIssue = await this.prisma.discountIssue.update({
       data: {
@@ -76,23 +87,23 @@ export class DiscountIssueService {
         minTotalOrder: data.minTotalOrder,
         maxValue: data.maxValue,
         branchId: tokenPayload.branchId,
-        updatedBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId
       },
-      where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId },
-    });
+      where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId }
+    })
 
     await this.commonService.createActivityLog(
       [discountIssue.id],
-      "DiscountIssue",
+      'DiscountIssue',
       ACTIVITY_LOG_TYPE.UPDATE,
-      tokenPayload,
-    );
+      tokenPayload
+    )
 
-    return discountIssue;
+    return discountIssue
   }
 
   async findAll(params: FindManyDiscountIssueDto, tokenPayload: TokenPayload) {
-    let { page, perPage, keyword, orderBy, totalOrder } = params;
+    let { page, perPage, keyword, orderBy, totalOrder } = params
     let where: Prisma.DiscountIssueWhereInput = {
       isPublic: true,
       ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
@@ -102,12 +113,12 @@ export class DiscountIssueService {
           lte: totalOrder
         }
       })
-    };
+    }
 
     return await customPaginate(
       this.prisma.discountIssue,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         include: {
           _count: {
@@ -115,7 +126,7 @@ export class DiscountIssueService {
               discountCodes: {
                 where: {
                   isPublic: true
-                },
+                }
               }
             }
           }
@@ -123,17 +134,20 @@ export class DiscountIssueService {
       },
       {
         page,
-        perPage,
-      },
-    );
+        perPage
+      }
+    )
   }
 
-  async findUniq(where: Prisma.DiscountIssueWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(
+    where: Prisma.DiscountIssueWhereUniqueInput,
+    tokenPayload: TokenPayload
+  ) {
     return this.prisma.discountIssue.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       include: {
         _count: {
@@ -141,53 +155,61 @@ export class DiscountIssueService {
             discountCodes: {
               where: {
                 isPublic: true
-              },
+              }
             }
           }
         }
       }
-    });
+    })
   }
 
   async findByDiscountCode(data: findUniqByDiscountCodeDto) {
     const { branchId, code } = data
 
-    if(!branchId) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Chi nhánh không được để trống!");
+    if (!branchId)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        'Chi nhánh không được để trống!'
+      )
 
     const discountIssue = await this.prisma.discountIssue.findFirst({
       where: {
         branchId: branchId,
         isPublic: true,
         startDate: {
-          lte: new Date(new Date().setHours(23, 59, 59, 999)),
+          lte: new Date(new Date().setHours(23, 59, 59, 999))
         },
         AND: [
           {
             OR: [
               {
                 endDate: {
-                  gte: new Date(new Date().setHours(0, 0, 0, 0)),
-                },
+                  gte: new Date(new Date().setHours(0, 0, 0, 0))
+                }
               },
               {
-                isEndDateDisabled: true,
-              },
-            ],
-          },
+                isEndDateDisabled: true
+              }
+            ]
+          }
         ],
         discountCodes: {
           some: {
             code: code,
             isUsed: false,
-            isPublic: true,
-          },
-        },
-      },
-    });
+            isPublic: true
+          }
+        }
+      }
+    })
 
-    if (!discountIssue) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Không tìm thấy khuyến mãi!");
+    if (!discountIssue)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        'Không tìm thấy khuyến mãi!'
+      )
 
-    return discountIssue;
+    return discountIssue
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
@@ -195,16 +217,16 @@ export class DiscountIssueService {
       const count = await prisma.discountIssue.updateMany({
         where: {
           id: {
-            in: data.ids,
+            in: data.ids
           },
           isPublic: true,
-          branchId: tokenPayload.branchId,
+          branchId: tokenPayload.branchId
         },
         data: {
           isPublic: false,
-          updatedBy: tokenPayload.accountId,
-        },
-      });
+          updatedBy: tokenPayload.accountId
+        }
+      })
 
       await prisma.discountCode.updateMany({
         where: {
@@ -213,7 +235,7 @@ export class DiscountIssueService {
               in: data.ids
             }
           },
-          isPublic: true,
+          isPublic: true
         },
         data: {
           isPublic: false,
@@ -221,9 +243,14 @@ export class DiscountIssueService {
         }
       })
 
-      await this.commonService.createActivityLog(data.ids, "DiscountIssue", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+      await this.commonService.createActivityLog(
+        data.ids,
+        'DiscountIssue',
+        ACTIVITY_LOG_TYPE.DELETE,
+        tokenPayload
+      )
 
-      return { ...count, ids: data.ids } as DeleteManyResponse;
+      return { ...count, ids: data.ids } as DeleteManyResponse
     })
   }
 }

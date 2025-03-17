@@ -10,84 +10,99 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
-} from "@nestjs/common";
-import { MeasurementUnitService } from "./measurement-unit.service";
-import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { TokenPayload } from "interfaces/common.interface";
-import { CreateMeasurementUnitDto, UpdateMeasurementUnitDto } from "./dto/measurement-unit.dto";
-import { DeleteManyDto, FindManyDto } from "utils/Common.dto";
-import { RolesGuard } from "guards/roles.guard";
-import { Roles } from "guards/roles.decorator";
-import { SPECIAL_ROLE } from "enums/common.enum";
+  UseGuards
+} from '@nestjs/common'
+import { MeasurementUnitService } from './measurement-unit.service'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { TokenPayload } from 'interfaces/common.interface'
+import {
+  CreateMeasurementUnitDto,
+  UpdateMeasurementUnitDto
+} from './dto/measurement-unit.dto'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+import { RolesGuard } from 'guards/roles.guard'
+import { Roles } from 'guards/roles.decorator'
+import { SPECIAL_ROLE } from 'enums/common.enum'
 
-@Controller("measurement-unit")
+@Controller('measurement-unit')
 export class MeasurementUnitController {
-  constructor(private readonly measurementUnitService: MeasurementUnitService) {}
+  constructor(
+    private readonly measurementUnitService: MeasurementUnitService
+  ) {}
 
-  @Post("")
+  @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_MEASUREMENT_UNIT", SPECIAL_ROLE.MANAGER)
-  create(@Body() createMeasurementUnitDto: CreateMeasurementUnitDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('CREATE_MEASUREMENT_UNIT', SPECIAL_ROLE.MANAGER)
+  create(
+    @Body() createMeasurementUnitDto: CreateMeasurementUnitDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.measurementUnitService.create(createMeasurementUnitDto, tokenPayload);
+    return this.measurementUnitService.create(
+      createMeasurementUnitDto,
+      tokenPayload
+    )
   }
 
-  @Get("")
+  @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   findAll(@Query() data: FindManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.measurementUnitService.findAll(data, tokenPayload);
+    return this.measurementUnitService.findAll(data, tokenPayload)
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  findUniq(@Param('id') id: string, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.measurementUnitService.findUniq(
       {
-        id,
+        id
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("UPDATE_MEASUREMENT_UNIT", SPECIAL_ROLE.MANAGER)
-  update(@Param("id") id: string, @Body() UpdateMeasurementUnitDto: UpdateMeasurementUnitDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('UPDATE_MEASUREMENT_UNIT', SPECIAL_ROLE.MANAGER)
+  update(
+    @Param('id') id: string,
+    @Body() UpdateMeasurementUnitDto: UpdateMeasurementUnitDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.measurementUnitService.update(
       {
         where: {
-          id,
+          id
         },
-        data: UpdateMeasurementUnitDto,
+        data: UpdateMeasurementUnitDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Delete("")
+  @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("DELETE_MEASUREMENT_UNIT", SPECIAL_ROLE.MANAGER)
+  @Roles('DELETE_MEASUREMENT_UNIT', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.measurementUnitService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

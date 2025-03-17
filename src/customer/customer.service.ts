@@ -1,19 +1,24 @@
-import { Injectable } from "@nestjs/common";
-import { CheckEmailDto, CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from "./dto/customer.dto";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { PrismaService } from "nestjs-prisma";
-import { CommonService } from "src/common/common.service";
-import { Prisma } from "@prisma/client";
-import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate, removeDiacritics } from "utils/Helps";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { Injectable } from '@nestjs/common'
+import {
+  CheckEmailDto,
+  CreateCustomerDto,
+  FindManyCustomerDto,
+  UpdateCustomerDto
+} from './dto/customer.dto'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { PrismaService } from 'nestjs-prisma'
+import { CommonService } from 'src/common/common.service'
+import { Prisma } from '@prisma/client'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class CustomerService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
-  ) { }
+    private commonService: CommonService
+  ) {}
 
   async create(data: CreateCustomerDto, tokenPayload: TokenPayload) {
     const customer = await this.prisma.customer.create({
@@ -27,9 +32,9 @@ export class CustomerService {
         ...(data.customerTypeId && {
           customerType: {
             connect: {
-              id: data.customerTypeId,
-            },
-          },
+              id: data.customerTypeId
+            }
+          }
         }),
         description: data.description,
         discount: data.discount,
@@ -43,70 +48,76 @@ export class CustomerService {
         shop: {
           connect: {
             id: tokenPayload.shopId,
-            isPublic: true,
-          },
+            isPublic: true
+          }
         },
         creator: {
           connect: {
-            id: tokenPayload.accountId,
-          },
-        },
-      },
-    });
+            id: tokenPayload.accountId
+          }
+        }
+      }
+    })
 
-    await this.commonService.createActivityLog([customer.id], "Customer", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [customer.id],
+      'Customer',
+      ACTIVITY_LOG_TYPE.CREATE,
+      tokenPayload
+    )
 
-    return customer;
+    return customer
   }
 
   async findAll(params: FindManyCustomerDto, tokenPayload: TokenPayload) {
-    const { page, perPage, keyword, customerTypeIds, from, to, orderBy } = params;
+    const { page, perPage, keyword, customerTypeIds, from, to, orderBy } =
+      params
 
-    const keySearch = ["name", "email", "phone"];
+    const keySearch = ['name', 'email', 'phone']
 
     const where: Prisma.CustomerWhereInput = {
       isPublic: true,
       ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: removeDiacritics(keyword) },
-        })),
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
       }),
       ...(customerTypeIds?.length > 0 && {
         customerType: {
           id: { in: customerTypeIds },
           isPublic: true,
-          shopId: tokenPayload.shopId,
-        },
+          shopId: tokenPayload.shopId
+        }
       }),
       ...(from &&
         to && {
-        createdAt: {
-          gte: from,
-          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-        },
-      }),
+          createdAt: {
+            gte: from,
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999))
+          }
+        }),
       ...(from &&
         !to && {
-        createdAt: {
-          gte: from,
-        },
-      }),
+          createdAt: {
+            gte: from
+          }
+        }),
       ...(!from &&
         to && {
-        createdAt: {
-          lte: new Date(new Date(to).setHours(23, 59, 59, 999)),
-        },
-      }),
+          createdAt: {
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999))
+          }
+        }),
       shop: {
         id: tokenPayload.shopId,
-        isPublic: true,
-      },
-    };
-    
+        isPublic: true
+      }
+    }
+
     return await customPaginate(
       this.prisma.customer,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         select: {
           id: true,
@@ -122,8 +133,8 @@ export class CustomerService {
               name: true,
               description: true,
               discount: true,
-              discountType: true,
-            },
+              discountType: true
+            }
           },
           description: true,
           discount: true,
@@ -135,26 +146,28 @@ export class CustomerService {
           representativeName: true,
           representativePhone: true,
           createdAt: true,
-          updatedAt: true,
-        },
+          updatedAt: true
+        }
       },
       {
         page,
-        perPage,
-      },
-    );
-
+        perPage
+      }
+    )
   }
 
-  async findUniq(where: Prisma.CustomerWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(
+    where: Prisma.CustomerWhereUniqueInput,
+    tokenPayload: TokenPayload
+  ) {
     return this.prisma.customer.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
         shop: {
           id: tokenPayload.shopId,
-          isPublic: true,
-        },
+          isPublic: true
+        }
       },
       include: {
         customerType: {
@@ -163,21 +176,21 @@ export class CustomerService {
             name: true,
             description: true,
             discount: true,
-            discountType: true,
-          },
-        },
-      },
-    });
+            discountType: true
+          }
+        }
+      }
+    })
   }
 
   async update(
     params: {
-      where: Prisma.CustomerWhereUniqueInput;
-      data: UpdateCustomerDto;
+      where: Prisma.CustomerWhereUniqueInput
+      data: UpdateCustomerDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { where, data } = params;
+    const { where, data } = params
 
     const customer = await this.prisma.customer.update({
       where: {
@@ -185,8 +198,8 @@ export class CustomerService {
         isPublic: true,
         shop: {
           id: tokenPayload.shopId,
-          isPublic: true,
-        },
+          isPublic: true
+        }
       },
       data: {
         name: data.name,
@@ -207,44 +220,54 @@ export class CustomerService {
         ...(data.customerTypeId && {
           customerType: {
             connect: {
-              id: data.customerTypeId,
-            },
-          },
+              id: data.customerTypeId
+            }
+          }
         }),
         updater: {
           connect: {
-            id: tokenPayload.accountId,
-          },
-        },
-      },
-    });
+            id: tokenPayload.accountId
+          }
+        }
+      }
+    })
 
-    await this.commonService.createActivityLog([customer.id], "Customer", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [customer.id],
+      'Customer',
+      ACTIVITY_LOG_TYPE.UPDATE,
+      tokenPayload
+    )
 
-    return customer;
+    return customer
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     const count = await this.prisma.customer.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: data.ids
         },
         isPublic: true,
         shop: {
           id: tokenPayload.shopId,
-          isPublic: true,
-        },
+          isPublic: true
+        }
       },
       data: {
         isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    await this.commonService.createActivityLog(data.ids, "Customer", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(
+      data.ids,
+      'Customer',
+      ACTIVITY_LOG_TYPE.DELETE,
+      tokenPayload
+    )
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 
   async checkEmailExisted(data: CheckEmailDto) {}

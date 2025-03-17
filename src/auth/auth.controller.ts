@@ -1,118 +1,154 @@
-import { Body, Controller, Get, Headers, HttpCode, HttpStatus, Patch, Post, Req, Res, UseGuards } from "@nestjs/common";
-import { Response, Request } from 'express';
-import { LoginForCustomerDto, LoginForManagerDto, LoginDto } from "./dto/login.dto";
-import { AuthService } from "./auth.service";
-import { AccessBranchDto } from "./dto/access-branch.dto";
-import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { TokenPayload } from "interfaces/common.interface";
-import { VerifyContactDto } from "src/shop/dto/verify-contact.dto";
-import { CustomHttpException } from "utils/ApiErrors";
-import { ChangeMyPasswordDto, ChangePasswordDto } from "./dto/change-password.dto";
-import { ChangeAvatarDto } from "./dto/change-information.dto";
-import { AccessBranchGuard } from "guards/access-branch.guard";
-import { SPECIAL_ROLE } from "enums/common.enum";
-import { Roles } from "guards/roles.decorator";
-@Controller("auth")
+import {
+  Body,
+  Controller,
+  Get,
+  Headers,
+  HttpCode,
+  HttpStatus,
+  Patch,
+  Post,
+  Req,
+  Res,
+  UseGuards
+} from '@nestjs/common'
+import { Response, Request } from 'express'
+import { LoginDto } from './dto/login.dto'
+import { AuthService } from './auth.service'
+import { AccessBranchDto } from './dto/access-branch.dto'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { TokenPayload } from 'interfaces/common.interface'
+import { VerifyContactDto } from 'src/shop/dto/verify-contact.dto'
+import { CustomHttpException } from 'utils/ApiErrors'
+import {
+  ChangeMyPasswordDto,
+  ChangePasswordDto
+} from './dto/change-password.dto'
+import { ChangeAvatarDto } from './dto/change-information.dto'
+import { AccessBranchGuard } from 'guards/access-branch.guard'
+import { SPECIAL_ROLE } from 'enums/common.enum'
+import { Roles } from 'guards/roles.decorator'
+@Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
-  @Post("/login")
+  @Post('/login')
   @HttpCode(HttpStatus.OK)
   login(@Body() loginDto: LoginDto) {
-    return this.authService.login(loginDto);
+    return this.authService.login(loginDto)
   }
 
-  @Post("/login-for-customer")
-  @HttpCode(HttpStatus.OK)
-  loginForCustomer(@Body() loginDto: LoginForCustomerDto) {
-    return this.authService.loginForCustomer(loginDto);
-  }
-
-  @Post("/access-branch")
+  @Post('/access-branch')
   @HttpCode(HttpStatus.OK)
   @UseGuards(AccessBranchGuard)
   async accessBranch(
     @Body() accessBranchDto: AccessBranchDto,
     @Res({ passthrough: true }) res: Response,
-    @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.authService.accessBranch({ ...accessBranchDto }, tokenPayload, res, req);
+    return this.authService.accessBranch(
+      { ...accessBranchDto },
+      tokenPayload,
+      res,
+      req
+    )
   }
 
-  @Post("/verify-contact")
+  @Post('/verify-contact')
   @HttpCode(HttpStatus.OK)
   verifyContact(@Body() verifyContactDto: VerifyContactDto) {
-    return this.authService.verifyContact(verifyContactDto);
+    return this.authService.verifyContact(verifyContactDto)
   }
 
-  @Post("/logout")
+  @Post('/logout')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   logout(@Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.authService.logout(tokenPayload);
+    return this.authService.logout(tokenPayload)
   }
 
-  @Patch("/change-password")
+  @Patch('/change-password')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  @Roles("UPDATE_EMPLOYEE", SPECIAL_ROLE.MANAGER)
-  changePassword(@Body() changePasswordDto: ChangePasswordDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.authService.changePassword(changePasswordDto, tokenPayload);
+  @Roles('UPDATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
+  changePassword(
+    @Body() changePasswordDto: ChangePasswordDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
+    return this.authService.changePassword(changePasswordDto, tokenPayload)
   }
 
-  @Patch("/change-my-password")
+  @Patch('/change-my-password')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  changeMyPassword(@Body() changeMyPasswordDto: ChangeMyPasswordDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.authService.changeMyPassword(changeMyPasswordDto, tokenPayload);
+  changeMyPassword(
+    @Body() changeMyPasswordDto: ChangeMyPasswordDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
+    return this.authService.changeMyPassword(changeMyPasswordDto, tokenPayload)
   }
 
-  @Patch("/change-information")
+  @Patch('/change-information')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  changeInformation(@Body() changeInformationDto: ChangeAvatarDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.authService.changeInformation(changeInformationDto, tokenPayload);
+  changeInformation(
+    @Body() changeInformationDto: ChangeAvatarDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
+    return this.authService.changeInformation(
+      changeInformationDto,
+      tokenPayload
+    )
   }
 
-  @Post("/me")
+  @Post('/me')
   @HttpCode(HttpStatus.OK)
-  getMe(@Headers("authorization") authHeader: string) {
+  getMe(@Headers('authorization') authHeader: string) {
     if (!authHeader) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Không tìm thấy auth header!");
+      throw new CustomHttpException(
+        HttpStatus.UNAUTHORIZED,
+        'Không tìm thấy auth header!'
+      )
     }
 
-    const [_, token] = authHeader.split(" ");
+    const [_, token] = authHeader.split(' ')
 
     if (!token) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Không tìm thấy token!");
+      throw new CustomHttpException(
+        HttpStatus.UNAUTHORIZED,
+        'Không tìm thấy token!'
+      )
     }
 
-    return this.authService.getMe(token);
+    return this.authService.getMe(token)
   }
 
-  @Post("/refresh-token")
+  @Post('/refresh-token')
   @HttpCode(HttpStatus.OK)
   refreshToken(@Req() req: Request, res: Response) {
-    const refreshToken = req.cookies['refreshToken'];
-    
+    const refreshToken = req.cookies['refreshToken']
+
     if (!refreshToken) {
-      throw new CustomHttpException(HttpStatus.UNAUTHORIZED, "Không tìm thấy token!");
+      throw new CustomHttpException(
+        HttpStatus.UNAUTHORIZED,
+        'Không tìm thấy token!'
+      )
     }
 
-    return this.authService.refreshToken(refreshToken);
+    return this.authService.refreshToken(refreshToken)
   }
 
-  @Get("/device")
+  @Get('/device')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   getDevice(@Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.authService.getDevice(tokenPayload);
+    const tokenPayload = req.tokenPayload as TokenPayload
+    return this.authService.getDevice(tokenPayload)
   }
 }

@@ -1,49 +1,54 @@
-import { IsEmail, IsNotEmpty, IsNumber, IsOptional, IsString } from "class-validator";
-import { PartialType } from "@nestjs/swagger";
-import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
-import { FindManyDto } from "utils/Common.dto";
-import { Transform, TransformFnParams } from "class-transformer";
+import {
+  IsEmail,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString
+} from 'class-validator'
+import { PartialType } from '@nestjs/swagger'
+import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
+import { FindManyDto } from 'utils/Common.dto'
+import { Transform, TransformFnParams } from 'class-transformer'
 
 export class CreateSupplierDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  name: string;
+  name: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsVietnamesePhoneNumber()
-  phone: string;
+  phone: string
 
   @IsOptional()
   @IsEmail()
-  email: string;
+  email: string
 
   @IsOptional()
   @IsString()
-  address: string;
+  address: string
 
   @IsOptional()
   @IsString()
-  note: string;
+  note: string
 
   @IsOptional()
   @IsString()
-  representativeName: string;
+  representativeName: string
 
   @IsOptional()
   @IsVietnamesePhoneNumber()
-  representativePhone: string;
+  representativePhone: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  supplierTypeId: string;
+  supplierTypeId: string
 }
 
 export class UpdateSupplierDto extends PartialType(CreateSupplierDto) {}
 
-
 export class FindManySupplierDto extends FindManyDto {
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(",");
+    return value?.split(',')
   })
-  supplierTypeIds?: string[];
+  supplierTypeIds?: string[]
 }

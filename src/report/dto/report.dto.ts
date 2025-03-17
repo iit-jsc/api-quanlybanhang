@@ -1,52 +1,59 @@
-import { Type } from "class-transformer";
-import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateIf } from "class-validator";
-import { REPORT_REVENUE_TYPE, TIME_TYPE } from "enums/common.enum";
+import { Type } from 'class-transformer'
+import {
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  ValidateIf
+} from 'class-validator'
+import { REPORT_REVENUE_TYPE, TIME_TYPE } from 'enums/common.enum'
 
 export class reportRevenueDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  from: Date;
+  from: Date
 
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  to: Date;
+  to: Date
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
   @IsNumber()
-  type: number;
+  type: number
 
-  @ValidateIf((o) => o.type === REPORT_REVENUE_TYPE.TOTAL_REVENUE)
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @ValidateIf(o => o.type === REPORT_REVENUE_TYPE.TOTAL_REVENUE)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
   @IsNumber()
-  timeType: number;
+  timeType: number
 
-  @ValidateIf((o) => o.timeType === TIME_TYPE.HOUR)
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @ValidateIf(o => o.timeType === TIME_TYPE.HOUR)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
   @IsNumber()
-  hourStart: number;
+  hourStart: number
 
-  @ValidateIf((o) => o.timeType === TIME_TYPE.HOUR)
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @ValidateIf(o => o.timeType === TIME_TYPE.HOUR)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
   @IsNumber()
-  hourEnd: number;
+  hourEnd: number
 }
 
 export class ReportCustomerDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  from: Date;
+  from: Date
 
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  to: Date;
+  to: Date
 }
 
 export class ReportProductDto {}

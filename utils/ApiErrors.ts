@@ -1,93 +1,112 @@
-import { ExceptionFilter, Catch, ArgumentsHost, ValidationError, HttpException, HttpStatus } from "@nestjs/common";
-import { Response } from "express";
-import { AnyObject } from "interfaces/common.interface";
+import {
+  ExceptionFilter,
+  Catch,
+  ArgumentsHost,
+  ValidationError,
+  HttpException,
+  HttpStatus
+} from '@nestjs/common'
+import { Response } from 'express'
+import { AnyObject } from 'interfaces/common.interface'
 interface ErrorResponse {
-  statusCode: number;
-  message: string;
-  errors?: AnyObject;
-  data?: AnyObject;
+  statusCode: number
+  message: string
+  errors?: AnyObject
+  data?: AnyObject
 }
 
 export class CustomHttpException extends HttpException {
-  constructor(statusCode: number, message: string, errors?: AnyObject, data?: AnyObject) {
+  constructor(
+    statusCode: number,
+    message: string,
+    errors?: AnyObject,
+    data?: AnyObject
+  ) {
     const response: ErrorResponse = {
       statusCode,
       message,
       errors,
-      data,
-    };
+      data
+    }
 
-    super(response, statusCode);
+    super(response, statusCode)
   }
 }
 
-export function errorFormatter(errors: ValidationError[], errMessage?: any, parentField?: string): any {
-  const message = errMessage || {};
-  let errorField = "";
-  let validationsList = [];
+export function errorFormatter(
+  errors: ValidationError[],
+  errMessage?: any,
+  parentField?: string
+): any {
+  const message = errMessage || {}
+  let errorField = ''
+  let validationsList = []
 
-  errors.forEach((error) => {
-    errorField = parentField ? `${parentField}.${error.property}` : error.property;
+  errors.forEach(error => {
+    errorField = parentField
+      ? `${parentField}.${error.property}`
+      : error.property
 
     if (!error.constraints && error.children?.length) {
-      errorFormatter(error.children, message, errorField);
+      errorFormatter(error.children, message, errorField)
     } else {
-      validationsList = Object.values(error.constraints || {});
-      message[errorField] = validationsList.length > 0 ? validationsList.pop() : "Invalid Value!";
+      validationsList = Object.values(error.constraints || {})
+      message[errorField] =
+        validationsList.length > 0 ? validationsList.pop() : 'Invalid Value!'
     }
-  });
+  })
 
-  return message;
+  return message
 }
 
 @Catch()
 export class PrismaExceptionFilter implements ExceptionFilter {
   catch(exception: any, host: ArgumentsHost) {
-    console.log(exception);
+    console.log(exception)
 
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
+    const ctx = host.switchToHttp()
+    const response = ctx.getResponse<Response>()
 
-    if (exception.code === "P2002") {
+    if (exception.code === 'P2002') {
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.CONFLICT,
-        message: "Dữ liệu đã tồn tại!",
-      });
+        message: 'Dữ liệu đã tồn tại!'
+      })
     }
 
-    if (exception.code === "P2011") {
+    if (exception.code === 'P2011') {
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.NOT_FOUND,
-        message: "Validation failed",
+        message: 'Validation failed',
         errors: {
-          [exception.meta.constraint[0]]: `Dữ liệu không tồn tại (1)!`,
-        },
-      });
+          [exception.meta.constraint[0]]: `Dữ liệu không tồn tại (1)!`
+        }
+      })
     }
 
-    if (exception.code === "P2003" || exception.code === "P2025") {
+    if (exception.code === 'P2003' || exception.code === 'P2025') {
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: HttpStatus.NOT_FOUND,
-        message: "Dữ liệu không tồn tại (2)!",
-      });
+        message: 'Dữ liệu không tồn tại (2)!'
+      })
     }
 
     if (exception instanceof HttpException) {
-      const status = exception.getStatus();
-      const { message, errors, data } = exception.getResponse() as any;
+      const status = exception.getStatus()
+      const { message, errors, data } = exception.getResponse() as any
 
       return response.status(HttpStatus.BAD_REQUEST).json({
         statusCode: status,
-        message: message || "UNKNOWN ERROR",
+        message: message || 'UNKNOWN ERROR',
         errors: errors || errors?.length > 0 ? errors : undefined,
-        data: data || undefined,
-      });
+        data: data || undefined
+      })
     }
 
     return response.status(HttpStatus.BAD_REQUEST).json({
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: "UNKNOWN ERROR",
-      error: exception,
-    });
+      message: 'UNKNOWN ERROR',
+      error: exception
+    })
   }
 }

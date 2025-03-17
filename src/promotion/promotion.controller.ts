@@ -10,20 +10,17 @@ import {
   HttpStatus,
   UseGuards,
   Query,
-  Req,
-} from '@nestjs/common';
-import { PromotionService } from './promotion.service';
-import {
-  CreatePromotionDto,
-  UpdatePromotionDto,
-} from './dto/promotion.dto';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { DeleteManyDto } from 'utils/Common.dto';
-import { TokenPayload } from 'interfaces/common.interface';
-import { RolesGuard } from 'guards/roles.guard';
-import { Roles } from 'guards/roles.decorator';
-import { SPECIAL_ROLE } from 'enums/common.enum';
-import { FindManyPromotionDto } from './dto/find-many.dto';
+  Req
+} from '@nestjs/common'
+import { PromotionService } from './promotion.service'
+import { CreatePromotionDto, UpdatePromotionDto } from './dto/promotion.dto'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { TokenPayload } from 'interfaces/common.interface'
+import { RolesGuard } from 'guards/roles.guard'
+import { Roles } from 'guards/roles.decorator'
+import { SPECIAL_ROLE } from 'enums/common.enum'
+import { FindManyPromotionDto } from './dto/find-many.dto'
 @Controller('promotion')
 export class PromotionController {
   constructor(private readonly promotionService: PromotionService) {}
@@ -33,25 +30,23 @@ export class PromotionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('CREATE_PROMOTION', SPECIAL_ROLE.MANAGER)
   create(@Body() createPromotionDto: CreatePromotionDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.promotionService.create(createPromotionDto, tokenPayload);
+    return this.promotionService.create(createPromotionDto, tokenPayload)
   }
 
   @Get()
   @HttpCode(HttpStatus.OK)
-  findAll(
-    @Query() data: FindManyPromotionDto,
-  ) {
-    return this.promotionService.findAll(data);
+  findAll(@Query() data: FindManyPromotionDto) {
+    return this.promotionService.findAll(data)
   }
 
   @Get(':id')
   @HttpCode(HttpStatus.OK)
   findUniq(@Param('id') id: string) {
     return this.promotionService.findUniq({
-      id,
-    });
+      id
+    })
   }
 
   @Patch(':id')
@@ -61,19 +56,19 @@ export class PromotionController {
   update(
     @Param('id') id: string,
     @Body() updatePromotionDto: UpdatePromotionDto,
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.promotionService.update(
       {
         where: {
-          id,
+          id
         },
-        data: updatePromotionDto,
+        data: updatePromotionDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
   @Delete('')
@@ -81,13 +76,13 @@ export class PromotionController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('DELETE_PROMOTION', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.promotionService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

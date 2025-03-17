@@ -1,5 +1,5 @@
-import { Type } from "class-transformer";
-import { OrderProducts } from "./order.dto";
+import { Type } from 'class-transformer'
+import { OrderProducts } from './order.dto'
 import {
   ArrayNotEmpty,
   IsEmail,
@@ -8,51 +8,51 @@ import {
   IsOptional,
   IsString,
   Min,
-  ValidateNested,
-} from "class-validator";
-import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
+  ValidateNested
+} from 'class-validator'
+import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class CreateOrderOnlineDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  branchId: string;
+  branchId: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  name: string;
+  name: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsVietnamesePhoneNumber()
-  phone: string;
+  phone: string
 
   @IsOptional()
   @IsEmail()
-  email: string;
+  email: string
 
   @IsOptional()
   @IsString()
-  address: string;
+  address: string
 
   @IsOptional()
   @IsString()
-  note: string;
+  note: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
-  @ArrayNotEmpty({ message: "Danh sách sản phẩm không được rỗng!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
   @ValidateNested({ each: true })
   @Type(() => OrderProducts)
-  orderProducts: OrderProducts[];
+  orderProducts: OrderProducts[]
 
   @IsOptional()
   @IsString()
-  discountCode: string;
+  discountCode: string
 
   @IsOptional()
   @IsNumber()
   @Min(1)
-  exchangePoint: number;
+  exchangePoint: number
 
   @IsOptional()
   @IsString()
-  promotionId: string;
+  promotionId: string
 }

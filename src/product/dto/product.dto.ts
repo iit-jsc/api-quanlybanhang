@@ -1,66 +1,76 @@
-import { PartialType } from "@nestjs/swagger";
-import { Transform, TransformFnParams, Type } from "class-transformer";
-import { ArrayNotEmpty, IsArray, IsEnum, IsNotEmpty, IsNumber, IsObject, IsOptional, IsString, Min } from "class-validator";
-import { PRODUCT_STATUS } from "enums/product.enum";
+import { PartialType } from '@nestjs/swagger'
+import { Transform, TransformFnParams, Type } from 'class-transformer'
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsObject,
+  IsOptional,
+  IsString,
+  Min
+} from 'class-validator'
+import { PRODUCT_STATUS } from 'enums/product.enum'
 
 export class CreateProductDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  name: string;
+  name: string
 
   @IsOptional()
   @IsString()
-  description?: string;
+  description?: string
 
   @IsOptional()
   @IsString()
-  content?: string;
+  content?: string
 
   @IsOptional()
   @IsString()
-  thumbnail?: string;
+  thumbnail?: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  unitId: string;
+  unitId: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  productTypeId: string;
+  productTypeId: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  slug: string;
+  slug: string
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
+  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  code: string;
+  code: string
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  price: number;
+  price: number
 
   @IsOptional()
   @IsNumber()
   @Min(0)
-  oldPrice: number;
+  oldPrice: number
 
   @IsOptional()
   @IsArray()
-  photoURLs: string[];
+  photoURLs: string[]
 
   @IsOptional()
   @IsObject()
-  otherAttributes: object;
+  otherAttributes: object
 
   @IsOptional()
-  @IsEnum(PRODUCT_STATUS, { message: "Trạng thái không hợp lệ!" })
-  status: number;
+  @IsEnum(PRODUCT_STATUS, { message: 'Trạng thái không hợp lệ!' })
+  status: number
 }
 
-export class UpdateProductDto extends PartialType(CreateProductDto) { }
+export class UpdateProductDto extends PartialType(CreateProductDto) {}

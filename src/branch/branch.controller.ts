@@ -1,4 +1,4 @@
-import { FindManyDto } from './../../utils/Common.dto';
+import { FindManyDto } from './../../utils/Common.dto'
 import {
   Body,
   Controller,
@@ -11,78 +11,88 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
-} from "@nestjs/common";
-import { BranchService } from "./branch.service";
-import { CreateBranchDto, UpdateBranchDto } from "./dto/create-branch.dto";
-import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto } from "utils/Common.dto";
-import { RolesGuard } from "guards/roles.guard";
-import { Roles } from "guards/roles.decorator";
-import { SPECIAL_ROLE } from "enums/common.enum";
+  UseGuards
+} from '@nestjs/common'
+import { BranchService } from './branch.service'
+import { CreateBranchDto, UpdateBranchDto } from './dto/create-branch.dto'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { TokenPayload } from 'interfaces/common.interface'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { RolesGuard } from 'guards/roles.guard'
+import { Roles } from 'guards/roles.decorator'
+import { SPECIAL_ROLE } from 'enums/common.enum'
 
-@Controller("branch")
+@Controller('branch')
 export class BranchController {
   constructor(private readonly branchService: BranchService) {}
 
-  @Post("")
+  @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_BRANCH", SPECIAL_ROLE.STORE_OWNER)
+  @Roles('CREATE_BRANCH', SPECIAL_ROLE.STORE_OWNER)
   create(@Body() createBranchDto: CreateBranchDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.branchService.create(createBranchDto, tokenPayload);
+    return this.branchService.create(createBranchDto, tokenPayload)
   }
 
-  @Get("")
+  @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_BRANCH", "UPDATE_BRANCH", "DELETE_BRANCH", "VIEW_BRANCH", SPECIAL_ROLE.STORE_OWNER)
+  @Roles(
+    'CREATE_BRANCH',
+    'UPDATE_BRANCH',
+    'DELETE_BRANCH',
+    'VIEW_BRANCH',
+    SPECIAL_ROLE.STORE_OWNER
+  )
   findAll(@Query() data: FindManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.branchService.findAll(data, tokenPayload);
+    return this.branchService.findAll(data, tokenPayload)
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
-  findUniq(@Param("id") id: string) {
+  findUniq(@Param('id') id: string) {
     return this.branchService.findUniq({
-      id,
-    });
+      id
+    })
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("UPDATE_BRANCH", SPECIAL_ROLE.STORE_OWNER)
-  update(@Param("id") id: string, @Body() updateBranchDto: UpdateBranchDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('UPDATE_BRANCH', SPECIAL_ROLE.STORE_OWNER)
+  update(
+    @Param('id') id: string,
+    @Body() updateBranchDto: UpdateBranchDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.branchService.update(
       {
         where: {
-          id,
+          id
         },
-        data: updateBranchDto,
+        data: updateBranchDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Delete("")
+  @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("DELETE_BRANCH", SPECIAL_ROLE.STORE_OWNER)
+  @Roles('DELETE_BRANCH', SPECIAL_ROLE.STORE_OWNER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.branchService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

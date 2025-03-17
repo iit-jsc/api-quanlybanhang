@@ -10,76 +10,92 @@ import {
   Post,
   Query,
   Req,
-  UseGuards,
-} from "@nestjs/common";
-import { ProductOptionGroupService } from "./product-option-group.service";
-import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { Roles } from "guards/roles.decorator";
-import { RolesGuard } from "guards/roles.guard";
-import { SPECIAL_ROLE } from "enums/common.enum";
-import { CreateProductOptionGroupDto, FindManyProductOptionGroupDto, UpdateProductOptionGroupDto } from "./dto/product-option-group.dto";
-import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto } from "utils/Common.dto";
+  UseGuards
+} from '@nestjs/common'
+import { ProductOptionGroupService } from './product-option-group.service'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { Roles } from 'guards/roles.decorator'
+import { RolesGuard } from 'guards/roles.guard'
+import { SPECIAL_ROLE } from 'enums/common.enum'
+import {
+  CreateProductOptionGroupDto,
+  FindManyProductOptionGroupDto,
+  UpdateProductOptionGroupDto
+} from './dto/product-option-group.dto'
+import { TokenPayload } from 'interfaces/common.interface'
+import { DeleteManyDto } from 'utils/Common.dto'
 
-@Controller("product-option-group")
+@Controller('product-option-group')
 export class ProductOptionGroupController {
-  constructor(private readonly productOptionGroupService: ProductOptionGroupService) {}
+  constructor(
+    private readonly productOptionGroupService: ProductOptionGroupService
+  ) {}
 
-  @Post("")
+  @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_PRODUCT_OPTION_GROUP", SPECIAL_ROLE.MANAGER)
-  create(@Body() createProductOptionGroupDto: CreateProductOptionGroupDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('CREATE_PRODUCT_OPTION_GROUP', SPECIAL_ROLE.MANAGER)
+  create(
+    @Body() createProductOptionGroupDto: CreateProductOptionGroupDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.productOptionGroupService.create(createProductOptionGroupDto, tokenPayload);
+    return this.productOptionGroupService.create(
+      createProductOptionGroupDto,
+      tokenPayload
+    )
   }
 
-  @Get("")
+  @Get('')
   @HttpCode(HttpStatus.OK)
   findAll(@Query() data: FindManyProductOptionGroupDto) {
-    return this.productOptionGroupService.findAll(data, data.branchId);
+    return this.productOptionGroupService.findAll(data, data.branchId)
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param("id") id: string) {
+  findUniq(@Param('id') id: string) {
     return this.productOptionGroupService.findUniq({
-      id,
-    });
+      id
+    })
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("UPDATE_PRODUCT_OPTION_GROUP", SPECIAL_ROLE.MANAGER)
-  update(@Param("id") id: string, @Body() UpdateProductOptionGroupDto: UpdateProductOptionGroupDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('UPDATE_PRODUCT_OPTION_GROUP', SPECIAL_ROLE.MANAGER)
+  update(
+    @Param('id') id: string,
+    @Body() UpdateProductOptionGroupDto: UpdateProductOptionGroupDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.productOptionGroupService.update(
       {
         where: {
-          id,
+          id
         },
-        data: UpdateProductOptionGroupDto,
+        data: UpdateProductOptionGroupDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Delete("")
+  @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("DELETE_PRODUCT_OPTION_GROUP", SPECIAL_ROLE.MANAGER)
+  @Roles('DELETE_PRODUCT_OPTION_GROUP', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.productOptionGroupService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

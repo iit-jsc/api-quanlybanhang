@@ -1,67 +1,89 @@
-import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Param, Patch, Post, Query, Req, UseGuards } from '@nestjs/common';
-import { CustomerRequestService } from './customer-request.service';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { CreateCustomerRequestDto, FindManyCustomerRequestDto, UpdateCustomerRequestDto } from './dto/customer-request.dto';
-import { TokenPayload } from 'interfaces/common.interface';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards
+} from '@nestjs/common'
+import { CustomerRequestService } from './customer-request.service'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import {
+  CreateCustomerRequestDto,
+  FindManyCustomerRequestDto,
+  UpdateCustomerRequestDto
+} from './dto/customer-request.dto'
+import { TokenPayload } from 'interfaces/common.interface'
 
 @Controller('customer-request')
 export class CustomerRequestController {
-  constructor(private readonly customerRequestService: CustomerRequestService) { }
+  constructor(
+    private readonly customerRequestService: CustomerRequestService
+  ) {}
 
-  @Post("")
+  @Post('')
   @HttpCode(HttpStatus.OK)
   create(@Body() createCustomerRequestDto: CreateCustomerRequestDto) {
-    return this.customerRequestService.create(createCustomerRequestDto);
+    return this.customerRequestService.create(createCustomerRequestDto)
   }
 
-  @Get("")
+  @Get('')
   @HttpCode(HttpStatus.OK)
   findAll(@Query() data: FindManyCustomerRequestDto) {
-
-    return this.customerRequestService.findAll(data);
+    return this.customerRequestService.findAll(data)
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  findUniq(@Param("id") id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  findUniq(@Param('id') id: string, @Req() req: any) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.customerRequestService.findUniq(
       {
-        id,
+        id
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  update(@Param("id") id: string, @Body() updateCustomerRequestDto: UpdateCustomerRequestDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  update(
+    @Param('id') id: string,
+    @Body() updateCustomerRequestDto: UpdateCustomerRequestDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.customerRequestService.update(
       {
         where: {
-          id,
+          id
         },
-        data: updateCustomerRequestDto,
+        data: updateCustomerRequestDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Delete("")
+  @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.customerRequestService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

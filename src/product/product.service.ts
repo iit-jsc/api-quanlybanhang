@@ -1,19 +1,19 @@
-import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { PrismaService } from "nestjs-prisma";
-import { customPaginate, removeDiacritics } from "utils/Helps";
-import { CreateProductDto, UpdateProductDto } from "./dto/product.dto";
-import { CommonService } from "src/common/common.service";
-import { FindManyProductDto } from "./dto/find-many.dto";
-import { DeleteManyDto } from "utils/Common.dto";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { PrismaService } from 'nestjs-prisma'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { CreateProductDto, UpdateProductDto } from './dto/product.dto'
+import { CommonService } from 'src/common/common.service'
+import { FindManyProductDto } from './dto/find-many.dto'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 @Injectable()
 export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
-  ) { }
+    private commonService: CommonService
+  ) {}
 
   async create(data: CreateProductDto, tokenPayload: TokenPayload) {
     const result = await this.prisma.product.create({
@@ -31,62 +31,76 @@ export class ProductService {
         photoURLs: data.photoURLs,
         productType: {
           connect: {
-            id: data.productTypeId,
-          },
+            id: data.productTypeId
+          }
         },
         branch: {
           connect: {
-            id: tokenPayload.branchId,
-          },
+            id: tokenPayload.branchId
+          }
         },
         measurementUnit: {
           connect: {
-            id: data.unitId,
-          },
+            id: data.unitId
+          }
         },
         creator: {
           connect: {
-            id: tokenPayload.accountId,
-          },
-        },
-      },
-    });
+            id: tokenPayload.accountId
+          }
+        }
+      }
+    })
 
-    await this.commonService.createActivityLog([result.id], "Product", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [result.id],
+      'Product',
+      ACTIVITY_LOG_TYPE.CREATE,
+      tokenPayload
+    )
 
-    return result;
+    return result
   }
 
   async findAll(params: FindManyProductDto) {
-    let { page, perPage, keyword, productTypeIds, measurementUnitIds, statuses, branchId, orderBy } = params;
-    const keySearch = ["name", "code", "slug"];
+    let {
+      page,
+      perPage,
+      keyword,
+      productTypeIds,
+      measurementUnitIds,
+      statuses,
+      branchId,
+      orderBy
+    } = params
+    const keySearch = ['name', 'code', 'slug']
 
     let where: Prisma.ProductWhereInput = {
       isPublic: true,
       branchId,
       ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: removeDiacritics(keyword) },
-        })),
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
       }),
       ...(productTypeIds?.length > 0 && {
         productType: {
-          id: { in: productTypeIds },
-        },
+          id: { in: productTypeIds }
+        }
       }),
       ...(measurementUnitIds?.length > 0 && {
         measurementUnit: {
-          id: { in: measurementUnitIds },
-        },
+          id: { in: measurementUnitIds }
+        }
       }),
       ...(statuses && { status: { in: statuses } }),
-      status: { in: statuses },
-    };
+      status: { in: statuses }
+    }
 
     return await customPaginate(
       this.prisma.product,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         select: {
           id: true,
@@ -107,8 +121,8 @@ export class ProductService {
             select: {
               id: true,
               name: true,
-              code: true,
-            },
+              code: true
+            }
           },
           productType: {
             select: {
@@ -116,35 +130,35 @@ export class ProductService {
               name: true,
               updatedAt: true,
               description: true,
-              slug: true,
+              slug: true
             },
             where: {
               isPublic: true
             }
           },
-          updatedAt: true,
-        },
+          updatedAt: true
+        }
       },
       {
         page,
-        perPage,
-      },
-    );
+        perPage
+      }
+    )
   }
 
   async findUniq(where: Prisma.ProductWhereInput) {
     return this.prisma.product.findFirst({
       where: {
         ...where,
-        isPublic: true,
+        isPublic: true
       },
       include: {
         measurementUnit: {
           select: {
             id: true,
             name: true,
-            code: true,
-          },
+            code: true
+          }
         },
         productType: {
           select: {
@@ -155,7 +169,7 @@ export class ProductService {
             slug: true,
             productOptionGroups: {
               where: {
-                isPublic: true,
+                isPublic: true
               },
               select: {
                 id: true,
@@ -165,36 +179,36 @@ export class ProductService {
                 updatedAt: true,
                 productOptions: {
                   where: {
-                    isPublic: true,
-                  },
+                    isPublic: true
+                  }
                 }
               }
-            },
+            }
           },
           where: {
             isPublic: true
           }
         }
-      },
-    });
+      }
+    })
   }
 
   async update(
     params: {
-      where: Prisma.ProductWhereUniqueInput;
-      data: UpdateProductDto;
+      where: Prisma.ProductWhereUniqueInput
+      data: UpdateProductDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { where, data } = params;
+    const { where, data } = params
 
     const result = await this.prisma.product.update({
       where: {
         ...where,
         branch: {
-          id: tokenPayload.branchId,
+          id: tokenPayload.branchId
         },
-        isPublic: true,
+        isPublic: true
       },
       data: {
         name: data.name,
@@ -210,34 +224,44 @@ export class ProductService {
         photoURLs: data.photoURLs,
         otherAttributes: data.otherAttributes,
         status: data.status,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    await this.commonService.createActivityLog([result.id], "Product", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [result.id],
+      'Product',
+      ACTIVITY_LOG_TYPE.UPDATE,
+      tokenPayload
+    )
 
-    return result;
+    return result
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     const count = await this.prisma.product.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: data.ids
         },
         isPublic: true,
         branch: {
-          id: tokenPayload.branchId,
-        },
+          id: tokenPayload.branchId
+        }
       },
       data: {
         isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    await this.commonService.createActivityLog(data.ids, "Product", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(
+      data.ids,
+      'Product',
+      ACTIVITY_LOG_TYPE.DELETE,
+      tokenPayload
+    )
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 }

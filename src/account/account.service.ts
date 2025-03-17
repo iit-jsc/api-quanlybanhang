@@ -1,11 +1,11 @@
-import { permission } from "process";
-import { TokenPayload } from "./../../interfaces/common.interface";
-import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { PrismaService } from "nestjs-prisma";
-import { CreateAccountDto } from "./dto/create-account.dto";
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
-import * as bcrypt from "bcrypt";
+import { permission } from 'process'
+import { TokenPayload } from './../../interfaces/common.interface'
+import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
+import { PrismaService } from 'nestjs-prisma'
+import { CreateAccountDto } from './dto/create-account.dto'
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum'
+import * as bcrypt from 'bcrypt'
 
 @Injectable()
 export class AccountService {
@@ -19,21 +19,21 @@ export class AccountService {
         status: data.status || ACCOUNT_STATUS.ACTIVE,
         branches: {
           connect: {
-            id: tokenPayload.branchId,
-          },
+            id: tokenPayload.branchId
+          }
         },
         user: {
           connect: {
-            id: data.userId,
-          },
+            id: data.userId
+          }
         },
         permissions: {
-          connect: data.permissionIds.map((id) => ({
-            id,
-          })),
+          connect: data.permissionIds.map(id => ({
+            id
+          }))
         },
         createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId
       },
       select: {
         id: true,
@@ -46,22 +46,22 @@ export class AccountService {
             email: true,
             phone: true,
             address: true,
-            photoURL: true,
-          },
+            photoURL: true
+          }
         },
-        permissions: true,
-      },
-    });
+        permissions: true
+      }
+    })
   }
 
   async update(
     params: {
-      where: Prisma.AccountWhereUniqueInput;
-      data: CreateAccountDto;
+      where: Prisma.AccountWhereUniqueInput
+      data: CreateAccountDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { where, data } = params;
+    const { where, data } = params
 
     return this.prisma.account.update({
       where: {
@@ -69,25 +69,25 @@ export class AccountService {
         isPublic: true,
         branches: {
           some: {
-            id: tokenPayload.branchId,
-          },
-        },
+            id: tokenPayload.branchId
+          }
+        }
       },
       data: {
         password: data.password ? bcrypt.hashSync(data.password, 10) : null,
         status: data.status,
         user: {
           connect: {
-            id: data.userId,
-          },
+            id: data.userId
+          }
         },
         permissions: {
-          set: data.permissionIds.map((id) => ({
-            id,
-          })),
+          set: data.permissionIds.map(id => ({
+            id
+          }))
         },
         createdBy: tokenPayload.accountId,
-        updatedBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId
       },
       select: {
         id: true,
@@ -100,11 +100,11 @@ export class AccountService {
             email: true,
             phone: true,
             address: true,
-            photoURL: true,
-          },
+            photoURL: true
+          }
         },
-        permissions: true,
-      },
-    });
+        permissions: true
+      }
+    })
   }
 }

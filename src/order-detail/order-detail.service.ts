@@ -1,42 +1,42 @@
-import { Prisma } from "@prisma/client";
-import { PrismaService } from "nestjs-prisma";
-import { HttpStatus, Injectable } from "@nestjs/common";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { UpdateOrderProductDto } from "src/order/dto/update-order-detail.dto";
-import { CustomHttpException } from "utils/ApiErrors";
-import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate } from "utils/Helps";
-import { PER_PAGE } from "enums/common.enum";
-import { paginator, PaginatorTypes } from "@nodeteam/nestjs-prisma-pagination";
-import { FindManyOrderDetailDto } from "./dto/order-detail.dto";
-const paginate: PaginatorTypes.PaginateFunction = paginator({ perPage: PER_PAGE });
+import { Prisma } from '@prisma/client'
+import { PrismaService } from 'nestjs-prisma'
+import { HttpStatus, Injectable } from '@nestjs/common'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { UpdateOrderProductDto } from 'src/order/dto/update-order-detail.dto'
+import { CustomHttpException } from 'utils/ApiErrors'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { customPaginate } from 'utils/Helps'
+import { PER_PAGE } from 'enums/common.enum'
+import { paginator, PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination'
+import { FindManyOrderDetailDto } from './dto/order-detail.dto'
+const paginate: PaginatorTypes.PaginateFunction = paginator({
+  perPage: PER_PAGE
+})
 
 @Injectable()
 export class OrderDetailService {
-  constructor(
-    private readonly prisma: PrismaService,
-  ) { }
+  constructor(private readonly prisma: PrismaService) {}
 
   async update(
     params: {
-      where: Prisma.OrderDetailWhereUniqueInput;
-      data: UpdateOrderProductDto;
+      where: Prisma.OrderDetailWhereUniqueInput
+      data: UpdateOrderProductDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { where, data } = params;
-    let productOptions = null;
-    await this.checkOrderPaidByDetailIds([where.id]);
+    const { where, data } = params
+    let productOptions = null
+    await this.checkOrderPaidByDetailIds([where.id])
 
     if (Array.isArray(data.productOptionIds)) {
       productOptions = await this.prisma.productOption.findMany({
         where: {
           id: {
-            in: data.productOptionIds,
+            in: data.productOptionIds
           },
-          isPublic: true,
-        },
-      });
+          isPublic: true
+        }
+      })
     }
 
     const orderDetail = await this.prisma.orderDetail.update({
@@ -44,42 +44,42 @@ export class OrderDetailService {
         id: where.id,
         branch: {
           isPublic: true,
-          id: tokenPayload.branchId,
-        },
+          id: tokenPayload.branchId
+        }
       },
       data: {
         amount: data.amount,
         status: data.status,
         note: data.note,
         ...(productOptions && { productOptions: productOptions }),
-        updatedBy: tokenPayload.accountId,
+        updatedBy: tokenPayload.accountId
       },
       include: {
-        order: true,
-      },
-    });
+        order: true
+      }
+    })
 
-    return orderDetail;
+    return orderDetail
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    await this.checkOrderPaidByDetailIds(data.ids);
+    await this.checkOrderPaidByDetailIds(data.ids)
 
     const count = await this.prisma.orderDetail.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: data.ids
         },
         isPublic: true,
-        branchId: tokenPayload.branchId,
+        branchId: tokenPayload.branchId
       },
       data: {
         isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 
   async checkOrderPaidByDetailIds(orderDetailIds: string[]) {
@@ -88,43 +88,59 @@ export class OrderDetailService {
         orderDetails: {
           some: {
             id: {
-              in: orderDetailIds,
+              in: orderDetailIds
             },
-            isPublic: true,
-          },
+            isPublic: true
+          }
         },
-        isPaid: true,
+        isPaid: true
       },
       select: {
-        id: true,
-      },
-    });
+        id: true
+      }
+    })
 
-    if (order) throw new CustomHttpException(HttpStatus.CONFLICT, "Đơn hàng này không thể cập nhật vì đã thanh toán!");
+    if (order)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        'Đơn hàng này không thể cập nhật vì đã thanh toán!'
+      )
   }
 
   async findAll(params: FindManyOrderDetailDto, tokenPayload: TokenPayload) {
-    let { page, perPage, orderBy, orderDetailStatuses, orderTypes, hasTable, from, to } = params;
-    
+    let {
+      page,
+      perPage,
+      orderBy,
+      orderDetailStatuses,
+      orderTypes,
+      hasTable,
+      from,
+      to
+    } = params
+
     const where: Prisma.OrderDetailWhereInput = {
       isPublic: true,
       branchId: tokenPayload.branchId,
-      ...(from && to && {
-        createdAt: {
-          gte: new Date(from),
-          lte: new Date(to),
-        },
-      }),
-      ...(from && !to && {
-        createdAt: {
-          gte: new Date(from),
-        },
-      }),
-      ...(!from && to && {
-        createdAt: {
-          lte: new Date(to),
-        },
-      }),
+      ...(from &&
+        to && {
+          createdAt: {
+            gte: new Date(from),
+            lte: new Date(to)
+          }
+        }),
+      ...(from &&
+        !to && {
+          createdAt: {
+            gte: new Date(from)
+          }
+        }),
+      ...(!from &&
+        to && {
+          createdAt: {
+            lte: new Date(to)
+          }
+        }),
       ...(orderDetailStatuses && {
         status: {
           in: orderDetailStatuses
@@ -132,20 +148,20 @@ export class OrderDetailService {
       }),
       ...(orderTypes && {
         order: {
-          orderType: { in: orderTypes },
-        },
+          orderType: { in: orderTypes }
+        }
       }),
       ...(typeof hasTable !== 'undefined' && {
         tableId: {
           not: null
         }
-      }),
-    };
+      })
+    }
 
     return await customPaginate(
       this.prisma.orderDetail,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         select: {
           id: true,
@@ -182,13 +198,13 @@ export class OrderDetailService {
             }
           },
           updatedAt: true,
-          createdAt: true,
-        },
+          createdAt: true
+        }
       },
       {
         page,
-        perPage,
-      },
-    );
+        perPage
+      }
+    )
   }
 }

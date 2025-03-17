@@ -12,83 +12,97 @@ import {
   Req,
   UploadedFile,
   UseGuards,
-  UseInterceptors,
-} from "@nestjs/common";
-import { TableService } from "./table.service";
-import { JwtAuthGuard } from "guards/jwt-auth.guard";
-import { CustomFileInterceptor } from "utils/Helps";
-import { TokenPayload } from "interfaces/common.interface";
-import { DeleteManyDto } from "utils/Common.dto";
-import { CreateTableDto, FindManyTableDto, UpdateTableDto } from "./dto/table.dto";
-import { Roles } from "guards/roles.decorator";
-import { SPECIAL_ROLE } from "enums/common.enum";
-import { RolesGuard } from "guards/roles.guard";
+  UseInterceptors
+} from '@nestjs/common'
+import { TableService } from './table.service'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { CustomFileInterceptor } from 'utils/Helps'
+import { TokenPayload } from 'interfaces/common.interface'
+import { DeleteManyDto } from 'utils/Common.dto'
+import {
+  CreateTableDto,
+  FindManyTableDto,
+  UpdateTableDto
+} from './dto/table.dto'
+import { Roles } from 'guards/roles.decorator'
+import { SPECIAL_ROLE } from 'enums/common.enum'
+import { RolesGuard } from 'guards/roles.guard'
 
-@Controller("table")
+@Controller('table')
 export class TableController {
   constructor(private readonly tableService: TableService) {}
 
-  @Post("")
+  @Post('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_TABLE", SPECIAL_ROLE.MANAGER)
+  @Roles('CREATE_TABLE', SPECIAL_ROLE.MANAGER)
   create(
     @Body() createTableDto: CreateTableDto,
 
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.tableService.create(createTableDto, tokenPayload);
+    return this.tableService.create(createTableDto, tokenPayload)
   }
 
-  @Patch(":id")
+  @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("UPDATE_TABLE", SPECIAL_ROLE.MANAGER)
-  update(@Param("id") id: string, @Body() updateTableDto: UpdateTableDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+  @Roles('UPDATE_TABLE', SPECIAL_ROLE.MANAGER)
+  update(
+    @Param('id') id: string,
+    @Body() updateTableDto: UpdateTableDto,
+    @Req() req: any
+  ) {
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.tableService.update(
       {
         where: {
-          id,
+          id
         },
-        data: updateTableDto,
+        data: updateTableDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
-  @Get("")
+  @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("CREATE_TABLE", "UPDATE_TABLE", "DELETE_TABLE", "VIEW_TABLE", SPECIAL_ROLE.MANAGER)
+  @Roles(
+    'CREATE_TABLE',
+    'UPDATE_TABLE',
+    'DELETE_TABLE',
+    'VIEW_TABLE',
+    SPECIAL_ROLE.MANAGER
+  )
   findAll(@Query() data: FindManyTableDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
-    return this.tableService.findAll(data, tokenPayload);
+    return this.tableService.findAll(data, tokenPayload)
   }
 
-  @Get(":id")
+  @Get(':id')
   @HttpCode(HttpStatus.OK)
-  findUniq(@Param("id") id: string) {
+  findUniq(@Param('id') id: string) {
     return this.tableService.findUniq({
-      id,
-    });
+      id
+    })
   }
 
-  @Delete("")
+  @Delete('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles("DELETE_TABLE", SPECIAL_ROLE.MANAGER)
+  @Roles('DELETE_TABLE', SPECIAL_ROLE.MANAGER)
   deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.tableService.deleteMany(
       {
-        ids: deleteManyDto.ids,
+        ids: deleteManyDto.ids
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

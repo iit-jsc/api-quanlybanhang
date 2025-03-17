@@ -10,13 +10,13 @@ import {
   HttpStatus,
   UseGuards,
   Req,
-  Query,
-} from '@nestjs/common';
-import { OrderStatusService } from './order-status.service';
-import { CreateOrderStatusDto } from './dto/create-order-status.dto';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto';
-import { TokenPayload } from 'interfaces/common.interface';
+  Query
+} from '@nestjs/common'
+import { OrderStatusService } from './order-status.service'
+import { CreateOrderStatusDto } from './dto/create-order-status.dto'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+import { TokenPayload } from 'interfaces/common.interface'
 
 @Controller('order-status')
 export class OrderStatusController {

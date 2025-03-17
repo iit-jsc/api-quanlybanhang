@@ -7,12 +7,12 @@ import {
   Patch,
   Post,
   Req,
-  UseGuards,
-} from '@nestjs/common';
-import { AccountService } from './account.service';
-import { CreateAccountDto } from './dto/create-account.dto';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenPayload } from 'interfaces/common.interface';
+  UseGuards
+} from '@nestjs/common'
+import { AccountService } from './account.service'
+import { CreateAccountDto } from './dto/create-account.dto'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { TokenPayload } from 'interfaces/common.interface'
 
 @Controller('account')
 export class AccountController {
@@ -22,8 +22,8 @@ export class AccountController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   create(@Body() createAccountDto: CreateAccountDto, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.accountService.create(createAccountDto, tokenPayload);
+    const tokenPayload = req.tokenPayload as TokenPayload
+    return this.accountService.create(createAccountDto, tokenPayload)
   }
 
   @Patch(':id')
@@ -32,18 +32,18 @@ export class AccountController {
   update(
     @Param('id') id: string,
     @Body() createAccountDto: CreateAccountDto,
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
 
     return this.accountService.update(
       {
         where: {
-          id,
+          id
         },
-        data: createAccountDto,
+        data: createAccountDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 }

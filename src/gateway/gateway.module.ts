@@ -1,8 +1,8 @@
-import { Module } from '@nestjs/common';
-import { OrderGateway } from './order.gateway';
-import { TableGateway } from './table.gateway';
-import { CustomerRequestGateway } from './customer-request.gateway';
-import { FirebaseModule } from 'src/firebase/firebase.module';
+import { Module } from '@nestjs/common'
+import { OrderGateway } from './order.gateway'
+import { TableGateway } from './table.gateway'
+import { CustomerRequestGateway } from './customer-request.gateway'
+import { FirebaseModule } from 'src/firebase/firebase.module'
 
 @Module({
   controllers: [],
@@ -10,4 +10,4 @@ import { FirebaseModule } from 'src/firebase/firebase.module';
   exports: [OrderGateway, TableGateway, CustomerRequestGateway],
   imports: [FirebaseModule]
 })
-export class GatewayModule { }
+export class GatewayModule {}

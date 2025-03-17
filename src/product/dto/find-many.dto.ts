@@ -1,34 +1,34 @@
-import { Transform, TransformFnParams, Type } from "class-transformer";
-import { IsNotEmpty, IsOptional, IsString } from "class-validator";
-import { FindManyDto } from "utils/Common.dto";
+import { Transform, TransformFnParams, Type } from 'class-transformer'
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { FindManyDto } from 'utils/Common.dto'
 
 export class FindManyProductDto extends FindManyDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
-  branchId: string;
+  branchId: string
 
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @Type(() => String)
-  keyword?: string;
+  keyword?: string
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(",").map((id: string) => id.trim());
+    return value?.split(',').map((id: string) => id.trim())
   })
-  measurementUnitIds: string[];
+  measurementUnitIds: string[]
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(",").map((id: string) => id.trim());
+    return value?.split(',').map((id: string) => id.trim())
   })
-  productTypeIds: string[];
+  productTypeIds: string[]
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value
-      ?.split(",")
+      ?.split(',')
       .map((id: string) => parseInt(id.trim()))
-      .filter((id: number) => !isNaN(id));
+      .filter((id: number) => !isNaN(id))
   })
-  statuses?: number[];
+  statuses?: number[]
 }

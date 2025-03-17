@@ -1,5 +1,5 @@
-import { PartialType } from '@nestjs/swagger';
-import { Transform, TransformFnParams, Type } from 'class-transformer';
+import { PartialType } from '@nestjs/swagger'
+import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   IsBoolean,
   IsDate,
@@ -11,77 +11,77 @@ import {
   Max,
   MinDate,
   ValidateIf,
-  ValidationArguments,
-} from 'class-validator';
-import { DISCOUNT_TYPE } from 'enums/common.enum';
-import { FindManyDto } from 'utils/Common.dto';
+  ValidationArguments
+} from 'class-validator'
+import { DISCOUNT_TYPE } from 'enums/common.enum'
+import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateDiscountIssueDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  name: string;
+  name: string
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  code: string;
+  code: string
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Type(() => Number)
   @IsEnum(DISCOUNT_TYPE, { message: 'Giảm giá không hợp lệ!' })
-  discountType: number;
+  discountType: number
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  @ValidateIf((o) => o.discountType === DISCOUNT_TYPE.PERCENT)
+  @ValidateIf(o => o.discountType === DISCOUNT_TYPE.PERCENT)
   @Max(100)
-  discount: number;
+  discount: number
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: 'Ngày tháng không hợp lệ!' })
   @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
-    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!',
+    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!'
   })
-  startDate: Date;
+  startDate: Date
 
-  @ValidateIf((o) => o.endDate)
+  @ValidateIf(o => o.endDate)
   @Transform(({ value }) => value && new Date(value))
   @IsDate({ message: 'Ngày tháng không hợp lệ!' })
   @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
-    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!',
+    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!'
   })
-  endDate: Date;
+  endDate: Date
 
   @IsOptional()
   @IsBoolean()
-  isEndDateDisabled: boolean;
+  isEndDateDisabled: boolean
 
   @IsOptional()
   @IsString()
-  description: string;
+  description: string
 
-  @ValidateIf((o) => o.isLimit === true)
+  @ValidateIf(o => o.isLimit === true)
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  amount: number;
+  amount: number
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsBoolean()
-  isLimit: boolean;
+  isLimit: boolean
 
   @IsOptional()
   @IsNumber()
-  minTotalOrder: number;
+  minTotalOrder: number
 
   @IsOptional()
   @IsNumber()
-  maxValue: number;
+  maxValue: number
 }
 
 export class UpdateDiscountIssueDto extends PartialType(
-  CreateDiscountIssueDto,
+  CreateDiscountIssueDto
 ) {}
 
 export class findUniqByDiscountCodeDto {
@@ -94,5 +94,5 @@ export class findUniqByDiscountCodeDto {
 
 export class FindManyDiscountIssueDto extends FindManyDto {
   @Type(() => Number)
-  totalOrder?: number;
+  totalOrder?: number
 }

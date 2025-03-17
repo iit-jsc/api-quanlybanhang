@@ -1,23 +1,29 @@
-import { Transform, TransformFnParams } from "class-transformer";
-import { IsBoolean, IsNotEmpty, IsOptional, IsString, ValidateIf } from "class-validator";
-import { IsVietnamesePhoneNumber } from "utils/CustomValidates";
+import { Transform, TransformFnParams } from 'class-transformer'
+import {
+  IsBoolean,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  ValidateIf
+} from 'class-validator'
+import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class VerifyContactDto {
-  @ValidateIf((o) => !o.email)
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @ValidateIf(o => !o.email)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsVietnamesePhoneNumber()
   @IsString()
-  phone: string;
+  phone: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  shopId: string;
+  shopId: string
 
-  @ValidateIf((o) => !o.phone)
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @ValidateIf(o => !o.phone)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  email: string;
+  email: string
 }

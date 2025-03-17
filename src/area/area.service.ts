@@ -1,19 +1,19 @@
-import { Injectable } from "@nestjs/common";
-import { Prisma } from "@prisma/client";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { PrismaService } from "nestjs-prisma";
-import { DeleteManyDto } from "utils/Common.dto";
-import { customPaginate, removeDiacritics } from "utils/Helps";
-import { CreateAreaDto, FindManyAreaDto, UpdateAreaDto } from "./dto/area.dto";
-import { CommonService } from "src/common/common.service";
-import { ACTIVITY_LOG_TYPE } from "enums/common.enum";
+import { Injectable } from '@nestjs/common'
+import { Prisma } from '@prisma/client'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { PrismaService } from 'nestjs-prisma'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { CreateAreaDto, FindManyAreaDto, UpdateAreaDto } from './dto/area.dto'
+import { CommonService } from 'src/common/common.service'
+import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class AreaService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
-  ) { }
+    private commonService: CommonService
+  ) {}
 
   async create(data: CreateAreaDto, tokenPayload: TokenPayload) {
     const area = await this.prisma.area.create({
@@ -22,65 +22,70 @@ export class AreaService {
         photoURL: data.photoURL,
         tables: {
           create: {
-            name: "Bàn 01",
+            name: 'Bàn 01',
             isPublic: true,
-            branchId: tokenPayload.branchId,
-          },
+            branchId: tokenPayload.branchId
+          }
         },
         branch: {
           connect: {
-            id: tokenPayload.branchId,
-          },
+            id: tokenPayload.branchId
+          }
         },
         creator: {
           connect: {
-            id: tokenPayload.accountId,
-          },
-        },
-      },
-    });
+            id: tokenPayload.accountId
+          }
+        }
+      }
+    })
 
-    await this.commonService.createActivityLog([area.id], "Area", ACTIVITY_LOG_TYPE.CREATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [area.id],
+      'Area',
+      ACTIVITY_LOG_TYPE.CREATE,
+      tokenPayload
+    )
 
-    return area;
+    return area
   }
 
   async findAll(params: FindManyAreaDto, tokenPayload: TokenPayload) {
-    const { page, perPage, keyword, tableKeyword, orderBy, areaIds } = params;
+    const { page, perPage, keyword, tableKeyword, orderBy, areaIds } = params
 
-    const keySearch = ["name"];
+    const keySearch = ['name']
 
     const where: Prisma.AreaWhereInput = {
       isPublic: true,
       ...(areaIds && {
         id: {
           in: areaIds
-        },
+        }
       }),
       tables: {
         some: {
           ...(tableKeyword && {
-            OR: keySearch.map((key) => ({
-              [key]: { contains: tableKeyword },
-            })),
-          }),
+            OR: keySearch.map(key => ({
+              [key]: { contains: tableKeyword }
+            }))
+          })
         }
       },
       ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: removeDiacritics(keyword) },
-        })),
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
       }),
       branch: {
         id: tokenPayload.branchId,
-        isPublic: true,
-      },
-    };
+        isPublic: true
+      }
+    }
 
     return await customPaginate(
       this.prisma.area,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         select: {
           id: true,
@@ -91,10 +96,10 @@ export class AreaService {
             where: {
               isPublic: true,
               ...(tableKeyword && {
-                OR: keySearch.map((key) => ({
-                  [key]: { contains: tableKeyword },
-                })),
-              }),
+                OR: keySearch.map(key => ({
+                  [key]: { contains: tableKeyword }
+                }))
+              })
             },
             select: {
               id: true,
@@ -103,9 +108,9 @@ export class AreaService {
               updatedAt: true,
               orderDetails: {
                 where: {
-                  isPublic: true,
+                  isPublic: true
                 },
-                orderBy: { createdAt: "asc" },
+                orderBy: { createdAt: 'asc' },
                 select: {
                   id: true,
                   amount: true,
@@ -114,49 +119,51 @@ export class AreaService {
                   createdAt: true,
                   product: true,
                   productOptions: true
-                },
-              },
+                }
+              }
             }
-          },
-        },
+          }
+        }
       },
       {
         page,
-        perPage,
-      },
-    );
-
+        perPage
+      }
+    )
   }
 
-  async findUniq(where: Prisma.AreaWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(
+    where: Prisma.AreaWhereUniqueInput,
+    tokenPayload: TokenPayload
+  ) {
     return this.prisma.area.findUniqueOrThrow({
       where: {
         ...where,
         isPublic: true,
         branch: {
           isPublic: true,
-          id: tokenPayload.branchId,
-        },
+          id: tokenPayload.branchId
+        }
       },
       include: {
         tables: {
           where: {
             branchId: tokenPayload.branchId,
-            isPublic: true,
-          },
-        },
-      },
-    });
+            isPublic: true
+          }
+        }
+      }
+    })
   }
 
   async update(
     params: {
-      where: Prisma.AreaWhereUniqueInput;
-      data: UpdateAreaDto;
+      where: Prisma.AreaWhereUniqueInput
+      data: UpdateAreaDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { where, data } = params;
+    const { where, data } = params
 
     const area = await this.prisma.area.update({
       where: {
@@ -164,55 +171,65 @@ export class AreaService {
         isPublic: true,
         branch: {
           id: tokenPayload.branchId,
-          isPublic: true,
-        },
+          isPublic: true
+        }
       },
       data: {
         name: data.name,
         photoURL: data.photoURL,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
-    await this.commonService.createActivityLog([area.id], "Area", ACTIVITY_LOG_TYPE.UPDATE, tokenPayload);
+    await this.commonService.createActivityLog(
+      [area.id],
+      'Area',
+      ACTIVITY_LOG_TYPE.UPDATE,
+      tokenPayload
+    )
 
-    return area;
+    return area
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
     const count = await this.prisma.area.updateMany({
       where: {
         id: {
-          in: data.ids,
+          in: data.ids
         },
         isPublic: true,
         branch: {
           id: tokenPayload.branchId,
-          isPublic: true,
-        },
+          isPublic: true
+        }
       },
       data: {
         isPublic: false,
-        updatedBy: tokenPayload.accountId,
-      },
-    });
+        updatedBy: tokenPayload.accountId
+      }
+    })
 
     await this.prisma.table.updateMany({
       where: {
         area: {
           id: {
-            in: data.ids,
-          },
+            in: data.ids
+          }
         },
-        isPublic: true,
+        isPublic: true
       },
       data: {
-        isPublic: false,
-      },
-    });
+        isPublic: false
+      }
+    })
 
-    await this.commonService.createActivityLog(data.ids, "Area", ACTIVITY_LOG_TYPE.DELETE, tokenPayload);
+    await this.commonService.createActivityLog(
+      data.ids,
+      'Area',
+      ACTIVITY_LOG_TYPE.DELETE,
+      tokenPayload
+    )
 
-    return { ...count, ids: data.ids } as DeleteManyResponse;
+    return { ...count, ids: data.ids } as DeleteManyResponse
   }
 }

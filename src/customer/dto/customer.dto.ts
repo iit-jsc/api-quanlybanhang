@@ -1,5 +1,5 @@
-import { PartialType } from "@nestjs/swagger";
-import { Transform, TransformFnParams, Type } from "class-transformer";
+import { PartialType } from '@nestjs/swagger'
+import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   IsBoolean,
   IsDate,
@@ -11,93 +11,96 @@ import {
   IsString,
   MaxDate,
   Validate,
-  ValidateIf,
-} from "class-validator";
-import { DISCOUNT_TYPE } from "enums/common.enum";
-import { ENDOW_TYPE, SEX_TYPE } from "enums/user.enum";
-import { FindManyDto } from "utils/Common.dto";
-import { DiscountConstraint, IsVietnamesePhoneNumber } from "utils/CustomValidates";
+  ValidateIf
+} from 'class-validator'
+import { DISCOUNT_TYPE } from 'enums/common.enum'
+import { ENDOW_TYPE, SEX_TYPE } from 'enums/user.enum'
+import { FindManyDto } from 'utils/Common.dto'
+import {
+  DiscountConstraint,
+  IsVietnamesePhoneNumber
+} from 'utils/CustomValidates'
 
 export class CreateCustomerDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
-  name: string;
+  name: string
 
   @IsOptional()
   @IsString()
-  customerTypeId: string;
+  customerTypeId: string
 
   @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: "Không được là chuỗi rỗng!" })
+  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  code: string;
+  code: string
 
   @IsOptional()
   @IsEmail()
-  email: string;
+  email: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
   @IsVietnamesePhoneNumber()
-  phone: string;
+  phone: string
 
   @IsOptional()
   @IsString()
-  address: string;
+  address: string
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsBoolean()
-  isOrganize: boolean;
+  isOrganize: boolean
 
   @IsOptional()
   @IsString()
-  description: string;
+  description: string
 
   @IsOptional()
   @IsString()
-  representativeName: string;
+  representativeName: string
 
   @IsOptional()
   @IsString()
-  representativePhone: string;
+  representativePhone: string
 
   @IsOptional()
   @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: "Ngày tháng không hợp lệ!" })
-  @MaxDate(new Date(), { message: "Ngày tháng phải nhỏ hơn ngày hiện tại!" })
-  birthday: Date;
+  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
+  @MaxDate(new Date(), { message: 'Ngày tháng phải nhỏ hơn ngày hiện tại!' })
+  birthday: Date
 
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  @IsEnum(ENDOW_TYPE, { message: "Endow không hợp lệ!" })
-  endow: number;
+  @IsEnum(ENDOW_TYPE, { message: 'Endow không hợp lệ!' })
+  endow: number
 
-  @ValidateIf((o) => o.endow === ENDOW_TYPE.BY_CUSTOMER)
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @ValidateIf(o => o.endow === ENDOW_TYPE.BY_CUSTOMER)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
   @Validate(DiscountConstraint)
-  discount: number;
+  discount: number
 
-  @ValidateIf((o) => o.endow === ENDOW_TYPE.BY_CUSTOMER)
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @ValidateIf(o => o.endow === ENDOW_TYPE.BY_CUSTOMER)
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsNumber()
-  @IsEnum(DISCOUNT_TYPE, { message: "Loại giảm giá không hợp lệ!" })
-  discountType: number;
+  @IsEnum(DISCOUNT_TYPE, { message: 'Loại giảm giá không hợp lệ!' })
+  discountType: number
 
   @IsOptional()
   @IsNumber()
-  @IsEnum(SEX_TYPE, { message: "Giới tính không hợp lệ!" })
-  sex: number;
+  @IsEnum(SEX_TYPE, { message: 'Giới tính không hợp lệ!' })
+  sex: number
 
   @IsOptional()
   @IsString()
-  fax: string;
+  fax: string
 
   @IsOptional()
   @IsString()
-  tax: string;
+  tax: string
 }
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
@@ -105,34 +108,32 @@ export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
 export class FindManyCustomerDto extends FindManyDto {
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(",").map((id: string) => id.trim());
+    return value?.split(',').map((id: string) => id.trim())
   })
-  customerTypeIds: string[];
+  customerTypeIds: string[]
 
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  from?: Date;
+  from?: Date
 
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  to?: Date;
+  to?: Date
 }
 
 export class CheckEmailDto {
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @IsVietnamesePhoneNumber()
-  phone: string;
+  phone: string
 
-
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsEmail()
-  email: string;
+  email: string
 
-
-  @IsNotEmpty({ message: "Không được để trống!" })
+  @IsNotEmpty({ message: 'Không được để trống!' })
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  shopId: string;
+  shopId: string
 }

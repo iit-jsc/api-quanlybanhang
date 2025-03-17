@@ -3,9 +3,9 @@ import {
   ValidationOptions,
   ValidationArguments,
   ValidatorConstraint,
-  ValidatorConstraintInterface,
-} from 'class-validator';
-import { DISCOUNT_TYPE } from 'enums/common.enum';
+  ValidatorConstraintInterface
+} from 'class-validator'
+import { DISCOUNT_TYPE } from 'enums/common.enum'
 
 export function IsVietnamesePhoneNumber(validationOptions?: ValidationOptions) {
   return function (object: Object, propertyName: string) {
@@ -16,33 +16,33 @@ export function IsVietnamesePhoneNumber(validationOptions?: ValidationOptions) {
       options: validationOptions,
       validator: {
         validate(value: any, args: ValidationArguments) {
-          const regex = /^0\d{9,10}$/;
-          return typeof value === 'string' && regex.test(value);
+          const regex = /^0\d{9,10}$/
+          return typeof value === 'string' && regex.test(value)
         },
         defaultMessage(args: ValidationArguments) {
-          return `Số điện thoại không hợp lệ`;
-        },
-      },
-    });
-  };
+          return `Số điện thoại không hợp lệ`
+        }
+      }
+    })
+  }
 }
 
 @ValidatorConstraint({ name: 'discountConstraint', async: false })
 export class DiscountConstraint implements ValidatorConstraintInterface {
   validate(discount: any, args: ValidationArguments) {
-    const relatedValues = args.object as any;
+    const relatedValues = args.object as any
 
     if (
       relatedValues.discountType === DISCOUNT_TYPE.PERCENT &&
       discount > 100
     ) {
-      return false;
+      return false
     }
 
-    return true;
+    return true
   }
 
   defaultMessage(args: ValidationArguments) {
-    return 'Giá trị phải nhỏ hơn hoặc bằng 100.';
+    return 'Giá trị phải nhỏ hơn hoặc bằng 100.'
   }
 }

@@ -7,12 +7,12 @@ import {
   Param,
   Patch,
   Req,
-  UseGuards,
-} from '@nestjs/common';
-import { PointSettingService } from './point-setting.service';
-import { JwtAuthGuard } from 'guards/jwt-auth.guard';
-import { TokenPayload } from 'interfaces/common.interface';
-import { UpdatePointSettingDto } from './dto/point-setting.dto';
+  UseGuards
+} from '@nestjs/common'
+import { PointSettingService } from './point-setting.service'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { TokenPayload } from 'interfaces/common.interface'
+import { UpdatePointSettingDto } from './dto/point-setting.dto'
 
 @Controller('point-setting')
 export class PointSettingController {
@@ -23,22 +23,22 @@ export class PointSettingController {
   @UseGuards(JwtAuthGuard)
   update(
     @Body() updatePointSettingDto: UpdatePointSettingDto,
-    @Req() req: any,
+    @Req() req: any
   ) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
+    const tokenPayload = req.tokenPayload as TokenPayload
     return this.pointSettingService.update(
       {
-        data: updatePointSettingDto,
+        data: updatePointSettingDto
       },
-      tokenPayload,
-    );
+      tokenPayload
+    )
   }
 
   @Get('')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   findUniq(@Param('id') id: string, @Req() req: any) {
-    const tokenPayload = req.tokenPayload as TokenPayload;
-    return this.pointSettingService.findUniq(tokenPayload);
+    const tokenPayload = req.tokenPayload as TokenPayload
+    return this.pointSettingService.findUniq(tokenPayload)
   }
 }

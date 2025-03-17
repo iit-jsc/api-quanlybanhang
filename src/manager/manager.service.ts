@@ -1,62 +1,77 @@
-import * as bcrypt from "bcrypt";
-import { HttpStatus, Injectable } from "@nestjs/common";
-import { CreateManagerDto, FindManyManagerDto, UpdateManagerDto } from "./dto/manager.dto";
-import { DeleteManyResponse, TokenPayload } from "interfaces/common.interface";
-import { Prisma } from "@prisma/client";
-import { DeleteManyDto } from "utils/Common.dto";
-import { PrismaService } from "nestjs-prisma";
-import { CommonService } from "src/common/common.service";
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from "enums/user.enum";
-import { customPaginate, removeDiacritics } from "utils/Helps";
-import { CustomHttpException } from "utils/ApiErrors";
+import * as bcrypt from 'bcrypt'
+import { HttpStatus, Injectable } from '@nestjs/common'
+import {
+  CreateManagerDto,
+  FindManyManagerDto,
+  UpdateManagerDto
+} from './dto/manager.dto'
+import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
+import { Prisma } from '@prisma/client'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { PrismaService } from 'nestjs-prisma'
+import { CommonService } from 'src/common/common.service'
+import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { CustomHttpException } from 'utils/ApiErrors'
 
 @Injectable()
 export class ManagerService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService,
-  ) { }
+    private commonService: CommonService
+  ) {}
 
   async checkManagerExisting(username: string, id?: string) {
     let ownerShopAccount = await this.prisma.account.findFirst({
       where: {
         isPublic: true,
-        OR: [{ type: ACCOUNT_TYPE.MANAGER }, { type: ACCOUNT_TYPE.STORE_OWNER }],
+        OR: [
+          { type: ACCOUNT_TYPE.MANAGER },
+          { type: ACCOUNT_TYPE.STORE_OWNER }
+        ],
         username: {
-          equals: username?.trim(),
+          equals: username?.trim()
         },
         user: {
           id: {
-            not: id,
-          },
-        },
-      },
-    });
+            not: id
+          }
+        }
+      }
+    })
 
-    if (ownerShopAccount) throw new CustomHttpException(HttpStatus.CONFLICT, "Tài khoản đã tồn tại!");
+    if (ownerShopAccount)
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        'Tài khoản đã tồn tại!'
+      )
   }
 
   async checkBranchesInShop(branchIds: string[], shopId: string) {
     const invalidBranch = await this.prisma.branch.findFirst({
       where: {
         id: {
-          in: branchIds,
+          in: branchIds
         },
         shopId: {
-          not: shopId,
+          not: shopId
         },
-        isPublic: true,
-      },
-    });
+        isPublic: true
+      }
+    })
 
-    if (invalidBranch) throw new CustomHttpException(HttpStatus.NOT_FOUND, "Chi nhánh không tồn tại!");
+    if (invalidBranch)
+      throw new CustomHttpException(
+        HttpStatus.NOT_FOUND,
+        'Chi nhánh không tồn tại!'
+      )
   }
 
   async create(data: CreateManagerDto, tokenPayload: TokenPayload) {
     // Kiểm tra chi nhánh thuộc shop không
-    await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
+    await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId)
 
-    return await this.prisma.$transaction(async (prisma) => {
+    return await this.prisma.$transaction(async prisma => {
       const user = await prisma.user.create({
         data: {
           name: data.name,
@@ -71,9 +86,9 @@ export class ManagerService {
           address: data.address,
           cardId: data.cardId,
           cardAddress: data.cardAddress,
-          createdBy: tokenPayload.accountId,
-        },
-      });
+          createdBy: tokenPayload.accountId
+        }
+      })
 
       await prisma.account.create({
         data: {
@@ -83,29 +98,29 @@ export class ManagerService {
           type: ACCOUNT_TYPE.MANAGER,
           user: {
             connect: {
-              id: user.id,
-            },
+              id: user.id
+            }
           },
-          branches: { connect: data.branchIds?.map((id: string) => ({ id })) },
-        },
-      });
+          branches: { connect: data.branchIds?.map((id: string) => ({ id })) }
+        }
+      })
 
-      return user;
-    });
+      return user
+    })
   }
 
   async update(
     params: {
-      where: Prisma.UserWhereUniqueInput;
-      data: UpdateManagerDto;
+      where: Prisma.UserWhereUniqueInput
+      data: UpdateManagerDto
     },
-    tokenPayload: TokenPayload,
+    tokenPayload: TokenPayload
   ) {
-    const { where, data } = params;
+    const { where, data } = params
 
     // Kiểm tra chi nhánh thuộc shop không
     if (data.branchIds && data.branchIds?.length > 0)
-      await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId);
+      await this.checkBranchesInShop(data.branchIds, tokenPayload.shopId)
 
     return this.prisma.user.update({
       data: {
@@ -125,15 +140,19 @@ export class ManagerService {
         account: {
           update: {
             status: data.accountStatus,
-            ...(data.newPassword && { password: data.newPassword ? bcrypt.hashSync(data.newPassword, 10) : undefined }),
+            ...(data.newPassword && {
+              password: data.newPassword
+                ? bcrypt.hashSync(data.newPassword, 10)
+                : undefined
+            }),
             ...(data.branchIds &&
               data.branchIds?.length > 0 && {
-              branches: {
-                set: data.branchIds?.map((id: string) => ({ id })),
-              },
-            }),
-          },
-        },
+                branches: {
+                  set: data.branchIds?.map((id: string) => ({ id }))
+                }
+              })
+          }
+        }
       },
       where: {
         id: where.id,
@@ -141,91 +160,91 @@ export class ManagerService {
         account: {
           branches: {
             some: {
-              shopId: tokenPayload.shopId,
-            },
-          },
-        },
-      },
-    });
+              shopId: tokenPayload.shopId
+            }
+          }
+        }
+      }
+    })
   }
 
   async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-    return await this.prisma.$transaction(async (prisma) => {
+    return await this.prisma.$transaction(async prisma => {
       const count = await prisma.user.updateMany({
         where: {
           id: {
-            in: data.ids,
+            in: data.ids
           },
           account: {
             branches: {
               some: {
-                shopId: tokenPayload.shopId,
-              },
-            },
+                shopId: tokenPayload.shopId
+              }
+            }
           },
-          isPublic: true,
+          isPublic: true
         },
         data: {
           isPublic: false,
-          updatedBy: tokenPayload.accountId,
-        },
-      });
+          updatedBy: tokenPayload.accountId
+        }
+      })
 
       await prisma.account.updateMany({
         where: {
           user: {
             id: {
-              in: data.ids,
-            },
+              in: data.ids
+            }
           },
-          isPublic: true,
+          isPublic: true
         },
         data: {
           isPublic: false,
-          updatedBy: tokenPayload.accountId,
-        },
-      });
+          updatedBy: tokenPayload.accountId
+        }
+      })
 
       return {
         ...count,
-        ids: data.ids,
-      } as DeleteManyResponse;
-    });
+        ids: data.ids
+      } as DeleteManyResponse
+    })
   }
 
   async findAll(params: FindManyManagerDto, tokenPayload: TokenPayload) {
-    const { page, perPage, keyword, orderBy, branchIds } = params;
+    const { page, perPage, keyword, orderBy, branchIds } = params
 
-    const keySearch = ["name", "code", "email", "phone"];
+    const keySearch = ['name', 'code', 'email', 'phone']
 
     const where: Prisma.UserWhereInput = {
       isPublic: true,
       ...(keyword && {
-        OR: keySearch.map((key) => ({
-          [key]: { contains: removeDiacritics(keyword) },
-        })),
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
       }),
       account: {
         type: ACCOUNT_TYPE.MANAGER,
         branches: {
           some: {
-            shopId: tokenPayload.shopId,
-          },
+            shopId: tokenPayload.shopId
+          }
         },
         ...(branchIds?.length > 0 && {
           branches: {
             some: {
-              id: { in: branchIds },
-            },
-          },
-        }),
-      },
-    };
+              id: { in: branchIds }
+            }
+          }
+        })
+      }
+    }
 
     return await customPaginate(
       this.prisma.user,
       {
-        orderBy: orderBy || { createdAt: "desc" },
+        orderBy: orderBy || { createdAt: 'desc' },
         where,
         select: {
           id: true,
@@ -248,28 +267,30 @@ export class ManagerService {
               status: true,
               branches: {
                 where: {
-                  isPublic: true,
+                  isPublic: true
                 },
                 select: {
                   id: true,
                   name: true,
-                  photoURL: true,
-                },
-              },
-            },
+                  photoURL: true
+                }
+              }
+            }
           },
-          updatedAt: true,
-        },
+          updatedAt: true
+        }
       },
       {
         page,
-        perPage,
-      },
-    );
-
+        perPage
+      }
+    )
   }
 
-  async findUniq(where: Prisma.UserWhereUniqueInput, tokenPayload: TokenPayload) {
+  async findUniq(
+    where: Prisma.UserWhereUniqueInput,
+    tokenPayload: TokenPayload
+  ) {
     return this.prisma.user.findUniqueOrThrow({
       where: {
         ...where,
@@ -278,10 +299,10 @@ export class ManagerService {
           type: ACCOUNT_TYPE.MANAGER,
           branches: {
             some: {
-              shopId: tokenPayload.shopId,
-            },
-          },
-        },
+              shopId: tokenPayload.shopId
+            }
+          }
+        }
       },
       select: {
         id: true,
@@ -304,17 +325,17 @@ export class ManagerService {
             status: true,
             branches: {
               where: {
-                isPublic: true,
+                isPublic: true
               },
               select: {
                 id: true,
                 name: true,
-                photoURL: true,
-              },
-            },
-          },
-        },
-      },
-    });
+                photoURL: true
+              }
+            }
+          }
+        }
+      }
+    })
   }
 }
