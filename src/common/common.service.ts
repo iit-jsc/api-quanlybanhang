@@ -17,7 +17,7 @@ export class CommonService {
     return data.photoURLs
   }
 
-  async findManyShopByAccountId(id: string) {
+  async findShopsByAccountId(id: string) {
     return await this.prisma.shop.findMany({
       where: {
         branches: {
@@ -34,11 +34,7 @@ export class CommonService {
     })
   }
 
-  async findByIdWithBranch(
-    id: string,
-    model: Prisma.ModelName,
-    branchId: string
-  ) {
+  async findByIdWithBranch(id: string, model: Prisma.ModelName, branchId: string) {
     return this.prisma[model].findFirstOrThrow({
       where: {
         id,
@@ -70,11 +66,7 @@ export class CommonService {
       }
     })
 
-    if (!table)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        'Bàn này không sẵn sàng!'
-      )
+    if (!table) throw new CustomHttpException(HttpStatus.CONFLICT, 'Bàn này không sẵn sàng!')
   }
 
   async confirmOTP(data: ConfirmEmailDto) {
@@ -119,9 +111,7 @@ export class CommonService {
     })
 
     if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        key => result[key] === data[key]
-      )
+      conflictingKeys = Object.keys(data).filter(key => result[key] === data[key])
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
@@ -131,12 +121,7 @@ export class CommonService {
     }
   }
 
-  async checkDataExistingInShop<T extends AnyObject>(
-    data: T,
-    model: Prisma.ModelName,
-    shopId: string,
-    id?: string
-  ) {
+  async checkDataExistingInShop<T extends AnyObject>(data: T, model: Prisma.ModelName, shopId: string, id?: string) {
     let conflictingKeys: string[] = []
 
     const result = await this.prisma[model].findFirst({
@@ -149,9 +134,7 @@ export class CommonService {
     })
 
     if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        key => result[key] === data[key]
-      )
+      conflictingKeys = Object.keys(data).filter(key => result[key] === data[key])
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
@@ -176,11 +159,7 @@ export class CommonService {
     // return `IIT${nextNumber}`;
   }
 
-  async checkAccountExisting<T extends AnyObject>(
-    data: T,
-    shopId: string,
-    id?: string
-  ) {
+  async checkAccountExisting<T extends AnyObject>(data: T, shopId: string, id?: string) {
     let conflictingKeys: string[] = []
 
     const result = await this.prisma.account.findFirst({
@@ -197,9 +176,7 @@ export class CommonService {
     })
 
     if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        key => result[key] === data[key]
-      )
+      conflictingKeys = Object.keys(data).filter(key => result[key] === data[key])
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
@@ -209,11 +186,7 @@ export class CommonService {
     }
   }
 
-  async checkUserExisting<T extends AnyObject>(
-    data: T,
-    shopId: string,
-    id?: string
-  ) {
+  async checkUserExisting<T extends AnyObject>(data: T, shopId: string, id?: string) {
     let conflictingKeys: string[] = []
 
     const result = await this.prisma.user.findFirst({
@@ -239,9 +212,7 @@ export class CommonService {
     })
 
     if (result && result.id !== id) {
-      conflictingKeys = Object.keys(data).filter(
-        key => result[key] === data[key]
-      )
+      conflictingKeys = Object.keys(data).filter(key => result[key] === data[key])
 
       throw new CustomHttpException(
         HttpStatus.CONFLICT,
@@ -260,17 +231,10 @@ export class CommonService {
     })
 
     if (order.isPaid === true && orderStatus === ORDER_STATUS_COMMON.CANCELLED)
-      throw new CustomHttpException(
-        HttpStatus.CONFLICT,
-        'Đơn hàng này không thể hủy vì đã thanh toán!'
-      )
+      throw new CustomHttpException(HttpStatus.CONFLICT, 'Đơn hàng này không thể hủy vì đã thanh toán!')
   }
 
-  async findAllIdsInBranch(
-    model: Prisma.ModelName,
-    branchId: string,
-    condition?: AnyObject
-  ) {
+  async findAllIdsInBranch(model: Prisma.ModelName, branchId: string, condition?: AnyObject) {
     const list = await this.prisma[model].findMany({
       where: {
         branchId,

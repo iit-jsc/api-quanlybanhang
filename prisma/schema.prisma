@@ -505,7 +505,7 @@ model Table {
   createdAt        DateTime          @default(now())
   updatedAt        DateTime          @updatedAt
   branch           Branch?           @relation(fields: [branchId], references: [id])
-  area             Area?             @relation(fields: [areaId], references: [id])
+  area             Area?             @relation(fields: [areaId], references: [id], onDelete: Cascade)
   createdBy        String?
   updatedBy        String?
   creator          Account?          @relation("creator", fields: [createdBy], references: [id])
@@ -520,8 +520,8 @@ model DiscountIssue {
   name          String
   code          String?
   isLimit       Boolean        @default(false)
-  discount      Float?         @default(0)
-  discountType  DiscountType?  @default(VALUE)
+  discount      Float          @default(0)
+  discountType  DiscountType   @default(VALUE)
   startDate     DateTime
   endDate       DateTime?
   description   String?        @db.Text
@@ -645,8 +645,8 @@ model Trash {
   data       Json
   deletedAt  DateTime @default(now())
   isRestored Boolean  @default(false)
-  creatorId  String?
-  createdBy  Account? @relation("creator", fields: [creatorId], references: [id])
+  createdBy  String?
+  creator    Account? @relation("creator", fields: [createdBy], references: [id])
 }
 
 enum AccountStatus {

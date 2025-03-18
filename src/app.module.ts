@@ -1,4 +1,3 @@
-import { join } from 'path'
 import { CompensationSettingModule } from './compensation-setting/compensation-setting.module'
 import { Module } from '@nestjs/common'
 import { AppController } from './app.controller'
@@ -58,7 +57,7 @@ import { ActivityLogModule } from './activity-log/activity-log.module'
 import { ProductOptionGroupModule } from './product-option-group/product-option-group.module'
 import { CustomerRequestModule } from './customer-request/customer-request.module'
 import { MailModule } from './mail/mail.module'
-import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handlebars.adapter'
+import { TrashModule } from './trash/trash.module'
 
 @Module({
   imports: [
@@ -68,6 +67,9 @@ import { HandlebarsAdapter } from '@nestjs-modules/mailer/dist/adapters/handleba
     ConfigModule.forRoot({
       isGlobal: true,
       cache: true
+    }),
+    TrashModule.forRoot({
+      isGlobal: true
     }),
     JwtModule.register({
       global: true,

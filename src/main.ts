@@ -1,23 +1,24 @@
 import * as cookieParser from 'cookie-parser'
-import { NestFactory } from '@nestjs/core'
+import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
 import { json, static as static_ } from 'express'
 import { ValidationPipe } from '@nestjs/common'
-import { PrismaExceptionFilter } from 'utils/ApiErrors'
 import { TransformInterceptor } from 'utils/ApiResponse'
+import { PrismaClientExceptionFilter } from 'nestjs-prisma'
 
 async function bootstrap() {
   try {
     const app = await NestFactory.create(AppModule)
     const cfgService = app.get(ConfigService)
+    const { httpAdapter } = app.get(HttpAdapterHost)
 
     app.enableCors({ origin: true, credentials: true })
     app.use('/uploads', static_('uploads'))
     app.use(json({ limit: '2mb' }))
     app.use(cookieParser())
-    app.useGlobalFilters(new PrismaExceptionFilter())
     app.useGlobalInterceptors(new TransformInterceptor())
+    app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter))
     app.setGlobalPrefix('api')
 
     app.useGlobalPipes(

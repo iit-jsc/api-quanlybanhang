@@ -1,3 +1,4 @@
+import { DiscountType } from '@prisma/client'
 import {
   registerDecorator,
   ValidationOptions,
@@ -5,22 +6,22 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface
 } from 'class-validator'
-import { DISCOUNT_TYPE } from 'enums/common.enum'
+import { AnyObject } from 'interfaces/common.interface'
 
 export function IsVietnamesePhoneNumber(validationOptions?: ValidationOptions) {
-  return function (object: Object, propertyName: string) {
+  return function (object: AnyObject, propertyName: string) {
     registerDecorator({
       name: 'isVietnamesePhoneNumber',
       target: object.constructor,
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: AnyObject) {
           const regex = /^0\d{9,10}$/
           return typeof value === 'string' && regex.test(value)
         },
-        defaultMessage(args: ValidationArguments) {
-          return `Số điện thoại không hợp lệ`
+        defaultMessage() {
+          return `Invalid phone number!`
         }
       }
     })
@@ -29,20 +30,17 @@ export function IsVietnamesePhoneNumber(validationOptions?: ValidationOptions) {
 
 @ValidatorConstraint({ name: 'discountConstraint', async: false })
 export class DiscountConstraint implements ValidatorConstraintInterface {
-  validate(discount: any, args: ValidationArguments) {
-    const relatedValues = args.object as any
+  validate(discount: number, args: ValidationArguments) {
+    const relatedValues: AnyObject = args.object
 
-    if (
-      relatedValues.discountType === DISCOUNT_TYPE.PERCENT &&
-      discount > 100
-    ) {
+    if (relatedValues.discountType === DiscountType.PERCENT && discount > 100) {
       return false
     }
 
     return true
   }
 
-  defaultMessage(args: ValidationArguments) {
-    return 'Giá trị phải nhỏ hơn hoặc bằng 100.'
+  defaultMessage() {
+    return 'Value `discount` must be less than or equal to 100!'
   }
 }

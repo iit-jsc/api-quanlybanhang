@@ -38,10 +38,10 @@ export class AuthService {
     })
 
     if (!account || !(await bcrypt.compare(data.password, account.password)))
-      throw new HttpException(`Tài khoản hoặc mật khẩu không chính xác!`, HttpStatus.UNAUTHORIZED)
+      throw new HttpException('Tài khoản hoặc mật khẩu không chính xác!', HttpStatus.UNAUTHORIZED)
 
     if (account.status == AccountStatus.INACTIVE)
-      throw new HttpException(`Tài khoản đã bị khóa!`, HttpStatus.FORBIDDEN)
+      throw new HttpException('Tài khoản đã bị khóa!', HttpStatus.FORBIDDEN)
 
     const shops = await this.findShopsByAccountId(account.id)
 

@@ -1,8 +1,6 @@
 import { paginator, PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination'
-import { TokenPayload } from './../interfaces/common.interface'
+import { AnyObject, TokenPayload } from './../interfaces/common.interface'
 import { generate as generateIdentifier } from 'short-uuid'
-import { PaginationResult } from 'interfaces/common.interface'
-import { ACCOUNT_TYPE } from 'enums/user.enum'
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { extname } from 'path'
@@ -18,6 +16,7 @@ export function generateUniqueId(): string {
 }
 
 export function generateSortCode(): string {
+  // eslint-disable-next-line no-var
   var uid = new ShortUniqueId({
     dictionary: [
       '0',
@@ -59,9 +58,10 @@ export function generateSortCode(): string {
     ]
   })
 
-  var uid = new ShortUniqueId({ dictionary: 'hex' })
+  // var uid = new ShortUniqueId({ dictionary: 'hex' })
 
-  return uid.randomUUID(10).toUpperCase()
+  // return uid.randomUUID(10).toUpperCase()
+  return ''
 }
 
 export function roleBasedBranchFilter(tokenPayload: TokenPayload) {
@@ -73,12 +73,12 @@ export function roleBasedBranchFilter(tokenPayload: TokenPayload) {
     }
   }
 
-  return tokenPayload.type !== ACCOUNT_TYPE.STORE_OWNER
-    ? {
-        ...baseConditions,
-        id: tokenPayload.branchId
-      }
-    : baseConditions
+  // return tokenPayload.type !== ACCOUNT_TYPE.STORE_OWNER
+  //   ? {
+  //       ...baseConditions,
+  //       id: tokenPayload.branchId
+  //     }
+  //   : baseConditions
 }
 
 export function onlyBranchFilter(tokenPayload: TokenPayload) {
@@ -156,11 +156,7 @@ export function formatDate(dateString: string): string {
   return `${day}/${month}/${year}`
 }
 
-export async function customPaginate(
-  prismaModel: any,
-  queryArgs: any,
-  paginationArgs: any
-) {
+export async function customPaginate(prismaModel: any, queryArgs: any, paginationArgs: any) {
   const result = await paginate(prismaModel, queryArgs, paginationArgs)
 
   return {
@@ -175,4 +171,8 @@ export const removeDiacritics = (str: string) => {
     .replace(/[\u0300-\u036f]/g, '')
     .replace(/d/g, 'đ')
     .replace(/D/g, 'Đ')
+}
+
+export function extractPermissions(data: AnyObject) {
+  return Object.values(data)
 }

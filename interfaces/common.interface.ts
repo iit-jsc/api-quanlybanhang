@@ -5,8 +5,6 @@ export interface TokenPayload {
   shopId?: string
   userId?: string
   branchId?: string
-  type?: number
-  deviceId?: string
 }
 
 export interface TokenCustomerPayload {
@@ -71,4 +69,11 @@ export interface ICustomer {
   createdBy?: string | null
   updatedBy?: string | null
   customerType?: CustomerType | null
+}
+
+export interface RequestJWT extends Request {
+  accountId: string
+  shopId: string
+  branchId: string
+  role: AnyObject
 }

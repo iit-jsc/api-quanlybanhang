@@ -135,7 +135,7 @@ async function main() {
         password: bcrypt.hashSync('aA@123', 10),
         userId: user1.id,
         branches: {
-          connect: [{ id: branch1.id }] // User1 thuộc Highland - CN1
+          connect: [{ id: branch1.id }, { id: branch2.id }] // User1 thuộc Highland - CN1
         }
       }
     }),
