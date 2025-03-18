@@ -37,8 +37,9 @@ export class FindManyProductOptionGroupDto extends FindManyDto {
   productTypeIds?: string[]
 
   @IsNotEmpty()
-  @IsString()
   branchId: string
+
+  productId?: string
 }
 
 export class UpdateProductOptionGroupDto extends PartialType(CreateProductOptionGroupDto) {}

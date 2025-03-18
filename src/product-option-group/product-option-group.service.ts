@@ -40,20 +40,40 @@ export class ProductOptionGroupService {
         createdBy: accountId,
         branchId
       },
-      select: productOptionGroupSelect
+      select: productOptionGroupSelect()
     })
   }
 
   async findAll(params: FindManyProductOptionGroupDto, branchId: string) {
-    const { page, perPage, keyword, orderBy, productTypeIds } = params
+    const { page, perPage, keyword, orderBy, productTypeIds, productId } = params
 
     const where: Prisma.ProductOptionGroupWhereInput = {
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
       ...(productTypeIds && {
         productTypes: {
           some: { id: { in: productTypeIds } }
         }
       }),
-      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
+      ...(productId && {
+        OR: [
+          {
+            productOptions: {
+              some: {
+                isAppliedToAll: true
+              }
+            }
+          },
+          {
+            productOptions: {
+              some: {
+                products: {
+                  some: { id: productId }
+                }
+              }
+            }
+          }
+        ]
+      }),
       branchId
     }
 
@@ -62,7 +82,7 @@ export class ProductOptionGroupService {
       {
         orderBy: orderBy || { createdAt: 'desc' },
         where,
-        select: productOptionGroupSelect
+        select: productOptionGroupSelect(productId)
       },
       {
         page,
@@ -76,7 +96,7 @@ export class ProductOptionGroupService {
       where: {
         id
       },
-      select: productOptionGroupSelect
+      select: productOptionGroupSelect()
     })
   }
 
@@ -107,7 +127,7 @@ export class ProductOptionGroupService {
           id,
           branchId
         },
-        select: productOptionGroupSelect
+        select: productOptionGroupSelect()
       })
     })
   }
