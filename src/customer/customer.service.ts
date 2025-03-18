@@ -1,263 +1,155 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { CommonService } from 'src/common/common.service'
+import { CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from './dto/customer.dto'
+import { Prisma, PrismaClient } from '@prisma/client'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { customerSelect } from 'responses/customer.response'
+import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
+import { TrashService } from 'src/trash/trash.service'
 
 @Injectable()
 export class CustomerService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService
+    private readonly trashService: TrashService
   ) {}
 
-  // async create(data: CreateCustomerDto, tokenPayload: TokenPayload) {
-  //   const customer = await this.prisma.customer.create({
-  //     data: {
-  //       name: data.name,
-  //       endow: data.endow,
-  //       phone: data.phone,
-  //       isOrganize: data.isOrganize,
-  //       address: data.address,
-  //       birthday: data.birthday,
-  //       ...(data.customerTypeId && {
-  //         customerType: {
-  //           connect: {
-  //             id: data.customerTypeId
-  //           }
-  //         }
-  //       }),
-  //       description: data.description,
-  //       discount: data.discount,
-  //       discountType: data.discountType,
-  //       email: data.email,
-  //       fax: data.fax,
-  //       tax: data.tax,
-  //       sex: data.sex,
-  //       representativeName: data.representativeName,
-  //       representativePhone: data.representativePhone,
-  //       shop: {
-  //         connect: {
-  //           id: tokenPayload.shopId,
-  //           isPublic: true
-  //         }
-  //       },
-  //       creator: {
-  //         connect: {
-  //           id: tokenPayload.accountId
-  //         }
-  //       }
-  //     }
-  //   })
+  async create(data: CreateCustomerDto, accountId, shopId: string) {
+    return await this.prisma.customer.create({
+      data: {
+        name: data.name,
+        discountFor: data.discountFor,
+        phone: data.phone,
+        isOrganize: data.isOrganize,
+        address: data.address,
+        birthday: data.birthday,
+        description: data.description,
+        discount: data.discount,
+        discountType: data.discountType,
+        email: data.email,
+        fax: data.fax,
+        tax: data.tax,
+        sex: data.sex,
+        representativeName: data.representativeName,
+        representativePhone: data.representativePhone,
+        ...(data.customerTypeId && {
+          customerTypeId: data.customerTypeId
+        }),
+        shopId,
+        createdBy: accountId
+      }
+    })
+  }
 
-  //   await this.commonService.createActivityLog(
-  //     [customer.id],
-  //     'Customer',
-  //     ACTIVITY_LOG_TYPE.CREATE,
-  //     tokenPayload
-  //   )
+  async findAll(params: FindManyCustomerDto, shopId: string) {
+    const { page, perPage, keyword, customerTypeIds, from, to, orderBy } = params
 
-  //   return customer
-  // }
+    const keySearch = ['name', 'email', 'phone']
 
-  // async findAll(params: FindManyCustomerDto, tokenPayload: TokenPayload) {
-  //   const { page, perPage, keyword, customerTypeIds, from, to, orderBy } =
-  //     params
+    const where: Prisma.CustomerWhereInput = {
+      ...(keyword && {
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
+      }),
+      ...(customerTypeIds?.length > 0 && {
+        customerType: {
+          id: { in: customerTypeIds }
+        }
+      }),
+      ...(from &&
+        to && {
+          createdAt: {
+            gte: from,
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999))
+          }
+        }),
+      ...(from &&
+        !to && {
+          createdAt: {
+            gte: from
+          }
+        }),
+      ...(!from &&
+        to && {
+          createdAt: {
+            lte: new Date(new Date(to).setHours(23, 59, 59, 999))
+          }
+        }),
+      shopId
+    }
 
-  //   const keySearch = ['name', 'email', 'phone']
+    return await customPaginate(
+      this.prisma.customer,
+      {
+        orderBy: orderBy || { createdAt: 'desc' },
+        where,
+        select: customerSelect
+      },
+      {
+        page,
+        perPage
+      }
+    )
+  }
 
-  //   const where: Prisma.CustomerWhereInput = {
-  //     isPublic: true,
-  //     ...(keyword && {
-  //       OR: keySearch.map(key => ({
-  //         [key]: { contains: removeDiacritics(keyword) }
-  //       }))
-  //     }),
-  //     ...(customerTypeIds?.length > 0 && {
-  //       customerType: {
-  //         id: { in: customerTypeIds },
-  //         isPublic: true,
-  //         shopId: tokenPayload.shopId
-  //       }
-  //     }),
-  //     ...(from &&
-  //       to && {
-  //         createdAt: {
-  //           gte: from,
-  //           lte: new Date(new Date(to).setHours(23, 59, 59, 999))
-  //         }
-  //       }),
-  //     ...(from &&
-  //       !to && {
-  //         createdAt: {
-  //           gte: from
-  //         }
-  //       }),
-  //     ...(!from &&
-  //       to && {
-  //         createdAt: {
-  //           lte: new Date(new Date(to).setHours(23, 59, 59, 999))
-  //         }
-  //       }),
-  //     shop: {
-  //       id: tokenPayload.shopId,
-  //       isPublic: true
-  //     }
-  //   }
+  async findUniq(id: string, shopId: string) {
+    return this.prisma.customer.findUniqueOrThrow({
+      where: {
+        id,
+        shopId
+      },
+      select: customerSelect
+    })
+  }
 
-  //   return await customPaginate(
-  //     this.prisma.customer,
-  //     {
-  //       orderBy: orderBy || { createdAt: 'desc' },
-  //       where,
-  //       select: {
-  //         id: true,
-  //         name: true,
-  //         endow: true,
-  //         phone: true,
-  //         address: true,
-  //         isOrganize: true,
-  //         birthday: true,
-  //         customerType: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //             description: true,
-  //             discount: true,
-  //             discountType: true
-  //           }
-  //         },
-  //         description: true,
-  //         discount: true,
-  //         discountType: true,
-  //         email: true,
-  //         fax: true,
-  //         tax: true,
-  //         sex: true,
-  //         representativeName: true,
-  //         representativePhone: true,
-  //         createdAt: true,
-  //         updatedAt: true
-  //       }
-  //     },
-  //     {
-  //       page,
-  //       perPage
-  //     }
-  //   )
-  // }
+  async update(id: string, data: UpdateCustomerDto, accountId: string, shopId: string) {
+    return await this.prisma.customer.update({
+      where: {
+        id,
+        shopId
+      },
+      data: {
+        name: data.name,
+        discountFor: data.discountFor,
+        isOrganize: data.isOrganize,
+        phone: data.phone,
+        address: data.address,
+        birthday: data.birthday,
+        description: data.description,
+        discount: data.discount,
+        discountType: data.discountType,
+        email: data.email,
+        fax: data.fax,
+        tax: data.tax,
+        sex: data.sex,
+        representativeName: data.representativeName,
+        representativePhone: data.representativePhone,
+        customerTypeId: data.customerTypeId,
+        updatedBy: accountId
+      }
+    })
+  }
 
-  // async findUniq(
-  //   where: Prisma.CustomerWhereUniqueInput,
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   return this.prisma.customer.findUniqueOrThrow({
-  //     where: {
-  //       ...where,
-  //       isPublic: true,
-  //       shop: {
-  //         id: tokenPayload.shopId,
-  //         isPublic: true
-  //       }
-  //     },
-  //     include: {
-  //       customerType: {
-  //         select: {
-  //           id: true,
-  //           name: true,
-  //           description: true,
-  //           discount: true,
-  //           discountType: true
-  //         }
-  //       }
-  //     }
-  //   })
-  // }
+  async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const dataTrash: CreateManyTrashDto = {
+        ids: data.ids,
+        accountId,
+        modelName: 'Customer'
+      }
 
-  // async update(
-  //   params: {
-  //     where: Prisma.CustomerWhereUniqueInput
-  //     data: UpdateCustomerDto
-  //   },
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const { where, data } = params
+      await this.trashService.createMany(dataTrash, prisma)
 
-  //   const customer = await this.prisma.customer.update({
-  //     where: {
-  //       ...where,
-  //       isPublic: true,
-  //       shop: {
-  //         id: tokenPayload.shopId,
-  //         isPublic: true
-  //       }
-  //     },
-  //     data: {
-  //       name: data.name,
-  //       endow: data.endow,
-  //       isOrganize: data.isOrganize,
-  //       phone: data.phone,
-  //       address: data.address,
-  //       birthday: data.birthday,
-  //       description: data.description,
-  //       discount: data.discount,
-  //       discountType: data.discountType,
-  //       email: data.email,
-  //       fax: data.fax,
-  //       tax: data.tax,
-  //       sex: data.sex,
-  //       representativeName: data.representativeName,
-  //       representativePhone: data.representativePhone,
-  //       ...(data.customerTypeId && {
-  //         customerType: {
-  //           connect: {
-  //             id: data.customerTypeId
-  //           }
-  //         }
-  //       }),
-  //       updater: {
-  //         connect: {
-  //           id: tokenPayload.accountId
-  //         }
-  //       }
-  //     }
-  //   })
-
-  //   await this.commonService.createActivityLog(
-  //     [customer.id],
-  //     'Customer',
-  //     ACTIVITY_LOG_TYPE.UPDATE,
-  //     tokenPayload
-  //   )
-
-  //   return customer
-  // }
-
-  // async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-  //   const count = await this.prisma.customer.updateMany({
-  //     where: {
-  //       id: {
-  //         in: data.ids
-  //       },
-  //       isPublic: true,
-  //       shop: {
-  //         id: tokenPayload.shopId,
-  //         isPublic: true
-  //       }
-  //     },
-  //     data: {
-  //       isPublic: false,
-  //       updatedBy: tokenPayload.accountId
-  //     }
-  //   })
-
-  //   await this.commonService.createActivityLog(
-  //     data.ids,
-  //     'Customer',
-  //     ACTIVITY_LOG_TYPE.DELETE,
-  //     tokenPayload
-  //   )
-
-  //   return { ...count, ids: data.ids } as DeleteManyResponse
-  // }
-
-  // async checkEmailExisted(data: CheckEmailDto) {}
+      return prisma.customer.deleteMany({
+        where: {
+          id: {
+            in: data.ids
+          },
+          shopId
+        }
+      })
+    })
+  }
 }

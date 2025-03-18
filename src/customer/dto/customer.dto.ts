@@ -1,106 +1,64 @@
 import { PartialType } from '@nestjs/swagger'
+import { DiscountFor, DiscountType, SexType } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
-  IsBoolean,
   IsDate,
   IsEmail,
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
-  IsString,
   MaxDate,
   Validate,
   ValidateIf
 } from 'class-validator'
-import { DISCOUNT_TYPE } from 'enums/common.enum'
-import { ENDOW_TYPE, SEX_TYPE } from 'enums/user.enum'
 import { FindManyDto } from 'utils/Common.dto'
-import {
-  DiscountConstraint,
-  IsVietnamesePhoneNumber
-} from 'utils/CustomValidates'
+import { DiscountConstraint, IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class CreateCustomerDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
+  @IsNotEmpty()
   name: string
 
-  @IsOptional()
-  @IsString()
-  customerTypeId: string
+  @IsNotEmpty()
+  isOrganize: boolean
 
-  @IsOptional()
-  @IsString()
-  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  code: string
+  @IsNotEmpty()
+  @IsVietnamesePhoneNumber()
+  phone: string
 
   @IsOptional()
   @IsEmail()
   email: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
-  @IsVietnamesePhoneNumber()
-  phone: string
-
   @IsOptional()
-  @IsString()
-  address: string
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsBoolean()
-  isOrganize: boolean
-
-  @IsOptional()
-  @IsString()
-  description: string
-
-  @IsOptional()
-  @IsString()
-  representativeName: string
-
-  @IsOptional()
-  @IsString()
-  representativePhone: string
-
-  @IsOptional()
-  @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MaxDate(new Date(), { message: 'Ngày tháng phải nhỏ hơn ngày hiện tại!' })
+  @Transform(({ value }) => new Date(value))
+  @MaxDate(new Date())
   birthday: Date
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  @IsEnum(ENDOW_TYPE, { message: 'Endow không hợp lệ!' })
-  endow: number
+  @IsOptional()
+  @IsEnum(DiscountFor)
+  discountFor: DiscountFor
 
-  @ValidateIf(o => o.endow === ENDOW_TYPE.BY_CUSTOMER)
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
+  @ValidateIf(o => o.discountFor === DiscountFor.CUSTOMER)
+  @IsNotEmpty()
   @Validate(DiscountConstraint)
   discount: number
 
-  @ValidateIf(o => o.endow === ENDOW_TYPE.BY_CUSTOMER)
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  @IsEnum(DISCOUNT_TYPE, { message: 'Loại giảm giá không hợp lệ!' })
-  discountType: number
+  @ValidateIf(o => o.discountFor === DiscountFor.CUSTOMER)
+  @IsNotEmpty()
+  @IsEnum(DiscountType)
+  discountType: DiscountType
 
   @IsOptional()
-  @IsNumber()
-  @IsEnum(SEX_TYPE, { message: 'Giới tính không hợp lệ!' })
-  sex: number
+  @IsEnum(SexType)
+  sex: SexType
 
-  @IsOptional()
-  @IsString()
-  fax: string
-
-  @IsOptional()
-  @IsString()
-  tax: string
+  fax?: string
+  tax?: string
+  representativeName?: string
+  representativePhone?: string
+  customerTypeId?: string
+  address?: string
+  description?: string
 }
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
@@ -124,16 +82,16 @@ export class FindManyCustomerDto extends FindManyDto {
 }
 
 export class CheckEmailDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @IsVietnamesePhoneNumber()
   phone: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsEmail()
   email: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   shopId: string
 }
