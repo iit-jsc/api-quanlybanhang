@@ -22,5 +22,17 @@ export const permissions = {
     delete: 'DELETE_CUSTOMER',
     update: 'UPDATE_CUSTOMER',
     view: 'VIEW_CUSTOMER'
+  },
+  productType: {
+    create: 'CREATE_PRODUCT_TYPE',
+    delete: 'DELETE_PRODUCT_TYPE',
+    update: 'UPDATE_PRODUCT_TYPE',
+    view: 'VIEW_PRODUCT_TYPE'
+  },
+  product: {
+    create: 'CREATE_PRODUCT',
+    delete: 'DELETE_PRODUCT',
+    update: 'UPDATE_PRODUCT',
+    view: 'VIEW_PRODUCT'
   }
 }

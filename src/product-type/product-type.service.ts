@@ -1,214 +1,109 @@
-import { CommonService } from 'src/common/common.service'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
+import {
+  CreateProductTypeDto,
+  FindManyProductTypeDto,
+  UpdateProductTypeDto
+} from './dto/product-type.dto'
+import { Prisma, PrismaClient } from '@prisma/client'
+import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { productTypeSelect } from 'responses/product-type.response'
+import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { TrashService } from 'src/trash/trash.service'
 
 @Injectable()
 export class ProductTypeService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService
+    private readonly trashService: TrashService
   ) {}
 
-  // async create(data: CreateProductTypeDto, tokenPayload: TokenPayload) {
-  //   const result = await this.prisma.productType.create({
-  //     data: {
-  //       branch: {
-  //         connect: {
-  //           id: tokenPayload.branchId
-  //         }
-  //       },
-  //       name: data.name,
-  //       slug: data.slug,
-  //       description: data.description,
-  //       ...(data.productOptionGroupIds && {
-  //         productOptionGroups: {
-  //           connect: data.productOptionGroupIds.map(id => ({ id }))
-  //         }
-  //       }),
-  //       ...(data.productOptionIds && {
-  //         productOptions: {
-  //           connect: data.productOptionIds.map(id => ({ id }))
-  //         }
-  //       }),
-  //       creator: {
-  //         connect: {
-  //           id: tokenPayload.accountId
-  //         }
-  //       }
-  //     }
-  //   })
+  async create(data: CreateProductTypeDto, accountId: string, branchId: string) {
+    return await this.prisma.productType.create({
+      data: {
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        branchId,
+        createdBy: accountId
+      },
+      select: productTypeSelect
+    })
+  }
 
-  //   await this.commonService.createActivityLog(
-  //     [result.id],
-  //     'ProductType',
-  //     ACTIVITY_LOG_TYPE.CREATE,
-  //     tokenPayload
-  //   )
+  async findAll(params: FindManyProductTypeDto) {
+    const { page, perPage, keyword, branchId, orderBy } = params
 
-  //   return result
-  // }
+    const keySearch = ['name', 'slug']
 
-  // async findAll(params: FindManyProductTypeDto) {
-  //   let { page, perPage, keyword, branchId, orderBy } = params
+    const where: Prisma.ProductTypeWhereInput = {
+      branchId: branchId,
+      ...(keyword && {
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
+      })
+    }
 
-  //   const keySearch = ['name', 'slug']
+    return await customPaginate(
+      this.prisma.productType,
+      {
+        orderBy: orderBy || { createdAt: 'desc' },
+        where,
+        select: productTypeSelect
+      },
+      {
+        page,
+        perPage
+      }
+    )
+  }
 
-  //   let where: Prisma.ProductTypeWhereInput = {
-  //     isPublic: true,
-  //     branchId: branchId,
-  //     ...(keyword && {
-  //       OR: keySearch.map(key => ({
-  //         [key]: { contains: removeDiacritics(keyword) }
-  //       }))
-  //     })
-  //   }
+  async findUniq(where: Prisma.ProductTypeWhereInput) {
+    return this.prisma.productType.findFirst({
+      where: {
+        ...where,
+        branchId: where.branchId
+      },
+      select: productTypeSelect
+    })
+  }
 
-  //   return await customPaginate(
-  //     this.prisma.productType,
-  //     {
-  //       orderBy: orderBy || { createdAt: 'desc' },
-  //       where,
-  //       select: {
-  //         id: true,
-  //         slug: true,
-  //         branchId: true,
-  //         name: true,
-  //         description: true,
-  //         products: {
-  //           where: {
-  //             isPublic: true,
-  //             branchId
-  //           }
-  //         },
-  //         updatedAt: true
-  //       }
-  //     },
-  //     {
-  //       page,
-  //       perPage
-  //     }
-  //   )
-  // }
+  async update(id: string, data: UpdateProductTypeDto, accountId: string, branchId: string) {
+    return await this.prisma.productType.update({
+      where: {
+        id,
+        branchId
+      },
+      data: {
+        name: data.name,
+        slug: data.slug,
+        description: data.description,
+        updatedBy: accountId
+      },
+      select: productTypeSelect
+    })
+  }
 
-  // async findUniq(where: Prisma.ProductTypeWhereInput) {
-  //   return this.prisma.productType.findFirst({
-  //     where: {
-  //       ...where,
-  //       branchId: where.branchId,
-  //       isPublic: true
-  //     },
-  //     select: {
-  //       id: true,
-  //       slug: true,
-  //       branchId: true,
-  //       name: true,
-  //       description: true,
-  //       products: {
-  //         where: {
-  //           isPublic: true
-  //         }
-  //       },
-  //       productOptionGroups: {
-  //         where: {
-  //           isPublic: true,
-  //           productTypes: {
-  //             some: {
-  //               id: where.id,
-  //               branchId: where.branchId
-  //             }
-  //           }
-  //         },
-  //         select: {
-  //           id: true,
-  //           name: true,
-  //           isMultiple: true,
-  //           isRequired: true,
-  //           updatedAt: true,
-  //           productOptions: {
-  //             where: {
-  //               isPublic: true,
-  //               productTypes: {
-  //                 some: {
-  //                   id: where.id,
-  //                   branchId: where.branchId
-  //                 }
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   })
-  // }
+  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const dataTrash: CreateManyTrashDto = {
+        ids: data.ids,
+        accountId,
+        modelName: 'ProductType'
+      }
 
-  // async update(
-  //   params: {
-  //     where: Prisma.ProductTypeWhereUniqueInput
-  //     data: UpdateProductTypeDto
-  //   },
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const { where, data } = params
+      await this.trashService.createMany(dataTrash, prisma)
 
-  //   const result = await this.prisma.productType.update({
-  //     where: {
-  //       ...where,
-  //       isPublic: true,
-  //       branchId: tokenPayload.branchId
-  //     },
-  //     data: {
-  //       name: data.name,
-  //       slug: data.slug,
-  //       description: data.description,
-  //       ...(data.productOptionGroupIds && {
-  //         productOptionGroups: {
-  //           set: data.productOptionGroupIds.map(id => ({ id }))
-  //         }
-  //       }),
-  //       ...(data.productOptionIds && {
-  //         productOptions: {
-  //           set: data.productOptionIds.map(id => ({ id }))
-  //         }
-  //       }),
-  //       updater: {
-  //         connect: {
-  //           id: tokenPayload.accountId
-  //         }
-  //       }
-  //     }
-  //   })
-
-  //   await this.commonService.createActivityLog(
-  //     [result.id],
-  //     'ProductType',
-  //     ACTIVITY_LOG_TYPE.UPDATE,
-  //     tokenPayload
-  //   )
-
-  //   return result
-  // }
-
-  // async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-  //   const count = await this.prisma.productType.updateMany({
-  //     where: {
-  //       id: {
-  //         in: data.ids
-  //       },
-  //       isPublic: true
-  //     },
-  //     data: {
-  //       isPublic: false,
-  //       updatedBy: tokenPayload.accountId
-  //     }
-  //   })
-
-  //   await this.commonService.createActivityLog(
-  //     data.ids,
-  //     'ProductType',
-  //     ACTIVITY_LOG_TYPE.DELETE,
-  //     tokenPayload
-  //   )
-
-  //   return { ...count, ids: data.ids } as DeleteManyResponse
-  // }
+      return prisma.productType.deleteMany({
+        where: {
+          id: {
+            in: data.ids
+          },
+          branchId
+        }
+      })
+    })
+  }
 }

@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/swagger'
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsArray, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateProductTypeDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -16,14 +17,12 @@ export class CreateProductTypeDto {
   @IsOptional()
   @IsString()
   description?: string
-
-  @IsOptional()
-  @IsArray()
-  productOptionGroupIds: string[]
-
-  @IsOptional()
-  @IsArray()
-  productOptionIds: string[]
 }
 
 export class UpdateProductTypeDto extends PartialType(CreateProductTypeDto) {}
+
+export class FindManyProductTypeDto extends FindManyDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  branchId: string
+}
