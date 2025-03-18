@@ -612,7 +612,6 @@ model PaymentMethod {
   id             String            @id @default(uuid())
   branchId       String
   branch         Branch?           @relation(fields: [branchId], references: [id])
-  name           String
   bankName       String?
   bankCode       String?
   representative String?

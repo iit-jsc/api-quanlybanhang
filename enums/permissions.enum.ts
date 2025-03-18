@@ -45,5 +45,11 @@ export const permissions = {
     create: 'CREATE_PRODUCT_OPTION_GROUP',
     delete: 'DELETE_PRODUCT_OPTION_GROUP',
     update: 'UPDATE_PRODUCT_OPTION_GROUP'
+  },
+  paymentMethod: {
+    create: 'CREATE_PAYMENT_METHOD',
+    delete: 'DELETE_PAYMENT_METHOD',
+    update: 'UPDATE_PAYMENT_METHOD',
+    view: 'VIEW_PAYMENT_METHOD'
   }
 }
