@@ -1,46 +1,29 @@
+import { PartialType } from '@nestjs/swagger'
+import { PaymentMethodType } from '@prisma/client'
 import { Transform, TransformFnParams } from 'class-transformer'
-import {
-  IsBoolean,
-  IsEnum,
-  IsOptional,
-  IsString,
-  Matches
-} from 'class-validator'
-import { PAYMENT_METHOD_TYPE } from 'enums/common.enum'
+import { IsEnum, IsOptional, Matches } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
-export class UpdatePaymentMethodDto {
+export class CreatePaymentMethodDto {
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
   bankName: string
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
-  @Matches(/^\d+$/, { message: 'Chỉ chấp nhận chuỗi số!' })
+  @Matches(/^\d+$/)
   bankCode: string
 
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
-  representative: string
+  @IsEnum(PaymentMethodType)
+  type: PaymentMethodType
 
-  @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
-  photoURL: string
-
-  @IsOptional()
-  @IsEnum(PAYMENT_METHOD_TYPE, { message: 'Loại thanh toán không hợp lệ!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
-  type: string
-
-  @IsOptional()
-  @IsBoolean()
-  active: boolean
+  representative?: string
+  photoURL?: string
+  active?: boolean
 }
+
+export class UpdatePaymentMethodDto extends PartialType(CreatePaymentMethodDto) {}
 
 export class FindManyPaymentMethodDto extends FindManyDto {
   @IsOptional()
