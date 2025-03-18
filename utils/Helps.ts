@@ -176,3 +176,16 @@ export const removeDiacritics = (str: string) => {
 export function extractPermissions(data: AnyObject) {
   return Object.values(data)
 }
+
+export function generateCode(wordStart: string) {
+  const uuid = crypto.randomUUID()
+  return (
+    wordStart +
+    uuid
+      .replace(/-/g, '')
+      .split('')
+      .map(char => char.charCodeAt(0).toString())
+      .join('')
+      .slice(0, 10)
+  )
+}

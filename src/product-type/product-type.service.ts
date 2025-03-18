@@ -62,10 +62,7 @@ export class ProductTypeService {
 
   async findUniq(where: Prisma.ProductTypeWhereInput) {
     return this.prisma.productType.findFirst({
-      where: {
-        ...where,
-        branchId: where.branchId
-      },
+      where,
       select: productTypeSelect
     })
   }

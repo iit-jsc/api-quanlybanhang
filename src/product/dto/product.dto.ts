@@ -1,54 +1,25 @@
 import { PartialType } from '@nestjs/swagger'
+import { ProductStatus } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsObject,
-  IsOptional,
-  IsString,
-  Min
-} from 'class-validator'
-import { PRODUCT_STATUS } from 'enums/product.enum'
+import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator'
+import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateProductDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
+  @IsNotEmpty()
   name: string
 
-  @IsOptional()
-  @IsString()
-  description?: string
-
-  @IsOptional()
-  @IsString()
-  content?: string
-
-  @IsOptional()
-  @IsString()
-  thumbnail?: string
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
-  unitId: string
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
-  productTypeId: string
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
+  @IsNotEmpty()
   slug: string
 
+  @IsNotEmpty()
+  productTypeId: string
+
+  @IsNotEmpty()
+  unitId: string
+
   @IsOptional()
-  @IsString()
-  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  code: string
+  @IsArray()
+  photoURLs: string[]
 
   @IsOptional()
   @IsNumber()
@@ -61,16 +32,39 @@ export class CreateProductDto {
   oldPrice: number
 
   @IsOptional()
-  @IsArray()
-  photoURLs: string[]
+  @IsEnum(ProductStatus)
+  status: ProductStatus
+
+  description?: string
+  thumbnail?: string
+  code?: string
+}
+
+export class FindManyProductDto extends FindManyDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  branchId: string
+
+  @Type(() => String)
+  keyword?: string
 
   @IsOptional()
-  @IsObject()
-  otherAttributes: object
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(',').map((id: string) => id.trim())
+  })
+  measurementUnitIds: string[]
 
   @IsOptional()
-  @IsEnum(PRODUCT_STATUS, { message: 'Trạng thái không hợp lệ!' })
-  status: number
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(',').map((id: string) => id.trim())
+  })
+  productTypeIds: string[]
+
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    return value?.split(',').map((id: string) => id.trim())
+  })
+  statuses?: ProductStatus[]
 }
 
 export class UpdateProductDto extends PartialType(CreateProductDto) {}
