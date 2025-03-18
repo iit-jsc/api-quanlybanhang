@@ -40,5 +40,10 @@ export const permissions = {
     delete: 'DELETE_MEASUREMENT_UNIT',
     update: 'UPDATE_MEASUREMENT_UNIT',
     view: 'VIEW_MEASUREMENT_UNIT'
+  },
+  productOptionGroup: {
+    create: 'CREATE_PRODUCT_OPTION_GROUP',
+    delete: 'DELETE_PRODUCT_OPTION_GROUP',
+    update: 'UPDATE_PRODUCT_OPTION_GROUP'
   }
 }

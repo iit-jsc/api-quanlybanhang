@@ -99,8 +99,6 @@ model Account {
   updaterDiscountCode       DiscountCode[]       @relation("updater")
   creatorPaymentMethod      PaymentMethod[]      @relation("creator")
   updaterPaymentMethod      PaymentMethod[]      @relation("updater")
-  creatorProductOption      ProductOption[]      @relation("creator")
-  updaterProductOption      ProductOption[]      @relation("updater")
   creatorProductOptionGroup ProductOptionGroup[] @relation("creator")
   updaterProductOptionGroup ProductOptionGroup[] @relation("updater")
   updaterCustomerRequest    CustomerRequest[]    @relation("updater")
@@ -247,15 +245,9 @@ model ProductOption {
   isDefault            Boolean?            @default(false)
   price                Float
   photoURL             String?             @db.Text
-  branchId             String
-  branch               Branch?             @relation(fields: [branchId], references: [id])
   createdAt            DateTime            @default(now())
   updatedAt            DateTime            @updatedAt
-  createdBy            String?
-  updatedBy            String?
-  creator              Account?            @relation("creator", fields: [createdBy], references: [id])
-  updater              Account?            @relation("updater", fields: [updatedBy], references: [id])
-  productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id])
+  productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id], onDelete: Cascade)
   productOptionGroupId String?
   productTypes         ProductType[]
   products             Product[]
@@ -606,7 +598,6 @@ model Branch {
   accounts            Account[]
   paymentMethods      PaymentMethod[]
   productOptionGroups ProductOptionGroup[]
-  productOptions      ProductOption[]
 }
 
 model AccountSocket {

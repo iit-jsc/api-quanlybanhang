@@ -1,287 +1,144 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { CommonService } from 'src/common/common.service'
+import {
+  CreateProductOptionDto,
+  CreateProductOptionGroupDto,
+  FindManyProductOptionGroupDto,
+  UpdateProductOptionGroupDto
+} from './dto/product-option-group.dto'
+import { Prisma, PrismaClient } from '@prisma/client'
+import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { productOptionGroupSelect } from 'responses/product-option-group.response'
+import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { TrashService } from 'src/trash/trash.service'
 
 @Injectable()
 export class ProductOptionGroupService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly commonService: CommonService
+    private readonly trashService: TrashService
   ) {}
 
-  // async create(data: CreateProductOptionGroupDto, tokenPayload: TokenPayload) {
-  //   this.validateDefaultProductOptions(data.productOptions)
+  async create(data: CreateProductOptionGroupDto, accountId: string, branchId: string) {
+    this.validateDefaultProductOptions(data.productOptions)
 
-  //   const result = await this.prisma.productOptionGroup.create({
-  //     data: {
-  //       name: data.name,
-  //       productOptions: {
-  //         createMany: {
-  //           data: data.productOptions.map(option => ({
-  //             name: option.name,
-  //             price: option.price,
-  //             colors: option.colors,
-  //             isDefault: option.isDefault,
-  //             branchId: tokenPayload.branchId,
-  //             photoURL: option.photoURL,
-  //             createdBy: tokenPayload.accountId
-  //           }))
-  //         }
-  //       },
-  //       isMultiple: data.isMultiple,
-  //       isRequired: data.isRequired,
-  //       branchId: tokenPayload.branchId,
-  //       createdBy: tokenPayload.accountId
-  //     },
-  //     include: {
-  //       productOptions: true
-  //     }
-  //   })
+    return await this.prisma.productOptionGroup.create({
+      data: {
+        name: data.name,
+        productOptions: {
+          create: data.productOptions.map(option => ({
+            name: option.name,
+            price: option.price,
+            isDefault: option.isDefault,
+            isAppliedToAll: option.isAppliedToAll,
+            photoURL: option.photoURL
+          }))
+        },
+        isMultiple: data.isMultiple,
+        isRequired: data.isRequired,
+        createdBy: accountId,
+        branchId
+      },
+      select: productOptionGroupSelect
+    })
+  }
 
-  //   await this.commonService.createActivityLog(
-  //     [result.id],
-  //     'ProductOptionGroup',
-  //     ACTIVITY_LOG_TYPE.CREATE,
-  //     tokenPayload
-  //   )
+  async findAll(params: FindManyProductOptionGroupDto, branchId: string) {
+    const { page, perPage, keyword, orderBy, productTypeIds } = params
 
-  //   return result
-  // }
+    const where: Prisma.ProductOptionGroupWhereInput = {
+      ...(productTypeIds && {
+        productTypes: {
+          some: { id: { in: productTypeIds } }
+        }
+      }),
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
+      branchId
+    }
 
-  // async findAll(params: FindManyProductOptionGroupDto, branchId: string) {
-  //   let { page, perPage, keyword, orderBy, productTypeIds } = params
+    return await customPaginate(
+      this.prisma.productOptionGroup,
+      {
+        orderBy: orderBy || { createdAt: 'desc' },
+        where,
+        select: productOptionGroupSelect
+      },
+      {
+        page,
+        perPage
+      }
+    )
+  }
 
-  //   let where: Prisma.ProductOptionGroupWhereInput = {
-  //     isPublic: true,
-  //     branchId: branchId,
-  //     ...(productTypeIds && {
-  //       productTypes: {
-  //         some: { id: { in: productTypeIds } }
-  //       }
-  //     }),
-  //     ...(keyword && { name: { contains: removeDiacritics(keyword) } })
-  //   }
+  async findUniq(id: string) {
+    return this.prisma.productOptionGroup.findUniqueOrThrow({
+      where: {
+        id
+      },
+      select: productOptionGroupSelect
+    })
+  }
 
-  //   return await customPaginate(
-  //     this.prisma.productOptionGroup,
-  //     {
-  //       orderBy: orderBy || { createdAt: 'desc' },
-  //       where,
-  //       select: {
-  //         id: true,
-  //         name: true,
-  //         isMultiple: true,
-  //         isRequired: true,
-  //         productOptions: {
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //             price: true,
-  //             productOptionGroupId: true,
-  //             isDefault: true,
-  //             photoURL: true,
-  //             colors: true,
-  //             updatedAt: true
-  //           },
-  //           where: {
-  //             isPublic: true
-  //           },
-  //           orderBy: {
-  //             createdAt: 'asc'
-  //           }
-  //         },
-  //         updatedAt: true
-  //       }
-  //     },
-  //     {
-  //       page,
-  //       perPage
-  //     }
-  //   )
-  // }
+  async update(id: string, data: UpdateProductOptionGroupDto, accountId: string, branchId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      if (data.productOptions)
+        await prisma.productOption.deleteMany({ where: { productOptionGroupId: id } })
 
-  // async findUniq(where: Prisma.ProductOptionGroupWhereUniqueInput) {
-  //   return this.prisma.productOptionGroup.findUniqueOrThrow({
-  //     where: {
-  //       ...where,
-  //       isPublic: true
-  //     },
-  //     include: {
-  //       productOptions: {
-  //         where: {
-  //           isPublic: true
-  //         },
-  //         orderBy: {
-  //           createdAt: 'asc'
-  //         }
-  //       }
-  //     }
-  //   })
-  // }
+      return await prisma.productOptionGroup.update({
+        data: {
+          name: data.name,
+          isMultiple: data.isMultiple,
+          isRequired: data.isRequired,
+          ...(data.productOptions && {
+            productOptions: {
+              create: data.productOptions.map(option => ({
+                name: option.name,
+                price: option.price,
+                isDefault: option.isDefault,
+                isAppliedToAll: option.isAppliedToAll,
+                photoURL: option.photoURL
+              }))
+            }
+          }),
+          updatedBy: accountId
+        },
+        where: {
+          id,
+          branchId
+        },
+        select: productOptionGroupSelect
+      })
+    })
+  }
 
-  // async update(
-  //   params: {
-  //     where: Prisma.ProductOptionGroupWhereUniqueInput
-  //     data: UpdateProductOptionGroupDto
-  //   },
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const { where, data } = params
+  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const dataTrash: CreateManyTrashDto = {
+        ids: data.ids,
+        accountId,
+        modelName: 'ProductOptionGroup',
+        include: {
+          productOptions: true
+        }
+      }
 
-  //   return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-  //     if (data.productOptions) {
-  //       this.validateDefaultProductOptions(data.productOptions)
+      await this.trashService.createMany(dataTrash, prisma)
 
-  //       await this.updateProductOption(
-  //         data.productOptions,
-  //         where.id,
-  //         tokenPayload,
-  //         prisma
-  //       )
-  //     }
+      return prisma.productOptionGroup.deleteMany({
+        where: {
+          id: {
+            in: data.ids
+          },
+          branchId
+        }
+      })
+    })
+  }
+  validateDefaultProductOptions(data: CreateProductOptionDto[]) {
+    const defaultCount = data.filter(option => option.isDefault === true).length
 
-  //     const productOptionGroup = await prisma.productOptionGroup.update({
-  //       data: {
-  //         name: data.name,
-  //         isMultiple: data.isMultiple,
-  //         isRequired: data.isRequired,
-  //         updatedBy: tokenPayload.accountId
-  //       },
-  //       where: {
-  //         id: where.id,
-  //         isPublic: true,
-  //         branchId: tokenPayload.branchId
-  //       },
-  //       include: {
-  //         productOptions: {
-  //           where: {
-  //             isPublic: true
-  //           }
-  //         }
-  //       }
-  //     })
-
-  //     await this.commonService.createActivityLog(
-  //       [productOptionGroup.id],
-  //       'ProductOptionGroup',
-  //       ACTIVITY_LOG_TYPE.UPDATE,
-  //       tokenPayload
-  //     )
-
-  //     return productOptionGroup
-  //   })
-  // }
-
-  // async updateProductOption(
-  //   data: CreateProductOptionDto[],
-  //   productOptionGroupId: string,
-  //   tokenPayload: TokenPayload,
-  //   prisma?: PrismaClient
-  // ) {
-  //   const idsToKeep = data.filter(option => option.id).map(option => option.id)
-  //   prisma = prisma || this.prisma
-
-  //   await prisma.productOption.updateMany({
-  //     where: {
-  //       id: { notIn: idsToKeep },
-  //       productOptionGroupId: productOptionGroupId,
-  //       branchId: tokenPayload.branchId,
-  //       isPublic: true
-  //     },
-  //     data: {
-  //       updatedBy: tokenPayload.accountId,
-  //       isPublic: false
-  //     }
-  //   })
-
-  //   const operations = data.map(option => {
-  //     if (option.id) {
-  //       return prisma.productOption.update({
-  //         where: {
-  //           id: option.id,
-  //           branchId: tokenPayload.branchId,
-  //           productOptionGroupId,
-  //           isPublic: true
-  //         },
-  //         data: {
-  //           name: option.name,
-  //           price: option.price,
-  //           colors: option.colors,
-  //           photoURL: option.photoURL,
-  //           isDefault: option.isDefault,
-  //           updatedBy: tokenPayload.accountId
-  //         }
-  //       })
-  //     } else {
-  //       return prisma.productOption.create({
-  //         data: {
-  //           productOptionGroupId,
-  //           name: option.name,
-  //           price: option.price,
-  //           photoURL: option.photoURL,
-  //           colors: option.colors,
-  //           isDefault: option.isDefault,
-  //           createdBy: tokenPayload.accountId,
-  //           branchId: tokenPayload.branchId
-  //         }
-  //       })
-  //     }
-  //   })
-
-  //   await Promise.all(operations)
-  // }
-
-  // async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-  //   return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-  //     await prisma.productOption.updateMany({
-  //       where: {
-  //         isPublic: true,
-  //         productOptionGroup: {
-  //           id: {
-  //             in: data.ids
-  //           }
-  //         }
-  //       },
-  //       data: {
-  //         isPublic: false,
-  //         updatedBy: tokenPayload.accountId
-  //       }
-  //     })
-
-  //     const count = await prisma.productOptionGroup.updateMany({
-  //       where: {
-  //         id: {
-  //           in: data.ids
-  //         },
-  //         isPublic: true,
-  //         branchId: tokenPayload.branchId
-  //       },
-  //       data: {
-  //         isPublic: false,
-  //         updatedBy: tokenPayload.accountId
-  //       }
-  //     })
-
-  //     await this.commonService.createActivityLog(
-  //       data.ids,
-  //       'ProductOptionGroup',
-  //       ACTIVITY_LOG_TYPE.DELETE,
-  //       tokenPayload
-  //     )
-
-  //     return { ...count, ids: data.ids } as DeleteManyResponse
-  //   })
-  // }
-
-  // validateDefaultProductOptions(productOptions: CreateProductOptionDto[]) {
-  //   const defaultCount = productOptions.filter(
-  //     option => option.isDefault === true
-  //   ).length
-
-  //   if (defaultCount > 1)
-  //     throw new CustomHttpException(
-  //       HttpStatus.CONFLICT,
-  //       'Chỉ có duy nhất dữ liệu là mặc định!'
-  //     )
-  // }
+    if (defaultCount > 1)
+      throw new HttpException('Chỉ có duy nhất dữ liệu là mặc định!', HttpStatus.CONFLICT)
+  }
 }
