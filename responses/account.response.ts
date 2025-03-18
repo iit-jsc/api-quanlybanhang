@@ -11,3 +11,20 @@ export const accountSortSelect: Prisma.AccountSelect = {
   },
   branches: true
 }
+
+export const accountJWTAuthSelect = (branchId: string): Prisma.AccountSelect => ({
+  id: true,
+  branches: {
+    select: { id: true, shopId: true },
+    where: { id: branchId }
+  },
+  role: {
+    select: {
+      permissions: {
+        select: {
+          code: true
+        }
+      }
+    }
+  }
+})
