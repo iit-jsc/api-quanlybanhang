@@ -1,6 +1,7 @@
 import { PartialType } from '@nestjs/swagger'
-import { Transform, TransformFnParams } from 'class-transformer'
-import { IsNotEmpty, IsString } from 'class-validator'
+import { Transform, TransformFnParams, Type } from 'class-transformer'
+import { ArrayNotEmpty, IsNotEmpty, IsString, ValidateNested } from 'class-validator'
+import { CreateOrderProductsDto } from 'src/order/dto/order.dto'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateTableDto {
@@ -21,6 +22,24 @@ export class FindManyTableDto extends FindManyDto {
     return value?.split(',').map((id: string) => id.trim())
   })
   areaIds: string[]
+}
+
+export class AddDishDto {
+  @IsNotEmpty()
+  @IsString()
+  tableId: string
+
+  @IsNotEmpty()
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => CreateOrderProductsDto)
+  orderProducts: CreateOrderProductsDto[]
+}
+
+export class AddDishByCustomerDto extends AddDishDto {
+  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsString()
+  branchId: string
 }
 
 export class UpdateTableDto extends PartialType(CreateTableDto) {}

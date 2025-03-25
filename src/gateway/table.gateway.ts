@@ -1,10 +1,7 @@
-import { UseGuards } from '@nestjs/common'
 import { WebSocketGateway } from '@nestjs/websockets'
-import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { PrismaService } from 'nestjs-prisma'
 import { Table } from '@prisma/client'
-import { BaseGateway } from './base.gateway' // Import BaseGateway
-import { FirebaseService } from 'src/firebase/firebase.service'
+import { BaseGateway } from './base.gateway'
 
 @WebSocketGateway()
 export class TableGateway extends BaseGateway {

@@ -87,6 +87,9 @@ import { TrashModule } from './trash/trash.module'
         }
       }
     }),
+    GatewayModule.forRoot({
+      isGlobal: true
+    }),
     CommonModule,
     UserModule,
     AccountModule,
@@ -120,7 +123,6 @@ import { TrashModule } from './trash/trash.module'
     WarehouseModule,
     StockModule,
     InventoryTransactionModule,
-    GatewayModule,
     PrintTemplateModule,
     PointAccumulationModule,
     PointHistoryModule,

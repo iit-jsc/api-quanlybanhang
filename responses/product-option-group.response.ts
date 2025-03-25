@@ -31,3 +31,14 @@ export const productOptionGroupSelect = (productId?: string): Prisma.ProductOpti
   },
   updatedAt: true
 })
+
+export const productOptionSelect: Prisma.ProductOptionSelect = {
+  id: true,
+  name: true,
+  price: true,
+  productOptionGroupId: true,
+  isAppliedToAll: true,
+  isDefault: true,
+  photoURL: true,
+  updatedAt: true
+}

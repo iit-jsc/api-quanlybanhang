@@ -1,161 +1,115 @@
 import { FindManyDto } from 'utils/Common.dto'
 import { PartialType } from '@nestjs/swagger'
-import { Product } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   ArrayNotEmpty,
   IsArray,
-  IsBoolean,
   IsDate,
   IsEnum,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
-  IsString,
   Min,
   ValidateNested
 } from 'class-validator'
-import { ORDER_STATUS_COMMON, ORDER_TYPE } from 'enums/order.enum'
+import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
 
 export class CreateOrderDto {
   @IsOptional()
-  @IsString()
-  @IsNotEmpty({ message: 'Không được là chuỗi rỗng!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  code: string
+  @IsEnum(OrderDetailStatus)
+  status: OrderDetailStatus
 
-  @IsOptional()
-  @IsString()
-  customerId: string
+  @IsNotEmpty()
+  @IsEnum(OrderType)
+  type: OrderType
 
-  @IsOptional()
-  @IsString()
-  note: string
-
-  @IsOptional()
-  @IsNumber()
-  @IsEnum(ORDER_STATUS_COMMON, { message: 'Trạng thái không hợp lệ!' })
-  orderStatus: number
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsEnum(ORDER_TYPE, { message: 'Loại đơn hàng không hợp lệ!' })
-  @IsNumber()
-  orderType: number
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @ArrayNotEmpty({ message: 'Danh sách sản phẩm không được rỗng!' })
+  @IsNotEmpty()
+  @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => OrderProducts)
-  orderProducts: OrderProducts[]
+  @Type(() => CreateOrderProductsDto)
+  orderProducts: CreateOrderProductsDto[]
+
+  code?: string
+  customerId?: string
+  note?: string
 }
 
-export class OrderProducts {
-  @IsNotEmpty({ message: 'ID sản phẩm không được để trống!' })
-  @IsString()
+export class CreateOrderProductsDto {
+  @IsNotEmpty()
   productId: string
 
-  @IsNotEmpty({ message: 'Số lượng sản phẩm không được để trống!' })
-  @IsNumber({}, { message: 'Số lượng sản phẩm phải là số!' })
+  @IsNotEmpty()
   amount: number
 
-  @IsOptional()
-  @IsString()
-  note: string
-
-  @IsOptional()
-  productOptionIds: string[]
+  note?: string
+  productOptionIds?: string[]
 }
 
-export class UpdateOrderDto extends PartialType(CreateOrderDto) {
-  @IsOptional()
-  @IsString()
-  cancelReason: string
+// export class UpdateOrderDto extends PartialType(CreateOrderDto) {
+//   cancelReason?: string
+//   paymentMethodId?: string
+//   bankingImages?: string[]
+// }
 
-  @IsOptional()
-  @IsString()
-  paymentMethodId: string
+// export class PaymentOrderDto {
+//   @IsNotEmpty()
+//   paymentMethodId: string
 
-  @IsOptional()
-  @IsArray()
-  bankingImages: string[]
-}
+//   @IsNotEmpty()
+//   @IsEnum(OrderType)
+//   orderType: OrderType
 
-export class PaymentOrderDto {
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  exchangePoint: number
+//   @IsOptional()
+//   @Min(1)
+//   exchangePoint: number
 
-  @IsOptional()
-  @IsString()
-  promotionId: string
+//   @IsOptional()
+//   @IsArray()
+//   bankingImages: string[]
 
-  @IsOptional()
-  @IsString()
-  discountCode: string
+//   @IsOptional()
+//   @Min(1)
+//   moneyReceived: number
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
-  paymentMethodId: string
+//   @IsOptional()
+//   @IsEnum(OrderStatus)
+//   orderStatus: OrderStatus
 
-  @IsOptional()
-  @IsArray()
-  bankingImages: string[]
+//   promotionId?: string
+//   discountCode?: string
+//   customerId?: string
+//   note?: string
+// }
 
-  @IsOptional()
-  @IsNumber()
-  @Min(1)
-  moneyReceived: number
+// export class FindManyOrderDto extends FindManyDto {
+//   @IsOptional()
+//   @Type(() => Date)
+//   @IsDate()
+//   from?: Date
 
-  @IsOptional()
-  @IsString()
-  customerId: string
+//   @IsOptional()
+//   @Type(() => Date)
+//   @IsDate()
+//   to?: Date
 
-  @IsOptional()
-  @IsString()
-  note: string
+//   @Transform(({ value }: TransformFnParams) => {
+//     return value?.split(',').map((id: number) => +id)
+//   })
+//   orderTypes: number[]
 
-  @IsOptional()
-  @IsNumber()
-  @IsEnum(ORDER_STATUS_COMMON, { message: 'Trạng thái không hợp lệ!' })
-  orderStatus: number
+//   @Transform(({ value }: TransformFnParams) => {
+//     return value?.split(',').map((id: number) => +id)
+//   })
+//   orderStatuses: number[]
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsEnum(ORDER_TYPE, { message: 'Loại đơn hàng không hợp lệ!' })
-  @IsNumber()
-  orderType: number
-}
+//   customerId?: string
 
-export class FindManyOrderDto extends FindManyDto {
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  from?: Date
+//   @Transform(({ value }: TransformFnParams) => {
+//     return Boolean(+value)
+//   })
+//   isPaid?: boolean
 
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  to?: Date
-
-  @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: number) => +id)
-  })
-  orderTypes: number[]
-
-  @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: number) => +id)
-  })
-  orderStatuses: number[]
-
-  customerId?: string
-
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value)
-  })
-  isPaid?: boolean
-
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value)
-  })
-  isSave?: boolean
-}
+//   @Transform(({ value }: TransformFnParams) => {
+//     return Boolean(+value)
+//   })
+//   isSave?: boolean
+// }

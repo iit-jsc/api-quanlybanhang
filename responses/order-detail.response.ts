@@ -5,7 +5,8 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
   amount: true,
   note: true,
   status: true,
-  createdAt: true,
   product: true,
-  productOptions: true
+  productOptions: true,
+  updatedAt: true,
+  createdAt: true
 }

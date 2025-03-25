@@ -47,9 +47,18 @@ export const permissions = {
     update: 'UPDATE_PRODUCT_OPTION_GROUP'
   },
   paymentMethod: {
-    create: 'CREATE_PAYMENT_METHOD',
-    delete: 'DELETE_PAYMENT_METHOD',
     update: 'UPDATE_PAYMENT_METHOD',
     view: 'VIEW_PAYMENT_METHOD'
+  },
+  discountIssue: {
+    create: 'CREATE_DISCOUNT_ISSUE',
+    delete: 'DELETE_DISCOUNT_ISSUE',
+    update: 'UPDATE_DISCOUNT_ISSUE',
+    view: 'VIEW_DISCOUNT_ISSUE'
+  },
+  discountCode: {
+    create: 'CREATE_DISCOUNT_CODE',
+    delete: 'DELETE_DISCOUNT_CODE',
+    view: 'VIEW_DISCOUNT_CODE'
   }
 }

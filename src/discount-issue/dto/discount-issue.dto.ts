@@ -1,94 +1,57 @@
 import { PartialType } from '@nestjs/swagger'
+import { DiscountType } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import {
-  IsBoolean,
-  IsDate,
-  IsEnum,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Max,
-  MinDate,
-  ValidateIf,
-  ValidationArguments
-} from 'class-validator'
-import { DISCOUNT_TYPE } from 'enums/common.enum'
+import { IsDate, IsEnum, IsNotEmpty, IsOptional, Max, MinDate, ValidateIf } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateDiscountIssueDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
   name: string
 
-  @IsOptional()
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
-  code: string
+  @IsNotEmpty()
+  @IsEnum(DiscountType)
+  discountType: DiscountType
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
-  @IsEnum(DISCOUNT_TYPE, { message: 'Giảm giá không hợp lệ!' })
-  discountType: number
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  @ValidateIf(o => o.discountType === DISCOUNT_TYPE.PERCENT)
+  @IsNotEmpty()
+  @ValidateIf(o => o.discountType === DiscountType.PERCENT)
   @Max(100)
   discount: number
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @ValidateIf(o => o.isLimit === true)
+  @IsNotEmpty()
+  amount: number
+
+  @IsNotEmpty()
+  isLimit: boolean
+
+  @IsNotEmpty()
   @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
-    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!'
-  })
+  @IsDate()
   startDate: Date
 
-  @ValidateIf(o => o.endDate)
+  @IsOptional()
   @Transform(({ value }) => value && new Date(value))
-  @IsDate({ message: 'Ngày tháng không hợp lệ!' })
-  @MinDate(new Date(new Date().setDate(new Date().getDate() - 1)), {
-    message: 'Ngày tháng phải lớn hơn hoặc bằng ngày hiện tại!'
-  })
+  @IsDate()
+  @MinDate(new Date())
   endDate: Date
 
   @IsOptional()
-  @IsBoolean()
-  isEndDateDisabled: boolean
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  code: string
 
-  @IsOptional()
-  @IsString()
-  description: string
-
-  @ValidateIf(o => o.isLimit === true)
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  amount: number
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsBoolean()
-  isLimit: boolean
-
-  @IsOptional()
-  @IsNumber()
-  minTotalOrder: number
-
-  @IsOptional()
-  @IsNumber()
-  maxValue: number
+  description?: string
+  minTotalOrder?: number
+  maxValue?: number
 }
 
-export class UpdateDiscountIssueDto extends PartialType(
-  CreateDiscountIssueDto
-) {}
+export class UpdateDiscountIssueDto extends PartialType(CreateDiscountIssueDto) {}
 
 export class findUniqByDiscountCodeDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   branchId: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   code: string
 }
 

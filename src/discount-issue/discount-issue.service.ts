@@ -1,245 +1,166 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-
-import { CommonService } from 'src/common/common.service'
+import {
+  CreateDiscountIssueDto,
+  FindManyDiscountIssueDto,
+  findUniqByDiscountCodeDto,
+  UpdateDiscountIssueDto
+} from './dto/discount-issue.dto'
+import { customPaginate, generateCode, removeDiacritics } from 'utils/Helps'
+import { Prisma, PrismaClient } from '@prisma/client'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { discountIssueSelect } from 'responses/discountIssue.response'
+import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
+import { TrashService } from 'src/trash/trash.service'
 
 @Injectable()
 export class DiscountIssueService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService
+    private readonly trashService: TrashService
   ) {}
 
-  // async create(data: CreateDiscountIssueDto, tokenPayload: TokenPayload) {
-  //   if (data.endDate && data.startDate && data.endDate < data.startDate)
-  //     throw new CustomHttpException(
-  //       HttpStatus.CONFLICT,
-  //       'Ngày kết thúc không hợp lệ!'
-  //     )
+  async create(data: CreateDiscountIssueDto, accountId: string, branchId: string) {
+    return await this.prisma.discountIssue.create({
+      data: {
+        name: data.name,
+        code: generateCode('KM'),
+        discountType: data.discountType,
+        discount: data.discount,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        description: data.description,
+        amount: data.amount,
+        isLimit: data.isLimit,
+        minTotalOrder: data.minTotalOrder,
+        maxValue: data.maxValue,
+        branchId: branchId,
+        createdBy: accountId
+      },
+      select: discountIssueSelect
+    })
+  }
 
-  //   const discountIssue = await this.prisma.discountIssue.create({
-  //     data: {
-  //       name: data.name,
-  //       code: data.code,
-  //       discountType: data.discountType,
-  //       discount: data.discount,
-  //       startDate: data.startDate,
-  //       endDate: data.endDate,
-  //       isEndDateDisabled: data.isEndDateDisabled,
-  //       description: data.description,
-  //       amount: data.amount,
-  //       isLimit: data.isLimit,
-  //       minTotalOrder: data.minTotalOrder,
-  //       maxValue: data.maxValue,
-  //       branchId: tokenPayload.branchId,
-  //       createdBy: tokenPayload.accountId
-  //     }
-  //   })
+  async update(id: string, data: UpdateDiscountIssueDto, accountId: string, branchId: string) {
+    if (data.endDate && data.startDate && data.endDate < data.startDate)
+      throw new HttpException('Ngày kết thúc không hợp lệ!', HttpStatus.CONFLICT)
 
-  //   await this.commonService.createActivityLog(
-  //     [discountIssue.id],
-  //     'DiscountIssue',
-  //     ACTIVITY_LOG_TYPE.CREATE,
-  //     tokenPayload
-  //   )
+    return await this.prisma.discountIssue.update({
+      data: {
+        name: data.name,
+        code: data.code,
+        discountType: data.discountType,
+        discount: data.discount,
+        startDate: data.startDate,
+        endDate: data.endDate,
+        description: data.description,
+        amount: data.amount,
+        isLimit: data.isLimit,
+        minTotalOrder: data.minTotalOrder,
+        maxValue: data.maxValue,
+        updatedBy: accountId,
+        branchId
+      },
+      where: { id, branchId },
+      select: discountIssueSelect
+    })
+  }
 
-  //   return discountIssue
-  // }
+  async findAll(params: FindManyDiscountIssueDto, branchId: string) {
+    const { page, perPage, keyword, orderBy, totalOrder } = params
 
-  // async update(
-  //   params: {
-  //     where: Prisma.DiscountIssueWhereUniqueInput
-  //     data: UpdateDiscountIssueDto
-  //   },
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const { where, data } = params
+    const where: Prisma.DiscountIssueWhereInput = {
+      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
+      ...(totalOrder && {
+        minTotalOrder: {
+          lte: totalOrder
+        }
+      }),
+      branchId
+    }
 
-  //   if (data.endDate && data.startDate && data.endDate < data.startDate)
-  //     throw new CustomHttpException(
-  //       HttpStatus.CONFLICT,
-  //       'Ngày kết thúc không hợp lệ!'
-  //     )
+    return await customPaginate(
+      this.prisma.discountIssue,
+      {
+        orderBy: orderBy || { createdAt: 'desc' },
+        where,
+        select: discountIssueSelect
+      },
+      {
+        page,
+        perPage
+      }
+    )
+  }
 
-  //   const discountIssue = await this.prisma.discountIssue.update({
-  //     data: {
-  //       name: data.name,
-  //       code: data.code,
-  //       discountType: data.discountType,
-  //       discount: data.discount,
-  //       startDate: data.startDate,
-  //       endDate: data.endDate,
-  //       isEndDateDisabled: data.isEndDateDisabled,
-  //       description: data.description,
-  //       amount: data.amount,
-  //       isLimit: data.isLimit,
-  //       minTotalOrder: data.minTotalOrder,
-  //       maxValue: data.maxValue,
-  //       branchId: tokenPayload.branchId,
-  //       updatedBy: tokenPayload.accountId
-  //     },
-  //     where: { id: where.id, isPublic: true, branchId: tokenPayload.branchId }
-  //   })
+  async findUniq(id: string, branchId: string) {
+    return this.prisma.discountIssue.findUniqueOrThrow({
+      where: {
+        id,
+        branchId
+      },
+      select: discountIssueSelect
+    })
+  }
 
-  //   await this.commonService.createActivityLog(
-  //     [discountIssue.id],
-  //     'DiscountIssue',
-  //     ACTIVITY_LOG_TYPE.UPDATE,
-  //     tokenPayload
-  //   )
+  async findByDiscountCode(data: findUniqByDiscountCodeDto) {
+    const { branchId, code } = data
 
-  //   return discountIssue
-  // }
+    const discountIssue = await this.prisma.discountIssue.findFirst({
+      where: {
+        branchId: branchId,
+        startDate: {
+          lte: new Date(new Date().setHours(23, 59, 59, 999))
+        },
+        AND: [
+          {
+            OR: [
+              {
+                endDate: {
+                  gte: new Date(new Date().setHours(0, 0, 0, 0))
+                }
+              },
+              {
+                endDate: null
+              }
+            ]
+          }
+        ],
+        discountCodes: {
+          some: {
+            code: code,
+            isUsed: false
+          }
+        }
+      }
+    })
 
-  // async findAll(params: FindManyDiscountIssueDto, tokenPayload: TokenPayload) {
-  //   let { page, perPage, keyword, orderBy, totalOrder } = params
-  //   let where: Prisma.DiscountIssueWhereInput = {
-  //     isPublic: true,
-  //     ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
-  //     branchId: tokenPayload.branchId,
-  //     ...(totalOrder && {
-  //       minTotalOrder: {
-  //         lte: totalOrder
-  //       }
-  //     })
-  //   }
+    if (!discountIssue) throw new HttpException('Không tìm thấy khuyến mãi!', HttpStatus.NOT_FOUND)
 
-  //   return await customPaginate(
-  //     this.prisma.discountIssue,
-  //     {
-  //       orderBy: orderBy || { createdAt: 'desc' },
-  //       where,
-  //       include: {
-  //         _count: {
-  //           select: {
-  //             discountCodes: {
-  //               where: {
-  //                 isPublic: true
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     },
-  //     {
-  //       page,
-  //       perPage
-  //     }
-  //   )
-  // }
+    return discountIssue
+  }
 
-  // async findUniq(
-  //   where: Prisma.DiscountIssueWhereUniqueInput,
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   return this.prisma.discountIssue.findUniqueOrThrow({
-  //     where: {
-  //       ...where,
-  //       isPublic: true,
-  //       branchId: tokenPayload.branchId
-  //     },
-  //     include: {
-  //       _count: {
-  //         select: {
-  //           discountCodes: {
-  //             where: {
-  //               isPublic: true
-  //             }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   })
-  // }
+  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const dataTrash: CreateManyTrashDto = {
+        ids: data.ids,
+        accountId,
+        modelName: 'DiscountIssue',
+        include: {
+          discountCodes: true
+        }
+      }
 
-  // async findByDiscountCode(data: findUniqByDiscountCodeDto) {
-  //   const { branchId, code } = data
+      await this.trashService.createMany(dataTrash, prisma)
 
-  //   if (!branchId)
-  //     throw new CustomHttpException(
-  //       HttpStatus.NOT_FOUND,
-  //       'Chi nhánh không được để trống!'
-  //     )
-
-  //   const discountIssue = await this.prisma.discountIssue.findFirst({
-  //     where: {
-  //       branchId: branchId,
-  //       isPublic: true,
-  //       startDate: {
-  //         lte: new Date(new Date().setHours(23, 59, 59, 999))
-  //       },
-  //       AND: [
-  //         {
-  //           OR: [
-  //             {
-  //               endDate: {
-  //                 gte: new Date(new Date().setHours(0, 0, 0, 0))
-  //               }
-  //             },
-  //             {
-  //               isEndDateDisabled: true
-  //             }
-  //           ]
-  //         }
-  //       ],
-  //       discountCodes: {
-  //         some: {
-  //           code: code,
-  //           isUsed: false,
-  //           isPublic: true
-  //         }
-  //       }
-  //     }
-  //   })
-
-  //   if (!discountIssue)
-  //     throw new CustomHttpException(
-  //       HttpStatus.NOT_FOUND,
-  //       'Không tìm thấy khuyến mãi!'
-  //     )
-
-  //   return discountIssue
-  // }
-
-  // async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-  //   return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-  //     const count = await prisma.discountIssue.updateMany({
-  //       where: {
-  //         id: {
-  //           in: data.ids
-  //         },
-  //         isPublic: true,
-  //         branchId: tokenPayload.branchId
-  //       },
-  //       data: {
-  //         isPublic: false,
-  //         updatedBy: tokenPayload.accountId
-  //       }
-  //     })
-
-  //     await prisma.discountCode.updateMany({
-  //       where: {
-  //         discountIssue: {
-  //           id: {
-  //             in: data.ids
-  //           }
-  //         },
-  //         isPublic: true
-  //       },
-  //       data: {
-  //         isPublic: false,
-  //         updatedBy: tokenPayload.accountId
-  //       }
-  //     })
-
-  //     await this.commonService.createActivityLog(
-  //       data.ids,
-  //       'DiscountIssue',
-  //       ACTIVITY_LOG_TYPE.DELETE,
-  //       tokenPayload
-  //     )
-
-  //     return { ...count, ids: data.ids } as DeleteManyResponse
-  //   })
-  // }
+      return prisma.discountIssue.deleteMany({
+        where: {
+          id: {
+            in: data.ids
+          },
+          branchId
+        }
+      })
+    })
+  }
 }

@@ -16,7 +16,13 @@ import { TableService } from './table.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RequestJWT } from 'interfaces/common.interface'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { CreateTableDto, FindManyTableDto, UpdateTableDto } from './dto/table.dto'
+import {
+  AddDishByCustomerDto,
+  AddDishDto,
+  CreateTableDto,
+  FindManyTableDto,
+  UpdateTableDto
+} from './dto/table.dto'
 import { Roles } from 'guards/roles.decorator'
 import { RolesGuard } from 'guards/roles.guard'
 import { permissions } from 'enums/permissions.enum'
@@ -38,6 +44,21 @@ export class TableController {
     const { accountId, branchId } = req
 
     return this.tableService.create(data, accountId, branchId)
+  }
+
+  @Post('/add-dish')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  addDish(@Body() data: AddDishDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+
+    return this.tableService.addDish(data, accountId, branchId)
+  }
+
+  @Post('/add-dish-by-customer')
+  @HttpCode(HttpStatus.OK)
+  addDishByCustomer(@Body() data: AddDishByCustomerDto) {
+    return this.tableService.addDishByCustomer(data)
   }
 
   @Patch(':id')

@@ -1,18 +1,26 @@
-import { Prisma, PrismaClient } from '@prisma/client'
+import { OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { CreateTableDto, FindManyTableDto, UpdateTableDto } from './dto/table.dto'
+import {
+  AddDishByCustomerDto,
+  AddDishDto,
+  CreateTableDto,
+  FindManyTableDto,
+  UpdateTableDto
+} from './dto/table.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { customPaginate, getOrderDetails, removeDiacritics } from 'utils/Helps'
 import { tableSelect } from 'responses/table.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { TableGateway } from 'src/gateway/table.gateway'
 
 @Injectable()
 export class TableService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly tableGateway: TableGateway
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
@@ -103,5 +111,57 @@ export class TableService {
         }
       })
     })
+  }
+
+  async addDish(data: AddDishDto, accountId: string, branchId: string) {
+    const orderDetails = await getOrderDetails(
+      data.orderProducts,
+      OrderDetailStatus.APPROVED,
+      accountId,
+      branchId
+    )
+
+    const table = await this.prisma.table.update({
+      where: { id: data.tableId },
+      data: {
+        orderDetails: {
+          createMany: {
+            data: orderDetails
+          }
+        }
+      },
+      select: tableSelect
+    })
+
+    // Bắn socket cho nhân viên trong chi nhánh
+    await this.tableGateway.handleModifyTable(table)
+
+    return table
+  }
+
+  async addDishByCustomer(data: AddDishByCustomerDto) {
+    const orderDetails = await getOrderDetails(
+      data.orderProducts,
+      OrderDetailStatus.WAITING,
+      null,
+      data.branchId
+    )
+
+    const table = await this.prisma.table.update({
+      where: { id: data.tableId },
+      data: {
+        orderDetails: {
+          createMany: {
+            data: orderDetails
+          }
+        }
+      },
+      select: tableSelect
+    })
+
+    // Bắn socket cho nhân viên trong chi nhánh
+    await this.tableGateway.handleModifyTable(table)
+
+    return table
   }
 }

@@ -418,8 +418,8 @@ model Order {
   id                    String         @id @default(uuid())
   branchId              String
   code                  String
-  orderType             OrderType
-  orderStatus           OrderStatus
+  type                  OrderType
+  status                OrderStatus
   tableId               String?
   table                 Table?         @relation(fields: [tableId], references: [id])
   customerId            String?
@@ -463,7 +463,7 @@ model OrderDetail {
   productOrigin   Product?           @relation(fields: [productOriginId], references: [id])
   productOriginId String?
   branch          Branch?            @relation(fields: [branchId], references: [id])
-  order           Order?             @relation(fields: [orderId], references: [id])
+  order           Order?             @relation(fields: [orderId], references: [id], onDelete: Cascade)
   table           Table?             @relation(fields: [tableId], references: [id])
   tableId         String?
   createdBy       String?

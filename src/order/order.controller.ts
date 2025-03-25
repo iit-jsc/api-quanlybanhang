@@ -14,17 +14,11 @@ import {
 } from '@nestjs/common'
 import { OrderService } from './order.service'
 import { JwtAuthGuard, JwtCustomerAuthGuard } from 'guards/jwt-auth.guard'
-import { TokenCustomerPayload, TokenPayload } from 'interfaces/common.interface'
-import {
-  PaymentOrderDto,
-  CreateOrderDto,
-  UpdateOrderDto,
-  FindManyOrderDto
-} from './dto/order.dto'
-import { CreateOrderOnlineDto } from './dto/create-order-online.dto'
-import { CreateOrderToTableDto } from './dto/create-order-to-table.dto'
-import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto'
-import { PaymentFromTableDto } from './dto/payment-order-from-table.dto'
+import { RequestJWT, TokenCustomerPayload, TokenPayload } from 'interfaces/common.interface'
+import { CreateOrderDto } from './dto/order.dto'
+// import { CreateOrderOnlineDto } from './dto/create-order-online.dto'
+// import { CreateOrderToTableDto } from './dto/create-order-to-table.dto'
+// import { CreateOrderToTableByCustomerDto } from './dto/create-order-to-table-by-customer.dto'
 import { SeparateTableDto } from './dto/separate-table.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { SaveOrderDto } from './dto/save-order.dto'
@@ -32,25 +26,40 @@ import { RolesGuard } from 'guards/roles.guard'
 import { Roles } from 'guards/roles.decorator'
 import { SPECIAL_ROLE } from 'enums/common.enum'
 
+@UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('order')
 export class OrderController {
   constructor(private readonly orderService: OrderService) {}
 
-  // @Post('')
+  @Post('')
+  @HttpCode(HttpStatus.OK)
+  create(@Body() data: CreateOrderDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+    return this.orderService.create(data, accountId, branchId)
+  }
+
+  // @Patch('/:id')
   // @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('CREATE_ORDER', SPECIAL_ROLE.MANAGER)
-  // create(@Body() createOrderDto: CreateOrderDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  // update(@Body() data: UpdateOrderDto, @Req() req: RequestJWT, @Param('id') id: string) {
+  //   const { accountId, branchId } = req
 
-  //   return this.orderService.create(createOrderDto, tokenPayload)
+  //   return this.orderService.update(
+  //     {
+  //       where: {
+  //         id
+  //       },
+  //       data: data
+  //     },
+  //     tokenPayload
+  //   )
   // }
 
   // @Post('/online')
   // @HttpCode(HttpStatus.OK)
   // createOrderOnline(
   //   @Body() createOrderOnlineDto: CreateOrderOnlineDto,
-  //   @Req() req: any
+  //   @Req() req: RequestJWT
   // ) {
   //   return this.orderService.createOrderOnline(createOrderOnlineDto)
   // }
@@ -61,7 +70,7 @@ export class OrderController {
   // @Roles('CREATE_ORDER', SPECIAL_ROLE.MANAGER)
   // createOrderToTableByEmployee(
   //   @Body() createOrderToTableDto: CreateOrderToTableDto,
-  //   @Req() req: any
+  //   @Req() req: RequestJWT
   // ) {
   //   const tokenPayload = req.tokenPayload as TokenPayload
 
@@ -87,7 +96,7 @@ export class OrderController {
   // @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   // paymentFromTable(
   //   @Body() paymentFromTableDto: PaymentFromTableDto,
-  //   @Req() req: any
+  //   @Req() req: RequestJWT
   // ) {
   //   const tokenPayload = req.tokenPayload as TokenPayload
 
@@ -98,7 +107,7 @@ export class OrderController {
   // @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
-  // separateTable(@Body() separateTableDto: SeparateTableDto, @Req() req: any) {
+  // separateTable(@Body() separateTableDto: SeparateTableDto, @Req() req: RequestJWT) {
   //   const tokenPayload = req.tokenPayload as TokenPayload
 
   //   return this.orderService.separateTable(separateTableDto, tokenPayload)
@@ -110,7 +119,7 @@ export class OrderController {
   // @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   // saveOrder(
   //   @Body() saveOrderDto: SaveOrderDto,
-  //   @Req() req: any,
+  //   @Req() req: RequestJWT,
   //   @Param('id') id: string
   // ) {
   //   const tokenPayload = req.tokenPayload as TokenPayload
@@ -132,7 +141,7 @@ export class OrderController {
   // @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
   // paymentOrder(
   //   @Body() paymentOrderDto: PaymentOrderDto,
-  //   @Req() req: any,
+  //   @Req() req: RequestJWT,
   //   @Param('id') id: string
   // ) {
   //   const tokenPayload = req.tokenPayload as TokenPayload
@@ -148,32 +157,10 @@ export class OrderController {
   //   )
   // }
 
-  // @Patch('/:id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
-  // update(
-  //   @Body() updateOrderDto: UpdateOrderDto,
-  //   @Req() req: any,
-  //   @Param('id') id: string
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-
-  //   return this.orderService.update(
-  //     {
-  //       where: {
-  //         id
-  //       },
-  //       data: updateOrderDto
-  //     },
-  //     tokenPayload
-  //   )
-  // }
-
   // @Get('/me')
   // @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtCustomerAuthGuard)
-  // findAllByCustomer(@Query() data: FindManyOrderDto, @Req() req: any) {
+  // findAllByCustomer(@Query() data: FindManyOrderDto, @Req() req: RequestJWT) {
   //   const tokenCustomerPayload =
   //     req.tokenCustomerPayload as TokenCustomerPayload
 
@@ -183,7 +170,7 @@ export class OrderController {
   // @Get('/me/:id')
   // @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtCustomerAuthGuard)
-  // findUniqByCustomer(@Param('id') id: string, @Req() req: any) {
+  // findUniqByCustomer(@Param('id') id: string, @Req() req: RequestJWT) {
   //   const tokenCustomerPayload =
   //     req.tokenCustomerPayload as TokenCustomerPayload
 
@@ -199,7 +186,7 @@ export class OrderController {
   // @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles('VIEW_ORDER', SPECIAL_ROLE.MANAGER)
-  // findAll(@Query() data: FindManyOrderDto, @Req() req: any) {
+  // findAll(@Query() data: FindManyOrderDto, @Req() req: RequestJWT) {
   //   const tokenPayload = req.tokenPayload as TokenPayload
 
   //   return this.orderService.findAll(data, tokenPayload)
@@ -209,7 +196,7 @@ export class OrderController {
   // @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles('VIEW_ORDER', SPECIAL_ROLE.MANAGER)
-  // findUniq(@Param('id') id: string, @Req() req: any) {
+  // findUniq(@Param('id') id: string, @Req() req: RequestJWT) {
   //   const tokenPayload = req.tokenPayload as TokenPayload
 
   //   return this.orderService.findUniq(
@@ -224,7 +211,7 @@ export class OrderController {
   // @HttpCode(HttpStatus.OK)
   // @UseGuards(JwtAuthGuard, RolesGuard)
   // @Roles('DELETE_ORDER', SPECIAL_ROLE.MANAGER)
-  // deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
+  // deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: RequestJWT) {
   //   const tokenPayload = req.tokenPayload as TokenPayload
 
   //   return this.orderService.deleteMany(

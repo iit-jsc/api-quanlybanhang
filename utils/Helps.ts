@@ -4,8 +4,14 @@ import { generate as generateIdentifier } from 'short-uuid'
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { extname } from 'path'
-import ShortUniqueId from 'short-unique-id'
 import { PER_PAGE } from 'enums/common.enum'
+import { productSelect } from 'responses/product.response'
+import { productOptionSelect } from 'responses/product-option-group.response'
+import { OrderDetailStatus, PrismaClient } from '@prisma/client'
+import { CreateOrderProductsDto } from 'src/order/dto/order.dto'
+import { IOrderDetail } from 'interfaces/orderDetail.interface'
+
+const prisma = new PrismaClient()
 
 const paginate: PaginatorTypes.PaginateFunction = paginator({
   perPage: PER_PAGE
@@ -13,72 +19,6 @@ const paginate: PaginatorTypes.PaginateFunction = paginator({
 
 export function generateUniqueId(): string {
   return generateIdentifier()
-}
-
-export function generateSortCode(): string {
-  // eslint-disable-next-line no-var
-  var uid = new ShortUniqueId({
-    dictionary: [
-      '0',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      'A',
-      'B',
-      'C',
-      'D',
-      'E',
-      'F',
-      'G',
-      'H',
-      'I',
-      'J',
-      'K',
-      'L',
-      'M',
-      'N',
-      'O',
-      'P',
-      'Q',
-      'R',
-      'S',
-      'T',
-      'U',
-      'V',
-      'W',
-      'X',
-      'Y',
-      'Z'
-    ]
-  })
-
-  // var uid = new ShortUniqueId({ dictionary: 'hex' })
-
-  // return uid.randomUUID(10).toUpperCase()
-  return ''
-}
-
-export function roleBasedBranchFilter(tokenPayload: TokenPayload) {
-  const baseConditions = {
-    isPublic: true,
-    shop: {
-      id: tokenPayload.shopId,
-      isPublic: true
-    }
-  }
-
-  // return tokenPayload.type !== ACCOUNT_TYPE.STORE_OWNER
-  //   ? {
-  //       ...baseConditions,
-  //       id: tokenPayload.branchId
-  //     }
-  //   : baseConditions
 }
 
 export function onlyBranchFilter(tokenPayload: TokenPayload) {
@@ -188,4 +128,56 @@ export function generateCode(wordStart: string) {
       .join('')
       .slice(0, 10)
   )
+}
+
+export async function getOrderDetails(
+  data: CreateOrderProductsDto[],
+  status: OrderDetailStatus,
+  accountId: string,
+  branchId: string
+) {
+  return await Promise.all(
+    data.map(async item => {
+      let productOptions = []
+
+      const product = await prisma.product.findUniqueOrThrow({
+        where: { id: item.productId },
+        select: productSelect
+      })
+
+      if (item.productOptionIds)
+        productOptions = await prisma.productOption.findMany({
+          where: {
+            id: {
+              in: item.productOptionIds
+            }
+          },
+          select: productOptionSelect
+        })
+
+      return {
+        amount: item.amount,
+        status,
+        product: product,
+        note: item.note,
+        productOptions: productOptions,
+        branchId,
+        createdBy: accountId,
+        updatedBy: accountId
+      }
+    })
+  )
+}
+
+export async function getTotalInOrder(orderDetails: IOrderDetail[]) {
+  return orderDetails.reduce((total, order) => {
+    const productPrice = order.product.price || 0
+
+    const optionsTotal = (order.productOptions || []).reduce(
+      (sum, option) => sum + (option.price || 0),
+      0
+    )
+
+    return total + order.amount * (productPrice + optionsTotal)
+  }, 0)
 }

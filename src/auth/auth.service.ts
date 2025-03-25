@@ -10,7 +10,7 @@ import { AccessBranchDto } from './dto/access-branch.dto'
 import { AccountStatus } from '@prisma/client'
 import { userSortSelect } from 'responses/user.response'
 import { roleSortSelect } from 'responses/role.response'
-import { accountSortSelect } from 'responses/account.response'
+import { accountLoginSelect } from 'responses/account.response'
 import { shopLoginSelect } from 'responses/shop.response'
 
 @Injectable()
@@ -34,7 +34,7 @@ export class AuthService {
           ]
         }
       },
-      select: accountSortSelect
+      select: accountLoginSelect
     })
 
     if (!account || !(await bcrypt.compare(data.password, account.password)))
@@ -43,7 +43,7 @@ export class AuthService {
     if (account.status == AccountStatus.INACTIVE)
       throw new HttpException('Tài khoản đã bị khóa!', HttpStatus.FORBIDDEN)
 
-    const shops = await this.findShopsByAccountId(account.id)
+    const shops = await this.getShopsByAccountId(account.id)
 
     return {
       accountToken: await this.jwtService.signAsync(
@@ -63,7 +63,7 @@ export class AuthService {
     if (!account) throw new HttpException('Không tìm thấy tài nguyên!', HttpStatus.NOT_FOUND)
 
     const [shops, refreshToken] = await Promise.all([
-      this.findShopsByAccountId(accountId),
+      this.getShopsByAccountId(accountId),
       this.createRefreshToken(accountId, data)
     ])
 
@@ -99,7 +99,7 @@ export class AuthService {
         secret: process.env.SECRET_KEY
       })
 
-      const shops = await this.findShopsByAccountId(payload.accountId)
+      const shops = await this.getShopsByAccountId(payload.accountId)
 
       const currentShop = this.getCurrentShopFromShops(shops, payload.branchId)
 
@@ -114,9 +114,12 @@ export class AuthService {
   }
 
   getCurrentShopFromShops(shops: AnyObject[], branchId: string) {
-    return shops.find(shop => {
-      return shop.branches.some(branch => branch.id === branchId)
-    })
+    return shops
+      .map(shop => {
+        const branch = shop.branches.find(branch => branch.id === branchId)
+        return branch ? { ...shop, branches: [branch] } : null
+      })
+      .filter(Boolean)[0]
   }
 
   async getAccountAccess(accountId: string, branchId: string) {
@@ -142,7 +145,7 @@ export class AuthService {
     })
   }
 
-  async findShopsByAccountId(id: string) {
+  async getShopsByAccountId(id: string) {
     return await this.prisma.shop.findMany({
       where: {
         branches: {

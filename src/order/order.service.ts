@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CommonService } from 'src/common/common.service'
 
@@ -6,6 +6,15 @@ import { OrderGateway } from 'src/gateway/order.gateway'
 import { TableGateway } from 'src/gateway/table.gateway'
 import { PointAccumulationService } from 'src/point-accumulation/point-accumulation.service'
 import { MailService } from 'src/mail/mail.service'
+import { CreateOrderDto } from './dto/order.dto'
+import { OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
+import { generateCode, getOrderDetails, getTotalInOrder } from 'utils/Helps'
+import { orderSelect } from 'responses/order.response'
+import { PaymentFromTableDto } from './dto/payment.dto'
+import { IOrderDetail } from 'interfaces/orderDetail.interface'
+import { IProduct } from 'interfaces/product.interface'
+import { IProductOption } from 'interfaces/productOption.interface'
+import { voucherSelect } from 'responses/voucher.response'
 
 @Injectable()
 export class OrderService {
@@ -18,183 +27,234 @@ export class OrderService {
     private readonly pointAccumulationService: PointAccumulationService
   ) {}
 
-  // async getOrderDetails(
-  //   orderProducts: OrderProducts[],
-  //   status?: number,
-  //   tokenPayload?: TokenPayload
-  // ) {
-  //   return await Promise.all(
-  //     orderProducts.map(async item => {
-  //       const [product, productOptions] = await Promise.all([
-  //         this.prisma.product.findUniqueOrThrow({
-  //           where: { id: item.productId },
-  //           select: {
-  //             id: true,
-  //             branchId: true,
-  //             unitId: true,
-  //             name: true,
-  //             slug: true,
-  //             code: true,
-  //             price: true,
-  //             oldPrice: true,
-  //             productTypeId: true,
-  //             thumbnail: true,
-  //             otherAttributes: true
-  //           }
-  //         }),
-  //         this.prisma.productOption.findMany({
-  //           where: {
-  //             id: {
-  //               in: item.productOptionIds || []
-  //             },
-  //             isPublic: true
-  //           },
-  //           select: {
-  //             id: true,
-  //             name: true,
-  //             price: true,
-  //             photoURL: true,
-  //             productOptionGroupId: true,
-  //             branchId: true
-  //           }
-  //         })
-  //       ])
+  async create(data: CreateOrderDto, accountId: string, branchId: string) {
+    const orderDetails = await getOrderDetails(
+      data.orderProducts,
+      OrderDetailStatus.APPROVED,
+      accountId,
+      branchId
+    )
 
-  //       return {
-  //         amount: item.amount,
-  //         status,
-  //         product: product,
-  //         note: item.note,
-  //         productOptions: productOptions,
-  //         branchId: tokenPayload.branchId,
-  //         createdBy: tokenPayload.accountId,
-  //         updatedBy: tokenPayload.accountId
-  //       }
-  //     })
-  //   )
-  // }
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const order = await prisma.order.create({
+        data: {
+          note: data.note,
+          type: data.type,
+          status: data.status || OrderDetailStatus.APPROVED,
+          code: generateCode('DH'),
+          ...(data.customerId && {
+            customerId: data.customerId
+          }),
+          orderDetails: {
+            createMany: {
+              data: orderDetails
+            }
+          },
+          branchId,
+          createdBy: accountId
+        },
+        select: orderSelect
+      })
 
-  // getTotalInOrder(orderDetails: AnyObject) {
-  //   return orderDetails.reduce((total, order) => {
-  //     const productPrice = order.product?.price || 0
+      // Gửi socket cho nhân viên trong chi nhánh
+      await this.orderGateway.handleModifyOrder(order)
 
-  //     const optionsTotal = (order.productOptions || []).reduce(
-  //       (sum, option) => sum + (option.price || 0),
-  //       0
-  //     )
+      return order
+    })
+  }
 
-  //     return total + order.amount * (productPrice + optionsTotal)
-  //   }, 0)
-  // }
+  async paymentFromTable(data: PaymentFromTableDto, accountId: string, branchId: string) {
+    const newOrder = await this.prisma.$transaction(
+      async (prisma: PrismaClient) => {
+        const orderDetails = await this.getOrderDetailsInTable(data.tableId, prisma)
 
-  // async getPromotion(
-  //   promotionId: string,
-  //   orderDetails: OrderProductDto[],
-  //   branchId: string,
-  //   prisma?: PrismaClient
-  // ) {
-  //   prisma = prisma || this.prisma
+        const total = getTotalInOrder(orderDetails)
 
-  //   const matchPromotion = await prisma.promotion.findUnique({
-  //     where: {
-  //       id: promotionId,
+        // const [
+        //   voucherPromise,
+        //   discountCodePromise,
+        //   customerDiscountPromise,
+        //   convertedPointValuePromise
+        // ] = await Promise.all([
+        //   data.voucherId
+        //     ? this.getVoucher(data.voucherId, orderProducts, tokenPayload.branchId, prisma)
+        //     : undefined,
+        //   data.discountCode
+        //     ? this.getDiscountCode(data.discountCode, totalOrder, tokenPayload.branchId, prisma)
+        //     : undefined,
+        //   data.customerId ? this.getCustomerDiscount(data.customerId) : undefined,
+        //   data.exchangePoint
+        //     ? this.pointAccumulationService.convertDiscountFromPoint(
+        //         data.exchangePoint,
+        //         tokenPayload.shopId
+        //       )
+        //     : undefined,
+        //   this.deleteCustomerRequests(data.tableId, tokenPayload, prisma)
+        // ])
 
-  //       branchId: branchId,
-  //       startDate: {
-  //         lte: new Date(new Date().setHours(23, 59, 59, 999))
+        // const order = await prisma.order.create({
+        //   data: {
+        //     code: generateSortCode(),
+        //     note: data.note,
+        //     orderType: ORDER_TYPE.ON_TABLE,
+        //     orderStatus: data.orderStatus,
+        //     bankingImages: data.bankingImages,
+        //     isPaid: true,
+        //     usedPoint: data.exchangePoint,
+        //     moneyReceived: data.moneyReceived,
+        //     paymentAt: new Date(),
+        //     convertedPointValue: convertedPointValuePromise ?? 0,
+        //     voucher: voucherPromise,
+        //     discountCode: discountCodePromise,
+        //     customerDiscount: customerDiscountPromise,
+        //     ...(data.customerId && {
+        //       customer: {
+        //         connect: {
+        //           id: data.customerId
+        //         }
+        //       }
+        //     }),
+        //     paymentMethod: {
+        //       connect: {
+        //         id: data.paymentMethodId
+        //       }
+        //     },
+        //     creator: {
+        //       connect: {
+        //         id: tokenPayload.accountId,
+        //         isPublic: true
+        //       }
+        //     },
+        //     branch: {
+        //       connect: {
+        //         id: tokenPayload.branchId,
+        //         isPublic: true
+        //       }
+        //     }
+        //   }
+        // })
+
+        // await this.passOrderDetailToOrder(
+        //   orderDetails,
+        //   order.id,
+        //   prisma,
+        //   tokenPayload
+        // )
+
+        // await this.deleteTableTransaction(data.tableId, prisma, tokenPayload)
+
+        // // Xử lý tích điểm
+        // if (data.customerId) {
+        //   await this.pointAccumulationService.handlePoint(
+        //     data.customerId,
+        //     order.id,
+        //     data.exchangePoint,
+        //     totalOrder,
+        //     tokenPayload.shopId,
+        //     prisma
+        //   )
+        // }
+
+        // return order
+      },
+      {
+        maxWait: 5000,
+        timeout: 10000
+      }
+    )
+
+    return newOrder
+  }
+
+  async getVoucher(
+    voucherId: string,
+    orderDetails: IOrderDetail[],
+    branchId: string,
+    prisma?: PrismaClient
+  ) {
+    prisma = prisma || this.prisma
+
+    const matchVoucher = await prisma.voucher.findUnique({
+      where: {
+        id: voucherId,
+        branchId,
+        startDate: {
+          lte: new Date(new Date().setHours(23, 59, 59, 999))
+        },
+        isActive: true,
+        AND: [
+          {
+            OR: [
+              {
+                voucherConditions: {
+                  some: {
+                    AND: orderDetails.map(order => ({
+                      productId: order.productId,
+                      amount: {
+                        lte: order.amount
+                      }
+                    }))
+                  }
+                }
+              },
+              {
+                voucherConditions: {
+                  none: {}
+                }
+              }
+            ]
+          },
+          {
+            OR: [
+              {
+                endDate: {
+                  gte: new Date(new Date().setHours(0, 0, 0, 0))
+                }
+              },
+              {
+                endDate: null
+              }
+            ]
+          }
+        ]
+      },
+      select: voucherSelect
+    })
+
+    if (!matchVoucher) throw new HttpException('Không tìm thấy khuyến mãi!', HttpStatus.NOT_FOUND)
+
+    if (matchVoucher.amountApplied >= matchVoucher.amount)
+      throw new HttpException('Đã quá số lượng áp dụng!', HttpStatus.CONFLICT)
+
+    await prisma.voucher.update({
+      where: { id: voucherId },
+      data: {
+        amountApplied: {
+          increment: 1
+        }
+      }
+    })
+
+    return matchVoucher
+  }
+
+  // async update(id: string, data: UpdateOrderDto, accountId: string, branchId: string) {
+  //   return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+  //     return await prisma.order.update({
+  //       where: {
+  //         id,
+  //         branchId
   //       },
-  //       isActive: true,
-  //       AND: [
-  //         {
-  //           OR: [
-  //             {
-  //               promotionConditions: {
-  //                 some: {
-  //                   OR: orderDetails.map(order => ({
-  //                     productId: order.productId,
-  //                     amount: {
-  //                       lte: order.amount
-  //                     }
-  //                   }))
-  //                 }
-  //               }
-  //             },
-  //             {
-  //               promotionConditions: {
-  //                 none: {}
-  //               }
-  //             }
-  //           ]
-  //         },
-  //         {
-  //           OR: [
-  //             {
-  //               endDate: {
-  //                 gte: new Date(new Date().setHours(0, 0, 0, 0))
-  //               }
-  //             },
-  //             {
-  //               isEndDateDisabled: true
-  //             }
-  //           ]
-  //         },
-  //         {
-  //           isActive: true
-  //         }
-  //       ]
-  //     },
-  //     select: {
-  //       id: true,
-  //       type: true,
-  //       discount: true,
-  //       discountType: true,
-  //       isActive: true,
-  //       amount: true,
-  //       amountApplied: true,
-  //       code: true,
-  //       maxValue: true,
-  //       name: true,
-  //       isEndDateDisabled: true,
-  //       description: true,
-  //       startDate: true,
-  //       endDate: true,
-  //       updatedAt: true,
-  //       promotionProducts: {
-  //         where: {
-  //           isPublic: true
-  //         },
-  //         select: {
-  //           id: true,
-  //           name: true,
-  //           amount: true,
-  //           photoURL: true
-  //         }
-  //       }
-  //     }
+  //       data: {
+  //         status: data.status,
+  //         note: data.note,
+  //         bankingImages: data.bankingImages,
+  //         paymentMethodId: data.paymentMethodId,
+  //         updatedBy: accountId
+  //       },
+  //       select: orderSelect
+  //     })
   //   })
-
-  //   if (!matchPromotion)
-  //     throw new CustomHttpException(
-  //       HttpStatus.NOT_FOUND,
-  //       'Không tìm thấy khuyến mãi!'
-  //     )
-
-  //   if (matchPromotion.amountApplied >= matchPromotion.amount)
-  //     throw new CustomHttpException(
-  //       HttpStatus.CONFLICT,
-  //       'Đã quá số lượng áp dụng!'
-  //     )
-
-  //   await prisma.promotion.update({
-  //     where: { id: promotionId },
-  //     data: {
-  //       amountApplied: {
-  //         increment: 1
-  //       }
-  //     }
-  //   })
-
-  //   return matchPromotion
   // }
 
   // async getDiscountCode(
@@ -281,140 +341,6 @@ export class OrderService {
   //   return discountCode
   // }
 
-  // async create(data: CreateOrderDto, tokenPayload: TokenPayload) {
-  //   const orderDetails = await this.getOrderDetails(
-  //     data.orderProducts,
-  //     DETAIL_ORDER_STATUS.APPROVED,
-  //     tokenPayload
-  //   )
-
-  //   return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-  //     const order = await prisma.order.create({
-  //       data: {
-  //         note: data.note,
-  //         orderType: data.orderType,
-  //         orderStatus: data.orderStatus || ORDER_STATUS_COMMON.APPROVED,
-  //         code: data.code || generateSortCode(),
-  //         ...(data.customerId && {
-  //           customer: {
-  //             connect: {
-  //               id: data.customerId
-  //             }
-  //           }
-  //         }),
-  //         orderDetails: {
-  //           createMany: {
-  //             data: orderDetails
-  //           }
-  //         },
-  //         branch: {
-  //           connect: {
-  //             id: tokenPayload.branchId,
-  //             isPublic: true
-  //           }
-  //         },
-  //         creator: {
-  //           connect: {
-  //             id: tokenPayload.accountId,
-  //             isPublic: true
-  //           }
-  //         }
-  //       },
-  //       include: {
-  //         orderDetails: {
-  //           select: {
-  //             id: true,
-  //             amount: true,
-  //             note: true,
-  //             product: true,
-  //             productOptions: true
-  //           }
-  //         }
-  //       }
-  //     })
-
-  //     // Gửi socket
-  //     await this.orderGateway.handleModifyOrder(order)
-
-  //     await this.commonService.createActivityLog(
-  //       [order.id],
-  //       'Order',
-  //       ACTIVITY_LOG_TYPE.CREATE,
-  //       tokenPayload
-  //     )
-
-  //     return order
-  //   })
-  // }
-
-  // async createOrderToTableByEmployee(
-  //   data: CreateOrderToTableDto,
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const orderDetails = await this.getOrderDetails(
-  //     data.orderProducts,
-  //     DETAIL_ORDER_STATUS.APPROVED,
-  //     tokenPayload
-  //   )
-
-  //   const table = await this.prisma.table.update({
-  //     where: { id: data.tableId },
-  //     data: {
-  //       orderDetails: {
-  //         createMany: {
-  //           data: orderDetails
-  //         }
-  //       },
-  //       updatedBy: tokenPayload.accountId
-  //     },
-  //     include: {
-  //       orderDetails: true
-  //     }
-  //   })
-
-  //   // Bắn socket cho các người dùng
-  //   await this.tableGateway.handleModifyTable(table)
-
-  //   await this.commonService.createActivityLog(
-  //     [table.id],
-  //     'Table',
-  //     ACTIVITY_LOG_TYPE.CREATE_TO_TABLE,
-  //     tokenPayload
-  //   )
-
-  //   return table
-  // }
-
-  // async createOrderToTableByCustomer(data: CreateOrderToTableByCustomerDto) {
-  //   const orderDetails = await this.getOrderDetails(
-  //     data.orderProducts,
-  //     DETAIL_ORDER_STATUS.WAITING,
-  //     {
-  //       branchId: data.branchId
-  //     }
-  //   )
-
-  //   const table = await this.prisma.table.update({
-  //     where: { id: data.tableId },
-  //     data: {
-  //       orderDetails: {
-  //         createMany: {
-  //           data: orderDetails
-  //         }
-  //       }
-  //     },
-  //     include: {
-  //       orderDetails: true
-  //     }
-  //   })
-
-  //   // Bắn socket cho các người dùng
-
-  //   await this.tableGateway.handleModifyTable(table)
-
-  //   return table
-  // }
-
   // async createOrderOnline(data: CreateOrderOnlineDto) {
   //   const orderDetails = await this.getOrderDetails(
   //     data.orderProducts,
@@ -438,10 +364,10 @@ export class OrderService {
   //       data.orderProducts
   //     )
 
-  //     const [promotionPromise, discountCodePromise] = await Promise.all([
-  //       data.promotionId
-  //         ? this.getPromotion(
-  //             data.promotionId,
+  //     const [voucherPromise, discountCodePromise] = await Promise.all([
+  //       data.voucherId
+  //         ? this.getVoucher(
+  //             data.voucherId,
   //             aggregateOrderProducts,
   //             data.branchId,
   //             prisma
@@ -469,7 +395,7 @@ export class OrderService {
   //           email: data.email,
   //           address: data.address
   //         },
-  //         promotion: promotionPromise,
+  //         voucher: voucherPromise,
   //         code: generateSortCode(),
   //         orderDetails: {
   //           createMany: {
@@ -518,195 +444,6 @@ export class OrderService {
 
   //     // Gửi socket
   //     await this.orderGateway.handleModifyOrder(order)
-
-  //     return order
-  //   })
-  // }
-
-  // async paymentFromTable(
-  //   data: PaymentFromTableDto,
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const newOrder = await this.prisma.$transaction(
-  //     async (prisma: PrismaClient) => {
-  //       const orderDetails = await this.getOrderDetailsInTable(
-  //         data.tableId,
-  //         prisma
-  //       )
-  //       const orderProducts = this.mapOrderProducts(orderDetails)
-
-  //       const totalOrder = this.getTotalInOrder(orderDetails)
-
-  //       const [
-  //         promotionPromise,
-  //         discountCodePromise,
-  //         customerDiscountPromise,
-  //         convertedPointValuePromise
-  //       ] = await Promise.all([
-  //         data.promotionId
-  //           ? this.getPromotion(
-  //               data.promotionId,
-  //               orderProducts,
-  //               tokenPayload.branchId,
-  //               prisma
-  //             )
-  //           : undefined,
-  //         data.discountCode
-  //           ? this.getDiscountCode(
-  //               data.discountCode,
-  //               totalOrder,
-  //               tokenPayload.branchId,
-  //               prisma
-  //             )
-  //           : undefined,
-  //         data.customerId
-  //           ? this.getCustomerDiscount(data.customerId)
-  //           : undefined,
-  //         data.exchangePoint
-  //           ? this.pointAccumulationService.convertDiscountFromPoint(
-  //               data.exchangePoint,
-  //               tokenPayload.shopId
-  //             )
-  //           : undefined,
-  //         this.deleteCustomerRequests(data.tableId, tokenPayload, prisma)
-  //       ])
-
-  //       const order = await prisma.order.create({
-  //         data: {
-  //           code: generateSortCode(),
-  //           note: data.note,
-  //           orderType: ORDER_TYPE.ON_TABLE,
-  //           orderStatus: data.orderStatus,
-  //           bankingImages: data.bankingImages,
-  //           isPaid: true,
-  //           usedPoint: data.exchangePoint,
-  //           moneyReceived: data.moneyReceived,
-  //           paymentAt: new Date(),
-  //           convertedPointValue: convertedPointValuePromise ?? 0,
-  //           promotion: promotionPromise,
-  //           discountCode: discountCodePromise,
-  //           customerDiscount: customerDiscountPromise,
-  //           ...(data.customerId && {
-  //             customer: {
-  //               connect: {
-  //                 id: data.customerId
-  //               }
-  //             }
-  //           }),
-  //           paymentMethod: {
-  //             connect: {
-  //               id: data.paymentMethodId
-  //             }
-  //           },
-  //           creator: {
-  //             connect: {
-  //               id: tokenPayload.accountId,
-  //               isPublic: true
-  //             }
-  //           },
-  //           branch: {
-  //             connect: {
-  //               id: tokenPayload.branchId,
-  //               isPublic: true
-  //             }
-  //           }
-  //         }
-  //       })
-
-  //       await this.passOrderDetailToOrder(
-  //         orderDetails,
-  //         order.id,
-  //         prisma,
-  //         tokenPayload
-  //       )
-
-  //       await this.deleteTableTransaction(data.tableId, prisma, tokenPayload)
-
-  //       // Xử lý tích điểm
-  //       if (data.customerId) {
-  //         await this.pointAccumulationService.handlePoint(
-  //           data.customerId,
-  //           order.id,
-  //           data.exchangePoint,
-  //           totalOrder,
-  //           tokenPayload.shopId,
-  //           prisma
-  //         )
-  //       }
-
-  //       await this.commonService.createActivityLog(
-  //         [order.id],
-  //         'Order',
-  //         ACTIVITY_LOG_TYPE.PAYMENT,
-  //         tokenPayload
-  //       )
-
-  //       return order
-  //     },
-  //     {
-  //       maxWait: 5000,
-  //       timeout: 10000
-  //     }
-  //   )
-
-  //   return newOrder
-  // }
-
-  // async update(
-  //   params: {
-  //     where: Prisma.OrderWhereUniqueInput
-  //     data: UpdateOrderDto
-  //   },
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const { where, data } = params
-
-  //   return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-  //     const order = await prisma.order.update({
-  //       where: {
-  //         id: where.id,
-  //         branch: {
-  //           id: tokenPayload.branchId,
-  //           isPublic: true
-  //         }
-  //       },
-  //       data: {
-  //         orderStatus: data.orderStatus,
-  //         note: data.note,
-  //         bankingImages: data.bankingImages,
-  //         ...(data.orderStatus === ORDER_STATUS_COMMON.CANCELLED && {
-  //           cancelDate: new Date(),
-  //           cancelReason: data.cancelReason
-  //         }),
-  //         ...(data.paymentMethodId && {
-  //           paymentMethod: {
-  //             connect: {
-  //               id: data.paymentMethodId
-  //             }
-  //           }
-  //         }),
-  //         updater: {
-  //           connect: {
-  //             id: tokenPayload.accountId,
-  //             isPublic: true
-  //           }
-  //         }
-  //       },
-  //       include: {
-  //         orderDetails: {
-  //           where: {
-  //             isPublic: true
-  //           }
-  //         }
-  //       }
-  //     })
-
-  //     await this.commonService.createActivityLog(
-  //       [order.id],
-  //       'Order',
-  //       ACTIVITY_LOG_TYPE.UPDATE,
-  //       tokenPayload
-  //     )
 
   //     return order
   //   })
@@ -874,7 +611,7 @@ export class OrderService {
   //         isSave: true,
   //         note: true,
   //         orderType: true,
-  //         promotion: true,
+  //         voucher: true,
   //         convertedPointValue: true,
   //         customerDiscount: true,
   //         orderStatus: true,
@@ -1079,7 +816,7 @@ export class OrderService {
   //         isSave: true,
   //         note: true,
   //         orderType: true,
-  //         promotion: true,
+  //         voucher: true,
   //         convertedPointValue: true,
   //         customerDiscount: true,
   //         orderStatus: true,
@@ -1234,46 +971,53 @@ export class OrderService {
   //   })
   // }
 
-  // async getOrderDetailsInTable(tableId: string, prisma: PrismaClient) {
-  //   await this.updateOrderDetailsStatus(prisma, { tableId })
+  async getOrderDetailsInTable(tableId: string, prisma: PrismaClient): Promise<IOrderDetail[]> {
+    await this.handleOrderDetailsBeforePayment(prisma, { tableId })
 
-  //   const orderDetails = await prisma.orderDetail.findMany({
-  //     where: {
-  //       tableId
-  //     }
-  //   })
+    const orderDetails = await prisma.orderDetail.findMany({
+      where: { tableId },
+      include: { productOrigin: true }
+    })
 
-  //   return orderDetails
-  // }
+    return orderDetails.map(orderDetail => ({
+      id: orderDetail.id,
+      branchId: orderDetail.branchId,
+      amount: orderDetail.amount,
+      orderId: orderDetail.orderId,
+      note: orderDetail.note,
+      product: orderDetail.product as unknown as IProduct,
+      createdAt: orderDetail.createdAt,
+      updatedAt: orderDetail.updatedAt,
+      productOriginId: orderDetail.productOriginId!,
+      tableId: orderDetail.tableId,
+      productOptions: orderDetail.productOptions as unknown as IProductOption[],
+      productOrigin: orderDetail.productOrigin as IProduct
+    }))
+  }
 
-  // async updateOrderDetailsStatus(
-  //   prisma: PrismaClient,
-  //   conditions: { tableId?: string; orderId?: string }
-  // ) {
-  //   await prisma.orderDetail.updateMany({
-  //     where: {
-  //       ...conditions,
-  //       status: ORDER_STATUS_COMMON.CANCELLED,
-  //       isPublic: true
-  //     },
-  //     data: {
-  //       isPublic: false
-  //     }
-  //   })
+  async handleOrderDetailsBeforePayment(
+    prisma: PrismaClient,
+    conditions: { tableId?: string; orderId?: string }
+  ) {
+    await prisma.orderDetail.deleteMany({
+      where: {
+        ...conditions,
+        status: OrderDetailStatus.CANCELLED
+      }
+    })
 
-  //   await prisma.orderDetail.updateMany({
-  //     where: {
-  //       ...conditions,
-
-  //       status: {
-  //         not: ORDER_STATUS_COMMON.SUCCESS
-  //       }
-  //     },
-  //     data: {
-  //       status: ORDER_STATUS_COMMON.SUCCESS
-  //     }
-  //   })
-  // }
+    await prisma.orderDetail.updateMany({
+      where: {
+        ...conditions,
+        status: {
+          not: OrderDetailStatus.SUCCESS
+        }
+      },
+      data: {
+        status: OrderDetailStatus.SUCCESS
+      }
+    })
+  }
 
   // async getDiscountCustomer(totalOrder: number, customer: ICustomer) {
   //   if (customer && customer.endow === ENDOW_TYPE.BY_CUSTOMER) {
@@ -1338,14 +1082,14 @@ export class OrderService {
   //         )
 
   //       const [
-  //         promotionPromise,
+  //         voucherPromise,
   //         discountCodePromise,
   //         customerDiscountPromise,
   //         convertedPointValuePromise
   //       ] = await Promise.all([
-  //         data.promotionId
-  //           ? this.getPromotion(
-  //               data.promotionId,
+  //         data.voucherId
+  //           ? this.getVoucher(
+  //               data.voucherId,
   //               orderProducts,
   //               tokenPayload.branchId,
   //               prisma
@@ -1396,7 +1140,7 @@ export class OrderService {
   //           note: data.note,
   //           orderType: data.orderType,
   //           convertedPointValue: convertedPointValuePromise ?? 0,
-  //           promotion: promotionPromise,
+  //           voucher: voucherPromise,
   //           discountCode: discountCodePromise,
   //           customerDiscount: customerDiscountPromise,
   //           usedPoint: data.exchangePoint,
@@ -1415,19 +1159,6 @@ export class OrderService {
   //       timeout: 10000
   //     }
   //   )
-  // }
-
-  // mapOrderProducts(orderDetails: AnyObject) {
-  //   const formattedOrderDetails = orderDetails.map(detail => ({
-  //     productId: detail.product?.id,
-  //     amount: detail.amount
-  //   }))
-
-  //   const orderProducts = this.commonService.aggregateOrderProducts(
-  //     formattedOrderDetails
-  //   )
-
-  //   return orderProducts
   // }
 
   // async getCustomerDiscount(customerId: string, prisma?: PrismaClient) {

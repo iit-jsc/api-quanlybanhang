@@ -14,87 +14,64 @@ import {
 import { DiscountCodeService } from './discount-code.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RolesGuard } from 'guards/roles.guard'
-import { SPECIAL_ROLE } from 'enums/common.enum'
-import { Roles } from 'guards/roles.decorator'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { TokenPayload } from 'interfaces/common.interface'
+import { RequestJWT } from 'interfaces/common.interface'
 import {
   CreateDiscountCodeDto,
   CheckAvailableDto,
   FindManyDiscountCodeDto
 } from './dto/discount-code.dto'
+import { permissions } from 'enums/permissions.enum'
+import { Roles } from 'guards/roles.decorator'
+import { extractPermissions } from 'utils/Helps'
 
 @Controller('discount-code')
 export class DiscountCodeController {
   constructor(private readonly discountCodeService: DiscountCodeService) {}
 
-  // @Post()
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('CREATE_DISCOUNT_ISSUE', SPECIAL_ROLE.MANAGER)
-  // create(
-  //   @Body() createDiscountCodeDto: CreateDiscountCodeDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  @Post()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(permissions.discountCode.create)
+  create(@Body() data: CreateDiscountCodeDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
 
-  //   return this.discountCodeService.create(createDiscountCodeDto, tokenPayload)
-  // }
+    return this.discountCodeService.create(data, accountId, branchId)
+  }
 
-  // @Get()
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(
-  //   'CREATE_DISCOUNT_ISSUE',
-  //   'UPDATE_DISCOUNT_ISSUE',
-  //   'DELETE_DISCOUNT_ISSUE',
-  //   'VIEW_DISCOUNT_ISSUE',
-  //   SPECIAL_ROLE.MANAGER
-  // )
-  // findAll(@Query() data: FindManyDiscountCodeDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  @Get()
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...extractPermissions(permissions.discountCode))
+  findAll(@Query() data: FindManyDiscountCodeDto, @Req() req: RequestJWT) {
+    const { branchId } = req
 
-  //   return this.discountCodeService.findAll(data, tokenPayload)
-  // }
+    return this.discountCodeService.findAll(data, branchId)
+  }
 
-  // @Get(':id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(
-  //   'CREATE_DISCOUNT_ISSUE',
-  //   'UPDATE_DISCOUNT_ISSUE',
-  //   'DELETE_DISCOUNT_ISSUE',
-  //   'VIEW_DISCOUNT_ISSUE',
-  //   SPECIAL_ROLE.MANAGER
-  // )
-  // findUniq(@Param('id') id: string, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.discountCodeService.findUniq(
-  //     {
-  //       id
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+  @Get(':id/check-available')
+  @HttpCode(HttpStatus.OK)
+  checkAvailable(@Body() data: CheckAvailableDto) {
+    return this.discountCodeService.checkAvailable(data)
+  }
 
-  // @Get(':id')
-  // @HttpCode(HttpStatus.OK)
-  // checkAvailable(@Body() data: CheckAvailableDto) {
-  //   return this.discountCodeService.checkAvailable(data)
-  // }
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(...extractPermissions(permissions.discountCode))
+  findUniq(@Param('id') id: string, @Req() req: RequestJWT) {
+    const { branchId } = req
 
-  // @Delete('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('DELETE_DISCOUNT_ISSUE', SPECIAL_ROLE.MANAGER)
-  // deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+    return this.discountCodeService.findUniq(id, branchId)
+  }
 
-  //   return this.discountCodeService.deleteMany(
-  //     {
-  //       ids: deleteManyDto.ids
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+  @Delete('')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(permissions.discountCode.delete)
+  deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+
+    return this.discountCodeService.deleteMany(data, accountId, branchId)
+  }
 }

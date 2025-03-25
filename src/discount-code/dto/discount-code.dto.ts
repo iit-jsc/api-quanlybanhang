@@ -1,48 +1,34 @@
-import { Transform, TransformFnParams, Type } from 'class-transformer'
-import {
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  Length,
-  Max
-} from 'class-validator'
+import { Transform, TransformFnParams } from 'class-transformer'
+import { IsNotEmpty, IsOptional, Length, Max } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateDiscountCodeDto {
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  @Length(0, 10, { message: 'Vượt quá kí tự.' })
-  @IsString()
+  @Length(0, 10)
   prefix: string
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  @Length(0, 10, { message: 'Vượt quá kí tự.' })
-  @IsString()
+  @Length(0, 10)
   suffixes: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
+  @IsNotEmpty()
   discountIssueId: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
-  @Max(50, { message: 'Số lượng không được vượt quá 50!' })
+  @IsNotEmpty()
+  @Max(50)
   amount: number
 }
 
 export class CheckAvailableDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
+  @IsNotEmpty()
   code: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
+  @IsNotEmpty()
   branchId: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsNumber()
+  @IsNotEmpty()
   totalOrder: number
 }
 
