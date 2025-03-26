@@ -130,6 +130,20 @@ export function generateCode(wordStart: string) {
   )
 }
 
+export function generateSlug(text) {
+  const slug = text
+    .normalize('NFD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+
+  const uuid = generateCode('')
+
+  return `${slug}-${uuid}`
+}
+
 export async function getOrderDetails(
   data: CreateOrderProductsDto[],
   status: OrderDetailStatus,

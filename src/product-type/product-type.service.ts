@@ -6,7 +6,7 @@ import {
   UpdateProductTypeDto
 } from './dto/product-type.dto'
 import { Prisma, PrismaClient } from '@prisma/client'
-import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { removeDiacritics, customPaginate, generateSlug } from 'utils/Helps'
 import { productTypeSelect } from 'responses/product-type.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -23,7 +23,7 @@ export class ProductTypeService {
     return await this.prisma.productType.create({
       data: {
         name: data.name,
-        slug: data.slug,
+        slug: data.slug || generateSlug(data.name),
         description: data.description,
         branchId,
         createdBy: accountId

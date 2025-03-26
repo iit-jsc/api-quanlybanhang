@@ -9,9 +9,6 @@ export class CreateProductDto {
   name: string
 
   @IsNotEmpty()
-  slug: string
-
-  @IsNotEmpty()
   productTypeId: string
 
   @IsNotEmpty()
@@ -35,6 +32,7 @@ export class CreateProductDto {
   @IsEnum(ProductStatus)
   status: ProductStatus
 
+  slug?: string
   description?: string
   thumbnail?: string
   code?: string
