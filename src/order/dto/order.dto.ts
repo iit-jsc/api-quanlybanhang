@@ -1,17 +1,6 @@
-import { FindManyDto } from 'utils/Common.dto'
-import { PartialType } from '@nestjs/swagger'
-import { Transform, TransformFnParams, Type } from 'class-transformer'
-import {
-  ArrayNotEmpty,
-  IsArray,
-  IsDate,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  Min,
-  ValidateNested
-} from 'class-validator'
-import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
+import { Type } from 'class-transformer'
+import { ArrayNotEmpty, IsEnum, IsNotEmpty, IsOptional, ValidateNested } from 'class-validator'
+import { OrderDetailStatus, OrderType } from '@prisma/client'
 
 export class CreateOrderDto {
   @IsOptional()

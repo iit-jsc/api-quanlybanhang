@@ -13,9 +13,7 @@ export class FindManyOrderDetailDto extends FindManyDto {
   })
   orderTypes?: number[]
 
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value)
-  })
+  @Transform(({ value }) => value?.toString().toLowerCase() === 'true')
   hasTable?: boolean
 
   @IsOptional()

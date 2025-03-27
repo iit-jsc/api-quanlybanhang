@@ -27,8 +27,6 @@ export class UpdatePaymentMethodDto extends PartialType(CreatePaymentMethodDto) 
 
 export class FindManyPaymentMethodDto extends FindManyDto {
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value)
-  })
+  @Transform(({ value }) => value?.toString().toLowerCase() === 'true')
   active?: boolean
 }

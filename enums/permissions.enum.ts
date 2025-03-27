@@ -60,5 +60,10 @@ export const permissions = {
     create: 'CREATE_DISCOUNT_CODE',
     delete: 'DELETE_DISCOUNT_CODE',
     view: 'VIEW_DISCOUNT_CODE'
+  },
+  voucher: {
+    create: 'CREATE_VOUCHER',
+    delete: 'DELETE_VOUCHER',
+    update: 'UPDATE_VOUCHER'
   }
 }

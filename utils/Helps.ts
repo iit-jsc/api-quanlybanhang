@@ -1,5 +1,5 @@
 import { paginator, PaginatorTypes } from '@nodeteam/nestjs-prisma-pagination'
-import { AnyObject, TokenPayload } from './../interfaces/common.interface'
+import { AnyObject, PaginationArgs, TokenPayload } from './../interfaces/common.interface'
 import { generate as generateIdentifier } from 'short-uuid'
 import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
@@ -12,10 +12,6 @@ import { CreateOrderProductsDto } from 'src/order/dto/order.dto'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 
 const prisma = new PrismaClient()
-
-const paginate: PaginatorTypes.PaginateFunction = paginator({
-  perPage: PER_PAGE
-})
 
 export function generateUniqueId(): string {
   return generateIdentifier()
@@ -96,12 +92,25 @@ export function formatDate(dateString: string): string {
   return `${day}/${month}/${year}`
 }
 
-export async function customPaginate(prismaModel: any, queryArgs: any, paginationArgs: any) {
-  const result = await paginate(prismaModel, queryArgs, paginationArgs)
+export async function customPaginate<T extends keyof PrismaClient, M extends PrismaClient[T]>(
+  prismaModel: M,
+  queryArgs: AnyObject,
+  paginationArgs: PaginationArgs
+) {
+  const paginateFn: PaginatorTypes.PaginateFunction = paginator({
+    perPage: paginationArgs.perPage || PER_PAGE
+  })
+
+  const result = await paginateFn(prismaModel, queryArgs, paginationArgs)
+
+  const totalPages = Math.ceil(result.meta.total / result.meta.perPage)
 
   return {
     list: result.data,
-    meta: result.meta
+    meta: {
+      ...result.meta,
+      totalPages
+    }
   }
 }
 

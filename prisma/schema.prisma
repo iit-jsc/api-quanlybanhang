@@ -359,59 +359,70 @@ model Supplier {
 }
 
 model Voucher {
-  id                String             @id @default(uuid())
-  branchId          String
-  name              String
-  startDate         DateTime
-  amount            Int
-  type              VoucherType
-  code              String
-  endDate           DateTime?
-  amountApplied     Int?               @default(0)
-  maxValue          Float?
-  isActive          Boolean?           @default(true)
-  description       String?            @db.Text
-  discount          Float              @default(0)
-  discountType      DiscountType       @default(VALUE)
-  createdAt         DateTime           @default(now())
-  updatedAt         DateTime           @updatedAt
-  branch            Branch?            @relation(fields: [branchId], references: [id])
-  voucherConditions VoucherCondition[]
-  voucherProducts   VoucherProduct[]
-  createdBy         String?
-  updatedBy         String?
-  creator           Account?           @relation("creator", fields: [createdBy], references: [id])
-  updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
+  id              String                  @id @default(uuid())
+  branchId        String
+  name            String
+  startDate       DateTime
+  amount          Int
+  type            VoucherType
+  code            String
+  endDate         DateTime?
+  amountApplied   Int                     @default(0)
+  maxValue        Float?
+  isActive        Boolean                 @default(true)
+  description     String?                 @db.Text
+  discount        Float                   @default(0)
+  discountType    DiscountType            @default(VALUE)
+  createdAt       DateTime                @default(now())
+  updatedAt       DateTime                @updatedAt
+  branch          Branch?                 @relation(fields: [branchId], references: [id])
+  operator        ConditionOperator       @default(AND)
+  conditionGroups VoucherConditionGroup[]
+  voucherProducts VoucherProduct[]
+  createdBy       String?
+  updatedBy       String?
+  creator         Account?                @relation("creator", fields: [createdBy], references: [id])
+  updater         Account?                @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([branchId, code])
 }
 
+model VoucherConditionGroup {
+  id         String             @id @default(uuid())
+  voucherId  String
+  operator   ConditionOperator  @default(AND)
+  conditions VoucherCondition[] @relation("groupCondition")
+  voucher    Voucher?           @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+}
+
 model VoucherCondition {
-  id               String   @id @default(uuid())
-  voucherId        String
-  productId        String?
-  minQuantity      Int?
-  limitQuantity    Int?
-  promotionalPrice Float?
-  minCustomer      Int?
-  minOrderPrice    Float?
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
-  voucher          Voucher? @relation(fields: [voucherId], references: [id])
-  product          Product? @relation(fields: [productId], references: [id])
+  id                      String                 @id @default(uuid())
+  voucherConditionGroupId String
+  productId               String?
+  product                 Product?               @relation(fields: [productId], references: [id])
+  type                    VoucherConditionType
+  minQuantity             Int?
+  limitQuantity           Int?
+  promotionalPrice        Float?
+  minCustomer             Int?
+  minOrderTotal           Float?
+  createdAt               DateTime               @default(now())
+  updatedAt               DateTime               @updatedAt
+  voucherConditionGroup   VoucherConditionGroup? @relation("groupCondition", fields: [voucherConditionGroupId], references: [id], onDelete: Cascade)
 }
 
 model VoucherProduct {
-  id        String   @id @default(uuid())
+  id        String             @id @default(uuid())
   voucherId String
   productId String?
+  type      VoucherProductType @default(OTHER)
   amount    Int
-  name      String?
-  photoURL  String?  @db.Text
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  voucher   Voucher? @relation(fields: [voucherId], references: [id])
-  product   Product? @relation(fields: [productId], references: [id])
+  name      String?            @db.Text
+  photoURL  String?            @db.Text
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+  voucher   Voucher?           @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  product   Product?           @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Order {
@@ -510,7 +521,7 @@ model DiscountIssue {
   id            String         @id @default(uuid())
   branchId      String
   name          String
-  code          String?
+  code          String
   isLimit       Boolean        @default(false)
   discount      Float          @default(0)
   discountType  DiscountType   @default(VALUE)
@@ -718,4 +729,20 @@ enum OrderDetailStatus {
 enum PermissionGroupType {
   FOOD_BEVERAGE
   FASHION
+}
+
+enum VoucherProductType {
+  SHOP_PRODUCT
+  OTHER
+}
+
+enum VoucherConditionType {
+  MIN_CUSTOMER
+  MIN_ORDER_TOTAL
+  MIN_PRODUCT_QUANTITY
+}
+
+enum ConditionOperator {
+  AND
+  OR
 }

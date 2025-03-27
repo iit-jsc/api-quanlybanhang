@@ -33,9 +33,7 @@ export class CheckAvailableDto {
 }
 
 export class FindManyDiscountCodeDto extends FindManyDto {
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value)
-  })
+  @Transform(({ value }) => value?.toString().toLowerCase() === 'true')
   isUsed?: boolean
 
   @Transform(({ value }: TransformFnParams) => {

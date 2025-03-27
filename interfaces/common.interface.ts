@@ -77,3 +77,8 @@ export interface RequestJWT extends Request {
   branchId: string
   role: AnyObject
 }
+
+export interface PaginationArgs {
+  page: number
+  perPage: number
+}

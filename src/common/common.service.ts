@@ -5,8 +5,8 @@ import { ORDER_STATUS_COMMON } from 'enums/order.enum'
 import { AnyObject, TokenPayload } from 'interfaces/common.interface'
 import { PrismaService } from 'nestjs-prisma'
 import { shopLoginSelect } from 'responses/shop.response'
-import { OrderProductDto } from 'src/promotion/dto/find-many.dto'
 import { ConfirmEmailDto } from 'src/shop/dto/confirm-email.dto'
+import { OrderProductDto } from 'src/voucher/dto/voucher.dto'
 import { CustomHttpException } from 'utils/ApiErrors'
 
 @Injectable()
@@ -121,7 +121,12 @@ export class CommonService {
     }
   }
 
-  async checkDataExistingInShop<T extends AnyObject>(data: T, model: Prisma.ModelName, shopId: string, id?: string) {
+  async checkDataExistingInShop<T extends AnyObject>(
+    data: T,
+    model: Prisma.ModelName,
+    shopId: string,
+    id?: string
+  ) {
     let conflictingKeys: string[] = []
 
     const result = await this.prisma[model].findFirst({
@@ -231,7 +236,10 @@ export class CommonService {
     })
 
     if (order.isPaid === true && orderStatus === ORDER_STATUS_COMMON.CANCELLED)
-      throw new CustomHttpException(HttpStatus.CONFLICT, 'Đơn hàng này không thể hủy vì đã thanh toán!')
+      throw new CustomHttpException(
+        HttpStatus.CONFLICT,
+        'Đơn hàng này không thể hủy vì đã thanh toán!'
+      )
   }
 
   async findAllIdsInBranch(model: Prisma.ModelName, branchId: string, condition?: AnyObject) {

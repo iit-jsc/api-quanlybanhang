@@ -30,7 +30,6 @@ import { BusinessTypeModule } from './business-type/business-type.module'
 import { FirebaseModule } from './firebase/firebase.module'
 import { SupplierTypeModule } from './supplier-type/supplier-type.module'
 import { SupplierModule } from './supplier/supplier.module'
-import { PromotionModule } from './promotion/promotion.module'
 import { DiscountIssueModule } from './discount-issue/discount-issue.module'
 import { DiscountCodeModule } from './discount-code/discount-code.module'
 import { PointSettingModule } from './point-setting/point-setting.module'
@@ -58,6 +57,7 @@ import { ProductOptionGroupModule } from './product-option-group/product-option-
 import { CustomerRequestModule } from './customer-request/customer-request.module'
 import { MailModule } from './mail/mail.module'
 import { TrashModule } from './trash/trash.module'
+import { VoucherModule } from './voucher/voucher.module'
 
 @Module({
   imports: [
@@ -116,7 +116,7 @@ import { TrashModule } from './trash/trash.module'
     FirebaseModule,
     SupplierTypeModule,
     SupplierModule,
-    PromotionModule,
+    VoucherModule,
     DiscountIssueModule,
     DiscountCodeModule,
     PointSettingModule,

@@ -55,8 +55,9 @@ export class PaymentMethodService {
   async findAll(params: FindManyPaymentMethodDto, branchId: string) {
     const { page, perPage, keyword, orderBy, active } = params
     const keySearch = ['bankName', 'bankCode', 'representative', 'type']
+
     const where: Prisma.PaymentMethodWhereInput = {
-      ...(typeof active !== 'undefined' && { active: active }),
+      ...(typeof active !== 'undefined' && { active }),
       ...(keyword && {
         OR: keySearch.map(key => ({
           [key]: { contains: removeDiacritics(keyword) }
@@ -64,6 +65,7 @@ export class PaymentMethodService {
       }),
       branchId
     }
+
     return await customPaginate(
       this.prisma.paymentMethod,
       {

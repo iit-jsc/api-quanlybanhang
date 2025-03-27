@@ -184,25 +184,25 @@ export class OrderService {
         isActive: true,
         AND: [
           {
-            OR: [
-              {
-                voucherConditions: {
-                  some: {
-                    AND: orderDetails.map(order => ({
-                      productId: order.productId,
-                      amount: {
-                        lte: order.amount
-                      }
-                    }))
-                  }
-                }
-              },
-              {
-                voucherConditions: {
-                  none: {}
-                }
-              }
-            ]
+            // OR: [
+            //   {
+            //     voucherConditions: {
+            //       some: {
+            //         AND: orderDetails.map(order => ({
+            //           productId: order.productId,
+            //           amount: {
+            //             lte: order.amount
+            //           }
+            //         }))
+            //       }
+            //     }
+            //   },
+            //   {
+            //     voucherConditions: {
+            //       none: {}
+            //     }
+            //   }
+            // ]
           },
           {
             OR: [
