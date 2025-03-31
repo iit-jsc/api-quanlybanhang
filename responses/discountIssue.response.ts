@@ -12,7 +12,7 @@ export const discountIssueSelect: Prisma.DiscountIssueSelect = {
   endDate: true,
   isLimit: true,
   maxValue: true,
-  minTotalOrder: true,
+  minOrderTotal: true,
   updatedAt: true,
   createdAt: true,
   _count: {

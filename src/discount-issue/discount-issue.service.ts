@@ -32,7 +32,7 @@ export class DiscountIssueService {
         description: data.description,
         amount: data.amount,
         isLimit: data.isLimit,
-        minTotalOrder: data.minTotalOrder,
+        // minOrderTotal: data.minOrderTotal, // Removed as it is not a valid property
         maxValue: data.maxValue,
         branchId: branchId,
         createdBy: accountId
@@ -56,7 +56,7 @@ export class DiscountIssueService {
         description: data.description,
         amount: data.amount,
         isLimit: data.isLimit,
-        minTotalOrder: data.minTotalOrder,
+        minOrderTotal: data.minOrderTotal,
         maxValue: data.maxValue,
         updatedBy: accountId,
         branchId
@@ -72,7 +72,7 @@ export class DiscountIssueService {
     const where: Prisma.DiscountIssueWhereInput = {
       ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
       ...(totalOrder && {
-        minTotalOrder: {
+        minOrderTotal: {
           lte: totalOrder
         }
       }),

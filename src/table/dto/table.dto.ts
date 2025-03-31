@@ -26,10 +26,6 @@ export class FindManyTableDto extends FindManyDto {
 
 export class AddDishDto {
   @IsNotEmpty()
-  @IsString()
-  tableId: string
-
-  @IsNotEmpty()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
   @Type(() => CreateOrderProductsDto)

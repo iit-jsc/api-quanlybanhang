@@ -2,9 +2,10 @@ import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
 import { json, static as static_ } from 'express'
-import { ValidationPipe } from '@nestjs/common'
+import { BadRequestException, HttpStatus, ValidationPipe } from '@nestjs/common'
 import { TransformInterceptor } from 'utils/ApiResponse'
 import { PrismaClientExceptionFilter } from 'nestjs-prisma'
+import { ValidationError } from 'class-validator'
 
 async function bootstrap() {
   try {
@@ -22,16 +23,14 @@ async function bootstrap() {
         transform: true,
         skipMissingProperties: false,
         disableErrorMessages: false,
-        skipNullProperties: false
-      })
-    )
-
-    app.useGlobalPipes(
-      new ValidationPipe({
-        transform: true,
-        skipMissingProperties: false,
-        disableErrorMessages: false,
-        skipNullProperties: false
+        skipNullProperties: false,
+        exceptionFactory: (errors: ValidationError[]) => {
+          return new BadRequestException({
+            statusCode: HttpStatus.BAD_REQUEST,
+            message: 'Validation failed!',
+            errors: errors
+          })
+        }
       })
     )
 

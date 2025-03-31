@@ -4,13 +4,14 @@ import { voucherConditionGroupSelect } from './voucher-condition-group.response'
 
 export const voucherSelect: Prisma.VoucherSelect = {
   id: true,
+  code: true,
   type: true,
   discount: true,
   discountType: true,
+  operator: true,
   isActive: true,
   amount: true,
   amountApplied: true,
-  code: true,
   maxValue: true,
   name: true,
   description: true,
@@ -21,13 +22,14 @@ export const voucherSelect: Prisma.VoucherSelect = {
 
 export const voucherDetailSelect: Prisma.VoucherSelect = {
   id: true,
+  code: true,
   type: true,
   discount: true,
   discountType: true,
+  operator: true,
   isActive: true,
   amount: true,
   amountApplied: true,
-  code: true,
   maxValue: true,
   name: true,
   description: true,

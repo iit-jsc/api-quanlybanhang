@@ -1,24 +1,36 @@
-import { OrderStatus } from '@prisma/client'
-import { IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
+import { OrderStatus, OrderType } from '@prisma/client'
+import { IsArray, IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
 
-export class PaymentFromTableDto {
-  @IsNotEmpty()
-  tableId: string
-
+export class PaymentDto {
   @IsNotEmpty()
   paymentMethodId: string
 
-  @IsNotEmpty()
-  @IsEnum(OrderStatus)
-  orderStatus: OrderStatus
+  @IsOptional()
+  @IsArray()
+  bankingImages: string[]
 
   @IsOptional()
   @Min(1)
   moneyReceived: number
 
+  @IsOptional()
+  @IsEnum(OrderStatus)
+  status: OrderStatus
+
+  voucherId?: string
+  discountCode?: string
   customerId?: string
   note?: string
-  bankingImages?: string[]
-  discountCode?: string
-  promotionId?: string
+}
+
+export class PaymentOrderDto extends PaymentDto {
+  @IsNotEmpty()
+  @IsEnum(OrderType)
+  type: OrderType
+}
+
+export class PaymentFromTableDto extends PaymentDto {
+  totalPeople?: number
+
+  code?: string
 }

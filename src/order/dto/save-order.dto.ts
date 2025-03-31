@@ -1,10 +1,8 @@
-import { IsBoolean, IsOptional } from 'class-validator'
+import { IsBoolean } from 'class-validator'
 
 export class SaveOrderDto {
-  @IsOptional()
-  note: string
+  note?: string
 
-  @IsOptional()
   @IsBoolean()
   isSave: boolean
 }

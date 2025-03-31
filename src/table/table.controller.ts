@@ -27,6 +27,8 @@ import { Roles } from 'guards/roles.decorator'
 import { RolesGuard } from 'guards/roles.guard'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
+import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
+import { SeparateTableDto } from 'src/order/dto/separate-table.dto'
 
 @Controller('table')
 export class TableController {
@@ -46,19 +48,37 @@ export class TableController {
     return this.tableService.create(data, accountId, branchId)
   }
 
-  @Post('/add-dish')
+  @Post(':id/add-dish')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  addDish(@Body() data: AddDishDto, @Req() req: RequestJWT) {
+  addDish(@Param('id') id: string, @Body() data: AddDishDto, @Req() req: RequestJWT) {
     const { accountId, branchId } = req
 
-    return this.tableService.addDish(data, accountId, branchId)
+    return this.tableService.addDish(id, data, accountId, branchId)
   }
 
-  @Post('/add-dish-by-customer')
+  @Post(':id/add-dish-by-customer')
   @HttpCode(HttpStatus.OK)
-  addDishByCustomer(@Body() data: AddDishByCustomerDto) {
-    return this.tableService.addDishByCustomer(data)
+  addDishByCustomer(@Param('id') id: string, @Body() data: AddDishByCustomerDto) {
+    return this.tableService.addDishByCustomer(id, data)
+  }
+
+  @Post('/:id/payment')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  paymentOrder(@Param('id') id: string, @Body() data: PaymentFromTableDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+
+    return this.tableService.payment(id, data, accountId, branchId)
+  }
+
+  @Post(':id/separate')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  separateTable(@Param('id') id: string, @Body() data: SeparateTableDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+
+    return this.tableService.separateTable(id, data, accountId, branchId)
   }
 
   @Patch(':id')

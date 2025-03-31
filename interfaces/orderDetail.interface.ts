@@ -5,14 +5,12 @@ export type IOrderDetail = {
   id: string
   branchId: string
   amount: number
-  orderId?: string | null
   note?: string | null
-  productId?: string
-  product?: IProduct
+  product?: IProduct | any
   createdAt: Date
   updatedAt: Date
   productOriginId: string
   tableId: string | null
-  productOptions?: IProductOption[]
+  productOptions?: IProductOption[] | any
   productOrigin?: IProduct
 }

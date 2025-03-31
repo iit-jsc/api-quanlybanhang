@@ -52,7 +52,7 @@ export class CreateVoucherDto {
   conditionGroups: VoucherConditionGroupDto[]
 
   @IsOptional()
-  @ValidateIf(o => o.type === VoucherType.GIFT)
+  @ValidateIf(o => o.type === VoucherType.PRODUCT)
   @ValidateNested({ each: true })
   @Type(() => VoucherProductDto)
   voucherProducts: VoucherProductDto[]
@@ -97,14 +97,6 @@ export class VoucherConditionDto {
   @IsNotEmpty()
   minQuantity: number
 
-  @ValidateIf(o => o.type === VoucherConditionType.MIN_PRODUCT_QUANTITY)
-  @IsNotEmpty()
-  limitQuantity: number
-
-  @ValidateIf(o => o.type === VoucherConditionType.MIN_PRODUCT_QUANTITY)
-  @IsNotEmpty()
-  promotionalPrice: number
-
   @ValidateIf(o => o.type === VoucherConditionType.MIN_CUSTOMER)
   @IsNotEmpty()
   minCustomer: number
@@ -116,15 +108,32 @@ export class VoucherConditionDto {
 
 export class VoucherProductDto {
   @IsNotEmpty()
-  amount: number
-
-  @IsNotEmpty()
   @IsEnum(VoucherProductType)
   type: VoucherProductType
 
+  @ValidateIf(o => o.type !== VoucherProductType.DISCOUNT_PRODUCT)
+  @IsNotEmpty()
+  amount: number
+
+  @ValidateIf(o => o.type === VoucherProductType.DISCOUNT_PRODUCT)
+  @IsNotEmpty()
+  limitQuantity: number
+
+  @ValidateIf(o => o.type === VoucherProductType.DISCOUNT_PRODUCT)
+  @IsNotEmpty()
+  promotionalPrice: number
+
+  @ValidateIf(o => o.type === VoucherProductType.SHOP_PRODUCT)
+  @IsNotEmpty()
   productId?: string
-  name?: string
-  photoURL?: string
+
+  @ValidateIf(o => o.type === VoucherProductType.OTHER_PRODUCT)
+  @IsNotEmpty()
+  name: string
+
+  @ValidateIf(o => o.type === VoucherProductType.OTHER_PRODUCT)
+  @IsNotEmpty()
+  photoURL: string
 }
 
 export class UpdateVoucherDto extends PartialType(CreateVoucherDto) {}

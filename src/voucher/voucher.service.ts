@@ -46,8 +46,6 @@ export class VoucherService {
                   type: condition.type,
                   productId: condition.productId,
                   minQuantity: condition.minQuantity,
-                  limitQuantity: condition.limitQuantity,
-                  promotionalPrice: condition.promotionalPrice,
                   minCustomer: condition.minCustomer,
                   minOrderTotal: condition.minOrderTotal
                 }))
@@ -56,13 +54,16 @@ export class VoucherService {
           }
         }),
         ...(data.voucherProducts &&
-          data.type == VoucherType.GIFT && {
+          data.type == VoucherType.PRODUCT && {
             voucherProducts: {
               create: data.voucherProducts?.map(product => ({
                 productId: product.productId,
                 amount: product.amount,
+                type: product.type,
+                limitQuantity: product.limitQuantity,
                 name: product.name,
-                photoURL: product.photoURL
+                photoURL: product.photoURL,
+                promotionalPrice: product.promotionalPrice
               }))
             }
           })
@@ -133,8 +134,6 @@ export class VoucherService {
                   type: condition.type,
                   productId: condition.productId,
                   minQuantity: condition.minQuantity,
-                  limitQuantity: condition.limitQuantity,
-                  promotionalPrice: condition.promotionalPrice,
                   minCustomer: condition.minCustomer,
                   minOrderTotal: condition.minOrderTotal
                 }))
@@ -150,8 +149,11 @@ export class VoucherService {
             create: data.voucherProducts.map(product => ({
               productId: product.productId,
               amount: product.amount,
+              limitQuantity: product.limitQuantity,
               name: product.name,
-              photoURL: product.photoURL
+              type: product.type,
+              photoURL: product.photoURL,
+              promotionalPrice: product.promotionalPrice
             }))
           }
         })

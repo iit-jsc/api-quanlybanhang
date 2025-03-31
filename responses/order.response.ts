@@ -3,21 +3,52 @@ import { accountSortSelect } from './account.response'
 import { orderDetailSelect } from './order-detail.response'
 import { paymentMethodSelect } from './payment-method.response'
 
-export const orderSelect: Prisma.OrderSelect = {
+export const orderSortSelect: Prisma.OrderSelect = {
   id: true,
   code: true,
-  bankingImages: true,
+  status: true,
+  type: true,
   isPaid: true,
+  voucherValue: true,
+  voucherProducts: true,
   discountCodeValue: true,
   customerDiscountValue: true,
   isSave: true,
   note: true,
-  type: true,
-  status: true,
+  bankingImages: true,
   paymentMethod: {
     select: paymentMethodSelect
   },
   creator: {
+    select: accountSortSelect
+  },
+  orderDetails: {
+    select: orderDetailSelect
+  },
+  updatedAt: true,
+  createdAt: true
+}
+
+export const orderSelect: Prisma.OrderSelect = {
+  id: true,
+  code: true,
+  status: true,
+  type: true,
+  isPaid: true,
+  voucherValue: true,
+  voucherProducts: true,
+  discountCodeValue: true,
+  customerDiscountValue: true,
+  isSave: true,
+  note: true,
+  bankingImages: true,
+  paymentMethod: {
+    select: paymentMethodSelect
+  },
+  creator: {
+    select: accountSortSelect
+  },
+  updater: {
     select: accountSortSelect
   },
   orderDetails: {

@@ -13,7 +13,7 @@ export class MailService {
   //     'utf8'
   //   )
 
-  //   const totalOrder = this.getTotalInOrder(orderDetails)
+  //   const totalOrder = this.getOrderTotal(orderDetails)
 
   //   const discountValue = this.getDiscountValue(
   //     order.discountCode?.discountIssue,
@@ -92,7 +92,7 @@ export class MailService {
   //   return orderDetailsHTML
   // }
 
-  // getTotalInOrder(orderDetails: IOrderDetail[]) {
+  // getOrderTotal(orderDetails: IOrderDetail[]) {
   //   return orderDetails?.reduce((total, order) => {
   //     const productPrice = order.product?.price || 0
 

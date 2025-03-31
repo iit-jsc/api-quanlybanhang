@@ -402,8 +402,6 @@ model VoucherCondition {
   product                 Product?               @relation(fields: [productId], references: [id])
   type                    VoucherConditionType
   minQuantity             Int?
-  limitQuantity           Int?
-  promotionalPrice        Float?
   minCustomer             Int?
   minOrderTotal           Float?
   createdAt               DateTime               @default(now())
@@ -412,17 +410,19 @@ model VoucherCondition {
 }
 
 model VoucherProduct {
-  id        String             @id @default(uuid())
-  voucherId String
-  productId String?
-  type      VoucherProductType @default(OTHER)
-  amount    Int
-  name      String?            @db.Text
-  photoURL  String?            @db.Text
-  createdAt DateTime           @default(now())
-  updatedAt DateTime           @updatedAt
-  voucher   Voucher?           @relation(fields: [voucherId], references: [id], onDelete: Cascade)
-  product   Product?           @relation(fields: [productId], references: [id], onDelete: Cascade)
+  id               String             @id @default(uuid())
+  voucherId        String
+  productId        String?
+  type             VoucherProductType @default(OTHER_PRODUCT)
+  amount           Int?
+  limitQuantity    Int?
+  promotionalPrice Float?
+  name             String?            @db.Text
+  photoURL         String?            @db.Text
+  createdAt        DateTime           @default(now())
+  updatedAt        DateTime           @updatedAt
+  voucher          Voucher?           @relation(fields: [voucherId], references: [id], onDelete: Cascade)
+  product          Product?           @relation(fields: [productId], references: [id], onDelete: Cascade)
 }
 
 model Order {
@@ -443,6 +443,7 @@ model Order {
   moneyReceived         Float?
   paymentMethodId       String?
   bankingImages         Json?
+  voucherProducts       Json?
   paymentMethod         PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   isPaid                Boolean?       @default(false)
   isSave                Boolean?       @default(false)
@@ -529,7 +530,7 @@ model DiscountIssue {
   endDate       DateTime?
   description   String?        @db.Text
   amount        Int?
-  minTotalOrder Float?
+  minOrderTotal Float?
   maxValue      Float?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
@@ -700,7 +701,6 @@ enum PaymentMethodType {
 
 enum VoucherType {
   VALUE
-  GIFT
   PRODUCT
 }
 
@@ -733,7 +733,8 @@ enum PermissionGroupType {
 
 enum VoucherProductType {
   SHOP_PRODUCT
-  OTHER
+  OTHER_PRODUCT
+  DISCOUNT_PRODUCT
 }
 
 enum VoucherConditionType {

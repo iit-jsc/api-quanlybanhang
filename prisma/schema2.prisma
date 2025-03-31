@@ -789,7 +789,7 @@ model DiscountIssue {
   description       String?        @db.Text
   amount            Int?
   isLimit           Boolean        @default(false)
-  minTotalOrder     Float?
+  minOrderTotal     Float?
   maxValue          Float?
   isPublic          Boolean?       @default(true)
   createdAt         DateTime       @default(now())

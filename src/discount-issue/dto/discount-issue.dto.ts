@@ -41,7 +41,7 @@ export class CreateDiscountIssueDto {
   code: string
 
   description?: string
-  minTotalOrder?: number
+  minOrderTotal?: number
   maxValue?: number
 }
 

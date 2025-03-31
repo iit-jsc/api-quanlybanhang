@@ -1,6 +1,15 @@
-import { Type } from 'class-transformer'
-import { ArrayNotEmpty, IsEnum, IsNotEmpty, IsOptional, ValidateNested } from 'class-validator'
-import { OrderDetailStatus, OrderType } from '@prisma/client'
+import { Transform, TransformFnParams, Type } from 'class-transformer'
+import {
+  ArrayNotEmpty,
+  IsArray,
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  ValidateNested
+} from 'class-validator'
+import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
+import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateOrderDto {
   @IsOptional()
@@ -33,11 +42,18 @@ export class CreateOrderProductsDto {
   productOptionIds?: string[]
 }
 
-// export class UpdateOrderDto extends PartialType(CreateOrderDto) {
-//   cancelReason?: string
-//   paymentMethodId?: string
-//   bankingImages?: string[]
-// }
+export class UpdateOrderDto {
+  bankingImages?: string[]
+  note?: string
+
+  @IsOptional()
+  @IsEnum(OrderDetailStatus)
+  status: OrderDetailStatus
+}
+
+export class CancelOrderDto {
+  cancelReason?: string
+}
 
 // export class PaymentOrderDto {
 //   @IsNotEmpty()
@@ -69,36 +85,48 @@ export class CreateOrderProductsDto {
 //   note?: string
 // }
 
-// export class FindManyOrderDto extends FindManyDto {
-//   @IsOptional()
-//   @Type(() => Date)
-//   @IsDate()
-//   from?: Date
+export class FindManyOrderDto extends FindManyDto {
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  from?: Date
 
-//   @IsOptional()
-//   @Type(() => Date)
-//   @IsDate()
-//   to?: Date
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  to?: Date
 
-//   @Transform(({ value }: TransformFnParams) => {
-//     return value?.split(',').map((id: number) => +id)
-//   })
-//   orderTypes: number[]
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    if (typeof value === 'string') {
+      return value.split(',').map((id: string) => id.trim())
+    }
+    return Array.isArray(value) ? value : []
+  })
+  @IsArray()
+  @IsEnum(OrderType, { each: true })
+  types: OrderType[]
 
-//   @Transform(({ value }: TransformFnParams) => {
-//     return value?.split(',').map((id: number) => +id)
-//   })
-//   orderStatuses: number[]
+  @IsOptional()
+  @Transform(({ value }: TransformFnParams) => {
+    if (typeof value === 'string') {
+      return value.split(',').map((id: string) => id.trim())
+    }
+    return Array.isArray(value) ? value : []
+  })
+  @IsArray()
+  @IsEnum(OrderStatus, { each: true })
+  statuses: OrderStatus[]
 
-//   customerId?: string
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value)
+  })
+  isPaid?: boolean
 
-//   @Transform(({ value }: TransformFnParams) => {
-//     return Boolean(+value)
-//   })
-//   isPaid?: boolean
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value)
+  })
+  isSave?: boolean
 
-//   @Transform(({ value }: TransformFnParams) => {
-//     return Boolean(+value)
-//   })
-//   isSave?: boolean
-// }
+  customerId?: string
+}
