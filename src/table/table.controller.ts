@@ -28,7 +28,7 @@ import { RolesGuard } from 'guards/roles.guard'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
 import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
-import { SeparateTableDto } from 'src/order/dto/separate-table.dto'
+import { SeparateTableDto } from 'src/order/dto/order.dto'
 
 @Controller('table')
 export class TableController {

@@ -31,7 +31,7 @@ import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { IProduct } from 'interfaces/product.interface'
 import { IProductOption } from 'interfaces/productOption.interface'
 import { orderDetailSelect } from 'responses/order-detail.response'
-import { SeparateTableDto } from 'src/order/dto/separate-table.dto'
+import { SeparateTableDto } from 'src/order/dto/order.dto'
 
 @Injectable()
 export class TableService {

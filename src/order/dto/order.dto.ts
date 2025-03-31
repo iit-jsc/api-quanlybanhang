@@ -2,10 +2,12 @@ import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   ArrayNotEmpty,
   IsArray,
+  IsBoolean,
   IsDate,
   IsEnum,
   IsNotEmpty,
   IsOptional,
+  IsString,
   ValidateNested
 } from 'class-validator'
 import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
@@ -55,36 +57,6 @@ export class CancelOrderDto {
   cancelReason?: string
 }
 
-// export class PaymentOrderDto {
-//   @IsNotEmpty()
-//   paymentMethodId: string
-
-//   @IsNotEmpty()
-//   @IsEnum(OrderType)
-//   orderType: OrderType
-
-//   @IsOptional()
-//   @Min(1)
-//   exchangePoint: number
-
-//   @IsOptional()
-//   @IsArray()
-//   bankingImages: string[]
-
-//   @IsOptional()
-//   @Min(1)
-//   moneyReceived: number
-
-//   @IsOptional()
-//   @IsEnum(OrderStatus)
-//   orderStatus: OrderStatus
-
-//   promotionId?: string
-//   discountCode?: string
-//   customerId?: string
-//   note?: string
-// }
-
 export class FindManyOrderDto extends FindManyDto {
   @IsOptional()
   @Type(() => Date)
@@ -129,4 +101,21 @@ export class FindManyOrderDto extends FindManyDto {
   isSave?: boolean
 
   customerId?: string
+}
+
+export class SaveOrderDto {
+  note?: string
+
+  @IsBoolean()
+  isSave: boolean
+}
+
+export class SeparateTableDto {
+  @IsNotEmpty()
+  @IsString()
+  toTableId: string
+
+  @IsNotEmpty()
+  @ArrayNotEmpty()
+  orderDetailIds: string[]
 }
