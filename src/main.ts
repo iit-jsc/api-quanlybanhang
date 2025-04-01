@@ -6,6 +6,7 @@ import { BadRequestException, HttpStatus, ValidationPipe } from '@nestjs/common'
 import { TransformInterceptor } from 'utils/ApiResponse'
 import { PrismaClientExceptionFilter } from 'nestjs-prisma'
 import { ValidationError } from 'class-validator'
+import { errorFormatter } from 'utils/ApiErrors'
 
 async function bootstrap() {
   try {
@@ -28,7 +29,7 @@ async function bootstrap() {
           return new BadRequestException({
             statusCode: HttpStatus.BAD_REQUEST,
             message: 'Validation failed!',
-            errors: errors
+            errors: errorFormatter(errors)
           })
         }
       })

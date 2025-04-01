@@ -11,7 +11,6 @@ import { BranchModule } from './branch/branch.module'
 import { ShopModule } from './shop/shop.module'
 import { JwtModule } from '@nestjs/jwt'
 import { MeasurementUnitModule } from './measurement-unit/measurement-unit.module'
-import { PermissionModule } from './permission/permission.module'
 import { EmployeeGroupModule } from './employee-group/employee-group.module'
 import { CommonModule } from './common/common.module'
 import { ProductTypeModule } from './product-type/product-type.module'
@@ -24,7 +23,6 @@ import { OrderStatusModule } from './order-status/order-status.module'
 import { OrderModule } from './order/order.module'
 import { OrderRatingModule } from './order-rating/order-rating.module'
 import { ReportModule } from './report/report.module'
-import { GroupRoleModule } from './group-role/group-role.module'
 import { ManagerModule } from './manager/manager.module'
 import { BusinessTypeModule } from './business-type/business-type.module'
 import { FirebaseModule } from './firebase/firebase.module'
@@ -58,6 +56,8 @@ import { CustomerRequestModule } from './customer-request/customer-request.modul
 import { MailModule } from './mail/mail.module'
 import { TrashModule } from './trash/trash.module'
 import { VoucherModule } from './voucher/voucher.module'
+import { RoleModule } from './role/role.module'
+import { PermissionGroupModule } from './permission-group/permission-group.module'
 
 @Module({
   imports: [
@@ -97,7 +97,7 @@ import { VoucherModule } from './voucher/voucher.module'
     BranchModule,
     ShopModule,
     MeasurementUnitModule,
-    PermissionModule,
+    RoleModule,
     EmployeeGroupModule,
     CommonModule,
     ProductTypeModule,
@@ -110,7 +110,6 @@ import { VoucherModule } from './voucher/voucher.module'
     OrderModule,
     OrderRatingModule,
     ReportModule,
-    GroupRoleModule,
     ManagerModule,
     BusinessTypeModule,
     FirebaseModule,
@@ -132,6 +131,7 @@ import { VoucherModule } from './voucher/voucher.module'
     EmployeeScheduleModule,
     EmployeeSalaryModule,
     TableSalaryModule,
+    PermissionGroupModule,
     CompensationSettingModule,
     CompensationEmployeeModule,
     QrSettingModule,

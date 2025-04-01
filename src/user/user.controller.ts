@@ -1,93 +1,52 @@
-import { Controller } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Req,
+  UseGuards
+} from '@nestjs/common'
 import { UserService } from './user.service'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { RolesGuard } from 'guards/roles.guard'
+import { RequestJWT } from 'interfaces/common.interface'
+import { CheckUniqDto, CreateUserDto, UpdateUserDto } from './dto/user.dto'
+import { DeleteManyDto } from 'utils/Common.dto'
 @Controller('user')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
-  // @Post('/employee')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('CREATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
-  // createEmployee(
-  //   @Body() createEmployeeDto: CreateEmployeeDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  @Post('/')
+  @HttpCode(HttpStatus.OK)
+  create(@Body() data: CreateUserDto, @Req() req: RequestJWT) {
+    const { accountId, shopId } = req
+    return this.userService.create(data, accountId, shopId)
+  }
 
-  //   return this.userService.createEmployee(createEmployeeDto, tokenPayload)
-  // }
+  @Patch('/:id')
+  @HttpCode(HttpStatus.OK)
+  update(@Param('id') id: string, @Body() data: UpdateUserDto, @Req() req: RequestJWT) {
+    const { accountId, shopId } = req
 
-  // @Post('/check-unique')
-  // @HttpCode(HttpStatus.OK)
-  // checkUniq(@Body() checkUniqDto: CheckUniqDto, @Req() req: any) {
-  //   return this.userService.checkUniq(checkUniqDto)
-  // }
+    return this.userService.update(id, data, accountId, shopId)
+  }
 
-  // @Get('/employee')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(
-  //   'CREATE_EMPLOYEE',
-  //   'UPDATE_EMPLOYEE',
-  //   'DELETE_EMPLOYEE',
-  //   'VIEW_EMPLOYEE',
-  //   SPECIAL_ROLE.MANAGER
-  // )
-  // findAllEmployee(@Query() data: FindManyEmployeeDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  @Post('/check-exists')
+  @HttpCode(HttpStatus.OK)
+  checkExists(@Body() checkExistsDto: CheckUniqDto) {
+    return this.userService.checkExists(checkExistsDto)
+  }
 
-  //   return this.userService.findAllEmployee(data, tokenPayload)
-  // }
+  @Delete('')
+  @HttpCode(HttpStatus.OK)
+  deleteManyEmployee(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
+    const { accountId, shopId } = req
 
-  // @Get('/employee/:id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles(
-  //   'CREATE_EMPLOYEE',
-  //   'UPDATE_EMPLOYEE',
-  //   'DELETE_EMPLOYEE',
-  //   'VIEW_EMPLOYEE',
-  //   SPECIAL_ROLE.MANAGER
-  // )
-  // findUniqEmployee(@Param('id') id: string, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-
-  //   return this.userService.findUniqEmployee(
-  //     {
-  //       id
-  //     },
-  //     tokenPayload
-  //   )
-  // }
-
-  // @Patch('/employee/:id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('UPDATE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
-  // updateEmployee(
-  //   @Param('id') id: string,
-  //   @Body() updateEmployeeDto: UpdateEmployeeDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-
-  //   return this.userService.updateEmployee(
-  //     {
-  //       where: {
-  //         id
-  //       },
-  //       data: updateEmployeeDto
-  //     },
-  //     tokenPayload
-  //   )
-  // }
-
-  // @Delete('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('DELETE_EMPLOYEE', SPECIAL_ROLE.MANAGER)
-  // deleteManyEmployee(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.userService.deleteManyEmployee(deleteManyDto, tokenPayload)
-  // }
+    return this.userService.deleteMany(data, accountId, shopId)
+  }
 }

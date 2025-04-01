@@ -28,10 +28,15 @@ export class MeasurementUnitService {
 
   async findAll(params: FindManyDto, branchId: string) {
     const { page, perPage, keyword, orderBy } = params
+    const keySearch = ['name', 'code']
 
     const where: Prisma.MeasurementUnitWhereInput = {
       branchId,
-      ...(keyword && { name: { contains: removeDiacritics(keyword) } })
+      ...(keyword && {
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
+      })
     }
 
     return await customPaginate(

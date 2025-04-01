@@ -1,275 +1,191 @@
+import * as bcrypt from 'bcrypt'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-
-import { CommonService } from 'src/common/common.service'
+import { CheckUniqDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
+import { Prisma, PrismaClient } from '@prisma/client'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { userSelect } from 'responses/user.response'
+import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
+import { TrashService } from 'src/trash/trash.service'
 
 @Injectable()
 export class UserService {
   constructor(
     private readonly prisma: PrismaService,
-    private commonService: CommonService
+    private readonly trashService: TrashService
   ) {}
 
-  // async createEmployee(data: CreateEmployeeDto, tokenPayload: TokenPayload) {
-  //   return await this.prisma.$transaction(async prisma => {
-  //     const user = await prisma.user.create({
-  //       data: {
-  //         name: data.name,
-  //         code: data.code,
-  //         phone: data.phone,
-  //         email: data.email,
-  //         sex: data.sex,
-  //         birthday: data.birthday,
-  //         cardDate: data.cardDate,
-  //         startDate: data.startDate,
-  //         employeeGroupId: data.employeeGroupId,
-  //         photoURL: data.photoURL,
-  //         address: data.address,
-  //         cardId: data.cardId,
-  //         cardAddress: data.cardAddress,
-  //         createdBy: tokenPayload.accountId,
-  //         branchId: tokenPayload.branchId
-  //       }
-  //     })
+  async create(data: CreateUserDto, accountId: string, shopId: string) {
+    return await this.prisma.user.create({
+      data: {
+        name: data.name,
+        code: data.code,
+        phone: data.phone,
+        email: data.email,
+        sex: data.sex,
+        birthday: data.birthday,
+        cardDate: data.cardDate,
+        startDate: data.startDate,
+        employeeGroupId: data.employeeGroupId,
+        photoURL: data.photoURL,
+        address: data.address,
+        cardId: data.cardId,
+        cardAddress: data.cardAddress,
+        createdBy: accountId,
+        account: {
+          create: {
+            password: bcrypt.hashSync(data.password, 10),
+            status: data.status,
+            branches: {
+              connect: data.branchIds.map(id => ({ id, shopId }))
+            },
+            roleId: data.roleId
+          }
+        }
+      },
+      select: userSelect
+    })
+  }
 
-  //     await prisma.account.create({
-  //       data: {
-  //         username: data.username,
-  //         password: bcrypt.hashSync(data.password, 10),
-  //         status: ACCOUNT_STATUS.ACTIVE,
-  //         type: ACCOUNT_TYPE.STAFF,
-  //         user: {
-  //           connect: {
-  //             id: user.id
-  //           }
-  //         },
-  //         branches: {
-  //           connect: {
-  //             id: tokenPayload.branchId
-  //           }
-  //         },
-  //         permissions: {
-  //           connect: data.permissionIds?.map(id => ({ id }))
-  //         }
-  //       }
-  //     })
+  async findAll(params: FindManyUserDto, shopId: string) {
+    const { page, perPage, keyword, employeeGroupIds, orderBy } = params
 
-  //     await this.commonService.createActivityLog(
-  //       [user.id],
-  //       'User',
-  //       ACTIVITY_LOG_TYPE.CREATE,
-  //       tokenPayload
-  //     )
+    const keySearch = ['name', 'code', 'email', 'phone']
 
-  //     return user
-  //   })
-  // }
+    const where: Prisma.UserWhereInput = {
+      ...(keyword && {
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
+      }),
+      ...(employeeGroupIds?.length && {
+        employeeGroup: {
+          id: { in: employeeGroupIds }
+        }
+      }),
+      account: {
+        branches: {
+          some: {
+            shopId
+          }
+        }
+      }
+    }
 
-  // async findAllEmployee(
-  //   params: FindManyEmployeeDto,
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const { page, perPage, keyword, employeeGroupIds, orderBy } = params
+    return await customPaginate(
+      this.prisma.user,
+      {
+        orderBy: orderBy || { createdAt: 'desc' },
+        where,
+        select: userSelect
+      },
+      {
+        page,
+        perPage
+      }
+    )
+  }
 
-  //   const keySearch = ['name', 'code', 'email', 'phone']
+  async findUniq(id: string, shopId: string) {
+    return this.prisma.user.findUniqueOrThrow({
+      where: {
+        id,
+        account: {
+          branches: {
+            some: {
+              shopId
+            }
+          }
+        }
+      },
+      select: userSelect
+    })
+  }
 
-  //   const where: Prisma.UserWhereInput = {
-  //     isPublic: true,
-  //     branchId: tokenPayload.branchId,
-  //     ...(keyword && {
-  //       OR: keySearch.map(key => ({
-  //         [key]: { contains: removeDiacritics(keyword) }
-  //       }))
-  //     }),
-  //     ...(employeeGroupIds?.length > 0 && {
-  //       employeeGroup: {
-  //         id: { in: employeeGroupIds },
-  //         isPublic: true
-  //       }
-  //     }),
-  //     account: {
-  //       type: ACCOUNT_TYPE.STAFF
-  //     }
-  //   }
+  async update(id: string, data: UpdateUserDto, accountId: string, shopId: string) {
+    return await this.prisma.user.update({
+      data: {
+        name: data.name,
+        code: data.code,
+        phone: data.phone,
+        email: data.email,
+        sex: data.sex,
+        birthday: data.birthday,
+        cardDate: data.cardDate,
+        startDate: data.startDate,
+        employeeGroupId: data.employeeGroupId,
+        photoURL: data.photoURL,
+        address: data.address,
+        cardId: data.cardId,
+        cardAddress: data.cardAddress,
+        account: {
+          update: {
+            roleId: data.roleId,
+            status: data.status,
+            ...(data.newPassword && {
+              password: bcrypt.hashSync(data.newPassword, 10)
+            })
+          }
+        },
+        updatedBy: accountId
+      },
+      where: {
+        id,
+        account: {
+          branches: {
+            some: {
+              shopId
+            }
+          }
+        }
+      },
+      select: userSelect
+    })
+  }
 
-  //   return await customPaginate(
-  //     this.prisma.user,
-  //     {
-  //       orderBy: orderBy || { createdAt: 'desc' },
-  //       where,
-  //       select: {
-  //         id: true,
-  //         name: true,
-  //         code: true,
-  //         phone: true,
-  //         email: true,
-  //         address: true,
-  //         cardId: true,
-  //         cardDate: true,
-  //         cardAddress: true,
-  //         birthday: true,
-  //         sex: true,
-  //         startDate: true,
-  //         photoURL: true,
-  //         updatedAt: true,
-  //         employeeGroup: {
-  //           select: {
-  //             id: true,
-  //             name: true
-  //           },
-  //           where: {
-  //             isPublic: true
-  //           }
-  //         },
-  //         account: {
-  //           select: {
-  //             type: true,
-  //             username: true,
-  //             status: true,
-  //             permissions: {
-  //               where: { isPublic: true },
-  //               select: {
-  //                 id: true,
-  //                 name: true
-  //               }
-  //             }
-  //           }
-  //         }
-  //       }
-  //     },
-  //     {
-  //       page,
-  //       perPage
-  //     }
-  //   )
-  // }
+  async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const dataTrash: CreateManyTrashDto = {
+        ids: data.ids,
+        accountId,
+        modelName: 'User',
+        include: {
+          account: true
+        }
+      }
 
-  // async findUniqEmployee(
-  //   where: Prisma.UserWhereUniqueInput,
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   return this.prisma.user.findUniqueOrThrow({
-  //     where: {
-  //       ...where,
-  //       isPublic: true,
-  //       branchId: tokenPayload.branchId,
-  //       account: {
-  //         type: ACCOUNT_TYPE.STAFF
-  //       }
-  //     },
-  //     include: {
-  //       employeeGroup: {
-  //         select: {
-  //           id: true,
-  //           name: true
-  //         },
-  //         where: {
-  //           isPublic: true
-  //         }
-  //       },
-  //       account: {
-  //         select: {
-  //           type: true,
-  //           username: true,
-  //           status: true,
-  //           permissions: {
-  //             where: { isPublic: true }
-  //           }
-  //         }
-  //       }
-  //     }
-  //   })
-  // }
+      await this.trashService.createMany(dataTrash, prisma)
 
-  // async updateEmployee(
-  //   params: {
-  //     where: Prisma.UserWhereUniqueInput
-  //     data: UpdateEmployeeDto
-  //   },
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const { where, data } = params
+      return prisma.user.deleteMany({
+        where: {
+          id: {
+            in: data.ids
+          },
+          account: {
+            branches: {
+              some: {
+                shopId
+              }
+            }
+          }
+        }
+      })
+    })
+  }
 
-  //   const result = await this.prisma.user.update({
-  //     data: {
-  //       name: data.name,
-  //       code: data.code,
-  //       phone: data.phone,
-  //       email: data.email,
-  //       sex: data.sex,
-  //       birthday: data.birthday,
-  //       cardDate: data.cardDate,
-  //       startDate: data.startDate,
-  //       employeeGroupId: data.employeeGroupId,
-  //       photoURL: data.photoURL,
-  //       address: data.address,
-  //       cardId: data.cardId,
-  //       cardAddress: data.cardAddress,
-  //       updatedBy: tokenPayload.accountId,
-  //       account: {
-  //         update: {
-  //           status: data.accountStatus,
-  //           ...(data.newPassword && {
-  //             password: bcrypt.hashSync(data.newPassword, 10)
-  //           }),
-  //           ...(data.permissionIds && {
-  //             permissions: {
-  //               set: data.permissionIds?.map(id => ({ id }))
-  //             }
-  //           })
-  //         }
-  //       }
-  //     },
-  //     where: {
-  //       ...where,
-  //       isPublic: true,
-  //       branchId: tokenPayload.branchId
-  //     }
-  //   })
+  async checkExists(data: CheckUniqDto) {
+    const { field, id, value } = data
 
-  //   await this.commonService.createActivityLog(
-  //     [result.id],
-  //     'User',
-  //     ACTIVITY_LOG_TYPE.UPDATE,
-  //     tokenPayload
-  //   )
+    let record = null
 
-  //   return result
-  // }
+    record = await this.prisma.user.findFirst({
+      where: {
+        [field]: value,
+        id: { not: id }
+      }
+    })
 
-  // async deleteManyEmployee(data: DeleteManyDto, tokenPayload: TokenPayload) {
-  //   await this.prisma.account.updateMany({
-  //     where: {
-  //       isPublic: true,
-  //       user: {
-  //         id: { in: data.ids },
-  //         isPublic: true,
-  //         branchId: tokenPayload.branchId
-  //       }
-  //     },
-  //     data: {
-  //       isPublic: false,
-  //       updatedBy: tokenPayload.accountId
-  //     }
-  //   })
-
-  //   const count = await this.prisma.user.updateMany({
-  //     where: {
-  //       id: { in: data.ids },
-  //       branchId: tokenPayload.branchId
-  //     },
-  //     data: {
-  //       updatedBy: tokenPayload.accountId
-  //     }
-  //   })
-
-  //   await this.commonService.createActivityLog(
-  //     data.ids,
-  //     'User',
-  //     ACTIVITY_LOG_TYPE.DELETE,
-  //     tokenPayload
-  //   )
-
-  //   return { ...count, ids: data.ids } as DeleteManyResponse
-  // }
+    return record !== null
+  }
 }

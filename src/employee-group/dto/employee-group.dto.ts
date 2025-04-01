@@ -1,18 +1,11 @@
 import { PartialType } from '@nestjs/swagger'
-import { Transform, TransformFnParams } from 'class-transformer'
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsNotEmpty } from 'class-validator'
 
 export class CreateEmployeeGroupDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Transform(({ value }: TransformFnParams) => value?.trim())
-  @IsString()
+  @IsNotEmpty()
   name: string
 
-  @IsOptional()
-  @IsString()
   description?: string
 }
 
-export class UpdateEmployeeGroupDto extends PartialType(
-  CreateEmployeeGroupDto
-) {}
+export class UpdateEmployeeGroupDto extends PartialType(CreateEmployeeGroupDto) {}

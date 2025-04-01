@@ -37,8 +37,8 @@ model Role {
   name        String
   description String?      @db.Text
   permissions Permission[]
-  branch      Branch?      @relation(fields: [branchId], references: [id])
-  branchId    String?
+  shop        Shop?        @relation(fields: [shopId], references: [id])
+  shopId      String?
   accounts    Account[]    @relation("roleAccount")
   createdBy   String?
   updatedBy   String?
@@ -53,7 +53,7 @@ model Account {
   status                    AccountStatus        @default(ACTIVE)
   password                  String?
   userId                    String               @unique
-  user                      User?                @relation(fields: [userId], references: [id])
+  user                      User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   roleId                    String?
   role                      Role?                @relation("roleAccount", fields: [roleId], references: [id])
   branches                  Branch[]
@@ -115,7 +115,7 @@ model User {
   email           String?        @unique
   photoURL        String?        @db.Text
   address         String?        @db.Text
-  cardId          String?        @unique
+  cardId          String?
   cardDate        DateTime?
   cardAddress     String?        @db.Text
   birthday        DateTime?
@@ -137,8 +137,8 @@ model EmployeeGroup {
   name        String
   description String?  @db.Text
   users       User[]
-  branch      Branch?  @relation(fields: [branchId], references: [id])
-  branchId    String?
+  shop        Shop?    @relation(fields: [shopId], references: [id])
+  shopId      String?
   createdBy   String?
   updatedBy   String?
   creator     Account? @relation("creator", fields: [createdBy], references: [id])
@@ -148,26 +148,28 @@ model EmployeeGroup {
 }
 
 model Shop {
-  id               String         @id @default(uuid())
+  id               String          @id @default(uuid())
   name             String
-  code             String         @unique
+  code             String          @unique
   businessTypeCode String
-  status           ShopStatus     @default(ACTIVE)
-  businessType     BusinessType?  @relation(fields: [businessTypeCode], references: [code])
+  status           ShopStatus      @default(ACTIVE)
+  businessType     BusinessType?   @relation(fields: [businessTypeCode], references: [code])
   phone            String?
   email            String?
-  address          String?        @db.Text
-  photoURL         String?        @db.Text
-  domain           String?        @db.Text
-  createdAt        DateTime       @default(now())
-  updatedAt        DateTime       @updatedAt
+  address          String?         @db.Text
+  photoURL         String?         @db.Text
+  domain           String?         @db.Text
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
   branches         Branch[]
   customerTypes    CustomerType[]
   customers        Customer[]
   createdBy        String?
   updatedBy        String?
-  creator          Account?       @relation("creator", fields: [createdBy], references: [id])
-  updater          Account?       @relation("updater", fields: [updatedBy], references: [id])
+  creator          Account?        @relation("creator", fields: [createdBy], references: [id])
+  updater          Account?        @relation("updater", fields: [updatedBy], references: [id])
+  roles            Role[]
+  employeeGroups   EmployeeGroup[]
 }
 
 model MeasurementUnit {
@@ -605,8 +607,6 @@ model Branch {
   orderDetails        OrderDetail[]
   customerRequests    CustomerRequest[]
   tables              Table[]
-  roles               Role[]
-  employeeGroups      EmployeeGroup[]
   accounts            Account[]
   paymentMethods      PaymentMethod[]
   productOptionGroups ProductOptionGroup[]

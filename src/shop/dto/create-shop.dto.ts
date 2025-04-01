@@ -10,7 +10,7 @@ import {
 } from 'class-validator'
 import { SHOP_STATUS } from 'enums/shop.enum'
 import { CreateBranchDto } from 'src/branch/dto/create-branch.dto'
-import { CreateUserDto } from 'src/user/dto/create-user-dto'
+import { CreateUserDto } from 'src/user/dto/user.dto'
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class RegisterShopDto {

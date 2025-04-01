@@ -56,7 +56,7 @@ export class TableService {
   async findAll(params: FindManyTableDto, branchId: string) {
     const { page, perPage, keyword, areaIds, orderBy } = params
 
-    const keySearch = ['name', 'code']
+    const keySearch = ['name']
 
     const where: Prisma.TableWhereInput = {
       ...(keyword && {
