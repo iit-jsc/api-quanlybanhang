@@ -6,6 +6,7 @@ import {
   HttpCode,
   HttpException,
   HttpStatus,
+  Patch,
   Post,
   Req,
   Res,
@@ -18,6 +19,8 @@ import { AccessBranchDto } from './dto/access-branch.dto'
 import { RequestJWT } from 'interfaces/common.interface'
 
 import { AccessBranchGuard } from 'guards/access-branch.guard'
+import { ChangeMyPasswordDto } from './dto/change-password.dto'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 
 @Controller('auth')
 export class AuthController {
@@ -40,6 +43,15 @@ export class AuthController {
     const { accountId } = req
 
     return this.authService.accessBranch(accountId, data, res)
+  }
+
+  @Patch('/change-my-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  changeMyPassword(@Body() data: ChangeMyPasswordDto, @Req() req: RequestJWT) {
+    const { accountId } = req
+
+    return this.authService.changeMyPassword(data, accountId)
   }
 
   @Get('/get-me')

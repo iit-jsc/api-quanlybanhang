@@ -16,6 +16,7 @@ import { RolesGuard } from 'guards/roles.guard'
 import { RequestJWT } from 'interfaces/common.interface'
 import { CheckUniqDto, CreateUserDto, UpdateUserDto } from './dto/user.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
+import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
 @Controller('user')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
@@ -26,6 +27,14 @@ export class UserController {
   create(@Body() data: CreateUserDto, @Req() req: RequestJWT) {
     const { accountId, shopId } = req
     return this.userService.create(data, accountId, shopId)
+  }
+
+  @Patch('/me')
+  @HttpCode(HttpStatus.OK)
+  changeInformation(@Body() data: ChangeMyInformation, @Req() req: RequestJWT) {
+    const { accountId } = req
+
+    return this.userService.uploadMyInformation(data, accountId)
   }
 
   @Patch('/:id')

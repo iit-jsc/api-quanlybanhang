@@ -8,6 +8,7 @@ import { removeDiacritics, customPaginate } from 'utils/Helps'
 import { userSelect } from 'responses/user.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
 
 @Injectable()
 export class UserService {
@@ -187,5 +188,24 @@ export class UserService {
     })
 
     return record !== null
+  }
+
+  async uploadMyInformation(data: ChangeMyInformation, accountId: string) {
+    console.log(accountId)
+
+    const user = await this.prisma.user.findFirst({
+      where: {
+        account: {
+          id: accountId
+        }
+      }
+    })
+
+    return this.prisma.user.update({
+      data: { photoURL: data.photoURL },
+      where: {
+        id: user.id
+      }
+    })
   }
 }

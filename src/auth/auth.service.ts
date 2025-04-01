@@ -10,8 +10,9 @@ import { AccessBranchDto } from './dto/access-branch.dto'
 import { AccountStatus } from '@prisma/client'
 import { userSortSelect } from 'responses/user.response'
 import { roleSortSelect } from 'responses/role.response'
-import { accountLoginSelect } from 'responses/account.response'
+import { accountLoginSelect, accountSortSelect } from 'responses/account.response'
 import { shopLoginSelect } from 'responses/shop.response'
+import { ChangeMyPasswordDto } from './dto/change-password.dto'
 
 @Injectable()
 export class AuthService {
@@ -174,5 +175,26 @@ export class AuthService {
         secret: process.env.SECRET_KEY
       }
     )
+  }
+
+  async changeMyPassword(data: ChangeMyPasswordDto, accountId: string) {
+    const account = await this.prisma.account.findFirst({
+      where: {
+        id: accountId
+      }
+    })
+
+    if (!account || !bcrypt.compareSync(data.oldPassword, account.password))
+      throw new HttpException('Mật khẩu cũ không chính xác!', HttpStatus.CONFLICT)
+
+    return await this.prisma.account.update({
+      where: {
+        id: accountId
+      },
+      data: {
+        password: bcrypt.hashSync(data.newPassword, 10)
+      },
+      select: accountSortSelect
+    })
   }
 }
