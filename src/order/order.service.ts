@@ -8,7 +8,7 @@ import {
   SaveOrderDto,
   UpdateOrderDto
 } from './dto/order.dto'
-import { OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
+import { NotifyType, OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
 import {
   customPaginate,
   generateCode,
@@ -25,13 +25,15 @@ import { PaymentOrderDto } from './dto/payment.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { NotifyService } from 'src/notify/notify.service'
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly orderGateway: OrderGateway,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly notifyService: NotifyService
   ) {}
 
   async create(data: CreateOrderDto, accountId: string, branchId: string) {
@@ -63,8 +65,17 @@ export class OrderService {
         select: orderSortSelect
       })
 
-      // Gửi socket cho nhân viên trong chi nhánh
-      await this.orderGateway.handleModifyOrder(order)
+      setImmediate(() => {
+        this.orderGateway.handleModifyOrder(order)
+        this.notifyService.create(
+          {
+            type: NotifyType.NEW_ORDER,
+            branchId,
+            orderId: order.id
+          },
+          accountId
+        )
+      })
 
       return order
     })

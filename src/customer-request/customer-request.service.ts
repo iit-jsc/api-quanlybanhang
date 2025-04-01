@@ -6,19 +6,21 @@ import {
   FindManyCustomerRequestDto,
   UpdateCustomerRequestDto
 } from './dto/customer-request.dto'
-import { Prisma, PrismaClient, RequestStatus } from '@prisma/client'
+import { NotifyType, Prisma, PrismaClient, RequestStatus } from '@prisma/client'
 import { customerRequestSelect } from 'responses/customer-request.response'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { NotifyService } from 'src/notify/notify.service'
 
 @Injectable()
 export class CustomerRequestService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly customerRequestGateway: CustomerRequestGateway,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly notifyService: NotifyService
   ) {}
 
   async create(data: CreateCustomerRequestDto) {
@@ -33,8 +35,15 @@ export class CustomerRequestService {
       select: customerRequestSelect
     })
 
-    // Gửi socket
-    await this.customerRequestGateway.handleCreateCustomerRequest(customerRequest)
+    // Gửi socket và thông báo
+    setImmediate(() => {
+      this.customerRequestGateway.handleCreateCustomerRequest(customerRequest)
+      this.notifyService.create({
+        type: NotifyType.NEW_CUSTOMER_REQUEST,
+        branchId: data.branchId,
+        customerRequestId: customerRequest.id
+      })
+    })
 
     return customerRequest
   }

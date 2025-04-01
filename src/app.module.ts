@@ -58,7 +58,7 @@ import { TrashModule } from './trash/trash.module'
 import { VoucherModule } from './voucher/voucher.module'
 import { RoleModule } from './role/role.module'
 import { PermissionGroupModule } from './permission-group/permission-group.module'
-import { NotifyModule } from './notify/notify.module';
+import { NotifyModule } from './notify/notify.module'
 
 @Module({
   imports: [
@@ -89,6 +89,9 @@ import { NotifyModule } from './notify/notify.module';
       }
     }),
     GatewayModule.forRoot({
+      isGlobal: true
+    }),
+    NotifyModule.forRoot({
       isGlobal: true
     }),
     CommonModule,
@@ -141,8 +144,7 @@ import { NotifyModule } from './notify/notify.module';
     ActivityLogModule,
     ProductOptionGroupModule,
     CustomerRequestModule,
-    MailModule,
-    NotifyModule
+    MailModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]

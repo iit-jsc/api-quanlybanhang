@@ -1,4 +1,4 @@
-import { OrderDetailStatus, OrderType, Prisma, PrismaClient } from '@prisma/client'
+import { NotifyType, OrderDetailStatus, OrderType, Prisma, PrismaClient } from '@prisma/client'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import {
@@ -32,13 +32,15 @@ import { IProduct } from 'interfaces/product.interface'
 import { IProductOption } from 'interfaces/productOption.interface'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
+import { NotifyService } from 'src/notify/notify.service'
 
 @Injectable()
 export class TableService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
-    private readonly tableGateway: TableGateway
+    private readonly tableGateway: TableGateway,
+    private readonly notifyService: NotifyService
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
@@ -151,8 +153,18 @@ export class TableService {
       select: tableSelect
     })
 
-    // Bắn socket cho nhân viên trong chi nhánh
-    await this.tableGateway.handleModifyTable(table)
+    // Bắn socket và thông báo cho nhân viên trong chi nhánh
+    setImmediate(() => {
+      this.tableGateway.handleModifyTable(table)
+      this.notifyService.create(
+        {
+          type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
+          branchId: branchId,
+          tableId: table.id
+        },
+        accountId
+      )
+    })
 
     return table
   }
@@ -177,8 +189,14 @@ export class TableService {
       select: tableSelect
     })
 
-    // Bắn socket cho nhân viên trong chi nhánh
-    await this.tableGateway.handleModifyTable(table)
+    setImmediate(() => {
+      this.tableGateway.handleModifyTable(table)
+      this.notifyService.create({
+        type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
+        branchId: data.branchId,
+        tableId: table.id
+      })
+    })
 
     return table
   }
