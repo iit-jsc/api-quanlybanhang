@@ -1,38 +1,36 @@
 import { PartialType } from '@nestjs/swagger'
+import { RequestStatus, RequestType } from '@prisma/client'
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
-import { REQUEST_STATUS, REQUEST_TYPE } from 'enums/common.enum'
+import { IsEnum, IsNotEmpty, IsOptional } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateCustomerRequestDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
+  @IsNotEmpty()
   tableId: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsString()
+  @IsNotEmpty()
   branchId: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @IsEnum(REQUEST_TYPE)
-  requestType: string
+  @IsNotEmpty()
+  @IsEnum(RequestType)
+  requestType: RequestType
 
   content?: string
 
   @IsOptional()
-  @IsEnum(REQUEST_STATUS, { message: 'Trạng thái không hợp lệ!' })
-  status: string
+  @IsEnum(RequestStatus)
+  status: RequestStatus
 }
 
 export class FindManyCustomerRequestDto extends FindManyDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   branchId: string
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim())
+    return value?.split(',').map((id: RequestType) => id.trim())
   })
-  requestTypes: string[]
+  requestTypes: RequestType[]
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
@@ -42,11 +40,14 @@ export class FindManyCustomerRequestDto extends FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim())
+    return value?.split(',').map((id: RequestStatus) => id.trim())
   })
-  statuses: string[]
+  statuses: RequestStatus[]
 }
 
-export class UpdateCustomerRequestDto extends PartialType(
-  CreateCustomerRequestDto
-) {}
+export class FindUniqCustomerRequestDto {
+  @IsNotEmpty()
+  branchId: string
+}
+
+export class UpdateCustomerRequestDto extends PartialType(CreateCustomerRequestDto) {}

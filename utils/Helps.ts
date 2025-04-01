@@ -150,7 +150,7 @@ export function generateCode(wordStart: string, length?: number) {
       .split('')
       .map(char => char.charCodeAt(0).toString())
       .join('')
-      .slice(0, length || 5)
+      .slice(0, length || 8)
   )
 }
 

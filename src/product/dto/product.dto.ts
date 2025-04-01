@@ -18,8 +18,7 @@ export class CreateProductDto {
   @IsArray()
   photoURLs: string[]
 
-  @IsOptional()
-  @IsNumber()
+  @IsNotEmpty()
   @Min(0)
   price: number
 
@@ -39,7 +38,7 @@ export class CreateProductDto {
 }
 
 export class FindManyProductDto extends FindManyDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @IsString()
   branchId: string
 
@@ -60,7 +59,7 @@ export class FindManyProductDto extends FindManyDto {
 
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: string) => id.trim())
+    return value?.split(',').map((id: ProductStatus) => id.trim())
   })
   statuses?: ProductStatus[]
 }

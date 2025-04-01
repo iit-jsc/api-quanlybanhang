@@ -1,68 +1,70 @@
-import { Controller } from '@nestjs/common'
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Patch,
+  Post,
+  Query,
+  Req,
+  UseGuards
+} from '@nestjs/common'
 import { CustomerRequestService } from './customer-request.service'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { RequestJWT } from 'interfaces/common.interface'
+import { DeleteManyDto } from 'utils/Common.dto'
+import {
+  CreateCustomerRequestDto,
+  FindManyCustomerRequestDto,
+  FindUniqCustomerRequestDto,
+  UpdateCustomerRequestDto
+} from './dto/customer-request.dto'
 
 @Controller('customer-request')
 export class CustomerRequestController {
-  constructor(
-    private readonly customerRequestService: CustomerRequestService
-  ) {}
+  constructor(private readonly customerRequestService: CustomerRequestService) {}
 
-  // @Post('')
-  // @HttpCode(HttpStatus.OK)
-  // create(@Body() createCustomerRequestDto: CreateCustomerRequestDto) {
-  //   return this.customerRequestService.create(createCustomerRequestDto)
-  // }
+  @Post('')
+  @HttpCode(HttpStatus.OK)
+  create(@Body() data: CreateCustomerRequestDto) {
+    return this.customerRequestService.create(data)
+  }
 
-  // @Get('')
-  // @HttpCode(HttpStatus.OK)
-  // findAll(@Query() data: FindManyCustomerRequestDto) {
-  //   return this.customerRequestService.findAll(data)
-  // }
+  @Get('')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  findAll(@Query() data: FindManyCustomerRequestDto) {
+    const { branchId } = data
 
-  // @Get(':id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // findUniq(@Param('id') id: string, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+    return this.customerRequestService.findAll(data, branchId)
+  }
 
-  //   return this.customerRequestService.findUniq(
-  //     {
-  //       id
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+  @Get(':id')
+  @HttpCode(HttpStatus.OK)
+  findUniq(@Param('id') id: string, @Query() data: FindUniqCustomerRequestDto) {
+    const { branchId } = data
 
-  // @Patch(':id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // update(
-  //   @Param('id') id: string,
-  //   @Body() updateCustomerRequestDto: UpdateCustomerRequestDto,
-  //   @Req() req: any
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.customerRequestService.update(
-  //     {
-  //       where: {
-  //         id
-  //       },
-  //       data: updateCustomerRequestDto
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+    return this.customerRequestService.findUniq(id, branchId)
+  }
 
-  // @Delete('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-  //   return this.customerRequestService.deleteMany(
-  //     {
-  //       ids: deleteManyDto.ids
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  update(@Param('id') id: string, @Body() data: UpdateCustomerRequestDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+
+    return this.customerRequestService.update(id, data, accountId, branchId)
+  }
+
+  @Delete('')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+
+    return this.customerRequestService.deleteMany(data, accountId, branchId)
+  }
 }

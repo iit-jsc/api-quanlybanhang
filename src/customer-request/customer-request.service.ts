@@ -1,193 +1,132 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CustomerRequestGateway } from 'src/gateway/customer-request.gateway'
+import {
+  CreateCustomerRequestDto,
+  FindManyCustomerRequestDto,
+  UpdateCustomerRequestDto
+} from './dto/customer-request.dto'
+import { Prisma, PrismaClient, RequestStatus } from '@prisma/client'
+import { customerRequestSelect } from 'responses/customer-request.response'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { TrashService } from 'src/trash/trash.service'
 
 @Injectable()
 export class CustomerRequestService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly customerRequestGateway: CustomerRequestGateway
+    private readonly customerRequestGateway: CustomerRequestGateway,
+    private readonly trashService: TrashService
   ) {}
 
-  // async create(data: CreateCustomerRequestDto) {
-  //   const customerRequest = await this.prisma.customerRequest.create({
-  //     data: {
-  //       content: data.content,
-  //       tableId: data.tableId,
-  //       branchId: data.branchId,
-  //       requestType: data.requestType,
-  //       status: REQUEST_STATUS.PENDING
-  //     },
-  //     include: {
-  //       table: true
-  //     }
-  //   })
+  async create(data: CreateCustomerRequestDto) {
+    const customerRequest = await this.prisma.customerRequest.create({
+      data: {
+        content: data.content,
+        tableId: data.tableId,
+        branchId: data.branchId,
+        requestType: data.requestType,
+        status: RequestStatus.PENDING
+      },
+      select: customerRequestSelect
+    })
 
-  //   // Gửi socket
-  //   await this.customerRequestGateway.handleCreateCustomerRequest(
-  //     customerRequest
-  //   )
+    // Gửi socket
+    await this.customerRequestGateway.handleCreateCustomerRequest(customerRequest)
 
-  //   return customerRequest
-  // }
+    return customerRequest
+  }
 
-  // async update(
-  //   params: {
-  //     data: UpdateCustomerRequestDto
-  //     where: Prisma.CustomerRequestWhereUniqueInput
-  //   },
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   const { data, where } = params
+  async update(id: string, data: UpdateCustomerRequestDto, accountId: string, branchId: string) {
+    return this.prisma.customerRequest.update({
+      data: {
+        content: data.content,
+        tableId: data.tableId,
+        requestType: data.requestType,
+        status: data.status,
+        updatedBy: accountId
+      },
+      where: {
+        id,
+        branchId: branchId
+      },
+      select: customerRequestSelect
+    })
+  }
 
-  //   return this.prisma.customerRequest.update({
-  //     data: {
-  //       content: data.content,
-  //       tableId: data.tableId,
-  //       requestType: data.requestType,
-  //       status: data.status,
-  //       updatedBy: tokenPayload.accountId
-  //     },
-  //     where: {
-  //       id: where.id,
-  //       branchId: tokenPayload.branchId
-  //     }
-  //   })
-  // }
+  async findAll(params: FindManyCustomerRequestDto, branchId: string) {
+    const { page, perPage, orderBy, keyword, tableIds, requestTypes, statuses } = params
 
-  // async findAll(params: FindManyCustomerRequestDto) {
-  //   let {
-  //     page,
-  //     perPage,
-  //     orderBy,
-  //     keyword,
-  //     branchId,
-  //     tableIds,
-  //     requestTypes,
-  //     statuses
-  //   } = params
+    const keySearch = ['content']
 
-  //   const keySearch = ['content']
+    const where: Prisma.CustomerRequestWhereInput = {
+      branchId: branchId,
+      ...(keyword && {
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
+      }),
+      ...(tableIds && {
+        table: {
+          id: { in: tableIds }
+        }
+      }),
+      ...(requestTypes && {
+        requestType: {
+          in: requestTypes
+        }
+      }),
+      ...(statuses && {
+        status: {
+          in: statuses
+        }
+      })
+    }
 
-  //   let where: Prisma.CustomerRequestWhereInput = {
-  //     isPublic: true,
-  //     branchId: branchId,
-  //     ...(keyword && {
-  //       OR: keySearch.map(key => ({
-  //         [key]: { contains: removeDiacritics(keyword) }
-  //       }))
-  //     }),
-  //     ...(tableIds && {
-  //       table: {
-  //         id: { in: tableIds },
-  //         isPublic: true
-  //       }
-  //     }),
-  //     ...(requestTypes && {
-  //       requestType: {
-  //         in: requestTypes
-  //       }
-  //     }),
-  //     ...(statuses && {
-  //       status: {
-  //         in: statuses
-  //       }
-  //     })
-  //   }
+    return await customPaginate(
+      this.prisma.customerRequest,
+      {
+        orderBy: orderBy || { createdAt: 'desc' },
+        where,
+        select: customerRequestSelect
+      },
+      {
+        page,
+        perPage
+      }
+    )
+  }
 
-  //   return await customPaginate(
-  //     this.prisma.customerRequest,
-  //     {
-  //       orderBy: orderBy || { createdAt: 'desc' },
-  //       where,
-  //       include: {
-  //         updater: {
-  //           select: {
-  //             id: true,
-  //             username: true,
-  //             user: {
-  //               select: {
-  //                 id: true,
-  //                 name: true,
-  //                 photoURL: true,
-  //                 phone: true
-  //               }
-  //             }
-  //           }
-  //         },
-  //         table: {
-  //           select: {
-  //             area: {
-  //               select: {
-  //                 id: true,
-  //                 name: true,
-  //                 updatedAt: true
-  //               }
-  //             },
-  //             id: true,
-  //             name: true,
-  //             seat: true,
-  //             updatedAt: true
-  //           }
-  //         }
-  //       }
-  //     },
-  //     {
-  //       page,
-  //       perPage
-  //     }
-  //   )
-  // }
+  async findUniq(id: string, branchId: string) {
+    return this.prisma.customerRequest.findUniqueOrThrow({
+      where: {
+        id,
+        branchId
+      },
+      select: customerRequestSelect
+    })
+  }
 
-  // async findUniq(
-  //   where: Prisma.CustomerRequestWhereUniqueInput,
-  //   tokenPayload: TokenPayload
-  // ) {
-  //   return this.prisma.customerRequest.findUniqueOrThrow({
-  //     where: {
-  //       ...where,
-  //       isPublic: true,
-  //       branchId: tokenPayload.branchId
-  //     },
-  //     include: {
-  //       updater: {
-  //         select: {
-  //           id: true,
-  //           username: true,
-  //           user: {
-  //             select: {
-  //               id: true,
-  //               name: true,
-  //               photoURL: true,
-  //               phone: true
-  //             }
-  //           }
-  //         }
-  //       },
-  //       table: {
-  //         select: {
-  //           area: true
-  //         }
-  //       }
-  //     }
-  //   })
-  // }
+  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
+    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const dataTrash: CreateManyTrashDto = {
+        ids: data.ids,
+        accountId,
+        modelName: 'CustomerRequest'
+      }
 
-  // async deleteMany(data: DeleteManyDto, tokenPayload: TokenPayload) {
-  //   const count = await this.prisma.customerRequest.updateMany({
-  //     where: {
-  //       id: {
-  //         in: data.ids
-  //       },
-  //       isPublic: true,
-  //       branchId: tokenPayload.branchId
-  //     },
-  //     data: {
-  //       isPublic: false,
-  //       updatedBy: tokenPayload.accountId
-  //     }
-  //   })
+      await this.trashService.createMany(dataTrash, prisma)
 
-  //   return { ...count, ids: data.ids } as DeleteManyResponse
-  // }
+      return prisma.customerRequest.deleteMany({
+        where: {
+          id: {
+            in: data.ids
+          },
+          branchId
+        }
+      })
+    })
+  }
 }
