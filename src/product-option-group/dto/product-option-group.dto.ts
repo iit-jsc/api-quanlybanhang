@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger'
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator'
+import { IsArray, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateProductOptionGroupDto {
@@ -24,6 +24,14 @@ export class CreateProductOptionDto {
   @IsOptional()
   @Min(0)
   price: number
+
+  @IsOptional()
+  @IsArray()
+  productIds?: string[]
+
+  @IsOptional()
+  @IsArray()
+  excludedProductIds?: string[]
 
   isAppliedToAll?: boolean
   isDefault?: boolean

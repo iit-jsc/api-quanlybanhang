@@ -58,6 +58,7 @@ import { TrashModule } from './trash/trash.module'
 import { VoucherModule } from './voucher/voucher.module'
 import { RoleModule } from './role/role.module'
 import { PermissionGroupModule } from './permission-group/permission-group.module'
+import { NotifyModule } from './notify/notify.module';
 
 @Module({
   imports: [
@@ -140,7 +141,8 @@ import { PermissionGroupModule } from './permission-group/permission-group.modul
     ActivityLogModule,
     ProductOptionGroupModule,
     CustomerRequestModule,
-    MailModule
+    MailModule,
+    NotifyModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]

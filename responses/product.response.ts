@@ -16,7 +16,7 @@ export const productSelect: Prisma.ProductSelect = {
   photoURLs: true,
   status: true,
   slug: true,
-  productOptions: {
+  includedProductOptions: {
     select: productOptionSelect
   },
   measurementUnit: {

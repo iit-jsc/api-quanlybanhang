@@ -105,6 +105,7 @@ model Account {
   updaterRole               Role[]               @relation("updater")
   creatorRole               Role[]               @relation("creator")
   trashes                   Trash[]              @relation("creator")
+  notifies                  Notify[]
 }
 
 model User {
@@ -234,7 +235,9 @@ model Product {
   creator                  Account?           @relation("creator", fields: [createdBy], references: [id])
   updater                  Account?           @relation("updater", fields: [updatedBy], references: [id])
   orderDetails             OrderDetail[]
-  productOptions           ProductOption[]
+  excludedProductOptions   ProductOption[]    @relation("ExcludedProducts")
+  includedProductOptions   ProductOption[]    @relation("IncludedProducts")
+  productOptionId          String?
 
   @@unique([branchId, slug])
   @@unique([branchId, code])
@@ -252,7 +255,8 @@ model ProductOption {
   productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id], onDelete: Cascade)
   productOptionGroupId String?
   productTypes         ProductType[]
-  products             Product[]
+  products             Product[]           @relation("IncludedProducts")
+  excludedProducts     Product[]           @relation("ExcludedProducts")
 }
 
 model ProductOptionGroup {
@@ -459,6 +463,7 @@ model Order {
   orderDetails          OrderDetail[]
   creator               Account?       @relation("creator", fields: [createdBy], references: [id])
   updater               Account?       @relation("updater", fields: [updatedBy], references: [id])
+  notifies              Notify[]
 
   @@unique([branchId, code])
 }
@@ -518,6 +523,7 @@ model Table {
   updater          Account?          @relation("updater", fields: [updatedBy], references: [id])
   customerRequests CustomerRequest[]
   orders           Order[]
+  notifies         Notify[]
 }
 
 model DiscountIssue {
@@ -577,6 +583,7 @@ model CustomerRequest {
   updatedAt   DateTime       @updatedAt
   branch      Branch?        @relation(fields: [branchId], references: [id])
   table       Table?         @relation(fields: [tableId], references: [id])
+  notifies    Notify[]
 }
 
 model Branch {
@@ -649,6 +656,26 @@ model Trash {
   isRestored Boolean  @default(false)
   createdBy  String?
   creator    Account? @relation("creator", fields: [createdBy], references: [id])
+}
+
+model Notify {
+  id                String           @id @default(uuid())
+  orderId           String?
+  order             Order?           @relation(fields: [orderId], references: [id])
+  tableId           String?
+  table             Table?           @relation(fields: [tableId], references: [id])
+  customerRequestId String?
+  customerRequest   CustomerRequest? @relation(fields: [customerRequestId], references: [id])
+  type              NotifyType
+  accounts          Account[]
+  isRead            Boolean          @default(false)
+  createdAt         DateTime         @default(now())
+}
+
+enum NotifyType {
+  NEW_DISH_ADDED_TO_TABLE
+  NEW_ORDER
+  NEW_CUSTOMER_REQUEST
 }
 
 enum AccountStatus {

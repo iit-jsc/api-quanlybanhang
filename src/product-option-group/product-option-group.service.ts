@@ -21,7 +21,7 @@ export class ProductOptionGroupService {
   ) {}
 
   async create(data: CreateProductOptionGroupDto, accountId: string, branchId: string) {
-    this.validateDefaultProductOptions(data.productOptions)
+    this.validateValidateProductOptions(data.productOptions)
 
     return await this.prisma.productOptionGroup.create({
       data: {
@@ -32,7 +32,13 @@ export class ProductOptionGroupService {
             price: option.price,
             isDefault: option.isDefault,
             isAppliedToAll: option.isAppliedToAll,
-            photoURL: option.photoURL
+            photoURL: option.photoURL,
+            products: {
+              connect: option.productIds?.map(id => ({ id }))
+            },
+            excludedProducts: {
+              connect: option.excludedProductIds?.map(id => ({ id }))
+            }
           }))
         },
         isMultiple: data.isMultiple,
@@ -117,7 +123,13 @@ export class ProductOptionGroupService {
                 price: option.price,
                 isDefault: option.isDefault,
                 isAppliedToAll: option.isAppliedToAll,
-                photoURL: option.photoURL
+                photoURL: option.photoURL,
+                products: {
+                  connect: option.productIds?.map(id => ({ id }))
+                },
+                excludedProducts: {
+                  connect: option.excludedProductIds?.map(id => ({ id }))
+                }
               }))
             }
           }),
@@ -160,5 +172,30 @@ export class ProductOptionGroupService {
 
     if (defaultCount > 1)
       throw new HttpException('Chỉ có duy nhất dữ liệu là mặc định!', HttpStatus.CONFLICT)
+  }
+
+  validateValidateProductOptions(productOptions: CreateProductOptionDto[]) {
+    this.validateDefaultProductOptions(productOptions)
+
+    for (let i = 0; i < productOptions.length; i++) {
+      const option = productOptions[i]
+
+      if (option.isAppliedToAll && option.productIds.length > 0) {
+        throw new HttpException(
+          'Danh sách sản phẩm phải rỗng nếu như chọn áp dụng cho tất cả!',
+          HttpStatus.CONFLICT
+        )
+      }
+
+      for (let j = 0; j < option.productIds.length; j++) {
+        const productId = option.productIds[j]
+        if (option.excludedProductIds.includes(productId)) {
+          throw new HttpException(
+            'Sản phẩm không thể xuất hiện đồng thời cả 2 danh sách!',
+            HttpStatus.CONFLICT
+          )
+        }
+      }
+    }
   }
 }

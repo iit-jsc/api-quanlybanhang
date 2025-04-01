@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { productSortSelect } from './product.response'
 
 export const productOptionGroupSelect = (productId?: string): Prisma.ProductOptionGroupSelect => ({
   id: true,
@@ -6,16 +7,7 @@ export const productOptionGroupSelect = (productId?: string): Prisma.ProductOpti
   isMultiple: true,
   isRequired: true,
   productOptions: {
-    select: {
-      id: true,
-      name: true,
-      price: true,
-      productOptionGroupId: true,
-      isAppliedToAll: true,
-      isDefault: true,
-      photoURL: true,
-      updatedAt: true
-    },
+    select: productOptionSelect,
     where: {
       ...(productId && {
         products: {
@@ -38,6 +30,12 @@ export const productOptionSelect: Prisma.ProductOptionSelect = {
   price: true,
   productOptionGroupId: true,
   isAppliedToAll: true,
+  excludedProducts: {
+    select: productSortSelect
+  },
+  products: {
+    select: productSortSelect
+  },
   isDefault: true,
   photoURL: true,
   updatedAt: true

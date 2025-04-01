@@ -5,20 +5,12 @@ import { CreateShopDto, RegisterShopDto } from './dto/create-shop.dto'
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum'
 import { CommonService } from 'src/common/common.service'
 import { AuthService } from 'src/auth/auth.service'
-import {
-  AnyObject,
-  DeleteManyResponse,
-  TokenPayload
-} from 'interfaces/common.interface'
+import { AnyObject, DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
 import { Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
 import { UpdateShopDto } from './dto/update-shop.dto'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
-import {
-  DISCOUNT_TYPE,
-  FEATURE_CODE,
-  PAYMENT_METHOD_TYPE
-} from 'enums/common.enum'
+import { DISCOUNT_TYPE, FEATURE_CODE, PAYMENT_METHOD_TYPE } from 'enums/common.enum'
 import { FindByCodeDto } from './dto/shop.dto'
 
 @Injectable()

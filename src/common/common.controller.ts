@@ -3,7 +3,6 @@ import {
   HttpCode,
   HttpStatus,
   Post,
-  Req,
   UploadedFiles,
   UseInterceptors
 } from '@nestjs/common'
@@ -17,7 +16,7 @@ export class CommonController {
   @Post('/upload-photos')
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(CustomFilesInterceptor('photoURLs', 10))
-  create(@UploadedFiles() files: Array<Express.Multer.File>, @Req() req: any) {
+  create(@UploadedFiles() files: Array<Express.Multer.File>) {
     const photoURLs = files.map(file => {
       return file.path.replace(/\\/g, '/')
     })
