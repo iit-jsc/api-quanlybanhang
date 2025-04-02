@@ -1,14 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { CommonService } from 'src/common/common.service'
 import { ShopService } from 'src/shop/shop.service'
 
 @Injectable()
 export class BranchService {
   constructor(
     private readonly prisma: PrismaService,
-    private shopService: ShopService,
-    private commonService: CommonService
+    private shopService: ShopService
   ) {}
 
   // async create(createBranchDto: CreateBranchDto, tokenPayload: TokenPayload) {

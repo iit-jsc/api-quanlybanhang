@@ -3,7 +3,6 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateShopDto, RegisterShopDto } from './dto/create-shop.dto'
 import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum'
-import { CommonService } from 'src/common/common.service'
 import { AuthService } from 'src/auth/auth.service'
 import { AnyObject, DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
 import { Prisma, PrismaClient } from '@prisma/client'
@@ -17,7 +16,6 @@ import { FindByCodeDto } from './dto/shop.dto'
 export class ShopService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly commonService: CommonService,
     private readonly authService: AuthService
   ) {}
 
