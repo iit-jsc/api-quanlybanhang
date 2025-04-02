@@ -36,6 +36,7 @@ import { VoucherModule } from './voucher/voucher.module'
 import { RoleModule } from './role/role.module'
 import { PermissionGroupModule } from './permission-group/permission-group.module'
 import { NotifyModule } from './notify/notify.module'
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
@@ -97,7 +98,8 @@ import { NotifyModule } from './notify/notify.module'
     QrSettingModule,
     PaymentMethodModule,
     ProductOptionGroupModule,
-    CustomerRequestModule
+    CustomerRequestModule,
+    CommonModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]
