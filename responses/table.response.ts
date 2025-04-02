@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { orderDetailSelect } from './order-detail.response'
+import { orderDetailSortSelect } from './order-detail.response'
 
 export const tableSortSelect: Prisma.TableSelect = {
   id: true,
@@ -7,7 +7,7 @@ export const tableSortSelect: Prisma.TableSelect = {
   seat: true,
   updatedAt: true,
   orderDetails: {
-    select: orderDetailSelect
+    select: orderDetailSortSelect
   }
 }
 

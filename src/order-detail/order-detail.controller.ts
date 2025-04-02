@@ -1,54 +1,26 @@
-import { Controller } from '@nestjs/common'
+import { Body, Controller, Delete, Get, HttpCode, HttpStatus, Query, Req } from '@nestjs/common'
 import { OrderDetailService } from './order-detail.service'
+import { DeleteManyDto } from 'utils/Common.dto'
+import { FindManyOrderDetailDto } from './dto/order-detail.dto'
+import { RequestJWT } from 'interfaces/common.interface'
 
 @Controller('order-detail')
 export class OrderDetailController {
   constructor(private readonly orderDetailService: OrderDetailService) {}
 
-  // @Patch('/:id')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('UPDATE_ORDER', SPECIAL_ROLE.MANAGER)
-  // update(
-  //   @Body() updateOrderProductDto: UpdateOrderProductDto,
-  //   @Req() req: any,
-  //   @Param('id') id: string
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  @Delete('')
+  @HttpCode(HttpStatus.OK)
+  deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
 
-  //   return this.orderDetailService.update(
-  //     {
-  //       where: {
-  //         id
-  //       },
-  //       data: updateOrderProductDto
-  //     },
-  //     tokenPayload
-  //   )
-  // }
+    return this.orderDetailService.deleteMany(data, accountId, branchId)
+  }
 
-  // @Delete('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard, RolesGuard)
-  // @Roles('DELETE_ORDER', SPECIAL_ROLE.MANAGER)
-  // deleteMany(@Body() deleteManyDto: DeleteManyDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  @Get('')
+  @HttpCode(HttpStatus.OK)
+  findAll(@Query() data: FindManyOrderDetailDto, @Req() req: RequestJWT) {
+    const { branchId } = req
 
-  //   return this.orderDetailService.deleteMany(
-  //     {
-  //       ids: deleteManyDto.ids
-  //     },
-  //     tokenPayload
-  //   )
-  // }
-
-  // @Get('')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // @Roles('VIEW_ORDER', SPECIAL_ROLE.MANAGER)
-  // findAll(@Query() data: FindManyOrderDetailDto, @Req() req: any) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-
-  //   return this.orderDetailService.findAll(data, tokenPayload)
-  // }
+    return this.orderDetailService.findAll(data, branchId)
+  }
 }

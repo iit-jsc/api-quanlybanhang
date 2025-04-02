@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { accountSortSelect } from './account.response'
-import { orderDetailSelect } from './order-detail.response'
+import { orderDetailSortSelect } from './order-detail.response'
 import { paymentMethodSelect } from './payment-method.response'
 
 export const orderSortSelect: Prisma.OrderSelect = {
@@ -23,7 +23,7 @@ export const orderSortSelect: Prisma.OrderSelect = {
     select: accountSortSelect
   },
   orderDetails: {
-    select: orderDetailSelect
+    select: orderDetailSortSelect
   },
   updatedAt: true,
   createdAt: true
@@ -52,7 +52,7 @@ export const orderSelect: Prisma.OrderSelect = {
     select: accountSortSelect
   },
   orderDetails: {
-    select: orderDetailSelect
+    select: orderDetailSortSelect
   },
   updatedAt: true,
   createdAt: true

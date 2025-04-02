@@ -257,6 +257,21 @@ export class OrderService {
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const paidOrders = await prisma.order.findMany({
+        where: {
+          id: { in: data.ids },
+          branchId,
+          isPaid: true
+        },
+        select: { id: true, code: true }
+      })
+
+      if (paidOrders.length > 0)
+        throw new HttpException(
+          `Không thể xóa các đơn hàng đã thanh toán: ${paidOrders.map(o => o.code).join(', ')}`,
+          HttpStatus.CONFLICT
+        )
+
       const dataTrash: CreateManyTrashDto = {
         ids: data.ids,
         accountId,
@@ -270,10 +285,9 @@ export class OrderService {
 
       return prisma.order.deleteMany({
         where: {
-          id: {
-            in: data.ids
-          },
-          branchId
+          id: { in: data.ids },
+          branchId,
+          isPaid: false
         }
       })
     })

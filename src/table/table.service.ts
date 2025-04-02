@@ -30,7 +30,7 @@ import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { IProduct } from 'interfaces/product.interface'
 import { IProductOption } from 'interfaces/productOption.interface'
-import { orderDetailSelect } from 'responses/order-detail.response'
+import { orderDetailSortSelect } from 'responses/order-detail.response'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
 
@@ -283,7 +283,7 @@ export class TableService {
 
     const orderDetails = await prisma.orderDetail.findMany({
       where: { tableId },
-      select: orderDetailSelect
+      select: orderDetailSortSelect
     })
 
     if (!orderDetails.length) throw new HttpException('Không tìm thấy món!', HttpStatus.NOT_FOUND)
