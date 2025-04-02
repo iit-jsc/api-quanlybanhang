@@ -28,11 +28,8 @@ export const productOptionSelect: Prisma.ProductOptionSelect = {
   id: true,
   name: true,
   price: true,
+  type: true,
   productOptionGroupId: true,
-  isAppliedToAll: true,
-  excludedProducts: {
-    select: productSortSelect
-  },
   products: {
     select: productSortSelect
   },

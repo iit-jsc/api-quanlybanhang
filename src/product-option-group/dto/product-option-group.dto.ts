@@ -1,6 +1,15 @@
 import { PartialType } from '@nestjs/swagger'
+import { ProductOptionType } from '@prisma/client'
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsArray, IsNotEmpty, IsOptional, IsString, Min, ValidateNested } from 'class-validator'
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  Min,
+  ValidateNested
+} from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateProductOptionGroupDto {
@@ -21,6 +30,10 @@ export class CreateProductOptionDto {
   @IsString()
   name: string
 
+  @IsNotEmpty()
+  @IsEnum(ProductOptionType)
+  type: ProductOptionType
+
   @IsOptional()
   @Min(0)
   price: number
@@ -29,11 +42,6 @@ export class CreateProductOptionDto {
   @IsArray()
   productIds?: string[]
 
-  @IsOptional()
-  @IsArray()
-  excludedProductIds?: string[]
-
-  isAppliedToAll?: boolean
   isDefault?: boolean
   photoURL?: string
 }

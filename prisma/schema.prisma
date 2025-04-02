@@ -235,9 +235,7 @@ model Product {
   creator                  Account?           @relation("creator", fields: [createdBy], references: [id])
   updater                  Account?           @relation("updater", fields: [updatedBy], references: [id])
   orderDetails             OrderDetail[]
-  excludedProductOptions   ProductOption[]    @relation("ExcludedProducts")
-  includedProductOptions   ProductOption[]    @relation("IncludedProducts")
-  productOptionId          String?
+  productOptions           ProductOption[]
 
   @@unique([branchId, slug])
   @@unique([branchId, code])
@@ -245,8 +243,8 @@ model Product {
 
 model ProductOption {
   id                   String              @id @default(uuid())
-  isAppliedToAll       Boolean?            @default(false)
   name                 String
+  type                 ProductOptionType   @default(APPLY_ALL)
   isDefault            Boolean?            @default(false)
   price                Float
   photoURL             String?             @db.Text
@@ -255,8 +253,7 @@ model ProductOption {
   productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id], onDelete: Cascade)
   productOptionGroupId String?
   productTypes         ProductType[]
-  products             Product[]           @relation("IncludedProducts")
-  excludedProducts     Product[]           @relation("ExcludedProducts")
+  products             Product[]
 }
 
 model ProductOptionGroup {
@@ -773,4 +770,10 @@ enum VoucherConditionType {
 enum ConditionOperator {
   AND
   OR
+}
+
+enum ProductOptionType {
+  APPLY_ALL
+  EXCLUDE
+  INCLUDE
 }

@@ -21,7 +21,7 @@ export class ProductOptionGroupService {
   ) {}
 
   async create(data: CreateProductOptionGroupDto, accountId: string, branchId: string) {
-    this.validateValidateProductOptions(data.productOptions)
+    this.validateDefaultProductOptions(data.productOptions)
 
     return await this.prisma.productOptionGroup.create({
       data: {
@@ -31,13 +31,10 @@ export class ProductOptionGroupService {
             name: option.name,
             price: option.price,
             isDefault: option.isDefault,
-            isAppliedToAll: option.isAppliedToAll,
+            type: option.type,
             photoURL: option.photoURL,
             products: {
               connect: option.productIds?.map(id => ({ id }))
-            },
-            excludedProducts: {
-              connect: option.excludedProductIds?.map(id => ({ id }))
             }
           }))
         },
@@ -51,7 +48,7 @@ export class ProductOptionGroupService {
   }
 
   async findAll(params: FindManyProductOptionGroupDto, branchId: string) {
-    const { page, perPage, keyword, orderBy, productTypeIds, productId } = params
+    const { page, perPage, keyword, orderBy, productTypeIds } = params
 
     const where: Prisma.ProductOptionGroupWhereInput = {
       ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
@@ -59,26 +56,6 @@ export class ProductOptionGroupService {
         productTypes: {
           some: { id: { in: productTypeIds } }
         }
-      }),
-      ...(productId && {
-        OR: [
-          {
-            productOptions: {
-              some: {
-                isAppliedToAll: true
-              }
-            }
-          },
-          {
-            productOptions: {
-              some: {
-                products: {
-                  some: { id: productId }
-                }
-              }
-            }
-          }
-        ]
       }),
       branchId
     }
@@ -88,7 +65,7 @@ export class ProductOptionGroupService {
       {
         orderBy: orderBy || { createdAt: 'desc' },
         where,
-        select: productOptionGroupSelect(productId)
+        select: productOptionGroupSelect()
       },
       {
         page,
@@ -122,13 +99,10 @@ export class ProductOptionGroupService {
                 name: option.name,
                 price: option.price,
                 isDefault: option.isDefault,
-                isAppliedToAll: option.isAppliedToAll,
+                type: option.type,
                 photoURL: option.photoURL,
                 products: {
                   connect: option.productIds?.map(id => ({ id }))
-                },
-                excludedProducts: {
-                  connect: option.excludedProductIds?.map(id => ({ id }))
                 }
               }))
             }
@@ -172,30 +146,5 @@ export class ProductOptionGroupService {
 
     if (defaultCount > 1)
       throw new HttpException('Chỉ có duy nhất dữ liệu là mặc định!', HttpStatus.CONFLICT)
-  }
-
-  validateValidateProductOptions(productOptions: CreateProductOptionDto[]) {
-    this.validateDefaultProductOptions(productOptions)
-
-    for (let i = 0; i < productOptions.length; i++) {
-      const option = productOptions[i]
-
-      if (option.isAppliedToAll && option.productIds.length > 0) {
-        throw new HttpException(
-          'Danh sách sản phẩm phải rỗng nếu như chọn áp dụng cho tất cả!',
-          HttpStatus.CONFLICT
-        )
-      }
-
-      for (let j = 0; j < option.productIds.length; j++) {
-        const productId = option.productIds[j]
-        if (option.excludedProductIds.includes(productId)) {
-          throw new HttpException(
-            'Sản phẩm không thể xuất hiện đồng thời cả 2 danh sách!',
-            HttpStatus.CONFLICT
-          )
-        }
-      }
-    }
   }
 }
