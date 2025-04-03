@@ -1,6 +1,6 @@
 import { PrismaService } from 'nestjs-prisma'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { FindManyOrderDetailDto } from './dto/order-detail.dto'
+import { FindManyOrderDetailDto, UpdateOrderDetailDto } from './dto/order-detail.dto'
 import { Prisma, PrismaClient } from '@prisma/client'
 import { customPaginate } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
@@ -114,5 +114,22 @@ export class OrderDetailService {
         perPage
       }
     )
+  }
+
+  async update(id: string, data: UpdateOrderDetailDto, accountId: string, branchId: string) {
+    await this.checkOrderPaidByDetailIds([id])
+
+    return await this.prisma.orderDetail.update({
+      where: {
+        id,
+        branchId
+      },
+      data: {
+        amount: data.amount,
+        status: data.status,
+        note: data.note,
+        updatedBy: accountId
+      }
+    })
   }
 }

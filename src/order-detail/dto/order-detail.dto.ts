@@ -1,6 +1,6 @@
 import { OrderDetailStatus, OrderType } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import { IsDate, IsOptional } from 'class-validator'
+import { IsDate, IsEnum, IsOptional } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class FindManyOrderDetailDto extends FindManyDto {
@@ -26,4 +26,14 @@ export class FindManyOrderDetailDto extends FindManyDto {
 
   @Transform(({ value }) => value?.toString().toLowerCase() === 'true')
   hasTable?: boolean
+}
+
+export class UpdateOrderDetailDto {
+  amount?: number
+
+  note?: string
+
+  @IsOptional()
+  @IsEnum(OrderDetailStatus)
+  status?: OrderDetailStatus
 }

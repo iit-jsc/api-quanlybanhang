@@ -193,7 +193,7 @@ export async function getOrderDetails(
 
       return {
         amount: item.amount,
-        status,
+        status: item.status || status,
         product: product,
         note: item.note,
         productOptions: productOptions,

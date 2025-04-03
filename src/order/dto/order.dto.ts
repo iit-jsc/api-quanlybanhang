@@ -41,6 +41,11 @@ export class CreateOrderProductsDto {
   amount: number
 
   note?: string
+
+  @IsOptional()
+  @IsEnum(OrderDetailStatus)
+  status: OrderDetailStatus
+
   productOptionIds?: string[]
 }
 

@@ -1,6 +1,7 @@
 [
   {
     "name": "Quản lý khu vực",
+    "code": "AREA",
     "type": "FOOD_BEVERAGE",
     "permissions": [
       {
@@ -23,6 +24,7 @@
   },
   {
     "name": "Quản lý bàn",
+    "code": "TABLE",
     "type": "FOOD_BEVERAGE",
     "permissions": [
       {
@@ -45,6 +47,7 @@
   },
   {
     "name": "Quản lý quyền hạn",
+    "code": "ROLE",
     "type": "SHARED",
     "permissions": [
       {
@@ -67,6 +70,7 @@
   },
   {
     "name": "Quản lý loại khách hàng",
+    "code": "CUSTOMER_TYPE",
     "type": "SHARED",
     "permissions": [
       {
@@ -89,6 +93,7 @@
   },
   {
     "name": "Quản lý khách hàng",
+    "code": "CUSTOMER",
     "type": "SHARED",
     "permissions": [
       {
@@ -111,6 +116,7 @@
   },
   {
     "name": "Quản lý loại sản phẩm",
+    "code": "PRODUCT_TYPE",
     "type": "SHARED",
     "permissions": [
       {
@@ -133,6 +139,7 @@
   },
   {
     "name": "Quản lý sản phẩm",
+    "code": "PRODUCT",
     "type": "SHARED",
     "permissions": [
       {
@@ -155,6 +162,7 @@
   },
   {
     "name": "Quản lý đơn vị tính",
+    "code": "MEASUREMENT_UNIT",
     "type": "SHARED",
     "permissions": [
       {
@@ -177,6 +185,7 @@
   },
   {
     "name": "Quản lý tùy chọn sản phẩm",
+    "code": "PRODUCT_OPTION_GROUP",
     "type": "SHARED",
     "permissions": [
       {
@@ -195,6 +204,7 @@
   },
   {
     "name": "Quản lý phương thức thanh toán",
+    "code": "PAYMENT_METHOD",
     "type": "SHARED",
     "permissions": [
       {
@@ -209,28 +219,30 @@
   },
   {
     "name": "Quản lý đợt khuyến mãi",
+    "code": "DISCOUNT_ISSUE",
     "type": "SHARED",
     "permissions": [
       {
         "code": "CREATE_DISCOUNT_ISSUE",
-        "name": "Tạo đợt khuyến mã"
+        "name": "Tạo đợt khuyến mãi"
       },
       {
         "code": "UPDATE_DISCOUNT_ISSUE",
-        "name": "Cập nhật đợt khuyến mã"
+        "name": "Cập nhật đợt khuyến mãi"
       },
       {
         "code": "DELETE_DISCOUNT_ISSUE",
-        "name": "Xóa đợt khuyến mã"
+        "name": "Xóa đợt khuyến mãi"
       },
       {
         "code": "VIEW_DISCOUNT_ISSUE",
-        "name": "Xem đợt khuyến mã"
+        "name": "Xem đợt khuyến mãi"
       }
     ]
   },
   {
     "name": "Quản lý mã khuyến mãi",
+    "code": "DISCOUNT_CODE",
     "type": "SHARED",
     "permissions": [
       {
@@ -249,6 +261,7 @@
   },
   {
     "name": "Quản lý voucher",
+    "code": "VOUCHER",
     "type": "SHARED",
     "permissions": [
       {
@@ -267,6 +280,7 @@
   },
   {
     "name": "Quản lý nhóm nhân viên",
+    "code": "EMPLOYEE_GROUP",
     "type": "SHARED",
     "permissions": [
       {
@@ -289,6 +303,7 @@
   },
   {
     "name": "Quản lý người dùng",
+    "code": "USER",
     "type": "SHARED",
     "permissions": [
       {
@@ -315,6 +330,7 @@
   },
   {
     "name": "Yêu cầu khách hàng",
+    "code": "CUSTOMER_REQUEST",
     "type": "FOOD_BEVERAGE",
     "permissions": [
       {
@@ -329,6 +345,7 @@
   },
   {
     "name": "Quản lý đơn hàng",
+    "code": "ORDER",
     "type": "SHARED",
     "permissions": [
       {
