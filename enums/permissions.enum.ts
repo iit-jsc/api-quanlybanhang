@@ -9,7 +9,15 @@ export const permissions = {
     create: 'CREATE_TABLE',
     delete: 'DELETE_TABLE',
     update: 'UPDATE_TABLE',
-    view: 'VIEW_TABLE'
+    view: 'VIEW_TABLE',
+    addDish: 'ADD_DISH_TO_TABLE',
+    separate: 'SEPARATE_TABLE'
+  },
+  role: {
+    create: 'CREATE_ROLE',
+    delete: 'DELETE_ROLE',
+    update: 'UPDATE_ROLE',
+    view: 'VIEW_ROLE'
   },
   customerType: {
     create: 'CREATE_CUSTOMER_TYPE',
@@ -65,5 +73,31 @@ export const permissions = {
     create: 'CREATE_VOUCHER',
     delete: 'DELETE_VOUCHER',
     update: 'UPDATE_VOUCHER'
+  },
+  employeeGroup: {
+    create: 'CREATE_EMPLOYEE_GROUP',
+    delete: 'DELETE_EMPLOYEE_GROUP',
+    update: 'UPDATE_EMPLOYEE_GROUP',
+    view: 'VIEW_EMPLOYEE_GROUP'
+  },
+  user: {
+    create: 'CREATE_USER',
+    delete: 'DELETE_USER',
+    update: 'UPDATE_USER',
+    updateMyInformation: 'UPDATE_MY_INFORMATION',
+    view: 'VIEW_USER'
+  },
+  customerRequest: {
+    delete: 'DELETE_CUSTOMER_REQUEST',
+    update: 'UPDATE_CUSTOMER_REQUEST'
+  },
+  order: {
+    create: 'CREATE_ORDER',
+    update: 'UPDATE_ORDER',
+    delete: 'DELETE_ORDER',
+    view: 'VIEW_ORDER',
+    payment: 'PAYMENT_ORDER',
+    save: 'SAVE_ORDER',
+    cancel: 'CANCEL_ORDER'
   }
 }

@@ -1,13 +1,6 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import {
-  ArrayNotEmpty,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  IsString,
-  MinLength
-} from 'class-validator'
-import { ACCOUNT_STATUS } from 'enums/user.enum'
+import { ArrayNotEmpty, IsEnum, IsNotEmpty, IsOptional, IsString, MinLength } from 'class-validator'
+// import { ACCOUNT_STATUS } from 'enums/user.enum'
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class CreateAccountDto {
@@ -21,10 +14,10 @@ export class CreateAccountDto {
   @MinLength(6, { message: 'Mật khẩu phải có ít nhất 6 kí tự.' })
   password: string
 
-  @IsOptional()
-  @Type(() => Number)
-  @IsEnum(ACCOUNT_STATUS, { message: 'Trạng thái không hợp lệ!' })
-  status: number
+  // @IsOptional()
+  // @Type(() => Number)
+  // @IsEnum(ACCOUNT_STATUS, { message: 'Trạng thái không hợp lệ!' })
+  // status: number
 
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()

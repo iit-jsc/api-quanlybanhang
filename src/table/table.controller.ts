@@ -51,6 +51,7 @@ export class TableController {
   @Post(':id/add-dish')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(permissions.table.addDish)
   addDish(@Param('id') id: string, @Body() data: AddDishDto, @Req() req: RequestJWT) {
     const { accountId, branchId } = req
 
@@ -66,7 +67,8 @@ export class TableController {
   @Post('/:id/payment')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  paymentOrder(@Param('id') id: string, @Body() data: PaymentFromTableDto, @Req() req: RequestJWT) {
+  @Roles(permissions.order.payment)
+  payment(@Param('id') id: string, @Body() data: PaymentFromTableDto, @Req() req: RequestJWT) {
     const { accountId, branchId } = req
 
     return this.tableService.payment(id, data, accountId, branchId)
@@ -75,6 +77,7 @@ export class TableController {
   @Post(':id/separate')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(permissions.table.separate)
   separateTable(@Param('id') id: string, @Body() data: SeparateTableDto, @Req() req: RequestJWT) {
     const { accountId, branchId } = req
 

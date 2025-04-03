@@ -14,13 +14,13 @@ import {
   UseGuards
 } from '@nestjs/common'
 import { BranchService } from './branch.service'
-import { CreateBranchDto, UpdateBranchDto } from './dto/create-branch.dto'
-import { JwtAuthGuard } from 'guards/jwt-auth.guard'
-import { TokenPayload } from 'interfaces/common.interface'
-import { DeleteManyDto } from 'utils/Common.dto'
-import { RolesGuard } from 'guards/roles.guard'
-import { Roles } from 'guards/roles.decorator'
-import { SPECIAL_ROLE } from 'enums/common.enum'
+// import { CreateBranchDto, UpdateBranchDto } from './dto/create-branch.dto'
+// import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+// import { TokenPayload } from 'interfaces/common.interface'
+// import { DeleteManyDto } from 'utils/Common.dto'
+// import { RolesGuard } from 'guards/roles.guard'
+// import { Roles } from 'guards/roles.decorator'
+// import { SPECIAL_ROLE } from 'enums/common.enum'
 
 @Controller('branch')
 export class BranchController {

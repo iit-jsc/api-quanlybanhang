@@ -1,0 +1,24 @@
+[
+  {
+    "name": "Highland Coffee",
+    "code": "CAFE001",
+    "businessTypeCode": "FOOD_BEVERAGE",
+    "status": "ACTIVE",
+    "phone": "0901234567",
+    "email": "highland@example.com",
+    "address": "456 Đường Cà Phê, TP.HCM",
+    "photoURL": "https://example.com/cafe.jpg",
+    "domain": "highlandcoffee.com"
+  },
+  {
+    "name": "Fashion Boutique",
+    "code": "FASHION001",
+    "businessTypeCode": "FASHION",
+    "status": "ACTIVE",
+    "phone": "0912345678",
+    "email": "fashion@example.com",
+    "address": "789 Fashion Street, City",
+    "photoURL": "https://example.com/fashion.jpg",
+    "domain": "fashionboutique.com"
+  }
+]

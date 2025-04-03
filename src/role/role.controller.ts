@@ -18,6 +18,9 @@ import { RolesGuard } from 'guards/roles.guard'
 import { RequestJWT } from 'interfaces/common.interface'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateRoleDto, FindManyRoleDto, UpdateRoleDto } from './dto/role.dto'
+import { Roles } from 'guards/roles.decorator'
+import { permissions } from 'enums/permissions.enum'
+import { extractPermissions } from 'utils/Helps'
 @Controller('role')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RoleController {
@@ -25,6 +28,7 @@ export class RoleController {
 
   @Post('')
   @HttpCode(HttpStatus.OK)
+  @Roles(permissions.role.create)
   create(@Body() data: CreateRoleDto, @Req() req: RequestJWT) {
     const { accountId, shopId } = req
 
@@ -33,30 +37,34 @@ export class RoleController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
+  @Roles(...extractPermissions(permissions.role))
   findAll(@Query() data: FindManyRoleDto, @Req() req: RequestJWT) {
     const { shopId } = req
 
     return this.roleService.findAll(data, shopId)
   }
 
-  @Patch(':id')
-  @HttpCode(HttpStatus.OK)
-  update(@Param('id') id: string, @Body() data: UpdateRoleDto, @Req() req: RequestJWT) {
-    const { accountId, shopId } = req
-
-    return this.roleService.update(id, data, accountId, shopId)
-  }
-
   @Get(':id')
   @HttpCode(HttpStatus.OK)
+  @Roles(...extractPermissions(permissions.role))
   findUniq(@Param('id') id: string, @Req() req: RequestJWT) {
     const { shopId } = req
 
     return this.roleService.findUniq(id, shopId)
   }
 
+  @Patch(':id')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.role.update)
+  update(@Param('id') id: string, @Body() data: UpdateRoleDto, @Req() req: RequestJWT) {
+    const { accountId, shopId } = req
+
+    return this.roleService.update(id, data, accountId, shopId)
+  }
+
   @Delete('')
   @HttpCode(HttpStatus.OK)
+  @Roles(permissions.role.delete)
   deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
     const { accountId, shopId } = req
 

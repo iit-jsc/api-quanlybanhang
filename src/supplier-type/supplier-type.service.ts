@@ -5,7 +5,7 @@ import { Prisma } from '@prisma/client'
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
 import { PrismaService } from 'nestjs-prisma'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
-import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
+// import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class SupplierTypeService {

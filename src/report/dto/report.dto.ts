@@ -1,12 +1,5 @@
 import { Type } from 'class-transformer'
-import {
-  IsDate,
-  IsNotEmpty,
-  IsNumber,
-  IsOptional,
-  IsString,
-  ValidateIf
-} from 'class-validator'
+import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator'
 import { REPORT_REVENUE_TYPE, TIME_TYPE } from 'enums/common.enum'
 
 export class reportRevenueDto {

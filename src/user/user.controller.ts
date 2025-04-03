@@ -17,6 +17,9 @@ import { RequestJWT } from 'interfaces/common.interface'
 import { CheckUniqDto, CreateUserDto, UpdateUserDto } from './dto/user.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
+import { Roles } from 'guards/roles.decorator'
+import { permissions } from 'enums/permissions.enum'
+
 @Controller('user')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
@@ -24,6 +27,7 @@ export class UserController {
 
   @Post('/')
   @HttpCode(HttpStatus.OK)
+  @Roles(permissions.user.create)
   create(@Body() data: CreateUserDto, @Req() req: RequestJWT) {
     const { accountId, shopId } = req
     return this.userService.create(data, accountId, shopId)
@@ -31,6 +35,7 @@ export class UserController {
 
   @Patch('/me')
   @HttpCode(HttpStatus.OK)
+  @Roles(permissions.user.updateMyInformation)
   changeInformation(@Body() data: ChangeMyInformation, @Req() req: RequestJWT) {
     const { accountId } = req
 
@@ -39,6 +44,7 @@ export class UserController {
 
   @Patch('/:id')
   @HttpCode(HttpStatus.OK)
+  @Roles(permissions.user.update)
   update(@Param('id') id: string, @Body() data: UpdateUserDto, @Req() req: RequestJWT) {
     const { accountId, shopId } = req
 
@@ -53,6 +59,7 @@ export class UserController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
+  @Roles(permissions.user.delete)
   deleteManyEmployee(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
     const { accountId, shopId } = req
 

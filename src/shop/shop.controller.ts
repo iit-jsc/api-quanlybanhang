@@ -13,15 +13,15 @@ import {
   UseGuards
 } from '@nestjs/common'
 import { ShopService } from './shop.service'
-import { CreateShopDto, RegisterShopDto } from './dto/create-shop.dto'
-import { JwtAuthGuard } from 'guards/jwt-auth.guard'
-import { RolesGuard } from 'guards/roles.guard'
-import { Roles } from 'guards/roles.decorator'
-import { SPECIAL_ROLE } from 'enums/common.enum'
-import { TokenPayload } from 'interfaces/common.interface'
-import { UpdateShopDto } from './dto/update-shop.dto'
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
-import { FindByCodeDto } from './dto/shop.dto'
+// import { CreateShopDto, RegisterShopDto } from './dto/create-shop.dto'
+// import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+// import { RolesGuard } from 'guards/roles.guard'
+// import { Roles } from 'guards/roles.decorator'
+// import { SPECIAL_ROLE } from 'enums/common.enum'
+// import { TokenPayload } from 'interfaces/common.interface'
+// import { UpdateShopDto } from './dto/update-shop.dto'
+// import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+// import { FindByCodeDto } from './dto/shop.dto'
 
 @Controller('shop')
 export class ShopController {

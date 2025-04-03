@@ -11,7 +11,7 @@ datasource db {
 model PermissionGroup {
   name        String
   code        String              @unique
-  type        PermissionGroupType @default(FOOD_BEVERAGE)
+  type        PermissionGroupType @default(SHARED)
   permissions Permission[]
 }
 
@@ -753,6 +753,7 @@ enum OrderDetailStatus {
 enum PermissionGroupType {
   FOOD_BEVERAGE
   FASHION
+  SHARED
 }
 
 enum VoucherProductType {
