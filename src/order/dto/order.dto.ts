@@ -18,7 +18,7 @@ export class CreateOrderDto {
   @IsEnum(OrderDetailStatus)
   status: OrderDetailStatus
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(OrderType)
   type: OrderType
 
