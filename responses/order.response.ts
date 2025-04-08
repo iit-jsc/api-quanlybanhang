@@ -16,6 +16,14 @@ export const orderSortSelect: Prisma.OrderSelect = {
   isSave: true,
   note: true,
   bankingImages: true,
+  table: {
+    select: {
+      id: true,
+      name: true,
+      seat: true,
+      updatedAt: true
+    }
+  },
   paymentMethod: {
     select: paymentMethodSelect
   },
@@ -42,6 +50,14 @@ export const orderSelect: Prisma.OrderSelect = {
   isSave: true,
   note: true,
   bankingImages: true,
+  table: {
+    select: {
+      id: true,
+      name: true,
+      seat: true,
+      updatedAt: true
+    }
+  },
   paymentMethod: {
     select: paymentMethodSelect
   },

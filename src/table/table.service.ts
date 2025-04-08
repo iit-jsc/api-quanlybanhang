@@ -226,6 +226,7 @@ export class TableService {
       const order = await prisma.order.create({
         data: {
           isPaid: true,
+          tableId,
           code: data.code || generateCode('DH'),
           note: data.note,
           type: OrderType.OFFLINE,
