@@ -15,8 +15,8 @@ import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateOrderDto {
   @IsOptional()
-  @IsEnum(OrderDetailStatus)
-  status: OrderDetailStatus
+  @IsEnum(OrderStatus)
+  status: OrderStatus
 
   @IsOptional()
   @IsEnum(OrderType)
@@ -54,8 +54,8 @@ export class UpdateOrderDto {
   note?: string
 
   @IsOptional()
-  @IsEnum(OrderDetailStatus)
-  status: OrderDetailStatus
+  @IsEnum(OrderStatus)
+  status: OrderStatus
 }
 
 export class CancelOrderDto {

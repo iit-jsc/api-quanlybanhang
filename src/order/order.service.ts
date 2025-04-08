@@ -8,7 +8,14 @@ import {
   SaveOrderDto,
   UpdateOrderDto
 } from './dto/order.dto'
-import { NotifyType, OrderDetailStatus, OrderType, Prisma, PrismaClient } from '@prisma/client'
+import {
+  NotifyType,
+  OrderDetailStatus,
+  OrderStatus,
+  OrderType,
+  Prisma,
+  PrismaClient
+} from '@prisma/client'
 import {
   customPaginate,
   generateCode,
@@ -49,7 +56,7 @@ export class OrderService {
         data: {
           note: data.note,
           type: data.type || OrderType.OFFLINE,
-          status: data.status || OrderDetailStatus.APPROVED,
+          status: data.status || OrderStatus.APPROVED,
           code: generateCode('DH'),
           ...(data.customerId && {
             customerId: data.customerId

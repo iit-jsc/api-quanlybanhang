@@ -50,7 +50,7 @@ export class JwtAuthGuard implements CanActivate {
 
       request.accountId = account.id
       request.branchId = payload.branchId
-      request.permissions = account.role
+      request.roles = account.roles
       request.shopId = account.branches?.[0]?.shopId
 
       return true

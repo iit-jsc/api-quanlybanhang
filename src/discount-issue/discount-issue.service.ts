@@ -32,7 +32,7 @@ export class DiscountIssueService {
         description: data.description,
         amount: data.amount,
         isLimit: data.isLimit,
-        // minOrderTotal: data.minOrderTotal, // Removed as it is not a valid property
+        minOrderTotal: data.minOrderTotal,
         maxValue: data.maxValue,
         branchId: branchId,
         createdBy: accountId

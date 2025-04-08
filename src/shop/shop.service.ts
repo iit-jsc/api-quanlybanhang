@@ -271,7 +271,9 @@ export class ShopService {
         account: {
           create: {
             password: bcrypt.hashSync(data.password, 10),
-            roleId,
+            roles: {
+              connect: { id: roleId }
+            },
             branches: {
               connect: branchIds.map(id => ({ id }))
             }
@@ -279,9 +281,7 @@ export class ShopService {
         }
       }
     })
-
     console.log('✅ Đã tạo người dùng và tài khoản!')
-
     return user
   }
 

@@ -41,7 +41,9 @@ export class UserService {
             branches: {
               connect: data.branchIds.map(id => ({ id, shopId }))
             },
-            roleId: data.roleId
+            roles: {
+              connect: data.roleIds.map(id => ({ id }))
+            }
           }
         }
       },
@@ -122,10 +124,14 @@ export class UserService {
         cardAddress: data.cardAddress,
         account: {
           update: {
-            roleId: data.roleId,
             status: data.status,
             ...(data.newPassword && {
               password: bcrypt.hashSync(data.newPassword, 10)
+            }),
+            ...(data.roleIds?.length && {
+              roles: {
+                set: data.roleIds.map(id => ({ id }))
+              }
             })
           }
         },

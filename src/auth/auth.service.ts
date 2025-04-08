@@ -139,7 +139,7 @@ export class AuthService {
         user: {
           select: userSortSelect
         },
-        role: {
+        roles: {
           select: roleSortSelect
         }
       }

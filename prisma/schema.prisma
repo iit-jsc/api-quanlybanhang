@@ -54,8 +54,7 @@ model Account {
   password                  String?
   userId                    String               @unique
   user                      User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roleId                    String?
-  role                      Role?                @relation("roleAccount", fields: [roleId], references: [id])
+  roles                     Role[]               @relation("roleAccount")
   branches                  Branch[]
   createdBy                 String?
   updatedBy                 String?
@@ -745,6 +744,7 @@ enum OrderStatus {
 enum OrderDetailStatus {
   WAITING
   APPROVED
+  PROCESSING
   TRANSPORTING
   SUCCESS
   CANCELLED

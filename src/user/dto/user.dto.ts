@@ -3,6 +3,7 @@ import { AccountStatus, SexType } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   ArrayNotEmpty,
+  IsArray,
   IsDate,
   IsEmail,
   IsEnum,
@@ -25,8 +26,10 @@ export class CreateUserDto {
   @IsNotEmpty()
   employeeGroupId: string
 
-  @IsNotEmpty()
-  roleId: string
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNotEmpty({ each: true })
+  roleIds: string[]
 
   @IsNotEmpty()
   @ArrayNotEmpty()

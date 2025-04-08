@@ -38,7 +38,7 @@ export const userSelect: Prisma.UserSelect = {
       branches: {
         select: branchSortSelect
       },
-      role: {
+      roles: {
         select: roleSelect
       }
     }
