@@ -6,7 +6,6 @@ import {
   HttpStatus,
   Param,
   Patch,
-  Post,
   Query,
   Req,
   UseGuards
@@ -15,11 +14,7 @@ import { PaymentMethodService } from './payment-method.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RolesGuard } from 'guards/roles.guard'
 import { RequestJWT } from 'interfaces/common.interface'
-import {
-  CreatePaymentMethodDto,
-  FindManyPaymentMethodDto,
-  UpdatePaymentMethodDto
-} from './dto/payment-method.dto'
+import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from './dto/payment-method.dto'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
@@ -54,13 +49,5 @@ export class PaymentMethodController {
     const { branchId, accountId } = req
 
     return this.paymentMethodService.update(id, data, accountId, branchId)
-  }
-
-  @Post('')
-  @HttpCode(HttpStatus.OK)
-  create(@Body() data: CreatePaymentMethodDto, @Req() req: RequestJWT) {
-    const { branchId, accountId } = req
-
-    return this.paymentMethodService.create(data, accountId, branchId)
   }
 }

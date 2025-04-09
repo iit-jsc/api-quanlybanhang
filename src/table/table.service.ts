@@ -1,4 +1,11 @@
-import { NotifyType, OrderDetailStatus, OrderType, Prisma, PrismaClient } from '@prisma/client'
+import {
+  ActivityAction,
+  NotifyType,
+  OrderDetailStatus,
+  OrderType,
+  Prisma,
+  PrismaClient
+} from '@prisma/client'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import {
@@ -33,6 +40,7 @@ import { IProductOption } from 'interfaces/productOption.interface'
 import { orderDetailSortSelect } from 'responses/order-detail.response'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class TableService {
@@ -40,18 +48,34 @@ export class TableService {
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
     private readonly tableGateway: TableGateway,
-    private readonly notifyService: NotifyService
+    private readonly notifyService: NotifyService,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
-    return await this.prisma.table.create({
-      data: {
-        name: data.name,
-        seat: data.seat,
-        areaId: data.areaId,
-        branchId,
-        createdBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const table = await prisma.table.create({
+        data: {
+          name: data.name,
+          seat: data.seat,
+          areaId: data.areaId,
+          branchId,
+          createdBy: accountId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.CREATE,
+          modelName: 'Area',
+          targetName: table.name,
+          targetId: table.id
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return table
     })
   }
 
@@ -98,29 +122,62 @@ export class TableService {
   }
 
   async update(id: string, data: UpdateTableDto, accountId: string, branchId: string) {
-    return await this.prisma.table.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        name: data.name,
-        seat: data.seat,
-        areaId: data.areaId,
-        updatedBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const table = await prisma.table.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          name: data.name,
+          seat: data.seat,
+          areaId: data.areaId,
+          updatedBy: accountId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE,
+          modelName: 'Table',
+          targetId: table.id,
+          targetName: table.name
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return table
     })
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const entities = await prisma.area.findMany({
+        where: { id: { in: data.ids } },
+        include: {
+          tables: true
+        }
+      })
+
       const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
+        entities,
         accountId,
         modelName: 'Table'
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'Table',
+            targetName: entities.map(item => item.name).join(', ')
+          },
+          { branchId, prisma },
+          accountId
+        )
+      ])
 
       return prisma.table.deleteMany({
         where: {
@@ -134,39 +191,52 @@ export class TableService {
   }
 
   async addDish(tableId: string, data: AddDishDto, accountId: string, branchId: string) {
-    const orderDetails = await getOrderDetails(
-      data.orderProducts,
-      OrderDetailStatus.APPROVED,
-      accountId,
-      branchId
-    )
-
-    const table = await this.prisma.table.update({
-      where: { id: tableId },
-      data: {
-        orderDetails: {
-          createMany: {
-            data: orderDetails
-          }
-        }
-      },
-      select: tableSelect
-    })
-
-    // Bắn socket và thông báo cho nhân viên trong chi nhánh
-    setImmediate(() => {
-      this.tableGateway.handleModifyTable(table)
-      this.notifyService.create(
-        {
-          type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
-          branchId: branchId,
-          tableId: table.id
-        },
-        accountId
+    return this.prisma.$transaction(async prisma => {
+      const orderDetails = await getOrderDetails(
+        data.orderProducts,
+        OrderDetailStatus.APPROVED,
+        accountId,
+        branchId
       )
-    })
 
-    return table
+      const table = await prisma.table.update({
+        where: { id: tableId },
+        data: {
+          orderDetails: {
+            createMany: {
+              data: orderDetails
+            }
+          }
+        },
+        select: tableSelect
+      })
+
+      // Bắn socket và thông báo cho nhân viên trong chi nhánh
+      setImmediate(() => {
+        this.tableGateway.handleModifyTable(table)
+        this.notifyService.create(
+          {
+            type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
+            branchId: branchId,
+            tableId: table.id
+          },
+          accountId,
+          prisma
+        )
+        this.activityLogService.create(
+          {
+            action: ActivityAction.NEW_DISH_ADDED_TO_TABLE,
+            modelName: 'Table',
+            targetName: table.name,
+            targetId: table.id
+          },
+          { branchId, prisma },
+          accountId
+        )
+      })
+
+      return table
+    })
   }
 
   async addDishByCustomer(id: string, data: AddDishByCustomerDto) {
@@ -203,52 +273,65 @@ export class TableService {
 
   async payment(tableId: string, data: PaymentFromTableDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const orderDetails = await this.getOrderDetailsInTable(tableId, prisma)
+      const [orderDetails, order] = await Promise.all([
+        this.getOrderDetailsInTable(tableId, prisma),
+        (async () => {
+          const orderTotal = getOrderTotal(await this.getOrderDetailsInTable(tableId, prisma))
 
-      const orderTotal = getOrderTotal(orderDetails)
+          const voucherParams = {
+            voucherId: data.voucherId,
+            branchId,
+            orderDetails: await this.getOrderDetailsInTable(tableId, prisma),
+            voucherCheckRequest: {
+              orderTotal,
+              totalPeople: data.totalPeople
+            }
+          }
 
-      const voucherParams = {
-        voucherId: data.voucherId,
-        branchId,
-        orderDetails,
-        voucherCheckRequest: {
-          orderTotal,
-          totalPeople: data.totalPeople
-        }
-      }
+          const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
+            getVoucher(voucherParams, prisma),
+            getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
+            getCustomerDiscount(data.customerId, orderTotal, prisma)
+          ])
 
-      const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
-        getVoucher(voucherParams, prisma),
-        getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
-        getCustomerDiscount(data.customerId, orderTotal, prisma)
+          return prisma.order.create({
+            data: {
+              isPaid: true,
+              tableId,
+              code: data.code || generateCode('DH'),
+              note: data.note,
+              type: OrderType.OFFLINE,
+              status: data.status,
+              discountCodeValue,
+              voucherValue: voucher.voucherValue,
+              voucherProducts: voucher.voucherProducts,
+              customerDiscountValue,
+              bankingImages: data.bankingImages,
+              moneyReceived: data.moneyReceived,
+              paymentAt: new Date(),
+              paymentMethodId: data.paymentMethodId,
+              createdBy: accountId,
+              branchId,
+              ...(data.customerId && { customerId: data.customerId })
+            },
+            select: orderSortSelect
+          })
+        })()
       ])
 
-      const order = await prisma.order.create({
-        data: {
-          isPaid: true,
-          tableId,
-          code: data.code || generateCode('DH'),
-          note: data.note,
-          type: OrderType.OFFLINE,
-          status: data.status,
-          discountCodeValue: discountCodeValue,
-          voucherValue: voucher.voucherValue,
-          voucherProducts: voucher.voucherProducts,
-          customerDiscountValue: customerDiscountValue,
-          bankingImages: data.bankingImages,
-          moneyReceived: data.moneyReceived,
-          paymentAt: new Date(),
-          paymentMethodId: data.paymentMethodId,
-          createdBy: accountId,
-          branchId,
-          ...(data.customerId && {
-            customerId: data.customerId
-          })
-        },
-        select: orderSortSelect
-      })
-
-      await this.passOrderDetailToOrder(orderDetails, order.id, accountId, prisma)
+      await Promise.all([
+        this.activityLogService.create(
+          {
+            action: ActivityAction.PAYMENT,
+            modelName: 'Order',
+            targetName: order.code,
+            targetId: order.id
+          },
+          { branchId, prisma },
+          accountId
+        ),
+        this.passOrderDetailToOrder(orderDetails, order.id, accountId, prisma)
+      ])
 
       return prisma.order.findUnique({
         where: { id: order.id },
@@ -309,6 +392,15 @@ export class TableService {
     const { toTableId, orderDetailIds } = data
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const [fromTable, toTable] = await Promise.all([
+        prisma.table.findUnique({
+          where: { id }
+        }),
+        prisma.table.findUnique({
+          where: { id: toTableId }
+        })
+      ])
+
       await prisma.orderDetail.updateMany({
         data: {
           tableId: toTableId,
@@ -323,7 +415,22 @@ export class TableService {
         }
       })
 
-      return prisma.table.findFirstOrThrow({ where: { id: data.toTableId }, select: tableSelect })
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.SEPARATE_TABLE,
+          modelName: 'Table',
+          targetId: toTable.id,
+          targetName: toTable.name,
+          relatedName: fromTable.name
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return prisma.table.findFirstOrThrow({
+        where: { id: toTableId },
+        select: tableSelect
+      })
     })
   }
 }

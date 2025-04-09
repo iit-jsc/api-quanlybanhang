@@ -36,7 +36,8 @@ import { VoucherModule } from './voucher/voucher.module'
 import { RoleModule } from './role/role.module'
 import { PermissionGroupModule } from './permission-group/permission-group.module'
 import { NotifyModule } from './notify/notify.module'
-import { CommonModule } from './common/common.module';
+import { CommonModule } from './common/common.module'
+import { ActivityLogModule } from './activity-log/activity-log.module'
 
 @Module({
   imports: [
@@ -70,6 +71,9 @@ import { CommonModule } from './common/common.module';
       isGlobal: true
     }),
     NotifyModule.forRoot({
+      isGlobal: true
+    }),
+    ActivityLogModule.forRoot({
       isGlobal: true
     }),
     UserModule,

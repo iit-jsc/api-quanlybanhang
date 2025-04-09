@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { customPaginate, generateCode, removeDiacritics } from 'utils/Helps'
@@ -11,12 +11,14 @@ import {
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { discountCodeSelect } from 'responses/discountCode.response'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class DiscountCodeService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateDiscountCodeDto, accountId: string, branchId: string) {
@@ -33,19 +35,32 @@ export class DiscountCodeService {
       })
     }
 
-    return await this.prisma.discountCode.createMany({
-      data: discountCodeData
+    return this.prisma.$transaction(async prisma => {
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.GENERATE_DISCOUNT_CODES,
+          modelName: 'DiscountCode',
+          targetName: data.amount.toString()
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return await prisma.discountCode.createMany({
+        data: discountCodeData
+      })
     })
   }
 
   async checkAmountValid(amount: number, discountIssueId: string) {
-    const discountIssue = await this.prisma.discountIssue.findUnique({
-      where: { id: discountIssueId }
-    })
-
-    const currentAmount = await this.prisma.discountCode.count({
-      where: { discountIssueId }
-    })
+    const [discountIssue, currentAmount] = await Promise.all([
+      this.prisma.discountIssue.findUnique({
+        where: { id: discountIssueId }
+      }),
+      this.prisma.discountCode.count({
+        where: { discountIssueId }
+      })
+    ])
 
     if (discountIssue.isLimit && amount + currentAmount > discountIssue.amount)
       throw new HttpException('Số lượng vượt quá đợt khuyến mãi!', HttpStatus.CONFLICT)
@@ -53,13 +68,28 @@ export class DiscountCodeService {
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const entities = await prisma.discountCode.findMany({
+        where: { id: { in: data.ids } }
+      })
+
       const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
+        entities,
         accountId,
         modelName: 'DiscountCode'
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'DiscountCode',
+            targetName: entities.map(item => item.code).join(', ')
+          },
+          { branchId, prisma },
+          accountId
+        )
+      ])
 
       return prisma.discountCode.deleteMany({
         where: {

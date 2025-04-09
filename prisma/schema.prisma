@@ -105,6 +105,7 @@ model Account {
   creatorRole               Role[]               @relation("creator")
   trashes                   Trash[]              @relation("creator")
   notifies                  Notify[]
+  activityLogs              ActivityLog[]
 }
 
 model User {
@@ -170,6 +171,7 @@ model Shop {
   updater          Account?        @relation("updater", fields: [updatedBy], references: [id])
   roles            Role[]
   employeeGroups   EmployeeGroup[]
+  activityLogs     ActivityLog[]
 }
 
 model MeasurementUnit {
@@ -569,6 +571,7 @@ model DiscountCode {
 model CustomerRequest {
   id          String         @id @default(uuid())
   branchId    String
+  code        String?
   tableId     String
   requestType RequestType
   content     String         @db.Text
@@ -613,6 +616,7 @@ model Branch {
   accounts            Account[]
   paymentMethods      PaymentMethod[]
   productOptionGroups ProductOptionGroup[]
+  activityLogs        ActivityLog[]
 }
 
 model AccountSocket {
@@ -666,6 +670,39 @@ model Notify {
   accounts          Account[]
   isRead            Boolean          @default(false)
   createdAt         DateTime         @default(now())
+}
+
+model ActivityLog {
+  id          String         @id @default(uuid())
+  action      ActivityAction
+  modelName   String
+  targetId    String?
+  targetName  String
+  relatedName String?
+  accountId   String
+  account     Account?       @relation(fields: [accountId], references: [id])
+  branchId    String?
+  branch      Branch?        @relation(fields: [branchId], references: [id])
+  shopId      String?
+  shop        Shop?          @relation(fields: [shopId], references: [id])
+  createdAt   DateTime       @default(now())
+}
+
+enum ActivityAction {
+  CREATE
+  UPDATE
+  DELETE
+  GENERATE_DISCOUNT_CODES
+  PAYMENT
+  CANCEL_ORDER
+  APPROVE_DISH      
+  SEND_TO_KITCHEN   
+  TRANSPORT_DISH    
+  SUCCESS_DISH      
+  CANCEL_DISH    
+  UPDATE_PAYMENT_METHOD   
+  NEW_DISH_ADDED_TO_TABLE
+  SEPARATE_TABLE
 }
 
 enum NotifyType {

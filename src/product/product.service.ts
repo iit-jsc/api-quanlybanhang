@@ -1,4 +1,4 @@
-import { Prisma, PrismaClient } from '@prisma/client'
+import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateProductDto, FindManyProductDto, UpdateProductDto } from './dto/product.dto'
@@ -7,32 +7,49 @@ import { productSelect } from 'responses/product.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class ProductService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateProductDto, accountId: string, branchId: string) {
-    return await this.prisma.product.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        slug: data.slug || generateSlug(data.name),
-        code: data.code ?? generateCode('SP'),
-        price: data.price,
-        thumbnail: data.thumbnail,
-        oldPrice: data.oldPrice,
-        status: data.status,
-        photoURLs: data.photoURLs,
-        productTypeId: data.productTypeId,
-        unitId: data.unitId,
-        branchId,
-        createdBy: accountId
-      },
-      select: productSelect
+    return this.prisma.$transaction(async prisma => {
+      const product = await prisma.product.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          slug: data.slug || generateSlug(data.name),
+          code: data.code ?? generateCode('SP'),
+          price: data.price,
+          thumbnail: data.thumbnail,
+          oldPrice: data.oldPrice,
+          status: data.status,
+          photoURLs: data.photoURLs,
+          productTypeId: data.productTypeId,
+          unitId: data.unitId,
+          branchId,
+          createdBy: accountId
+        },
+        select: productSelect
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.CREATE,
+          modelName: 'Product',
+          targetName: product.name,
+          targetId: product.id
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return product
     })
   }
 
@@ -92,39 +109,69 @@ export class ProductService {
   }
 
   async update(id: string, data: UpdateProductDto, accountId: string, branchId: string) {
-    return await this.prisma.product.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        name: data.name,
-        description: data.description,
-        slug: data.slug,
-        code: data.code,
-        price: data.price,
-        thumbnail: data.thumbnail,
-        oldPrice: data.oldPrice,
-        status: data.status,
-        photoURLs: data.photoURLs,
-        productTypeId: data.productTypeId,
-        unitId: data.unitId,
-        branchId,
-        updatedBy: accountId
-      },
-      select: productSelect
+    return this.prisma.$transaction(async prisma => {
+      const product = await this.prisma.product.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          name: data.name,
+          description: data.description,
+          slug: data.slug,
+          code: data.code,
+          price: data.price,
+          thumbnail: data.thumbnail,
+          oldPrice: data.oldPrice,
+          status: data.status,
+          photoURLs: data.photoURLs,
+          productTypeId: data.productTypeId,
+          unitId: data.unitId,
+          branchId,
+          updatedBy: accountId
+        },
+        select: productSelect
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE,
+          modelName: 'Product',
+          targetId: product.id,
+          targetName: product.name
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return product
     })
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const entities = await prisma.product.findMany({
+        where: { id: { in: data.ids } }
+      })
+
       const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
+        entities,
         accountId,
         modelName: 'Product'
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'Product',
+            targetName: entities.map(item => item.name).join(', ')
+          },
+          { branchId, prisma },
+          accountId
+        )
+      ])
 
       return prisma.product.deleteMany({
         where: {

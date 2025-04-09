@@ -9,6 +9,7 @@ import {
   UpdateOrderDto
 } from './dto/order.dto'
 import {
+  ActivityAction,
   NotifyType,
   OrderDetailStatus,
   OrderStatus,
@@ -33,6 +34,7 @@ import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { NotifyService } from 'src/notify/notify.service'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class OrderService {
@@ -40,7 +42,8 @@ export class OrderService {
     private readonly prisma: PrismaService,
     private readonly orderGateway: OrderGateway,
     private readonly trashService: TrashService,
-    private readonly notifyService: NotifyService
+    private readonly notifyService: NotifyService,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateOrderDto, accountId: string, branchId: string) {
@@ -73,6 +76,16 @@ export class OrderService {
       })
 
       setImmediate(() => {
+        this.activityLogService.create(
+          {
+            action: ActivityAction.CREATE,
+            modelName: 'Order',
+            targetName: order.code,
+            targetId: order.id
+          },
+          { branchId, prisma },
+          accountId
+        )
         this.orderGateway.handleModifyOrder(order)
         this.notifyService.create(
           {
@@ -80,7 +93,8 @@ export class OrderService {
             branchId,
             orderId: order.id
           },
-          accountId
+          accountId,
+          prisma
         )
       })
 
@@ -113,7 +127,17 @@ export class OrderService {
       const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
         getVoucher(voucherParams, prisma),
         getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
-        getCustomerDiscount(data.customerId, orderTotal, prisma)
+        getCustomerDiscount(data.customerId, orderTotal, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.PAYMENT,
+            modelName: 'Order',
+            targetName: order.code,
+            targetId: order.id
+          },
+          { branchId, prisma },
+          accountId
+        )
       ])
 
       return prisma.order.update({
@@ -140,18 +164,33 @@ export class OrderService {
   }
 
   async update(id: string, data: UpdateOrderDto, accountId: string, branchId: string) {
-    return await this.prisma.order.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        status: data.status,
-        note: data.note,
-        bankingImages: data.bankingImages,
-        updatedBy: accountId
-      },
-      select: orderSortSelect
+    return this.prisma.$transaction(async prisma => {
+      const order = await prisma.order.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          status: data.status,
+          note: data.note,
+          bankingImages: data.bankingImages,
+          updatedBy: accountId
+        },
+        select: orderSortSelect
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE,
+          modelName: 'Order',
+          targetId: order.id,
+          targetName: order.code
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return order
     })
   }
 
@@ -236,42 +275,59 @@ export class OrderService {
   }
 
   async save(id: string, data: SaveOrderDto, accountId: string, branchId: string) {
-    return await this.prisma.order.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        isSave: data.isSave,
-        note: data.note
-      }
+    return this.prisma.$transaction(async prisma => {
+      await prisma.order.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          isSave: data.isSave,
+          note: data.note
+        }
+      })
     })
   }
 
   async cancel(id: string, data: CancelOrderDto, accountId: string, branchId: string) {
-    return await this.prisma.order.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        cancelDate: new Date(),
-        cancelReason: data.cancelReason,
-        updatedBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const order = await prisma.order.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          cancelDate: new Date(),
+          cancelReason: data.cancelReason,
+          updatedBy: accountId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.CANCEL_ORDER,
+          modelName: 'Order',
+          targetId: order.id,
+          targetName: order.code
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return order
     })
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const paidOrders = await prisma.order.findMany({
-        where: {
-          id: { in: data.ids },
-          branchId,
-          isPaid: true
-        },
-        select: { id: true, code: true }
+      const entities = await prisma.order.findMany({
+        where: { id: { in: data.ids } },
+        include: {
+          orderDetails: true
+        }
       })
+
+      const paidOrders = entities.filter(order => order.isPaid)
 
       if (paidOrders.length > 0)
         throw new HttpException(
@@ -280,15 +336,23 @@ export class OrderService {
         )
 
       const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
         accountId,
         modelName: 'Order',
-        include: {
-          orderDetails: true
-        }
+        entities
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'Order',
+            targetName: entities.map(item => item.code).join(', ')
+          },
+          { branchId, prisma },
+          accountId
+        )
+      ])
 
       return prisma.order.deleteMany({
         where: {

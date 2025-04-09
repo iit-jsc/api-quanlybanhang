@@ -5,12 +5,17 @@ import {
   FindManyPaymentMethodDto,
   UpdatePaymentMethodDto
 } from './dto/payment-method.dto'
-import { Prisma } from '@prisma/client'
+import { ActivityAction, Prisma } from '@prisma/client'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class PaymentMethodService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly activityLogService: ActivityLogService
+  ) {}
+
   async create(data: CreatePaymentMethodDto, accountId: string, branchId: string) {
     return this.prisma.paymentMethod.create({
       data: {
@@ -27,20 +32,35 @@ export class PaymentMethodService {
   }
 
   async update(id: string, data: UpdatePaymentMethodDto, accountId: string, branchId: string) {
-    return await this.prisma.paymentMethod.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        active: data.active,
-        bankCode: data.bankCode,
-        bankName: data.bankName,
-        photoURL: data.photoURL,
-        representative: data.representative,
-        type: data.type,
-        updatedBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const paymentMethod = await prisma.paymentMethod.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          active: data.active,
+          bankCode: data.bankCode,
+          bankName: data.bankName,
+          photoURL: data.photoURL,
+          representative: data.representative,
+          type: data.type,
+          updatedBy: accountId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE_PAYMENT_METHOD,
+          modelName: 'PaymentMethod',
+          targetId: paymentMethod.id,
+          targetName: paymentMethod.type
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return paymentMethod
     })
   }
   async findUniq(id: string, branchId: string) {

@@ -133,23 +133,21 @@ export class CustomerService {
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
-        accountId,
-        modelName: 'Customer'
-      }
-
-      await this.trashService.createMany(dataTrash, prisma)
-
-      return prisma.customer.deleteMany({
-        where: {
-          id: {
-            in: data.ids
-          },
-          shopId
-        }
-      })
-    })
+    // return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+    //   const dataTrash: CreateManyTrashDto = {
+    //     ids: data.ids,
+    //     accountId,
+    //     modelName: 'Customer'
+    //   }
+    //   await this.trashService.createMany(dataTrash, prisma)
+    //   return prisma.customer.deleteMany({
+    //     where: {
+    //       id: {
+    //         in: data.ids
+    //       },
+    //       shopId
+    //     }
+    //   })
+    // })
   }
 }

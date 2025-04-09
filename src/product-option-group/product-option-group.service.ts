@@ -6,44 +6,61 @@ import {
   FindManyProductOptionGroupDto,
   UpdateProductOptionGroupDto
 } from './dto/product-option-group.dto'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
 import { productOptionGroupSelect } from 'responses/product-option-group.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class ProductOptionGroupService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateProductOptionGroupDto, accountId: string, branchId: string) {
     this.validateDefaultProductOptions(data.productOptions)
 
-    return await this.prisma.productOptionGroup.create({
-      data: {
-        name: data.name,
-        productOptions: {
-          create: data.productOptions.map(option => ({
-            name: option.name,
-            price: option.price,
-            isDefault: option.isDefault,
-            type: option.type,
-            photoURL: option.photoURL,
-            products: {
-              connect: option.productIds?.map(id => ({ id }))
-            }
-          }))
+    return this.prisma.$transaction(async prisma => {
+      const productOptionGroup = await prisma.productOptionGroup.create({
+        data: {
+          name: data.name,
+          productOptions: {
+            create: data.productOptions.map(option => ({
+              name: option.name,
+              price: option.price,
+              isDefault: option.isDefault,
+              type: option.type,
+              photoURL: option.photoURL,
+              products: {
+                connect: option.productIds?.map(id => ({ id }))
+              }
+            }))
+          },
+          isMultiple: data.isMultiple,
+          isRequired: data.isRequired,
+          createdBy: accountId,
+          branchId
         },
-        isMultiple: data.isMultiple,
-        isRequired: data.isRequired,
-        createdBy: accountId,
-        branchId
-      },
-      select: productOptionGroupSelect()
+        select: productOptionGroupSelect()
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.CREATE,
+          modelName: 'ProductOptionGroup',
+          targetName: productOptionGroup.name,
+          targetId: productOptionGroup.id
+        },
+        { branchId, prisma },
+        accountId
+      )
+
+      return productOptionGroup
     })
   }
 
@@ -88,7 +105,7 @@ export class ProductOptionGroupService {
       if (data.productOptions)
         await prisma.productOption.deleteMany({ where: { productOptionGroupId: id } })
 
-      return await prisma.productOptionGroup.update({
+      const productOptionGroup = await prisma.productOptionGroup.update({
         data: {
           name: data.name,
           isMultiple: data.isMultiple,
@@ -115,21 +132,47 @@ export class ProductOptionGroupService {
         },
         select: productOptionGroupSelect()
       })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE,
+          modelName: 'ProductOptionGroup',
+          targetId: productOptionGroup.id,
+          targetName: productOptionGroup.name
+        },
+        { branchId, prisma },
+        accountId
+      )
     })
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
-        accountId,
-        modelName: 'ProductOptionGroup',
+      const entities = await prisma.productOptionGroup.findMany({
+        where: { id: { in: data.ids } },
         include: {
           productOptions: true
         }
+      })
+
+      const dataTrash: CreateManyTrashDto = {
+        entities,
+        accountId,
+        modelName: 'ProductOptionGroup'
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'ProductOptionGroup',
+            targetName: entities.map(item => item.name).join(', ')
+          },
+          { branchId, prisma },
+          accountId
+        )
+      ])
 
       return prisma.productOptionGroup.deleteMany({
         where: {

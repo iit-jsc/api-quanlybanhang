@@ -13,7 +13,11 @@ import {
 } from '@nestjs/common'
 import { OrderDetailService } from './order-detail.service'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { FindManyOrderDetailDto, UpdateOrderDetailDto } from './dto/order-detail.dto'
+import {
+  FindManyOrderDetailDto,
+  UpdateOrderDetailDto,
+  UpdateStatusOrderDetailsDto
+} from './dto/order-detail.dto'
 import { RequestJWT } from 'interfaces/common.interface'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RolesGuard } from 'guards/roles.guard'
@@ -42,6 +46,15 @@ export class OrderDetailController {
     const { branchId } = req
 
     return this.orderDetailService.findAll(data, branchId)
+  }
+
+  @Patch('/change-status')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.order.update)
+  updateStatusOrderDetails(@Body() data: UpdateStatusOrderDetailsDto, @Req() req: RequestJWT) {
+    const { accountId, branchId } = req
+
+    return this.orderDetailService.updateStatusOrderDetails(data, accountId, branchId)
   }
 
   @Patch('/:id')
