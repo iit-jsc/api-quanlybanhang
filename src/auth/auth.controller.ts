@@ -12,7 +12,7 @@ import {
   Res,
   UseGuards
 } from '@nestjs/common'
-import { Response } from 'express'
+import { Response, Request } from 'express'
 import { LoginDto } from './dto/login.dto'
 import { AuthService } from './auth.service'
 import { AccessBranchDto } from './dto/access-branch.dto'
@@ -65,5 +65,15 @@ export class AuthController {
     if (!token) throw new HttpException('Không tìm thấy token!', HttpStatus.UNAUTHORIZED)
 
     return this.authService.getMe(token)
+  }
+
+  @Post('/refresh-token')
+  @HttpCode(HttpStatus.OK)
+  refreshToken(@Req() req: Request) {
+    const refreshToken = req.cookies['refreshToken']
+
+    if (!refreshToken) throw new HttpException('Không tìm thấy token!', HttpStatus.UNAUTHORIZED)
+
+    return this.authService.refreshToken(refreshToken)
   }
 }

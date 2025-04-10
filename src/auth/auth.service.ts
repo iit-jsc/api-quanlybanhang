@@ -75,7 +75,7 @@ export class AuthService {
       httpOnly: true,
       secure: true,
       sameSite: 'strict',
-      path: '/api/auth/refresh-token'
+      path: '/auth/refresh-token'
     })
 
     return {
@@ -89,7 +89,6 @@ export class AuthService {
           secret: process.env.SECRET_KEY
         }
       ),
-      refreshToken,
       ...mapResponseLogin({ account, shops, currentShop })
     }
   }
@@ -196,5 +195,28 @@ export class AuthService {
       },
       select: accountSortSelect
     })
+  }
+
+  async refreshToken(refreshToken: string) {
+    if (!refreshToken)
+      throw new HttpException('Không tìm thấy token hoặc đã hết hạn!', HttpStatus.NOT_FOUND)
+
+    try {
+      const payload: TokenPayload = await this.jwtService.verifyAsync(refreshToken, {
+        secret: process.env.SECRET_KEY
+      })
+
+      const shops = await this.getShopsByAccountId(payload.accountId)
+
+      const currentShop = this.getCurrentShopFromShops(shops, payload.branchId)
+
+      const account = await this.getAccountAccess(payload.accountId, payload.branchId)
+
+      if (!account) throw new HttpException('Không tìm thấy tài nguyên!', HttpStatus.NOT_FOUND)
+
+      return { ...mapResponseLogin({ account, shops, currentShop }) }
+    } catch (error) {
+      throw error
+    }
   }
 }
