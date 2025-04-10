@@ -45,7 +45,7 @@ export class ProductService {
           targetName: product.name,
           targetId: product.id
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -140,7 +140,7 @@ export class ProductService {
           targetId: product.id,
           targetName: product.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -168,7 +168,7 @@ export class ProductService {
             modelName: 'Product',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

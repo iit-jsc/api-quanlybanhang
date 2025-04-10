@@ -54,7 +54,7 @@ export class OrderDetailService {
               : `Bàn ${entities[0].table?.name}`,
             targetId: entities[0].orderId ? entities[0].orderId : entities[0].tableId
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])
@@ -200,7 +200,7 @@ export class OrderDetailService {
             ? `Đơn ${results[0].order?.code}`
             : `Bàn ${results[0].table?.name}`
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 

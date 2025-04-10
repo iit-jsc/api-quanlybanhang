@@ -41,7 +41,7 @@ export class AreaService {
           targetName: area.name,
           targetId: area.id
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -114,7 +114,7 @@ export class AreaService {
           targetId: area.id,
           targetName: area.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -145,7 +145,7 @@ export class AreaService {
             modelName: 'Area',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

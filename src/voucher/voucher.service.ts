@@ -81,7 +81,7 @@ export class VoucherService {
           targetName: voucher.name,
           targetId: voucher.id
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -190,7 +190,7 @@ export class VoucherService {
           targetId: voucher.id,
           targetName: voucher.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -226,7 +226,7 @@ export class VoucherService {
             modelName: 'Voucher',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

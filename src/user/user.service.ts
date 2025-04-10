@@ -5,7 +5,7 @@ import { CheckUniqDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './d
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
-import { userSelect } from 'responses/user.response'
+import { userDetailSelect, userSelect } from 'responses/user.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
@@ -60,7 +60,7 @@ export class UserService {
           targetName: user.name,
           targetId: user.id
         },
-        { shopId, prisma },
+        { shopId },
         accountId
       )
 
@@ -119,7 +119,7 @@ export class UserService {
           }
         }
       },
-      select: userSelect
+      select: userDetailSelect
     })
   }
 
@@ -175,7 +175,7 @@ export class UserService {
           targetId: user.id,
           targetName: user.name
         },
-        { shopId, prisma },
+        { shopId },
         accountId
       )
 
@@ -206,7 +206,7 @@ export class UserService {
             modelName: 'User',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { shopId, prisma },
+          { shopId },
           accountId
         )
       ])

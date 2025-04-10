@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateNotifyDto } from './dto/notify.dto'
 import { FindManyDto } from 'utils/Common.dto'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { customPaginate } from 'utils/Helps'
 import { notifySelect } from 'responses/notify.response'
 
@@ -10,14 +10,8 @@ import { notifySelect } from 'responses/notify.response'
 export class NotifyService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create(
-    data: CreateNotifyDto,
-    accountId?: string,
-    prisma?: PrismaClient | Prisma.TransactionClient
-  ) {
-    prisma = prisma ?? this.prisma
-
-    const accounts = await prisma.account.findMany({
+  async create(data: CreateNotifyDto, accountId?: string) {
+    const accounts = await this.prisma.account.findMany({
       where: {
         branches: {
           some: {

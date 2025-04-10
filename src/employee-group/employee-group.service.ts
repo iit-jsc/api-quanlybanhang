@@ -35,7 +35,7 @@ export class EmployeeGroupService {
           targetName: employeeGroup.name,
           targetId: employeeGroup.id
         },
-        { shopId, prisma },
+        { shopId },
         accountId
       )
 
@@ -102,7 +102,7 @@ export class EmployeeGroupService {
           targetId: employeeGroup.id,
           targetName: employeeGroup.name
         },
-        { shopId, prisma },
+        { shopId },
         accountId
       )
 
@@ -130,7 +130,7 @@ export class EmployeeGroupService {
             modelName: 'EmployeeGroup',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { shopId, prisma },
+          { shopId },
           accountId
         )
       ])

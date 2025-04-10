@@ -83,7 +83,7 @@ export class OrderService {
             targetName: order.code,
             targetId: order.id
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
         this.orderGateway.handleModifyOrder(order)
@@ -93,8 +93,7 @@ export class OrderService {
             branchId,
             orderId: order.id
           },
-          accountId,
-          prisma
+          accountId
         )
       })
 
@@ -111,9 +110,9 @@ export class OrderService {
         select: orderSortSelect
       })
 
-      const orderTotal = getOrderTotal(order.orderDetails)
-
       if (order.isPaid) throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
+
+      const orderTotal = getOrderTotal(order.orderDetails)
 
       const voucherParams = {
         voucherId: data.voucherId,
@@ -135,7 +134,7 @@ export class OrderService {
             targetName: order.code,
             targetId: order.id
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])
@@ -186,7 +185,7 @@ export class OrderService {
           targetId: order.id,
           targetName: order.code
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -276,7 +275,7 @@ export class OrderService {
 
   async save(id: string, data: SaveOrderDto, accountId: string, branchId: string) {
     return this.prisma.$transaction(async prisma => {
-      await prisma.order.update({
+      return await prisma.order.update({
         where: {
           id,
           branchId
@@ -284,7 +283,8 @@ export class OrderService {
         data: {
           isSave: data.isSave,
           note: data.note
-        }
+        },
+        select: orderSortSelect
       })
     })
   }
@@ -299,9 +299,13 @@ export class OrderService {
         data: {
           cancelDate: new Date(),
           cancelReason: data.cancelReason,
+          status: OrderStatus.CANCELLED,
           updatedBy: accountId
-        }
+        },
+        select: orderSortSelect
       })
+
+      if (order.isPaid) throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
 
       await this.activityLogService.create(
         {
@@ -310,7 +314,7 @@ export class OrderService {
           targetId: order.id,
           targetName: order.code
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -349,7 +353,7 @@ export class OrderService {
             modelName: 'Order',
             targetName: entities.map(item => item.code).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

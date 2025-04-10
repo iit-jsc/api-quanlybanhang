@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateActivityLogDto, FindManyActivityLogDto } from './dto/activity-log.dto'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
 @Injectable()
 export class ActivityLogService {
@@ -12,13 +12,12 @@ export class ActivityLogService {
     options: {
       branchId?: string
       shopId?: string
-      prisma?: PrismaClient | Prisma.TransactionClient
     },
     accountId: string
   ) {
-    const prisma = options.prisma ?? this.prisma
+    if (!['Order', 'OrderDetail', 'Table'].includes(data.modelName)) return
 
-    return prisma.activityLog.create({
+    return this.prisma.activityLog.create({
       data: {
         action: data.action,
         modelName: data.modelName,

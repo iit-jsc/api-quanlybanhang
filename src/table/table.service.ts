@@ -67,11 +67,11 @@ export class TableService {
       await this.activityLogService.create(
         {
           action: ActivityAction.CREATE,
-          modelName: 'Area',
+          modelName: 'Table',
           targetName: table.name,
           targetId: table.id
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -143,7 +143,7 @@ export class TableService {
           targetId: table.id,
           targetName: table.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -153,11 +153,8 @@ export class TableService {
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const entities = await prisma.area.findMany({
-        where: { id: { in: data.ids } },
-        include: {
-          tables: true
-        }
+      const entities = await prisma.table.findMany({
+        where: { id: { in: data.ids } }
       })
 
       const dataTrash: CreateManyTrashDto = {
@@ -174,7 +171,7 @@ export class TableService {
             modelName: 'Table',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])
@@ -220,8 +217,7 @@ export class TableService {
             branchId: branchId,
             tableId: table.id
           },
-          accountId,
-          prisma
+          accountId
         )
         this.activityLogService.create(
           {
@@ -230,7 +226,7 @@ export class TableService {
             targetName: table.name,
             targetId: table.id
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       })
@@ -327,7 +323,7 @@ export class TableService {
             targetName: order.code,
             targetId: order.id
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         ),
         this.passOrderDetailToOrder(orderDetails, order.id, accountId, prisma)
@@ -423,7 +419,7 @@ export class TableService {
           targetName: toTable.name,
           relatedName: fromTable.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 

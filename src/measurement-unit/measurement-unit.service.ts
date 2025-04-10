@@ -35,7 +35,7 @@ export class MeasurementUnitService {
           targetName: unit.name,
           targetId: unit.id
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -101,7 +101,7 @@ export class MeasurementUnitService {
           targetId: measurementUnit.id,
           targetName: measurementUnit.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -129,7 +129,7 @@ export class MeasurementUnitService {
             modelName: 'MeasurementUnit',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

@@ -8,11 +8,24 @@ import {
   IsNotEmpty,
   IsOptional,
   IsString,
-  ValidateNested
+  Validate,
+  ValidateNested,
+  ValidatorConstraint,
+  ValidatorConstraintInterface
 } from 'class-validator'
 import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
 import { FindManyDto } from 'utils/Common.dto'
 
+@ValidatorConstraint({ name: 'isNotCancel', async: false })
+export class IsNotCancelConstraint implements ValidatorConstraintInterface {
+  validate(status: OrderStatus) {
+    return status !== OrderStatus.CANCELLED
+  }
+
+  defaultMessage() {
+    return 'Không thể cập nhật trạng thái hủy!'
+  }
+}
 export class CreateOrderDto {
   @IsOptional()
   @IsEnum(OrderStatus)
@@ -52,9 +65,11 @@ export class CreateOrderProductsDto {
 export class UpdateOrderDto {
   bankingImages?: string[]
   note?: string
+  cancelReason?: string
 
   @IsOptional()
   @IsEnum(OrderStatus)
+  @Validate(IsNotCancelConstraint)
   status: OrderStatus
 }
 

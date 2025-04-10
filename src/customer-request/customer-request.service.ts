@@ -77,7 +77,7 @@ export class CustomerRequestService {
           targetId: customerRequest.id,
           targetName: customerRequest.code
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 

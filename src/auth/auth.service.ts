@@ -9,7 +9,7 @@ import { AnyObject, TokenPayload } from 'interfaces/common.interface'
 import { AccessBranchDto } from './dto/access-branch.dto'
 import { AccountStatus } from '@prisma/client'
 import { userSortSelect } from 'responses/user.response'
-import { roleSortSelect } from 'responses/role.response'
+import { roleSelect } from 'responses/role.response'
 import { accountLoginSelect, accountSortSelect } from 'responses/account.response'
 import { shopLoginSelect } from 'responses/shop.response'
 import { ChangeMyPasswordDto } from './dto/change-password.dto'
@@ -140,7 +140,7 @@ export class AuthService {
           select: userSortSelect
         },
         roles: {
-          select: roleSortSelect
+          select: roleSelect
         }
       }
     })

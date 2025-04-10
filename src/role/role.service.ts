@@ -43,7 +43,7 @@ export class RoleService {
           targetName: role.name,
           targetId: role.id
         },
-        { shopId, prisma },
+        { shopId },
         accountId
       )
 
@@ -102,7 +102,7 @@ export class RoleService {
           targetId: role.id,
           targetName: role.name
         },
-        { shopId, prisma },
+        { shopId },
         accountId
       )
 
@@ -143,7 +143,7 @@ export class RoleService {
             modelName: 'Role',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { shopId, prisma },
+          { shopId },
           accountId
         )
       ])

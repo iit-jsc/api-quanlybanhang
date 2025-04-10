@@ -42,7 +42,7 @@ export class DiscountCodeService {
           modelName: 'DiscountCode',
           targetName: data.amount.toString()
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -86,7 +86,7 @@ export class DiscountCodeService {
             modelName: 'DiscountCode',
             targetName: entities.map(item => item.code).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

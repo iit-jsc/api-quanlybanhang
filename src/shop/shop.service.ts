@@ -143,6 +143,8 @@ export class ShopService {
         permissions: [
           'VIEW_AREA',
           'VIEW_TABLE',
+          'ADD_DISH_TO_TABLE',
+          'SEPARATE_TABLE',
           'CREATE_CUSTOMER',
           'UPDATE_CUSTOMER',
           'VIEW_CUSTOMER',
@@ -177,6 +179,8 @@ export class ShopService {
           'UPDATE_TABLE',
           'DELETE_TABLE',
           'VIEW_TABLE',
+          'ADD_DISH_TO_TABLE',
+          'SEPARATE_TABLE',
           'CREATE_ROLE',
           'UPDATE_ROLE',
           'DELETE_ROLE',

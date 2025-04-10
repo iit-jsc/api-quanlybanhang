@@ -41,7 +41,7 @@ export class ProductTypeService {
           targetName: productType.name,
           targetId: productType.id
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -107,7 +107,7 @@ export class ProductTypeService {
           targetId: productType.id,
           targetName: productType.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -117,11 +117,8 @@ export class ProductTypeService {
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const entities = await prisma.area.findMany({
-        where: { id: { in: data.ids } },
-        include: {
-          tables: true
-        }
+      const entities = await prisma.productType.findMany({
+        where: { id: { in: data.ids } }
       })
 
       const dataTrash: CreateManyTrashDto = {
@@ -138,7 +135,7 @@ export class ProductTypeService {
             modelName: 'ProductType',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

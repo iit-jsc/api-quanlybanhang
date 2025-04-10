@@ -50,7 +50,7 @@ export class DiscountIssueService {
           targetName: discountIssue.name,
           targetId: discountIssue.id
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -90,7 +90,7 @@ export class DiscountIssueService {
           targetId: discountIssue.id,
           targetName: discountIssue.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -195,7 +195,7 @@ export class DiscountIssueService {
             modelName: 'DiscountIssue',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

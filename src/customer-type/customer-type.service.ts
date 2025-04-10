@@ -37,7 +37,7 @@ export class CustomerTypeService {
           targetName: customerType.name,
           targetId: customerType.id
         },
-        { shopId, prisma },
+        { shopId },
         accountId
       )
 
@@ -99,7 +99,7 @@ export class CustomerTypeService {
           targetId: customerType.id,
           targetName: customerType.name
         },
-        { shopId, prisma },
+        { shopId },
         accountId
       )
 
@@ -127,7 +127,7 @@ export class CustomerTypeService {
             modelName: 'CustomerType',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { shopId, prisma },
+          { shopId },
           accountId
         )
       ])

@@ -38,6 +38,7 @@ import { PermissionGroupModule } from './permission-group/permission-group.modul
 import { NotifyModule } from './notify/notify.module'
 import { CommonModule } from './common/common.module'
 import { ActivityLogModule } from './activity-log/activity-log.module'
+import { PermissionModule } from './permission/permission.module';
 
 @Module({
   imports: [
@@ -103,7 +104,8 @@ import { ActivityLogModule } from './activity-log/activity-log.module'
     PaymentMethodModule,
     ProductOptionGroupModule,
     CustomerRequestModule,
-    CommonModule
+    CommonModule,
+    PermissionModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]

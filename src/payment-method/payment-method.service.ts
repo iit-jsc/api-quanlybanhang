@@ -56,7 +56,7 @@ export class PaymentMethodService {
           targetId: paymentMethod.id,
           targetName: paymentMethod.type
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 

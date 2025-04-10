@@ -20,7 +20,6 @@ model Permission {
   code            String           @id @unique
   groupCode       String
   permissionGroup PermissionGroup? @relation(fields: [groupCode], references: [code])
-  permissionCode  String?
   roles           Role[]
 }
 

@@ -42,6 +42,14 @@
       {
         "code": "VIEW_TABLE",
         "name": "Xem khu vực"
+      },
+      {
+        "code": "ADD_DISH_TO_TABLE",
+        "name": "Thêm món vào bàn"
+      },
+      {
+        "code": "SEPARATE_TABLE",
+        "name": "Tách bàn"
       }
     ]
   },

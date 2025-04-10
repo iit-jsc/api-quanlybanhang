@@ -56,7 +56,7 @@ export class ProductOptionGroupService {
           targetName: productOptionGroup.name,
           targetId: productOptionGroup.id
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
 
@@ -140,7 +140,7 @@ export class ProductOptionGroupService {
           targetId: productOptionGroup.id,
           targetName: productOptionGroup.name
         },
-        { branchId, prisma },
+        { branchId },
         accountId
       )
     })
@@ -169,7 +169,7 @@ export class ProductOptionGroupService {
             modelName: 'ProductOptionGroup',
             targetName: entities.map(item => item.name).join(', ')
           },
-          { branchId, prisma },
+          { branchId },
           accountId
         )
       ])

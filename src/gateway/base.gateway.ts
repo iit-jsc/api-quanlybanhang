@@ -21,24 +21,17 @@ export abstract class BaseGateway
 
   @WebSocketServer() server: Server
 
-  afterInit(server: Server) {
-    // console.log("WebSocket server initialized");
-  }
+  afterInit(server: Server) {}
 
   handleConnection(client: Socket) {
     console.log('Client connected:', client.id)
   }
 
-  async handleDisconnect(client: Socket) {
-    // console.log("Client disconnected:", client.id);
-  }
+  async handleDisconnect(client: Socket) {}
 
   @SubscribeMessage('joinBranch')
   @UseGuards(JwtAuthGuard)
-  async handleJoinBranch(
-    @ConnectedSocket() client: Socket,
-    @Req() req: AnyObject
-  ) {
+  async handleJoinBranch(@ConnectedSocket() client: Socket, @Req() req: AnyObject) {
     const tokenPayload = req.handshake?.tokenPayload as TokenPayload
 
     client.join(tokenPayload.branchId)
