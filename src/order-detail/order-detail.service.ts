@@ -13,13 +13,15 @@ import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { IProduct } from 'interfaces/product.interface'
+import { OrderDetailGateway } from 'src/gateway/order-detail.gateway'
 
 @Injectable()
 export class OrderDetailService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
-    private readonly activityLogService: ActivityLogService
+    private readonly activityLogService: ActivityLogService,
+    private readonly orderDetailGateway: OrderDetailGateway
   ) {}
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
@@ -47,16 +49,16 @@ export class OrderDetailService {
             action: ActivityAction.DELETE,
             modelName: 'OrderDetail',
             targetName: entities
-              .map(item => (item.product as unknown as IProduct)?.name)
+              .map(item => `${(item.product as unknown as IProduct)?.name} (${item.amount})`)
               .join(', '),
-            relatedName: entities[0].orderId
-              ? `Đơn #${entities[0].order?.code}`
-              : `Bàn ${entities[0].table?.name}`,
-            targetId: entities[0].orderId ? entities[0].orderId : entities[0].tableId
+            relatedName: entities[0].orderId ? entities[0].order?.code : entities[0].table?.name,
+            targetId: entities[0].orderId ? entities[0].orderId : entities[0].tableId,
+            relatedModel: entities[0].orderId ? 'Order' : 'Table'
           },
           { branchId },
           accountId
-        )
+        ),
+        this.orderDetailGateway.handleModifyOrderDetails(entities, branchId)
       ])
 
       return prisma.orderDetail.deleteMany({
@@ -152,7 +154,7 @@ export class OrderDetailService {
   async update(id: string, data: UpdateOrderDetailDto, accountId: string, branchId: string) {
     await this.checkOrderPaidByDetailIds([id])
 
-    return await this.prisma.orderDetail.update({
+    const orderDetail = await this.prisma.orderDetail.update({
       where: {
         id,
         branchId
@@ -161,8 +163,13 @@ export class OrderDetailService {
         amount: data.amount,
         note: data.note,
         updatedBy: accountId
-      }
+      },
+      select: orderDetailSelect
     })
+
+    await this.orderDetailGateway.handleModifyOrderDetail(orderDetail, branchId)
+
+    return orderDetail
   }
 
   async updateStatusOrderDetails(
@@ -192,13 +199,17 @@ export class OrderDetailService {
 
       const results = await Promise.all(updatePromises)
 
+      await this.orderDetailGateway.handleModifyOrderDetails(results, branchId)
+
       await this.activityLogService.create(
         {
           action: this.getActivityActionByStatus(data.status),
           modelName: 'OrderDetail',
-          relatedName: results[0].orderId
-            ? `Đơn ${results[0].order?.code}`
-            : `Bàn ${results[0].table?.name}`
+          relatedName: results[0].orderId ? results[0].order?.code : results[0].table?.name,
+          targetName: results
+            .map(item => `${(item.product as unknown as IProduct)?.name} (${item.amount})`)
+            .join(', '),
+          relatedModel: results[0].orderId ? 'Order' : 'Table'
         },
         { branchId },
         accountId

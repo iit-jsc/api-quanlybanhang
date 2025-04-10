@@ -16,7 +16,6 @@ export class ActivityLogService {
     accountId: string
   ) {
     if (!['Order', 'OrderDetail', 'Table'].includes(data.modelName)) return
-
     return this.prisma.activityLog.create({
       data: {
         action: data.action,
@@ -24,6 +23,7 @@ export class ActivityLogService {
         targetId: data.targetId,
         targetName: data.targetName,
         relatedName: data.relatedName,
+        relatedModel: data.relatedModel,
         accountId,
         branchId: options.branchId,
         shopId: options.shopId

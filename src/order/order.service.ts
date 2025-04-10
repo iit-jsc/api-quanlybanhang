@@ -86,7 +86,7 @@ export class OrderService {
           { branchId },
           accountId
         )
-        this.orderGateway.handleModifyOrder(order)
+        this.orderGateway.handleModifyOrder(order, branchId)
         this.notifyService.create(
           {
             type: NotifyType.NEW_ORDER,
@@ -139,6 +139,10 @@ export class OrderService {
         )
       ])
 
+      setImmediate(() => {
+        this.orderGateway.handleModifyOrder(order, branchId)
+      })
+
       return prisma.order.update({
         where: { id },
         data: {
@@ -188,6 +192,10 @@ export class OrderService {
         { branchId },
         accountId
       )
+
+      setImmediate(() => {
+        this.orderGateway.handleModifyOrder(order, branchId)
+      })
 
       return order
     })
@@ -275,7 +283,7 @@ export class OrderService {
 
   async save(id: string, data: SaveOrderDto, accountId: string, branchId: string) {
     return this.prisma.$transaction(async prisma => {
-      return await prisma.order.update({
+      const order = await prisma.order.update({
         where: {
           id,
           branchId
@@ -286,6 +294,12 @@ export class OrderService {
         },
         select: orderSortSelect
       })
+
+      setImmediate(() => {
+        this.orderGateway.handleModifyOrder(order, branchId)
+      })
+
+      return order
     })
   }
 
@@ -317,6 +331,10 @@ export class OrderService {
         { branchId },
         accountId
       )
+
+      setImmediate(() => {
+        this.orderGateway.handleModifyOrder(order, branchId)
+      })
 
       return order
     })

@@ -13,6 +13,7 @@ export class CreateActivityLogDto {
   targetId?: string
   targetName?: string
   relatedName?: string
+  relatedModel?: Prisma.ModelName
 }
 
 export class FindManyActivityLogDto extends FindManyDto {

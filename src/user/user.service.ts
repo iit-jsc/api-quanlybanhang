@@ -42,7 +42,10 @@ export class UserService {
               password: bcrypt.hashSync(data.password, 10),
               status: data.status,
               branches: {
-                connect: data.branchIds.map(id => ({ id, shopId }))
+                connect: data.branchIds.map(id => ({
+                  id,
+                  shopId
+                }))
               },
               roles: {
                 connect: data.roleIds.map(id => ({ id }))

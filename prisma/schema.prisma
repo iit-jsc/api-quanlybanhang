@@ -672,19 +672,20 @@ model Notify {
 }
 
 model ActivityLog {
-  id          String         @id @default(uuid())
-  action      ActivityAction
-  modelName   String
-  targetId    String?
-  targetName  String
-  relatedName String?
-  accountId   String
-  account     Account?       @relation(fields: [accountId], references: [id])
-  branchId    String?
-  branch      Branch?        @relation(fields: [branchId], references: [id])
-  shopId      String?
-  shop        Shop?          @relation(fields: [shopId], references: [id])
-  createdAt   DateTime       @default(now())
+  id           String         @id @default(uuid())
+  action       ActivityAction
+  modelName    String
+  targetId     String?
+  targetName   String
+  relatedName  String?
+  relatedModel String?
+  accountId    String
+  account      Account?       @relation(fields: [accountId], references: [id])
+  branchId     String?
+  branch       Branch?        @relation(fields: [branchId], references: [id])
+  shopId       String?
+  shop         Shop?          @relation(fields: [shopId], references: [id])
+  createdAt    DateTime       @default(now())
 }
 
 enum ActivityAction {
@@ -694,12 +695,12 @@ enum ActivityAction {
   GENERATE_DISCOUNT_CODES
   PAYMENT
   CANCEL_ORDER
-  APPROVE_DISH      
-  SEND_TO_KITCHEN   
-  TRANSPORT_DISH    
-  SUCCESS_DISH      
-  CANCEL_DISH    
-  UPDATE_PAYMENT_METHOD   
+  APPROVE_DISH
+  SEND_TO_KITCHEN
+  TRANSPORT_DISH
+  SUCCESS_DISH
+  CANCEL_DISH
+  UPDATE_PAYMENT_METHOD
   NEW_DISH_ADDED_TO_TABLE
   SEPARATE_TABLE
 }

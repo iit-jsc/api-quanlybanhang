@@ -210,7 +210,7 @@ export class TableService {
 
       // Bắn socket và thông báo cho nhân viên trong chi nhánh
       setImmediate(() => {
-        this.tableGateway.handleModifyTable(table)
+        this.tableGateway.handleModifyTable(table, branchId)
         this.notifyService.create(
           {
             type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
@@ -256,7 +256,7 @@ export class TableService {
     })
 
     setImmediate(() => {
-      this.tableGateway.handleModifyTable(table)
+      this.tableGateway.handleModifyTable(table, data.branchId)
       this.notifyService.create({
         type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
         branchId: data.branchId,

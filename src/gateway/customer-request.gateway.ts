@@ -2,11 +2,12 @@ import { WebSocketGateway } from '@nestjs/websockets'
 import { PrismaService } from 'nestjs-prisma'
 import { CustomerRequest } from '@prisma/client'
 import { BaseGateway } from './base.gateway'
+import { JwtService } from '@nestjs/jwt'
 
 @WebSocketGateway()
 export class CustomerRequestGateway extends BaseGateway {
-  constructor(protected readonly prisma: PrismaService) {
-    super(prisma)
+  constructor(prisma: PrismaService, jwtService: JwtService) {
+    super(prisma, jwtService)
   }
 
   async handleCreateCustomerRequest(payload: CustomerRequest) {
