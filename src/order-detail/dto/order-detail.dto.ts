@@ -32,6 +32,10 @@ export class UpdateOrderDetailDto {
   amount?: number
 
   note?: string
+
+  @IsOptional()
+  @IsEnum(OrderDetailStatus)
+  status: OrderDetailStatus
 }
 
 export class UpdateStatusOrderDetailsDto {

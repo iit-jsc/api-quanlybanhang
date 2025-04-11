@@ -1,11 +1,12 @@
 import { PartialType } from '@nestjs/swagger'
-import { NotifyType } from '@prisma/client'
+import { NotifyType, Prisma } from '@prisma/client'
 import { IsEnum, IsNotEmpty } from 'class-validator'
 
 export class CreateNotifyDto {
-  orderId?: string
-  tableId?: string
-  customerRequestId?: string
+  targetName?: string
+
+  @IsNotEmpty()
+  modelName: Prisma.ModelName
 
   @IsNotEmpty()
   branchId: string

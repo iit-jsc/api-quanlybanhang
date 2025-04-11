@@ -5,7 +5,7 @@ import {
   UpdateOrderDetailDto,
   UpdateStatusOrderDetailsDto
 } from './dto/order-detail.dto'
-import { ActivityAction, OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
+import { ActivityAction, NotifyType, OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
 import { customPaginate } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -14,6 +14,7 @@ import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { IProduct } from 'interfaces/product.interface'
 import { OrderDetailGateway } from 'src/gateway/order-detail.gateway'
+import { NotifyService } from 'src/notify/notify.service'
 
 @Injectable()
 export class OrderDetailService {
@@ -21,7 +22,8 @@ export class OrderDetailService {
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
     private readonly activityLogService: ActivityLogService,
-    private readonly orderDetailGateway: OrderDetailGateway
+    private readonly orderDetailGateway: OrderDetailGateway,
+    private readonly notifyService: NotifyService
   ) {}
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
@@ -162,6 +164,7 @@ export class OrderDetailService {
       data: {
         amount: data.amount,
         note: data.note,
+        status: data.status,
         updatedBy: accountId
       },
       select: orderDetailSelect
@@ -199,26 +202,57 @@ export class OrderDetailService {
 
       const results = await Promise.all(updatePromises)
 
-      await this.orderDetailGateway.handleModifyOrderDetails(results, branchId)
+      const notifyInfo = this.getNotifyInfo(data.status, {
+        orderCode: results[0].order?.code,
+        tableName: results[0].table?.name
+      })
 
-      await this.activityLogService.create(
-        {
-          action: this.getActivityActionByStatus(data.status),
-          modelName: 'OrderDetail',
-          relatedName: results[0].orderId ? results[0].order?.code : results[0].table?.name,
-          targetName: results
-            .map(item => `${(item.product as unknown as IProduct)?.name} (${item.amount})`)
-            .join(', '),
-          relatedModel: results[0].orderId ? 'Order' : 'Table'
-        },
-        { branchId },
-        accountId
-      )
-
+      await Promise.all([
+        this.orderDetailGateway.handleModifyOrderDetails(results, branchId),
+        this.activityLogService.create(
+          {
+            action: this.getActivityActionByStatus(data.status),
+            modelName: 'OrderDetail',
+            relatedName: results[0].orderId ? results[0].order?.code : results[0].table?.name,
+            targetName: results
+              .map(item => `${(item.product as unknown as IProduct)?.name} (${item.amount})`)
+              .join(', '),
+            relatedModel: results[0].orderId ? 'Order' : 'Table'
+          },
+          { branchId },
+          accountId
+        ),
+        this.notifyService.create({
+          branchId,
+          type: notifyInfo.type,
+          modelName: notifyInfo.modelName,
+          targetName: notifyInfo.targetName
+        })
+      ])
       return results
     })
 
     return updatedOrderDetails
+  }
+
+  getNotifyInfo(
+    status: OrderDetailStatus,
+    target: { orderCode: string; tableName: string }
+  ): { type: NotifyType; targetName: string; modelName: Prisma.ModelName } {
+    const targetName = target.orderCode ? target.orderCode : target.tableName
+    const modelName = target.orderCode ? 'Order' : 'Table'
+
+    if (status === OrderDetailStatus.PROCESSING) {
+      return { type: NotifyType.SEND_TO_KITCHEN, targetName, modelName }
+    }
+
+    if (status === OrderDetailStatus.TRANSPORTING) {
+      return { type: NotifyType.TRANSPORT_DISH, targetName, modelName }
+    }
+
+    if (status === OrderDetailStatus.CANCELLED) {
+      return { type: NotifyType.CANCEL_DISH, targetName, modelName }
+    }
   }
 
   getActivityActionByStatus(status: OrderDetailStatus) {

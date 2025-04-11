@@ -10,7 +10,6 @@ import {
 } from './dto/order.dto'
 import {
   ActivityAction,
-  NotifyType,
   OrderDetailStatus,
   OrderStatus,
   OrderType,
@@ -87,14 +86,6 @@ export class OrderService {
           accountId
         )
         this.orderGateway.handleModifyOrder(order, branchId)
-        this.notifyService.create(
-          {
-            type: NotifyType.NEW_ORDER,
-            branchId,
-            orderId: order.id
-          },
-          accountId
-        )
       })
 
       return order

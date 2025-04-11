@@ -1,4 +1,4 @@
-import { ActivityAction, NotifyType, Prisma, PrismaClient, RequestStatus } from '@prisma/client'
+import { ActivityAction, Prisma, PrismaClient, RequestStatus } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CustomerRequestGateway } from 'src/gateway/customer-request.gateway'
@@ -12,7 +12,6 @@ import { customPaginate, generateCode, removeDiacritics } from 'utils/Helps'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
-import { NotifyService } from 'src/notify/notify.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
@@ -21,7 +20,6 @@ export class CustomerRequestService {
     private readonly prisma: PrismaService,
     private readonly customerRequestGateway: CustomerRequestGateway,
     private readonly trashService: TrashService,
-    private readonly notifyService: NotifyService,
     private readonly activityLogService: ActivityLogService
   ) {}
 
@@ -42,11 +40,6 @@ export class CustomerRequestService {
       // Gửi socket và thông báo
       setImmediate(() => {
         this.customerRequestGateway.handleCreateCustomerRequest(customerRequest)
-        this.notifyService.create({
-          type: NotifyType.NEW_CUSTOMER_REQUEST,
-          branchId: data.branchId,
-          customerRequestId: customerRequest.id
-        })
       })
 
       return customerRequest

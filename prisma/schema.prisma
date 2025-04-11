@@ -460,7 +460,6 @@ model Order {
   orderDetails          OrderDetail[]
   creator               Account?       @relation("creator", fields: [createdBy], references: [id])
   updater               Account?       @relation("updater", fields: [updatedBy], references: [id])
-  notifies              Notify[]
 
   @@unique([branchId, code])
 }
@@ -520,7 +519,6 @@ model Table {
   updater          Account?          @relation("updater", fields: [updatedBy], references: [id])
   customerRequests CustomerRequest[]
   orders           Order[]
-  notifies         Notify[]
 }
 
 model DiscountIssue {
@@ -581,7 +579,6 @@ model CustomerRequest {
   updatedAt   DateTime       @updatedAt
   branch      Branch?        @relation(fields: [branchId], references: [id])
   table       Table?         @relation(fields: [tableId], references: [id])
-  notifies    Notify[]
 }
 
 model Branch {
@@ -658,17 +655,13 @@ model Trash {
 }
 
 model Notify {
-  id                String           @id @default(uuid())
-  orderId           String?
-  order             Order?           @relation(fields: [orderId], references: [id])
-  tableId           String?
-  table             Table?           @relation(fields: [tableId], references: [id])
-  customerRequestId String?
-  customerRequest   CustomerRequest? @relation(fields: [customerRequestId], references: [id])
-  type              NotifyType
-  accounts          Account[]
-  isRead            Boolean          @default(false)
-  createdAt         DateTime         @default(now())
+  id         String     @id @default(uuid())
+  targetName String
+  modelName  String
+  type       NotifyType
+  accounts   Account[]
+  isRead     Boolean    @default(false)
+  createdAt  DateTime   @default(now())
 }
 
 model ActivityLog {
@@ -706,9 +699,10 @@ enum ActivityAction {
 }
 
 enum NotifyType {
-  NEW_DISH_ADDED_TO_TABLE
-  NEW_ORDER
-  NEW_CUSTOMER_REQUEST
+  SEND_TO_KITCHEN
+  TRANSPORT_DISH
+  CANCEL_DISH
+  PAYMENT_REQUEST
 }
 
 enum AccountStatus {

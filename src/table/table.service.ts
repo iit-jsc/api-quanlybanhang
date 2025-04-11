@@ -48,8 +48,8 @@ export class TableService {
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
     private readonly tableGateway: TableGateway,
-    private readonly notifyService: NotifyService,
-    private readonly activityLogService: ActivityLogService
+    private readonly activityLogService: ActivityLogService,
+    private readonly notifyService: NotifyService
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
@@ -211,14 +211,6 @@ export class TableService {
       // Bắn socket và thông báo cho nhân viên trong chi nhánh
       setImmediate(() => {
         this.tableGateway.handleModifyTable(table, branchId)
-        this.notifyService.create(
-          {
-            type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
-            branchId: branchId,
-            tableId: table.id
-          },
-          accountId
-        )
         this.activityLogService.create(
           {
             action: ActivityAction.NEW_DISH_ADDED_TO_TABLE,
@@ -257,11 +249,6 @@ export class TableService {
 
     setImmediate(() => {
       this.tableGateway.handleModifyTable(table, data.branchId)
-      this.notifyService.create({
-        type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
-        branchId: data.branchId,
-        tableId: table.id
-      })
     })
 
     return table
@@ -427,6 +414,17 @@ export class TableService {
         where: { id: toTableId },
         select: tableSelect
       })
+    })
+  }
+
+  async requestPayment(id: string, branchId: string) {
+    const table = await this.prisma.table.findUniqueOrThrow({ where: { id, branchId } })
+
+    return this.notifyService.create({
+      branchId,
+      type: NotifyType.PAYMENT_REQUEST,
+      modelName: 'Table',
+      targetName: table.name
     })
   }
 }
