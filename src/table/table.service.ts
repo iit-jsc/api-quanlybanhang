@@ -372,32 +372,76 @@ export class TableService {
   }
 
   async separateTable(id: string, data: SeparateTableDto, accountId: string, branchId: string) {
-    const { toTableId, orderDetailIds } = data
+    const { toTableId, orderDetails } = data
 
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      // Kiểm tra bàn nguồn và bàn đích
       const [fromTable, toTable] = await Promise.all([
-        prisma.table.findUnique({
-          where: { id }
-        }),
-        prisma.table.findUnique({
-          where: { id: toTableId }
-        })
+        prisma.table.findUnique({ where: { id } }),
+        prisma.table.findUnique({ where: { id: toTableId } })
       ])
 
-      await prisma.orderDetail.updateMany({
-        data: {
-          tableId: toTableId,
-          updatedBy: accountId,
-          branchId
-        },
-        where: {
-          id: {
-            in: orderDetailIds
-          },
-          tableId: id
+      if (!fromTable || !toTable) {
+        throw new HttpException('Không tìm thấy bàn nguồn hoặc bàn đích!', HttpStatus.NOT_FOUND)
+      }
+
+      // Cập nhật hoặc tạo mới orderDetail dựa trên amount
+      const updatePromises = orderDetails.map(async ({ id: orderDetailId, amount }) => {
+        const orderDetail = await prisma.orderDetail.findUnique({
+          where: { id: orderDetailId }
+        })
+
+        if (!orderDetail) {
+          throw new HttpException(
+            `Không tìm thấy chi tiết đơn hàng với ID ${orderDetailId}!`,
+            HttpStatus.NOT_FOUND
+          )
+        }
+
+        if (amount > orderDetail.amount) {
+          throw new HttpException(
+            `Số lượng yêu cầu (${amount}) vượt quá số lượng hiện có (${orderDetail.amount})`,
+            HttpStatus.CONFLICT
+          )
+        }
+
+        if (amount === orderDetail.amount) {
+          // Nếu số lượng bằng nhau, chỉ cập nhật tableId
+          return prisma.orderDetail.update({
+            where: { id: orderDetailId },
+            data: {
+              tableId: toTableId,
+              updatedBy: accountId,
+              branchId
+            }
+          })
+        } else {
+          // Giảm số lượng ở bản ghi hiện tại
+          await prisma.orderDetail.update({
+            where: { id: orderDetailId },
+            data: {
+              amount: orderDetail.amount - amount,
+              updatedBy: accountId
+            }
+          })
+
+          // Tạo bản ghi mới cho bàn đích
+          return prisma.orderDetail.create({
+            data: {
+              ...orderDetail,
+              id: undefined,
+              tableId: toTableId,
+              amount,
+              createdBy: accountId,
+              branchId
+            }
+          })
         }
       })
 
+      await Promise.all(updatePromises)
+
+      // Ghi log hoạt động (chỉ cần gọi một lần, loại bỏ Promise.all dư thừa)
       await this.activityLogService.create(
         {
           action: ActivityAction.SEPARATE_TABLE,
@@ -410,8 +454,9 @@ export class TableService {
         accountId
       )
 
-      return prisma.table.findFirstOrThrow({
-        where: { id: toTableId },
+      // Trả về thông tin cả hai bàn
+      return prisma.table.findMany({
+        where: { id: { in: [toTableId, id] } },
         select: tableSelect
       })
     })

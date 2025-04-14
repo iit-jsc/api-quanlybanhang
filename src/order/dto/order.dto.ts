@@ -6,8 +6,9 @@ import {
   IsDate,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
-  IsString,
+  Min,
   Validate,
   ValidateNested,
   ValidatorConstraint,
@@ -130,12 +131,21 @@ export class SaveOrderDto {
   isSave: boolean
 }
 
+class OrderDetailAmount {
+  @IsNotEmpty()
+  id: string
+
+  @IsNumber()
+  @Min(1)
+  amount: number
+}
+
 export class SeparateTableDto {
   @IsNotEmpty()
-  @IsString()
   toTableId: string
 
-  @IsNotEmpty()
   @ArrayNotEmpty()
-  orderDetailIds: string[]
+  @ValidateNested({ each: true })
+  @Type(() => OrderDetailAmount)
+  orderDetails: OrderDetailAmount[]
 }

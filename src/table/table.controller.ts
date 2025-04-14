@@ -27,7 +27,7 @@ import { Roles } from 'guards/roles.decorator'
 import { RolesGuard } from 'guards/roles.guard'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
-import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
+import { PaymentFromTableDto, RequestPaymentDto } from 'src/order/dto/payment.dto'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 
 @Controller('table')
@@ -72,6 +72,13 @@ export class TableController {
     const { accountId, branchId } = req
 
     return this.tableService.payment(id, data, accountId, branchId)
+  }
+
+  @Post('/:id/request-payment')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.order.payment)
+  requestPayment(@Param('id') id: string, @Body() data: RequestPaymentDto) {
+    return this.tableService.requestPayment(id, data.branchId)
   }
 
   @Post(':id/separate')

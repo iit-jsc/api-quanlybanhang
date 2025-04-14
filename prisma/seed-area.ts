@@ -7,7 +7,7 @@ async function main() {
 
   const areaIds = ['2b9410f8-6ef0-4618-ba1c-c57c72af961b', 'd87f1bdf-bddf-4701-b382-35c64cf57704']
 
-  const totalTables = 1000
+  const totalTables = 50
   const batchSize = 100 // Số lượng bàn mỗi lần tạo
   const batches = Math.ceil(totalTables / batchSize)
 
