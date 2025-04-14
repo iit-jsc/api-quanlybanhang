@@ -1,5 +1,4 @@
 import { Prisma } from '@prisma/client'
-import { productSortSelect } from './product.response'
 
 export const productOptionGroupSelect = (productId?: string): Prisma.ProductOptionGroupSelect => ({
   id: true,
@@ -30,9 +29,6 @@ export const productOptionSelect: Prisma.ProductOptionSelect = {
   price: true,
   type: true,
   productOptionGroupId: true,
-  products: {
-    select: productSortSelect
-  },
   isDefault: true,
   photoURL: true,
   updatedAt: true
