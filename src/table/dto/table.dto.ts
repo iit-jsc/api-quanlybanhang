@@ -33,7 +33,7 @@ export class AddDishDto {
 }
 
 export class AddDishByCustomerDto extends AddDishDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @IsString()
   branchId: string
 }

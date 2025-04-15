@@ -12,6 +12,7 @@ import {
   ConditionOperator,
   DiscountFor,
   DiscountType,
+  NotifyType,
   OrderDetailStatus,
   PrismaClient,
   VoucherConditionType,
@@ -168,7 +169,7 @@ export function generateSlug(text) {
 
 export async function getOrderDetails(
   data: CreateOrderProductsDto[],
-  status: OrderDetailStatus,
+  defaultStatus: OrderDetailStatus,
   accountId: string,
   branchId: string
 ) {
@@ -193,7 +194,7 @@ export async function getOrderDetails(
 
       return {
         amount: item.amount,
-        status: item.status || status,
+        status: item.status || defaultStatus,
         product: product,
         note: item.note,
         productOptions: productOptions,
@@ -507,13 +508,6 @@ export async function handleOrderDetailsBeforePayment(
   prisma: PrismaClient,
   conditions: { tableId?: string; orderId?: string }
 ) {
-  await prisma.orderDetail.deleteMany({
-    where: {
-      ...conditions,
-      status: OrderDetailStatus.CANCELLED
-    }
-  })
-
   await prisma.orderDetail.updateMany({
     where: {
       ...conditions,
@@ -525,4 +519,13 @@ export async function handleOrderDetailsBeforePayment(
       status: OrderDetailStatus.SUCCESS
     }
   })
+}
+
+export function getNotifyInfo(status: OrderDetailStatus): { type: NotifyType; content: string } {
+  switch (status) {
+    case OrderDetailStatus.PROCESSING:
+      return { type: NotifyType.REPORT_TO_KITCHEN, content: 'yêu cầu chế biến' }
+    case OrderDetailStatus.TRANSPORTING:
+      return { type: NotifyType.TRANSPORT_DISH, content: 'chờ cung ứng' }
+  }
 }

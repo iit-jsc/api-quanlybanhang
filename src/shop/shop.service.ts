@@ -138,13 +138,26 @@ export class ShopService {
     // logic tạo role
     const roles = [
       {
-        name: 'Nhân viên',
-        description: 'Vai trò dành cho nhân viên cửa hàng',
+        name: 'Bếp',
+        description: 'Vai trò dành cho bếp trong cửa hàng',
         permissions: [
           'VIEW_AREA',
           'VIEW_TABLE',
-          'ADD_DISH_TO_TABLE',
+          'UPDATE_ORDER',
+          'DELETE_ORDER',
+          'VIEW_ORDER',
+          'CANCEL_ORDER',
+          'CHEF_VIEW'
+        ]
+      },
+      {
+        name: 'Thu ngân',
+        description: 'Vai trò dành cho thu ngân trong cửa hàng',
+        permissions: [
+          'VIEW_AREA',
+          'VIEW_TABLE',
           'SEPARATE_TABLE',
+          'ADD_DISH_TO_TABLE',
           'CREATE_CUSTOMER',
           'UPDATE_CUSTOMER',
           'VIEW_CUSTOMER',
@@ -164,7 +177,38 @@ export class ShopService {
           'VIEW_ORDER',
           'PAYMENT_ORDER',
           'SAVE_ORDER',
-          'CANCEL_ORDER'
+          'CANCEL_ORDER',
+          'CASHIER_VIEW'
+        ]
+      },
+      {
+        name: 'Nhân viên',
+        description: 'Vai trò dành cho nhân viên cửa hàng',
+        permissions: [
+          'VIEW_AREA',
+          'VIEW_TABLE',
+          'SEPARATE_TABLE',
+          'ADD_DISH_TO_TABLE',
+          'CREATE_CUSTOMER',
+          'UPDATE_CUSTOMER',
+          'VIEW_CUSTOMER',
+          'VIEW_CUSTOMER_TYPE',
+          'VIEW_PRODUCT_TYPE',
+          'VIEW_PRODUCT',
+          'VIEW_MEASUREMENT_UNIT',
+          'VIEW_PAYMENT_METHOD',
+          'VIEW_DISCOUNT_ISSUE',
+          'VIEW_DISCOUNT_CODE',
+          'VIEW_EMPLOYEE_GROUP',
+          'DELETE_CUSTOMER_REQUEST',
+          'UPDATE_CUSTOMER_REQUEST',
+          'CREATE_ORDER',
+          'UPDATE_ORDER',
+          'DELETE_ORDER',
+          'VIEW_ORDER',
+          'SAVE_ORDER',
+          'CANCEL_ORDER',
+          'STAFF_VIEW'
         ]
       },
       {
@@ -179,8 +223,8 @@ export class ShopService {
           'UPDATE_TABLE',
           'DELETE_TABLE',
           'VIEW_TABLE',
-          'ADD_DISH_TO_TABLE',
           'SEPARATE_TABLE',
+          'ADD_DISH_TO_TABLE',
           'CREATE_ROLE',
           'UPDATE_ROLE',
           'DELETE_ROLE',
@@ -237,7 +281,11 @@ export class ShopService {
           'VIEW_ORDER',
           'PAYMENT_ORDER',
           'SAVE_ORDER',
-          'CANCEL_ORDER'
+          'CANCEL_ORDER',
+          'CASHIER_VIEW',
+          'STAFF_VIEW',
+          'CHEF_VIEW',
+          'MANAGE_VIEW'
         ]
       }
     ]

@@ -99,5 +99,11 @@ export const permissions = {
     payment: 'PAYMENT_ORDER',
     save: 'SAVE_ORDER',
     cancel: 'CANCEL_ORDER'
+  },
+  view: {
+    cashier: 'CASHIER_VIEW',
+    STAFF: 'STAFF_VIEW',
+    kitchen: 'CHEF_VIEW',
+    manage: 'MANAGE_VIEW'
   }
 }

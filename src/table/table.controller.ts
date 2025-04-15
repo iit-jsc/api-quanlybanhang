@@ -76,7 +76,6 @@ export class TableController {
 
   @Post('/:id/request-payment')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.payment)
   requestPayment(@Param('id') id: string, @Body() data: RequestPaymentDto) {
     return this.tableService.requestPayment(id, data.branchId)
   }
@@ -89,6 +88,15 @@ export class TableController {
     const { accountId, branchId } = req
 
     return this.tableService.separateTable(id, data, accountId, branchId)
+  }
+
+  @Patch(':id/report-to-kitchen')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.order.update)
+  reportToKitchen(@Req() req: RequestJWT, @Param('id') id: string) {
+    const { accountId, branchId } = req
+
+    return this.tableService.reportToKitchen(id, accountId, branchId)
   }
 
   @Patch(':id')

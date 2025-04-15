@@ -18,6 +18,14 @@ export class NotifyService {
     await this.notifyGateway.handleSendNotify(data)
   }
 
+  async createMany(data: CreateNotifyDto[]) {
+    await Promise.all(
+      data.map(async notify => {
+        await this.notifyGateway.handleSendNotify(notify)
+      })
+    )
+  }
+
   async read(id: string, accountId: string) {
     return this.prisma.notify.update({
       where: {

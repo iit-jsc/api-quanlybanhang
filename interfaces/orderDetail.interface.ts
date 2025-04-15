@@ -1,3 +1,4 @@
+import { OrderDetailStatus } from '@prisma/client'
 import { IProduct } from './product.interface'
 import { IProductOption } from './productOption.interface'
 
@@ -13,4 +14,27 @@ export type IOrderDetail = {
   tableId: string | null
   productOptions?: IProductOption[] | any
   productOrigin?: IProduct
+  status: OrderDetailStatus
+  table?: {
+    id: string
+    name: string
+    area: {
+      id: string
+      name: string
+    }
+  }
+}
+
+export type IProductGroup = {
+  productId: string
+  productName?: string
+  totalAmount: number
+  status: string
+}
+
+export type ITableGroup = {
+  tableId: string
+  tableName: string
+  areaName: string
+  products: Record<string, IProductGroup>
 }

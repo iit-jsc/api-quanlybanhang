@@ -385,5 +385,28 @@
         "name": "Hủy đơn hàng"
       }
     ]
+  },
+    {
+    "name": "Truy cập giao diện",
+    "code": "VIEW_ACCESS",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CASHIER_VIEW",
+        "name": "Giao diện thu ngân"
+      },
+      {
+        "code": "STAFF_VIEW",
+        "name": "Giao diện thu ngân"
+      },
+      {
+        "code": "CHEF_VIEW",
+        "name": "Giao diện bếp"
+      },
+      {
+        "code": "MANAGE_VIEW",
+        "name": "Giao diện quản lý"
+      }
+    ]
   }
 ]

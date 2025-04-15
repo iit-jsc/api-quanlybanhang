@@ -14,6 +14,7 @@ import {
 import { OrderDetailService } from './order-detail.service'
 import { DeleteManyDto } from 'utils/Common.dto'
 import {
+  CancelOrderDetailsDto,
   FindManyOrderDetailDto,
   UpdateOrderDetailDto,
   UpdateStatusOrderDetailsDto
@@ -55,6 +56,15 @@ export class OrderDetailController {
     const { accountId, branchId } = req
 
     return this.orderDetailService.updateStatusOrderDetails(data, accountId, branchId)
+  }
+
+  @Patch('/:id/cancel')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.order.cancel)
+  cancel(@Body() data: CancelOrderDetailsDto, @Req() req: RequestJWT, @Param('id') id: string) {
+    const { accountId, branchId } = req
+
+    return this.orderDetailService.cancel(id, data, accountId, branchId)
   }
 
   @Patch('/:id')

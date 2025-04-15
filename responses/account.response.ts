@@ -3,7 +3,7 @@ import { userSortSelect } from './user.response'
 
 export const accountSortSelect: Prisma.AccountSelect = {
   id: true,
-  updatedAt: true,
+  status: true,
   user: {
     select: userSortSelect
   }

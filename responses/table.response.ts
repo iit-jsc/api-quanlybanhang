@@ -1,5 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { orderDetailSortSelect } from './order-detail.response'
+import { accountSortSelect } from './account.response'
 
 export const tableSortSelect: Prisma.TableSelect = {
   id: true,
@@ -32,7 +33,18 @@ export const tableSelect: Prisma.TableSelect = {
       status: true,
       createdAt: true,
       product: true,
-      productOptions: true
+      productOptions: true,
+      canceledOrderDetails: {
+        select: {
+          id: true,
+          amount: true,
+          cancelReason: true,
+          createdAt: true,
+          creator: {
+            select: accountSortSelect
+          }
+        }
+      }
     }
   },
   updatedAt: true

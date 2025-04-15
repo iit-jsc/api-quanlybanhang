@@ -21,6 +21,7 @@ import {
   generateCode,
   getCustomerDiscount,
   getDiscountCode,
+  getNotifyInfo,
   getOrderDetails,
   getOrderTotal,
   getVoucher,
@@ -41,6 +42,7 @@ import { orderDetailSortSelect } from 'responses/order-detail.response'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
+import { OrderDetailGateway } from 'src/gateway/order-detail.gateway'
 
 @Injectable()
 export class TableService {
@@ -49,7 +51,8 @@ export class TableService {
     private readonly trashService: TrashService,
     private readonly tableGateway: TableGateway,
     private readonly activityLogService: ActivityLogService,
-    private readonly notifyService: NotifyService
+    private readonly notifyService: NotifyService,
+    private readonly orderDetailGateway: OrderDetailGateway
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
@@ -191,7 +194,7 @@ export class TableService {
     return this.prisma.$transaction(async prisma => {
       const orderDetails = await getOrderDetails(
         data.orderProducts,
-        OrderDetailStatus.APPROVED,
+        OrderDetailStatus.PROCESSING,
         accountId,
         branchId
       )
@@ -208,19 +211,16 @@ export class TableService {
         select: tableSelect
       })
 
-      // Bắn socket và thông báo cho nhân viên trong chi nhánh
+      const notify = getNotifyInfo(data.orderProducts[0].status)
+
+      // Bắn socket
       setImmediate(() => {
         this.tableGateway.handleModifyTable(table, branchId)
-        this.activityLogService.create(
-          {
-            action: ActivityAction.NEW_DISH_ADDED_TO_TABLE,
-            modelName: 'Table',
-            targetName: table.name,
-            targetId: table.id
-          },
-          { branchId },
-          accountId
-        )
+        this.notifyService.create({
+          branchId,
+          type: notify.type,
+          content: `${table.name} - ${table.area.name} có món ${notify.content}`
+        })
       })
 
       return table
@@ -247,8 +247,16 @@ export class TableService {
       select: tableSelect
     })
 
+    const notify = getNotifyInfo(data.orderProducts[0].status)
+
+    // Bắn socket
     setImmediate(() => {
       this.tableGateway.handleModifyTable(table, data.branchId)
+      this.notifyService.create({
+        branchId: data.branchId,
+        type: notify.type,
+        content: `${table.name} - ${table.area.name} có món ${notify.content}`
+      })
     })
 
     return table
@@ -359,6 +367,7 @@ export class TableService {
       id: orderDetail.id,
       branchId: orderDetail.branchId,
       amount: orderDetail.amount,
+      status: orderDetail.status,
       orderId: orderDetail.orderId,
       note: orderDetail.note,
       product: orderDetail.product as unknown as IProduct,
@@ -463,13 +472,57 @@ export class TableService {
   }
 
   async requestPayment(id: string, branchId: string) {
-    const table = await this.prisma.table.findUniqueOrThrow({ where: { id, branchId } })
+    const table = await this.prisma.table.findUniqueOrThrow({
+      where: { id, branchId }
+    })
 
     return this.notifyService.create({
       branchId,
       type: NotifyType.PAYMENT_REQUEST,
-      modelName: 'Table',
-      targetName: table.name
+      content: table.name
+    })
+  }
+
+  async reportToKitchen(tableId: string, accountId: string, branchId: string) {
+    return await this.prisma.$transaction(async prisma => {
+      const table = await prisma.table.findFirstOrThrow({
+        where: {
+          id: tableId
+        },
+        include: { area: true }
+      })
+
+      const orderDetails = await prisma.orderDetail.findMany({
+        where: {
+          tableId
+        }
+      })
+
+      await prisma.orderDetail.updateMany({
+        where: {
+          tableId
+        },
+        data: {
+          status: OrderDetailStatus.PROCESSING,
+          updatedBy: accountId
+        }
+      })
+
+      const updatedOrderDetails = orderDetails.map(detail => ({
+        ...detail,
+        status: OrderDetailStatus.PROCESSING
+      }))
+
+      await Promise.all([
+        this.orderDetailGateway.handleModifyOrderDetails(updatedOrderDetails, branchId),
+        this.notifyService.create({
+          branchId,
+          type: NotifyType.REPORT_TO_KITCHEN,
+          content: `${table.name} - ${table.area.name}`
+        })
+      ])
+
+      return updatedOrderDetails
     })
   }
 }

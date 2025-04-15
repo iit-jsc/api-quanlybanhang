@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { accountSortSelect } from './account.response'
 
 export const orderDetailSortSelect: Prisma.OrderDetailSelect = {
   id: true,
@@ -18,6 +19,17 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
   note: true,
   amount: true,
   productOptions: true,
+  canceledOrderDetails: {
+    select: {
+      id: true,
+      amount: true,
+      cancelReason: true,
+      createdAt: true,
+      creator: {
+        select: accountSortSelect
+      }
+    }
+  },
   table: {
     select: {
       id: true,
@@ -51,5 +63,11 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
     }
   },
   updatedAt: true,
-  createdAt: true
+  createdAt: true,
+  creator: {
+    select: accountSortSelect
+  },
+  updater: {
+    select: accountSortSelect
+  }
 }

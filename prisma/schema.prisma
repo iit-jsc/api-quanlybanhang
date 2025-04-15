@@ -48,63 +48,64 @@ model Role {
 }
 
 model Account {
-  id                        String               @id @default(uuid())
-  status                    AccountStatus        @default(ACTIVE)
+  id                        String                @id @default(uuid())
+  status                    AccountStatus         @default(ACTIVE)
   password                  String?
-  userId                    String               @unique
-  user                      User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roles                     Role[]               @relation("roleAccount")
+  userId                    String                @unique
+  user                      User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles                     Role[]                @relation("roleAccount")
   branches                  Branch[]
   createdBy                 String?
   updatedBy                 String?
-  createdAt                 DateTime             @default(now())
-  updatedAt                 DateTime             @updatedAt
-  createOrders              Order[]              @relation("creator")
-  updateOrders              Order[]              @relation("updater")
-  creatorBranches           Branch[]             @relation("creator")
-  updaterBranches           Branch[]             @relation("updater")
-  creatorMeasurementUnits   MeasurementUnit[]    @relation("creator")
-  updaterMeasurementUnits   MeasurementUnit[]    @relation("updater")
-  creatorProductTypes       ProductType[]        @relation("creator")
-  updaterProductTypes       ProductType[]        @relation("updater")
-  creatorProducts           Product[]            @relation("creator")
-  updaterProducts           Product[]            @relation("updater")
-  creatorEmployeeGroups     EmployeeGroup[]      @relation("creator")
-  updaterEmployeeGroups     EmployeeGroup[]      @relation("updater")
-  creatorCustomerTypes      CustomerType[]       @relation("creator")
-  updaterCustomerTypes      CustomerType[]       @relation("updater")
-  creatorAreas              Area[]               @relation("creator")
-  updaterAreas              Area[]               @relation("updater")
-  creatorTables             Table[]              @relation("creator")
-  updaterTables             Table[]              @relation("updater")
-  creatorCustomers          Customer[]           @relation("creator")
-  updaterCustomers          Customer[]           @relation("updater")
-  creatorUsers              User[]               @relation("creator")
-  updaterUsers              User[]               @relation("updater")
-  creatorShops              Shop[]               @relation("creator")
-  updaterShops              Shop[]               @relation("updater")
-  creatorSupplierTypes      SupplierType[]       @relation("creator")
-  updaterSupplierTypes      SupplierType[]       @relation("updater")
-  creatorSupplier           Supplier[]           @relation("creator")
-  updaterSupplier           Supplier[]           @relation("updater")
-  creatorVoucher            Voucher[]            @relation("creator")
-  updaterVoucher            Voucher[]            @relation("updater")
-  creatorOrderDetail        OrderDetail[]        @relation("creator")
-  updaterOrderDetail        OrderDetail[]        @relation("updater")
-  creatorDiscountIssue      DiscountIssue[]      @relation("creator")
-  updaterDiscountIssue      DiscountIssue[]      @relation("updater")
-  creatorDiscountCode       DiscountCode[]       @relation("creator")
-  updaterDiscountCode       DiscountCode[]       @relation("updater")
-  creatorPaymentMethod      PaymentMethod[]      @relation("creator")
-  updaterPaymentMethod      PaymentMethod[]      @relation("updater")
-  creatorProductOptionGroup ProductOptionGroup[] @relation("creator")
-  updaterProductOptionGroup ProductOptionGroup[] @relation("updater")
-  updaterCustomerRequest    CustomerRequest[]    @relation("updater")
-  updaterRole               Role[]               @relation("updater")
-  creatorRole               Role[]               @relation("creator")
-  trashes                   Trash[]              @relation("creator")
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
+  createOrders              Order[]               @relation("creator")
+  updateOrders              Order[]               @relation("updater")
+  creatorBranches           Branch[]              @relation("creator")
+  updaterBranches           Branch[]              @relation("updater")
+  creatorMeasurementUnits   MeasurementUnit[]     @relation("creator")
+  updaterMeasurementUnits   MeasurementUnit[]     @relation("updater")
+  creatorProductTypes       ProductType[]         @relation("creator")
+  updaterProductTypes       ProductType[]         @relation("updater")
+  creatorProducts           Product[]             @relation("creator")
+  updaterProducts           Product[]             @relation("updater")
+  creatorEmployeeGroups     EmployeeGroup[]       @relation("creator")
+  updaterEmployeeGroups     EmployeeGroup[]       @relation("updater")
+  creatorCustomerTypes      CustomerType[]        @relation("creator")
+  updaterCustomerTypes      CustomerType[]        @relation("updater")
+  creatorAreas              Area[]                @relation("creator")
+  updaterAreas              Area[]                @relation("updater")
+  creatorTables             Table[]               @relation("creator")
+  updaterTables             Table[]               @relation("updater")
+  creatorCustomers          Customer[]            @relation("creator")
+  updaterCustomers          Customer[]            @relation("updater")
+  creatorUsers              User[]                @relation("creator")
+  updaterUsers              User[]                @relation("updater")
+  creatorShops              Shop[]                @relation("creator")
+  updaterShops              Shop[]                @relation("updater")
+  creatorSupplierTypes      SupplierType[]        @relation("creator")
+  updaterSupplierTypes      SupplierType[]        @relation("updater")
+  creatorSupplier           Supplier[]            @relation("creator")
+  updaterSupplier           Supplier[]            @relation("updater")
+  creatorVoucher            Voucher[]             @relation("creator")
+  updaterVoucher            Voucher[]             @relation("updater")
+  creatorOrderDetail        OrderDetail[]         @relation("creator")
+  updaterOrderDetail        OrderDetail[]         @relation("updater")
+  creatorDiscountIssue      DiscountIssue[]       @relation("creator")
+  updaterDiscountIssue      DiscountIssue[]       @relation("updater")
+  creatorDiscountCode       DiscountCode[]        @relation("creator")
+  updaterDiscountCode       DiscountCode[]        @relation("updater")
+  creatorPaymentMethod      PaymentMethod[]       @relation("creator")
+  updaterPaymentMethod      PaymentMethod[]       @relation("updater")
+  creatorProductOptionGroup ProductOptionGroup[]  @relation("creator")
+  updaterProductOptionGroup ProductOptionGroup[]  @relation("updater")
+  updaterCustomerRequest    CustomerRequest[]     @relation("updater")
+  updaterRole               Role[]                @relation("updater")
+  creatorRole               Role[]                @relation("creator")
+  trashes                   Trash[]               @relation("creator")
   notifies                  Notify[]
   activityLogs              ActivityLog[]
+  canceledOrderDetails      CanceledOrderDetail[] @relation("creator")
 }
 
 model User {
@@ -465,26 +466,38 @@ model Order {
 }
 
 model OrderDetail {
-  id              String             @id @default(uuid())
-  branchId        String
-  amount          Float
-  orderId         String?
-  note            String?
-  status          OrderDetailStatus? @default(WAITING)
-  productOptions  Json? 
-  product         Json?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  productOrigin   Product?           @relation(fields: [productOriginId], references: [id])
-  productOriginId String?
-  branch          Branch?            @relation(fields: [branchId], references: [id])
-  order           Order?             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  table           Table?             @relation(fields: [tableId], references: [id])
-  tableId         String?
-  createdBy       String?
-  updatedBy       String?
-  creator         Account?           @relation("creator", fields: [createdBy], references: [id])
-  updater         Account?           @relation("updater", fields: [updatedBy], references: [id])
+  id                   String                @id @default(uuid())
+  branchId             String
+  amount               Float
+  orderId              String?
+  note                 String?
+  status               OrderDetailStatus?    @default(WAITING)
+  productOptions       Json?
+  product              Json?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  productOrigin        Product?              @relation(fields: [productOriginId], references: [id])
+  productOriginId      String?
+  branch               Branch?               @relation(fields: [branchId], references: [id])
+  order                Order?                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  table                Table?                @relation(fields: [tableId], references: [id])
+  tableId              String?
+  createdBy            String?
+  updatedBy            String?
+  creator              Account?              @relation("creator", fields: [createdBy], references: [id])
+  updater              Account?              @relation("updater", fields: [updatedBy], references: [id])
+  canceledOrderDetails CanceledOrderDetail[]
+}
+
+model CanceledOrderDetail {
+  id            String       @id @default(uuid())
+  orderDetailId String       @unique
+  orderDetail   OrderDetail? @relation(fields: [orderDetailId], references: [id])
+  amount        Float
+  cancelReason  String?
+  createdAt     DateTime     @default(now())
+  createdBy     String?
+  creator       Account?     @relation("creator", fields: [createdBy], references: [id])
 }
 
 model Area {
@@ -655,13 +668,12 @@ model Trash {
 }
 
 model Notify {
-  id         String     @id @default(uuid())
-  targetName String
-  modelName  String
-  type       NotifyType
-  accounts   Account[]
-  isRead     Boolean    @default(false)
-  createdAt  DateTime   @default(now())
+  id        String     @id @default(uuid())
+  content   String
+  type      NotifyType
+  accounts  Account[]
+  isRead    Boolean    @default(false)
+  createdAt DateTime   @default(now())
 }
 
 model ActivityLog {
@@ -689,7 +701,7 @@ enum ActivityAction {
   PAYMENT
   CANCEL_ORDER
   APPROVE_DISH
-  SEND_TO_KITCHEN
+  REPORT_TO_KITCHEN
   TRANSPORT_DISH
   SUCCESS_DISH
   CANCEL_DISH
@@ -699,7 +711,7 @@ enum ActivityAction {
 }
 
 enum NotifyType {
-  SEND_TO_KITCHEN
+  REPORT_TO_KITCHEN
   TRANSPORT_DISH
   CANCEL_DISH
   PAYMENT_REQUEST
@@ -778,7 +790,6 @@ enum OrderDetailStatus {
   PROCESSING
   TRANSPORTING
   SUCCESS
-  CANCELLED
 }
 
 enum PermissionGroupType {
