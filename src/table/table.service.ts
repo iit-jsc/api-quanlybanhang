@@ -473,13 +473,14 @@ export class TableService {
 
   async requestPayment(id: string, branchId: string) {
     const table = await this.prisma.table.findUniqueOrThrow({
-      where: { id, branchId }
+      where: { id, branchId },
+      include: { area: true }
     })
 
     return this.notifyService.create({
       branchId,
       type: NotifyType.PAYMENT_REQUEST,
-      content: table.name
+      content: `${table.name} - ${table.area.name} yêu cầu thanh toán`
     })
   }
 

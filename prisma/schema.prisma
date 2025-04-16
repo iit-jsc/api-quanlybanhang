@@ -491,7 +491,7 @@ model OrderDetail {
 
 model CanceledOrderDetail {
   id            String       @id @default(uuid())
-  orderDetailId String       @unique
+  orderDetailId String       
   orderDetail   OrderDetail? @relation(fields: [orderDetailId], references: [id])
   amount        Float
   cancelReason  String?

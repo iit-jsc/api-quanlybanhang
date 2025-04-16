@@ -176,20 +176,12 @@ export class OrderDetailService {
         )
       }
 
-      // Cập nhật hoặc tạo mới canceledOrderDetail
-      await prisma.canceledOrderDetail.upsert({
-        where: { orderDetailId: id },
-        create: {
+      // Tạo mới canceledOrderDetail
+      await prisma.canceledOrderDetail.create({
+        data: {
           orderDetailId: id,
           amount: data.amount,
           cancelReason: data.cancelReason,
-          createdBy: accountId
-        },
-        update: {
-          cancelReason: data.cancelReason,
-          amount: {
-            increment: data.amount
-          },
           createdBy: accountId
         }
       })
@@ -206,6 +198,8 @@ export class OrderDetailService {
       })
 
       this.orderDetailGateway.handleModifyOrderDetails([newOrderDetail], branchId)
+
+      return newOrderDetail
     })
   }
 
