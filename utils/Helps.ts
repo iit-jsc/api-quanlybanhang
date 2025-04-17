@@ -530,6 +530,6 @@ export function getNotifyInfo(status: OrderDetailStatus): { type: NotifyType; co
     case OrderDetailStatus.SUCCESS:
       return { type: NotifyType.TRANSPORT_DISH, content: 'đã phục vụ' }
     default:
-      return { type: NotifyType.TRANSPORT_DISH, content: '' }
+      return { type: NotifyType.TRANSPORT_DISH, content: 'chờ cung ứng' }
   }
 }

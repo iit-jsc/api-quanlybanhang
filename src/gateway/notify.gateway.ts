@@ -22,8 +22,6 @@ export class NotifyGateway extends BaseGateway {
       ? await this.prisma.accountSocket.findUnique({ where: { deviceId } })
       : null
 
-    this.server
-      .to(branchId)
-      .emit('notifies', emitData, accountSocket ? { except: accountSocket.socketId } : {})
+    this.server.to(branchId).except(accountSocket?.socketId).emit('notifies', emitData)
   }
 }

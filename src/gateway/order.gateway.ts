@@ -10,13 +10,16 @@ export class OrderGateway extends BaseGateway {
   }
 
   async handleModifyOrder(payload: Order, branchId: string, deviceId: string) {
+    const target = this.server.to(branchId)
+
     if (deviceId) {
       const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
-      this.server
-        .to(branchId)
-        .emit('order', payload, accountSocket ? { except: accountSocket.socketId } : {})
-    } else {
-      this.server.to(branchId).emit('order', payload)
+      if (accountSocket?.socketId) {
+        target.except(accountSocket.socketId).emit('order', payload)
+        return
+      }
     }
+
+    target.emit('order', payload)
   }
 }

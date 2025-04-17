@@ -6,17 +6,17 @@ import {
   OnGatewayConnection,
   OnGatewayDisconnect,
   ConnectedSocket,
-  SubscribeMessage
+  SubscribeMessage,
+  MessageBody
 } from '@nestjs/websockets'
 import { Server, Socket } from 'socket.io'
-import { AnyObject } from 'interfaces/common.interface'
-import { HttpException, HttpStatus, Req } from '@nestjs/common'
+import { HttpException, HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
+import { TokenPayload } from 'interfaces/common.interface'
 
 @WebSocketGateway({
   cors: {
-    origin: '*', // Hoặc domain cụ thể của Postman
-    methods: ['GET', 'POST'],
+    origin: '*',
     credentials: true
   }
 })
@@ -32,8 +32,12 @@ export abstract class BaseGateway
 
   afterInit() {}
 
-  handleConnection(client: Socket) {
-    console.log('Client connected:', client.id)
+  async handleConnection(client: Socket) {
+    try {
+      console.log('Client connected:', client.id)
+    } catch (error) {
+      console.error('Error in handleConnection:', error)
+    }
   }
 
   async handleDisconnect(client: Socket) {
@@ -49,29 +53,42 @@ export abstract class BaseGateway
   }
 
   @SubscribeMessage('joinBranch')
-  async handleJoinBranch(@ConnectedSocket() client: Socket, @Req() req: AnyObject) {
+  async handleJoinBranch(
+    @ConnectedSocket() client: Socket,
+    @MessageBody() payload: { token: string }
+  ) {
     try {
-      const authHeader = this.getAuthHeader(req)
+      if (!payload?.token) {
+        throw new HttpException('Không tìm thấy token!', HttpStatus.NOT_FOUND)
+      }
 
-      if (!authHeader) return false
+      const token = payload.token
 
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, token] = authHeader.split(' ')
-
-      if (!token) throw new HttpException('Không tìm thấy token!', HttpStatus.NOT_FOUND)
-
-      const payload = await this.jwtService.verifyAsync(token, {
+      const decoded: TokenPayload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY
       })
 
+      // Lấy danh sách các phòng hiện tại của client (bao gồm cả socket.id của chính nó)
+      const currentRooms = Array.from(client.rooms)
+
+      console.log(currentRooms, 123)
+
+      // Rời khỏi tất cả các phòng hiện tại, trừ phòng mặc định (socket.id)
+      for (const room of currentRooms) {
+        if (room !== decoded.branchId) {
+          client.leave(room)
+          console.log(`Client ${client.id} left room: ${room}`)
+        }
+      }
+
       await this.prisma.accountSocket.upsert({
         where: {
-          deviceId: payload.deviceId
+          deviceId: decoded.deviceId
         },
         create: {
-          accountId: payload.accountId,
-          deviceId: payload.deviceId,
-          branchId: payload.branchId,
+          accountId: decoded.accountId,
+          deviceId: decoded.deviceId,
+          branchId: decoded.branchId,
           socketId: client.id
         },
         update: {
@@ -79,14 +96,13 @@ export abstract class BaseGateway
         }
       })
 
-      client.join(payload.branchId)
-    } catch (error) {
-      console.log(error)
-    }
-  }
+      client.join(decoded.branchId)
 
-  private getAuthHeader(req: AnyObject) {
-    const authHeader = req.handshake.headers['authorization']
-    return authHeader
+      console.log('client joined: ', client.id)
+
+      return true
+    } catch (error) {
+      console.error('Error in handleJoinBranch:', error)
+    }
   }
 }

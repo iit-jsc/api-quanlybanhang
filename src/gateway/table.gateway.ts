@@ -10,14 +10,27 @@ export class TableGateway extends BaseGateway {
     super(prisma, jwtService)
   }
 
-  async handleModifyTable(payload: Table, branchId: string, deviceId?: string) {
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
-      this.server
-        .to(branchId)
-        .emit('table', payload, accountSocket ? { except: accountSocket.socketId } : {})
-    } else {
-      this.server.to(branchId).emit('table', payload)
+  async handleModifyTable(payload: Table | Table[], branchId: string, deviceId?: string) {
+    try {
+      // Chuẩn hóa dữ liệu thành mảng
+      const emitData = Array.isArray(payload) ? payload : [payload]
+
+      // Tìm accountSocket nếu deviceId được cung cấp
+      const accountSocket = deviceId
+        ? await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+        : null
+
+      // Gửi sự kiện 'tables' đến tất cả client trong branchId
+      const socket = this.server.to(branchId)
+
+      // Nếu có accountSocket, loại trừ socketId của nó
+      if (accountSocket?.socketId) {
+        socket.except(accountSocket.socketId).emit('tables', emitData)
+      } else {
+        socket.emit('tables', emitData)
+      }
+    } catch (error) {
+      console.error('Error in handleModifyTable:', error)
     }
   }
 }

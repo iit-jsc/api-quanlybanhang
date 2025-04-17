@@ -460,24 +460,29 @@ export class TableService {
 
       await Promise.all(updatePromises)
 
-      // Ghi log hoạt động (chỉ cần gọi một lần, loại bỏ Promise.all dư thừa)
-      await this.activityLogService.create(
-        {
-          action: ActivityAction.SEPARATE_TABLE,
-          modelName: 'Table',
-          targetId: toTable.id,
-          targetName: toTable.name,
-          relatedName: fromTable.name
-        },
-        { branchId },
-        accountId
-      )
-
       // Trả về thông tin cả hai bàn
-      return prisma.table.findMany({
+      const tableUpdates = await prisma.table.findMany({
         where: { id: { in: [toTableId, id] } },
         select: tableSelect
       })
+
+      // Ghi log hoạt động
+      setImmediate(() => {
+        this.tableGateway.handleModifyTable(tableUpdates, branchId)
+        this.activityLogService.create(
+          {
+            action: ActivityAction.SEPARATE_TABLE,
+            modelName: 'Table',
+            targetId: toTable.id,
+            targetName: toTable.name,
+            relatedName: fromTable.name
+          },
+          { branchId },
+          accountId
+        )
+      })
+
+      return tableUpdates
     })
   }
 

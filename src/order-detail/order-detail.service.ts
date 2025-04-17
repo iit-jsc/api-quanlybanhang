@@ -15,7 +15,7 @@ import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderDetailGateway } from 'src/gateway/order-detail.gateway'
 import { NotifyService } from 'src/notify/notify.service'
-import { IProductGroup, ITableGroup } from 'interfaces/orderDetail.interface'
+import { IOrderDetail, IProductGroup, ITableGroup } from 'interfaces/orderDetail.interface'
 
 @Injectable()
 export class OrderDetailService {
@@ -235,11 +235,18 @@ export class OrderDetailService {
       const detailsMap = new Map(currentDetails.map(detail => [detail.id, detail]))
 
       const newOrderDetails = []
-      const updatePromises = data.orderDetails.map(async detail => {
+      const updatePromises = data.orderDetails.map(async (detail: IOrderDetail) => {
         const currentDetail = detailsMap.get(detail.id)
 
         if (!currentDetail)
           throw new HttpException('Không tìm thấy chi tiết món!', HttpStatus.NOT_FOUND)
+
+        if (detail.amount > currentDetail.amount) {
+          throw new HttpException(
+            `Số lượng vượt quá: còn lại ${currentDetail.amount}, yêu cầu ${detail.amount}`,
+            HttpStatus.CONFLICT
+          )
+        }
 
         const baseUpdateData = {
           status: data.status,
@@ -282,11 +289,13 @@ export class OrderDetailService {
         })
       })
 
-      const results = [...(await Promise.all(updatePromises)), ...newOrderDetails]
+      const updateOrderDetail = await Promise.all(updatePromises)
+
+      const results = [...updateOrderDetail, ...newOrderDetails]
 
       // Batch notification creation
       const notify = getNotifyInfo(data.status)
-      const messages = this.getMessagesToNotify(results, notify.content)
+      const messages = this.getMessagesToNotify(updateOrderDetail, notify.content)
 
       // Chuyển messages thành mảng CreateNotifyDto
       const notifyDtos = messages.map(content => ({
