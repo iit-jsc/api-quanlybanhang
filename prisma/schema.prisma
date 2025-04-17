@@ -471,7 +471,7 @@ model OrderDetail {
   amount               Float
   orderId              String?
   note                 String?
-  status               OrderDetailStatus?    @default(WAITING)
+  status               OrderDetailStatus?    @default(APPROVED)
   productOptions       Json?
   product              Json?
   createdAt            DateTime              @default(now())
@@ -704,7 +704,6 @@ enum ActivityAction {
   CANCEL_ORDER
   APPROVE_DISH
   REPORT_TO_KITCHEN
-  TRANSPORT_DISH
   SUCCESS_DISH
   CANCEL_DISH
   UPDATE_PAYMENT_METHOD
@@ -714,7 +713,6 @@ enum ActivityAction {
 
 enum NotifyType {
   REPORT_TO_KITCHEN
-  TRANSPORT_DISH
   CANCEL_DISH
   PAYMENT_REQUEST
 }
@@ -787,11 +785,10 @@ enum OrderStatus {
 }
 
 enum OrderDetailStatus {
-  WAITING
   APPROVED
-  PROCESSING
-  TRANSPORTING
-  SUCCESS
+  INFORMED // đã báo xuống bếp (chờ bếp nhận món)
+  PROCESSING // phụ bếp đã chuyển cho bếp chế biến
+  SUCCESS // Món đã phục vụ
 }
 
 enum PermissionGroupType {

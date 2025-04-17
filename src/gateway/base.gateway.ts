@@ -14,12 +14,7 @@ import { HttpException, HttpStatus } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 import { TokenPayload } from 'interfaces/common.interface'
 
-@WebSocketGateway({
-  cors: {
-    origin: '*',
-    credentials: true
-  }
-})
+@WebSocketGateway()
 export abstract class BaseGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -70,8 +65,6 @@ export abstract class BaseGateway
 
       // Lấy danh sách các phòng hiện tại của client (bao gồm cả socket.id của chính nó)
       const currentRooms = Array.from(client.rooms)
-
-      console.log(currentRooms, 123)
 
       // Rời khỏi tất cả các phòng hiện tại, trừ phòng mặc định (socket.id)
       for (const room of currentRooms) {

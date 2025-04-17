@@ -221,7 +221,7 @@ export class TableService {
 
       // Bắn socket
       setImmediate(() => {
-        this.tableGateway.handleModifyTable(table, branchId, deviceId)
+        this.tableGateway.handleAddDish(table, branchId, deviceId)
         this.notifyService.create(
           {
             type: notify.type,
@@ -238,7 +238,7 @@ export class TableService {
   async addDishByCustomer(id: string, data: AddDishByCustomerDto) {
     const orderDetails = await getOrderDetails(
       data.orderProducts,
-      OrderDetailStatus.WAITING,
+      OrderDetailStatus.APPROVED,
       null,
       data.branchId
     )
@@ -258,15 +258,17 @@ export class TableService {
     const notify = getNotifyInfo(data.orderProducts[0].status)
 
     // Bắn socket
-    setImmediate(() => {
-      this.tableGateway.handleModifyTable(table, data.branchId)
-      this.notifyService.create(
-        {
-          type: notify.type,
-          content: `${table.name} - ${table.area.name} có món ${notify.content}`
-        },
-        data.branchId
-      )
+    setImmediate(async () => {
+      await Promise.all([
+        this.tableGateway.handleAddDish(table, data.branchId),
+        this.notifyService.create(
+          {
+            type: notify.type,
+            content: `${table.name} - ${table.area.name} có món ${notify.content}`
+          },
+          data.branchId
+        )
+      ])
     })
 
     return table
@@ -468,7 +470,7 @@ export class TableService {
 
       // Ghi log hoạt động
       setImmediate(() => {
-        this.tableGateway.handleModifyTable(tableUpdates, branchId)
+        this.tableGateway.handleAddDish(tableUpdates, branchId)
         this.activityLogService.create(
           {
             action: ActivityAction.SEPARATE_TABLE,

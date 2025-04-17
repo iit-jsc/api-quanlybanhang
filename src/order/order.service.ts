@@ -32,7 +32,6 @@ import { PaymentOrderDto } from './dto/payment.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
-import { NotifyService } from 'src/notify/notify.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
@@ -41,7 +40,6 @@ export class OrderService {
     private readonly prisma: PrismaService,
     private readonly orderGateway: OrderGateway,
     private readonly trashService: TrashService,
-    private readonly notifyService: NotifyService,
     private readonly activityLogService: ActivityLogService
   ) {}
 
@@ -85,7 +83,7 @@ export class OrderService {
           { branchId },
           accountId
         )
-        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
+        this.orderGateway.handleCreateOrder(order, branchId, deviceId)
       })
 
       return order
@@ -137,7 +135,7 @@ export class OrderService {
       ])
 
       setImmediate(() => {
-        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
+        this.orderGateway.handleUpdateOrder(order, branchId, deviceId)
       })
 
       return prisma.order.update({
@@ -197,7 +195,7 @@ export class OrderService {
       )
 
       setImmediate(() => {
-        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
+        this.orderGateway.handleUpdateOrder(order, branchId, deviceId)
       })
 
       return order
@@ -299,7 +297,7 @@ export class OrderService {
       })
 
       setImmediate(() => {
-        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
+        this.orderGateway.handleUpdateOrder(order, branchId, deviceId)
       })
 
       return order
@@ -342,14 +340,14 @@ export class OrderService {
       )
 
       setImmediate(() => {
-        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
+        this.orderGateway.handleCancelOrder(order, branchId, deviceId)
       })
 
       return order
     })
   }
 
-  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
+  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string, deviceId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const entities = await prisma.order.findMany({
         where: { id: { in: data.ids } },
@@ -385,13 +383,19 @@ export class OrderService {
         )
       ])
 
-      return prisma.order.deleteMany({
+      const order = await prisma.order.deleteMany({
         where: {
           id: { in: data.ids },
           branchId,
           isPaid: false
         }
       })
+
+      setImmediate(() => {
+        this.orderGateway.handleDeleteOrder(order, branchId, deviceId)
+      })
+
+      return order
     })
   }
 }

@@ -12,7 +12,6 @@ import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
-import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderDetailGateway } from 'src/gateway/order-detail.gateway'
 import { NotifyService } from 'src/notify/notify.service'
 import { IOrderDetail, IProductGroup, ITableGroup } from 'interfaces/orderDetail.interface'
@@ -22,7 +21,6 @@ export class OrderDetailService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
-    private readonly activityLogService: ActivityLogService,
     private readonly orderDetailGateway: OrderDetailGateway,
     private readonly notifyService: NotifyService
   ) {}
@@ -48,7 +46,7 @@ export class OrderDetailService {
 
       await Promise.all([
         this.trashService.createMany(dataTrash, prisma),
-        this.orderDetailGateway.handleModifyOrderDetail(entities, branchId, deviceId)
+        this.orderDetailGateway.handleDeleteOrderDetails(entities, branchId, deviceId)
       ])
 
       return prisma.orderDetail.deleteMany({
@@ -163,7 +161,9 @@ export class OrderDetailService {
       select: orderDetailSelect
     })
 
-    await this.orderDetailGateway.handleModifyOrderDetail(orderDetail, branchId, deviceId)
+    setImmediate(() => {
+      this.orderDetailGateway.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
+    })
 
     return orderDetail
   }
@@ -178,7 +178,7 @@ export class OrderDetailService {
     return this.prisma.$transaction(async prisma => {
       const orderDetail = await prisma.orderDetail.findFirstOrThrow({
         where: { id, branchId },
-        select: { amount: true }
+        select: orderDetailSelect
       })
 
       // Kiểm tra số lượng hủy
@@ -210,7 +210,19 @@ export class OrderDetailService {
         select: orderDetailSelect
       })
 
-      this.orderDetailGateway.handleModifyOrderDetail(newOrderDetail, branchId, deviceId)
+      setImmediate(async () => {
+        await Promise.all([
+          this.orderDetailGateway.handleCancelOrderDetails(newOrderDetail, branchId, deviceId),
+          this.notifyService.create(
+            {
+              type: 'CANCEL_DISH',
+              content: `${orderDetail.table.name} đã hủy (${data.amount}) ${orderDetail.productOrigin.name}`
+            },
+            branchId,
+            deviceId
+          )
+        ])
+      })
 
       return newOrderDetail
     })
@@ -305,17 +317,27 @@ export class OrderDetailService {
       }))
 
       setImmediate(async () => {
-        await Promise.all([
-          this.notifyService.createMany(notifyDtos, branchId, deviceId).catch(error => {
-            console.error('Failed to send notifications:', error)
-            // Optionally emit to a monitoring service
-          }),
+        const ALLOWED_STATUSES = ['INFORMED']
+
+        const status = data.status || (Array.isArray(results) && results[0]?.status)
+
+        const promises = [
           this.orderDetailGateway
-            .handleModifyOrderDetail(results, branchId, deviceId)
+            .handleUpdateOrderDetails(results, branchId, deviceId)
             .catch(error => {
               console.error('Failed to handle modify order details:', error)
             })
-        ])
+        ]
+
+        if (status && ALLOWED_STATUSES.includes(status)) {
+          promises.push(
+            this.notifyService.createMany(notifyDtos, branchId, deviceId).catch(error => {
+              console.error('Failed to send notifications:', error)
+            })
+          )
+        }
+
+        await Promise.all(promises)
       })
 
       return results
@@ -329,10 +351,6 @@ export class OrderDetailService {
 
     if (status === OrderDetailStatus.PROCESSING) {
       return ActivityAction.REPORT_TO_KITCHEN
-    }
-
-    if (status === OrderDetailStatus.TRANSPORTING) {
-      return ActivityAction.TRANSPORT_DISH
     }
 
     if (status === OrderDetailStatus.SUCCESS) {

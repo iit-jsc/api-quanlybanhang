@@ -1,4 +1,3 @@
-import { Order } from '@prisma/client'
 import { WebSocketGateway } from '@nestjs/websockets'
 import { PrismaService } from 'nestjs-prisma'
 import { BaseGateway } from './base.gateway'
@@ -9,17 +8,59 @@ export class OrderGateway extends BaseGateway {
     super(prisma, jwtService)
   }
 
-  async handleModifyOrder(payload: Order, branchId: string, deviceId: string) {
+  async handleCreateOrder(payload: any, branchId: string, deviceId: string) {
     const target = this.server.to(branchId)
 
     if (deviceId) {
       const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
       if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('order', payload)
+        target.except(accountSocket.socketId).emit('create-order', payload)
         return
       }
     }
 
-    target.emit('order', payload)
+    target.emit('create-order', payload)
+  }
+
+  async handleUpdateOrder(payload: any, branchId: string, deviceId: string) {
+    const target = this.server.to(branchId)
+
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      if (accountSocket?.socketId) {
+        target.except(accountSocket.socketId).emit('update-order', payload)
+        return
+      }
+    }
+
+    target.emit('update-order', payload)
+  }
+
+  async handleDeleteOrder(payload: any, branchId: string, deviceId: string) {
+    const target = this.server.to(branchId)
+
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      if (accountSocket?.socketId) {
+        target.except(accountSocket.socketId).emit('delete-order', payload)
+        return
+      }
+    }
+
+    target.emit('delete-order', payload)
+  }
+
+  async handleCancelOrder(payload: any, branchId: string, deviceId: string) {
+    const target = this.server.to(branchId)
+
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      if (accountSocket?.socketId) {
+        target.except(accountSocket.socketId).emit('cancel-order', payload)
+        return
+      }
+    }
+
+    target.emit('cancel-order', payload)
   }
 }

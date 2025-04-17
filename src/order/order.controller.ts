@@ -97,8 +97,8 @@ export class OrderController {
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.delete)
   deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.orderService.deleteMany(data, accountId, branchId)
+    return this.orderService.deleteMany(data, accountId, branchId, deviceId)
   }
 }

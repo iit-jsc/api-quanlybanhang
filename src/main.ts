@@ -15,7 +15,10 @@ async function bootstrap() {
     const cfgService = app.get(ConfigService)
     const { httpAdapter } = app.get(HttpAdapterHost)
 
-    app.enableCors()
+    app.enableCors({
+      origin: '*',
+      credentials: true
+    })
     app.use('/uploads', static_('uploads'))
     app.use(json({ limit: '5mb' }))
     app.use(cookieParser())

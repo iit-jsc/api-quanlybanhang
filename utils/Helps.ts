@@ -525,11 +525,9 @@ export function getNotifyInfo(status: OrderDetailStatus): { type: NotifyType; co
   switch (status) {
     case OrderDetailStatus.PROCESSING:
       return { type: NotifyType.REPORT_TO_KITCHEN, content: 'yêu cầu chế biến' }
-    case OrderDetailStatus.TRANSPORTING:
-      return { type: NotifyType.TRANSPORT_DISH, content: 'chờ cung ứng' }
-    case OrderDetailStatus.SUCCESS:
-      return { type: NotifyType.TRANSPORT_DISH, content: 'đã phục vụ' }
+    case OrderDetailStatus.INFORMED:
+      return { type: NotifyType.REPORT_TO_KITCHEN, content: 'đã chuyển bếp' }
     default:
-      return { type: NotifyType.TRANSPORT_DISH, content: 'chờ cung ứng' }
+      return { type: NotifyType.REPORT_TO_KITCHEN, content: 'yêu cầu chế biến' }
   }
 }

@@ -8,7 +8,7 @@ export class OrderDetailGateway extends BaseGateway {
     super(prisma, jwtService)
   }
 
-  async handleModifyOrderDetail(payload: any, branchId: string, deviceId: string) {
+  async handleCreateOrderDetails(payload: any, branchId: string, deviceId: string) {
     const emitData = Array.isArray(payload) ? payload : [payload]
 
     const target = this.server.to(branchId)
@@ -16,11 +16,59 @@ export class OrderDetailGateway extends BaseGateway {
     if (deviceId) {
       const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
       if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('order-details', emitData)
+        target.except(accountSocket.socketId).emit('create-order-details', emitData)
         return
       }
     }
 
-    target.emit('order-details', emitData)
+    target.emit('create-order-details', emitData)
+  }
+
+  async handleDeleteOrderDetails(payload: any, branchId: string, deviceId: string) {
+    const emitData = Array.isArray(payload) ? payload : [payload]
+
+    const target = this.server.to(branchId)
+
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      if (accountSocket?.socketId) {
+        target.except(accountSocket.socketId).emit('delete-order-details', emitData)
+        return
+      }
+    }
+
+    target.emit('delete-order-details', emitData)
+  }
+
+  async handleUpdateOrderDetails(payload: any, branchId: string, deviceId: string) {
+    const emitData = Array.isArray(payload) ? payload : [payload]
+
+    const target = this.server.to(branchId)
+
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      if (accountSocket?.socketId) {
+        target.except(accountSocket.socketId).emit('update-order-details', emitData)
+        return
+      }
+    }
+
+    target.emit('update-order-details', emitData)
+  }
+
+  async handleCancelOrderDetails(payload: any, branchId: string, deviceId: string) {
+    const emitData = Array.isArray(payload) ? payload : [payload]
+
+    const target = this.server.to(branchId)
+
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      if (accountSocket?.socketId) {
+        target.except(accountSocket.socketId).emit('cancel-order-details', emitData)
+        return
+      }
+    }
+
+    target.emit('cancel-order-details', emitData)
   }
 }
