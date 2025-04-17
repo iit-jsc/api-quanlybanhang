@@ -110,7 +110,7 @@ export class ProductService {
 
   async update(id: string, data: UpdateProductDto, accountId: string, branchId: string) {
     return this.prisma.$transaction(async prisma => {
-      const product = await this.prisma.product.update({
+      const product = await prisma.product.update({
         where: {
           id,
           branchId
