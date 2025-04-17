@@ -10,7 +10,20 @@ export class NotifyGateway extends BaseGateway {
     super(prisma, jwtService)
   }
 
-  async handleSendNotify(payload: CreateNotifyDto) {
-    this.server.to(payload.branchId).emit('notify', payload)
+  async handleSendNotify(
+    payload: CreateNotifyDto | CreateNotifyDto[],
+    branchId: string,
+    deviceId: string
+  ) {
+    // Đảm bảo payload luôn là một mảng
+    const emitData = Array.isArray(payload) ? payload : [payload]
+
+    const accountSocket = deviceId
+      ? await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      : null
+
+    this.server
+      .to(branchId)
+      .emit('notifies', emitData, accountSocket ? { except: accountSocket.socketId } : {})
   }
 }

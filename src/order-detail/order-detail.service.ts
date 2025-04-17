@@ -27,7 +27,7 @@ export class OrderDetailService {
     private readonly notifyService: NotifyService
   ) {}
 
-  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
+  async deleteMany(data: DeleteManyDto, accountId: string, branchId: string, deviceId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       await this.checkOrderPaidByDetailIds(data.ids)
 
@@ -35,7 +35,8 @@ export class OrderDetailService {
         where: { id: { in: data.ids } },
         include: {
           order: true,
-          table: true
+          table: true,
+          canceledOrderDetails: true
         }
       })
 
@@ -47,7 +48,7 @@ export class OrderDetailService {
 
       await Promise.all([
         this.trashService.createMany(dataTrash, prisma),
-        this.orderDetailGateway.handleModifyOrderDetails(entities, branchId)
+        this.orderDetailGateway.handleModifyOrderDetail(entities, branchId, deviceId)
       ])
 
       return prisma.orderDetail.deleteMany({
@@ -140,7 +141,13 @@ export class OrderDetailService {
     )
   }
 
-  async update(id: string, data: UpdateOrderDetailDto, accountId: string, branchId: string) {
+  async update(
+    id: string,
+    data: UpdateOrderDetailDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
     await this.checkOrderPaidByDetailIds([id])
 
     const orderDetail = await this.prisma.orderDetail.update({
@@ -156,12 +163,18 @@ export class OrderDetailService {
       select: orderDetailSelect
     })
 
-    await this.orderDetailGateway.handleModifyOrderDetail(orderDetail, branchId)
+    await this.orderDetailGateway.handleModifyOrderDetail(orderDetail, branchId, deviceId)
 
     return orderDetail
   }
 
-  async cancel(id: string, data: CancelOrderDetailsDto, accountId: string, branchId: string) {
+  async cancel(
+    id: string,
+    data: CancelOrderDetailsDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
     return this.prisma.$transaction(async prisma => {
       const orderDetail = await prisma.orderDetail.findFirstOrThrow({
         where: { id, branchId },
@@ -197,7 +210,7 @@ export class OrderDetailService {
         select: orderDetailSelect
       })
 
-      this.orderDetailGateway.handleModifyOrderDetails([newOrderDetail], branchId)
+      this.orderDetailGateway.handleModifyOrderDetail(newOrderDetail, branchId, deviceId)
 
       return newOrderDetail
     })
@@ -206,7 +219,8 @@ export class OrderDetailService {
   async updateStatusOrderDetails(
     data: UpdateStatusOrderDetailsDto,
     accountId: string,
-    branchId: string
+    branchId: string,
+    deviceId: string
   ) {
     return this.prisma.$transaction(async prisma => {
       // Fetch all current details in one query to reduce database round-trips
@@ -220,6 +234,7 @@ export class OrderDetailService {
       // Create a map for faster lookup
       const detailsMap = new Map(currentDetails.map(detail => [detail.id, detail]))
 
+      const newOrderDetails = []
       const updatePromises = data.orderDetails.map(async detail => {
         const currentDetail = detailsMap.get(detail.id)
 
@@ -234,7 +249,7 @@ export class OrderDetailService {
         }
 
         if (detail.amount !== currentDetail.amount) {
-          const newDetail = await prisma.orderDetail.create({
+          const newOrderDetail = await prisma.orderDetail.create({
             data: {
               ...currentDetail,
               id: undefined,
@@ -247,17 +262,17 @@ export class OrderDetailService {
             select: orderDetailSelect
           })
 
-          await prisma.orderDetail.update({
+          newOrderDetails.push(newOrderDetail)
+
+          return await prisma.orderDetail.update({
             where: { id: detail.id, branchId },
             data: {
               amount: { decrement: detail.amount },
               updatedBy: accountId,
               updatedAt: new Date()
             },
-            select: { id: true }
+            select: orderDetailSelect
           })
-
-          return newDetail
         }
 
         return prisma.orderDetail.update({
@@ -267,7 +282,7 @@ export class OrderDetailService {
         })
       })
 
-      const results = await Promise.all(updatePromises)
+      const results = [...(await Promise.all(updatePromises)), ...newOrderDetails]
 
       // Batch notification creation
       const notify = getNotifyInfo(data.status)
@@ -275,7 +290,6 @@ export class OrderDetailService {
 
       // Chuyển messages thành mảng CreateNotifyDto
       const notifyDtos = messages.map(content => ({
-        branchId,
         modelName: 'Order',
         type: notify.type,
         content
@@ -283,13 +297,15 @@ export class OrderDetailService {
 
       setImmediate(async () => {
         await Promise.all([
-          this.notifyService.createMany(notifyDtos).catch(error => {
+          this.notifyService.createMany(notifyDtos, branchId, deviceId).catch(error => {
             console.error('Failed to send notifications:', error)
             // Optionally emit to a monitoring service
           }),
-          this.orderDetailGateway.handleModifyOrderDetails(results, branchId).catch(error => {
-            console.error('Failed to handle modify order details:', error)
-          })
+          this.orderDetailGateway
+            .handleModifyOrderDetail(results, branchId, deviceId)
+            .catch(error => {
+              console.error('Failed to handle modify order details:', error)
+            })
         ])
       })
 

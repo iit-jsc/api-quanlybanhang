@@ -527,5 +527,9 @@ export function getNotifyInfo(status: OrderDetailStatus): { type: NotifyType; co
       return { type: NotifyType.REPORT_TO_KITCHEN, content: 'yêu cầu chế biến' }
     case OrderDetailStatus.TRANSPORTING:
       return { type: NotifyType.TRANSPORT_DISH, content: 'chờ cung ứng' }
+    case OrderDetailStatus.SUCCESS:
+      return { type: NotifyType.TRANSPORT_DISH, content: 'đã phục vụ' }
+    default:
+      return { type: NotifyType.TRANSPORT_DISH, content: '' }
   }
 }

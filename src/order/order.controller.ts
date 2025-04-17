@@ -38,42 +38,42 @@ export class OrderController {
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.create)
   create(@Body() data: CreateOrderDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
-    return this.orderService.create(data, accountId, branchId)
+    const { accountId, branchId, deviceId } = req
+    return this.orderService.create(data, accountId, branchId, deviceId)
   }
 
   @Post('/:id/payment')
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.payment)
   paymentOrder(@Param('id') id: string, @Body() data: PaymentOrderDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.orderService.payment(id, data, accountId, branchId)
+    return this.orderService.payment(id, data, accountId, branchId, deviceId)
   }
 
   @Patch('/:id/save')
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.save)
   saveOrder(@Param('id') id: string, @Body() data: SaveOrderDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
-    return this.orderService.save(id, data, accountId, branchId)
+    const { deviceId, branchId } = req
+    return this.orderService.save(id, data, branchId, deviceId)
   }
 
   @Patch('/:id/cancel')
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.cancel)
   cancel(@Param('id') id: string, @Body() data: CancelOrderDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
-    return this.orderService.cancel(id, data, accountId, branchId)
+    const { accountId, branchId, deviceId } = req
+    return this.orderService.cancel(id, data, accountId, branchId, deviceId)
   }
 
   @Patch('/:id')
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.update)
   update(@Body() data: UpdateOrderDto, @Req() req: RequestJWT, @Param('id') id: string) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.orderService.update(id, data, accountId, branchId)
+    return this.orderService.update(id, data, accountId, branchId, deviceId)
   }
 
   @Get('')

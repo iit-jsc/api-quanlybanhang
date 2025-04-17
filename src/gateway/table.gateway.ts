@@ -10,7 +10,14 @@ export class TableGateway extends BaseGateway {
     super(prisma, jwtService)
   }
 
-  async handleModifyTable(payload: Table, branchId: string) {
-    this.server.to(branchId).emit('table', payload)
+  async handleModifyTable(payload: Table, branchId: string, deviceId?: string) {
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      this.server
+        .to(branchId)
+        .emit('table', payload, accountSocket ? { except: accountSocket.socketId } : {})
+    } else {
+      this.server.to(branchId).emit('table', payload)
+    }
   }
 }

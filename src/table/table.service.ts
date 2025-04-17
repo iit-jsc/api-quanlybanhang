@@ -190,7 +190,13 @@ export class TableService {
     })
   }
 
-  async addDish(tableId: string, data: AddDishDto, accountId: string, branchId: string) {
+  async addDish(
+    tableId: string,
+    data: AddDishDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
     return this.prisma.$transaction(async prisma => {
       const orderDetails = await getOrderDetails(
         data.orderProducts,
@@ -215,12 +221,14 @@ export class TableService {
 
       // Bắn socket
       setImmediate(() => {
-        this.tableGateway.handleModifyTable(table, branchId)
-        this.notifyService.create({
-          branchId,
-          type: notify.type,
-          content: `${table.name} - ${table.area.name} có món ${notify.content}`
-        })
+        this.tableGateway.handleModifyTable(table, branchId, deviceId)
+        this.notifyService.create(
+          {
+            type: notify.type,
+            content: `${table.name} - ${table.area.name} có món ${notify.content}`
+          },
+          branchId
+        )
       })
 
       return table
@@ -252,11 +260,13 @@ export class TableService {
     // Bắn socket
     setImmediate(() => {
       this.tableGateway.handleModifyTable(table, data.branchId)
-      this.notifyService.create({
-        branchId: data.branchId,
-        type: notify.type,
-        content: `${table.name} - ${table.area.name} có món ${notify.content}`
-      })
+      this.notifyService.create(
+        {
+          type: notify.type,
+          content: `${table.name} - ${table.area.name} có món ${notify.content}`
+        },
+        data.branchId
+      )
     })
 
     return table
@@ -477,53 +487,61 @@ export class TableService {
       include: { area: true }
     })
 
-    return this.notifyService.create({
-      branchId,
-      type: NotifyType.PAYMENT_REQUEST,
-      content: `${table.name} - ${table.area.name} yêu cầu thanh toán`
-    })
+    return this.notifyService.create(
+      {
+        type: NotifyType.PAYMENT_REQUEST,
+        content: `${table.name} - ${table.area.name} yêu cầu thanh toán`
+      },
+      branchId
+    )
   }
 
-  async reportToKitchen(tableId: string, accountId: string, branchId: string) {
-    return await this.prisma.$transaction(async prisma => {
-      const table = await prisma.table.findFirstOrThrow({
-        where: {
-          id: tableId
-        },
-        include: { area: true }
-      })
+  // async reportToKitchen(tableId: string, tokenPayload: TokenPayload) {
+  //   return await this.prisma.$transaction(async prisma => {
+  //     const table = await prisma.table.findFirstOrThrow({
+  //       where: {
+  //         id: tableId
+  //       },
+  //       include: { area: true }
+  //     })
 
-      const orderDetails = await prisma.orderDetail.findMany({
-        where: {
-          tableId
-        }
-      })
+  //     const orderDetails = await prisma.orderDetail.findMany({
+  //       where: {
+  //         tableId
+  //       }
+  //     })
 
-      await prisma.orderDetail.updateMany({
-        where: {
-          tableId
-        },
-        data: {
-          status: OrderDetailStatus.PROCESSING,
-          updatedBy: accountId
-        }
-      })
+  //     await prisma.orderDetail.updateMany({
+  //       where: {
+  //         tableId
+  //       },
+  //       data: {
+  //         status: OrderDetailStatus.PROCESSING,
+  //         updatedBy: tokenPayload.accountId
+  //       }
+  //     })
 
-      const updatedOrderDetails = orderDetails.map(detail => ({
-        ...detail,
-        status: OrderDetailStatus.PROCESSING
-      }))
+  //     const updatedOrderDetails = orderDetails.map(detail => ({
+  //       ...detail,
+  //       status: OrderDetailStatus.PROCESSING
+  //     }))
 
-      await Promise.all([
-        this.orderDetailGateway.handleModifyOrderDetails(updatedOrderDetails, branchId),
-        this.notifyService.create({
-          branchId,
-          type: NotifyType.REPORT_TO_KITCHEN,
-          content: `${table.name} - ${table.area.name}`
-        })
-      ])
+  //     await Promise.all([
+  //       this.orderDetailGateway.handleModifyOrderDetails(
+  //         updatedOrderDetails,
+  //         tokenPayload.branchId
+  //       ),
+  //       this.notifyService.create(
+  //         {
+  //           branchId: tokenPayload.branchId,
+  //           type: NotifyType.REPORT_TO_KITCHEN,
+  //           content: `${table.name} - ${table.area.name}`
+  //         },
+  //         tokenPayload.deviceId
+  //       )
+  //     ])
 
-      return updatedOrderDetails
-    })
-  }
+  //     return updatedOrderDetails
+  //   })
+  // }
 }

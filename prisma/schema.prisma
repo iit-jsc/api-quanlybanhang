@@ -491,8 +491,8 @@ model OrderDetail {
 
 model CanceledOrderDetail {
   id            String       @id @default(uuid())
-  orderDetailId String       
-  orderDetail   OrderDetail? @relation(fields: [orderDetailId], references: [id])
+  orderDetailId String
+  orderDetail   OrderDetail? @relation(fields: [orderDetailId], references: [id], onDelete: Cascade)
   amount        Float
   cancelReason  String?
   createdAt     DateTime     @default(now())
@@ -626,12 +626,14 @@ model Branch {
   paymentMethods      PaymentMethod[]
   productOptionGroups ProductOptionGroup[]
   activityLogs        ActivityLog[]
+  accountSockets      AccountSocket[]
 }
 
 model AccountSocket {
   socketId  String   @unique
+  deviceId  String   @unique
   branchId  String
-  shopId    String
+  branch    Branch?  @relation(fields: [branchId], references: [id])
   accountId String
   createdAt DateTime @default(now())
 }

@@ -9,7 +9,14 @@ export class OrderGateway extends BaseGateway {
     super(prisma, jwtService)
   }
 
-  async handleModifyOrder(payload: Order, branchId: string) {
-    this.server.to(branchId).emit('order', payload)
+  async handleModifyOrder(payload: Order, branchId: string, deviceId: string) {
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      this.server
+        .to(branchId)
+        .emit('order', payload, accountSocket ? { except: accountSocket.socketId } : {})
+    } else {
+      this.server.to(branchId).emit('order', payload)
+    }
   }
 }

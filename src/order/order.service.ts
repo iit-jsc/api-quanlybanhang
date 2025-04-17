@@ -45,7 +45,7 @@ export class OrderService {
     private readonly activityLogService: ActivityLogService
   ) {}
 
-  async create(data: CreateOrderDto, accountId: string, branchId: string) {
+  async create(data: CreateOrderDto, accountId: string, branchId: string, deviceId: string) {
     const orderDetails = await getOrderDetails(
       data.orderProducts,
       OrderDetailStatus.APPROVED,
@@ -85,14 +85,20 @@ export class OrderService {
           { branchId },
           accountId
         )
-        this.orderGateway.handleModifyOrder(order, branchId)
+        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
       })
 
       return order
     })
   }
 
-  async payment(id: string, data: PaymentOrderDto, accountId: string, branchId: string) {
+  async payment(
+    id: string,
+    data: PaymentOrderDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       await handleOrderDetailsBeforePayment(prisma, { orderId: id })
 
@@ -131,7 +137,7 @@ export class OrderService {
       ])
 
       setImmediate(() => {
-        this.orderGateway.handleModifyOrder(order, branchId)
+        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
       })
 
       return prisma.order.update({
@@ -157,7 +163,13 @@ export class OrderService {
     })
   }
 
-  async update(id: string, data: UpdateOrderDto, accountId: string, branchId: string) {
+  async update(
+    id: string,
+    data: UpdateOrderDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
     return this.prisma.$transaction(async prisma => {
       const order = await prisma.order.update({
         where: {
@@ -185,7 +197,7 @@ export class OrderService {
       )
 
       setImmediate(() => {
-        this.orderGateway.handleModifyOrder(order, branchId)
+        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
       })
 
       return order
@@ -272,7 +284,7 @@ export class OrderService {
     })
   }
 
-  async save(id: string, data: SaveOrderDto, accountId: string, branchId: string) {
+  async save(id: string, data: SaveOrderDto, branchId: string, deviceId: string) {
     return this.prisma.$transaction(async prisma => {
       const order = await prisma.order.update({
         where: {
@@ -287,14 +299,20 @@ export class OrderService {
       })
 
       setImmediate(() => {
-        this.orderGateway.handleModifyOrder(order, branchId)
+        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
       })
 
       return order
     })
   }
 
-  async cancel(id: string, data: CancelOrderDto, accountId: string, branchId: string) {
+  async cancel(
+    id: string,
+    data: CancelOrderDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
     return this.prisma.$transaction(async prisma => {
       const order = await prisma.order.update({
         where: {
@@ -324,7 +342,7 @@ export class OrderService {
       )
 
       setImmediate(() => {
-        this.orderGateway.handleModifyOrder(order, branchId)
+        this.orderGateway.handleModifyOrder(order, branchId, deviceId)
       })
 
       return order

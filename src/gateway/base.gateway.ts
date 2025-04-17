@@ -13,7 +13,13 @@ import { AnyObject } from 'interfaces/common.interface'
 import { HttpException, HttpStatus, Req } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
 
-@WebSocketGateway()
+@WebSocketGateway({
+  cors: {
+    origin: '*', // Hoặc domain cụ thể của Postman
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+})
 export abstract class BaseGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
 {
@@ -30,26 +36,53 @@ export abstract class BaseGateway
     console.log('Client connected:', client.id)
   }
 
-  async handleDisconnect() {}
+  async handleDisconnect(client: Socket) {
+    try {
+      await this.prisma.accountSocket.delete({
+        where: {
+          socketId: client.id
+        }
+      })
+    } catch (error) {
+      console.log(error)
+    }
+  }
 
   @SubscribeMessage('joinBranch')
   async handleJoinBranch(@ConnectedSocket() client: Socket, @Req() req: AnyObject) {
-    const authHeader = this.getAuthHeader(req)
+    try {
+      const authHeader = this.getAuthHeader(req)
 
-    if (!authHeader) return false
+      if (!authHeader) return false
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [_, token] = authHeader.split(' ')
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [_, token] = authHeader.split(' ')
 
-    if (!token) throw new HttpException('Không tìm thấy token!', HttpStatus.NOT_FOUND)
+      if (!token) throw new HttpException('Không tìm thấy token!', HttpStatus.NOT_FOUND)
 
-    const payload = await this.jwtService.verifyAsync(token, {
-      secret: process.env.SECRET_KEY
-    })
+      const payload = await this.jwtService.verifyAsync(token, {
+        secret: process.env.SECRET_KEY
+      })
 
-    console.log(client.id, ' joined: ', payload.branchId)
+      await this.prisma.accountSocket.upsert({
+        where: {
+          deviceId: payload.deviceId
+        },
+        create: {
+          accountId: payload.accountId,
+          deviceId: payload.deviceId,
+          branchId: payload.branchId,
+          socketId: client.id
+        },
+        update: {
+          socketId: client.id
+        }
+      })
 
-    client.join(payload.branchId)
+      client.join(payload.branchId)
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   private getAuthHeader(req: AnyObject) {

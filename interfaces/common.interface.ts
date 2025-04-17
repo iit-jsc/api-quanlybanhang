@@ -1,10 +1,10 @@
 import { CustomerType, Product, ProductOption } from '@prisma/client'
 
 export interface TokenPayload {
-  accountId?: string
+  accountId: string
+  branchId: string
   shopId?: string
-  userId?: string
-  branchId?: string
+  deviceId?: string
 }
 
 export interface TokenCustomerPayload {
@@ -75,6 +75,7 @@ export interface RequestJWT extends Request {
   accountId: string
   shopId: string
   branchId: string
+  deviceId: string
   role: AnyObject
 }
 

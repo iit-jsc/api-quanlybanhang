@@ -6,7 +6,9 @@ import {
   IsDate,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
+  Min,
   Validate,
   ValidateNested,
   ValidatorConstraint,
@@ -14,7 +16,6 @@ import {
 } from 'class-validator'
 import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
 import { FindManyDto } from 'utils/Common.dto'
-import { OrderDetailAmount } from 'src/order-detail/dto/order-detail.dto'
 
 @ValidatorConstraint({ name: 'isNotCancel', async: false })
 export class IsNotCancelConstraint implements ValidatorConstraintInterface {
@@ -129,12 +130,21 @@ export class SaveOrderDto {
   @IsBoolean()
   isSave: boolean
 }
+
+export class OrderDetailSeparateDto {
+  @IsNotEmpty()
+  id: string
+
+  @IsNumber()
+  @Min(0)
+  amount: number
+}
 export class SeparateTableDto {
   @IsNotEmpty()
   toTableId: string
 
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => OrderDetailAmount)
-  orderDetails: OrderDetailAmount[]
+  @Type(() => OrderDetailSeparateDto)
+  orderDetails: OrderDetailSeparateDto[]
 }

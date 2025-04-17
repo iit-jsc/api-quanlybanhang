@@ -1,4 +1,5 @@
 import * as bcrypt from 'bcrypt'
+import { v4 as uuidv4 } from 'uuid'
 import { Response } from 'express'
 import { JwtService } from '@nestjs/jwt'
 import { PrismaService } from 'nestjs-prisma'
@@ -65,7 +66,7 @@ export class AuthService {
 
     const [shops, refreshToken] = await Promise.all([
       this.getShopsByAccountId(accountId),
-      this.createRefreshToken(accountId, data)
+      this.createRefreshToken(accountId, data.branchId)
     ])
 
     const currentShop = this.getCurrentShopFromShops(shops, data.branchId)
@@ -78,11 +79,14 @@ export class AuthService {
       path: '/auth/refresh-token'
     })
 
+    const deviceId = uuidv4()
+
     return {
       accessToken: await this.jwtService.signAsync(
         {
           accountId,
-          branchId: data.branchId
+          branchId: data.branchId,
+          deviceId
         },
         {
           expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
@@ -162,12 +166,12 @@ export class AuthService {
     })
   }
 
-  async createRefreshToken(accountId: string, accessBranchDto: AccessBranchDto) {
+  async createRefreshToken(accountId: string, branchId: string) {
     // Tạo refresh token
     return await this.jwtService.signAsync(
       {
         accountId: accountId,
-        branchId: accessBranchDto.branchId
+        branchId: branchId
       },
       {
         expiresIn: process.env.EXPIRES_IN_REFRESH_TOKEN,
@@ -212,11 +216,31 @@ export class AuthService {
 
       const account = await this.getAccountAccess(payload.accountId, payload.branchId)
 
+      const accessToken = await this.jwtService.signAsync(
+        {
+          accountId: payload.accountId,
+          branchId: payload.branchId
+        },
+        {
+          expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN,
+          secret: process.env.SECRET_KEY
+        }
+      )
+
       if (!account) throw new HttpException('Không tìm thấy tài nguyên!', HttpStatus.NOT_FOUND)
 
-      return { ...mapResponseLogin({ account, shops, currentShop }) }
+      return { ...mapResponseLogin({ account, shops, currentShop }), accessToken }
     } catch (error) {
       throw error
     }
+  }
+
+  async logout(deviceId: string) {
+    await this.prisma.accountSocket.delete({
+      where: {
+        deviceId
+      }
+    })
+    return
   }
 }

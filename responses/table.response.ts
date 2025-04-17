@@ -44,6 +44,12 @@ export const tableSelect: Prisma.TableSelect = {
             select: accountSortSelect
           }
         }
+      },
+      creator: {
+        select: accountSortSelect
+      },
+      updater: {
+        select: accountSortSelect
       }
     }
   },

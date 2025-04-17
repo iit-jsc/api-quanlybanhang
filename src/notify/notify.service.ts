@@ -14,16 +14,12 @@ export class NotifyService {
     private readonly notifyGateway: NotifyGateway
   ) {}
 
-  async create(data: CreateNotifyDto) {
-    await this.notifyGateway.handleSendNotify(data)
+  async create(data: CreateNotifyDto, branchId: string, deviceId?: string) {
+    await this.notifyGateway.handleSendNotify(data, branchId, deviceId)
   }
 
-  async createMany(data: CreateNotifyDto[]) {
-    await Promise.all(
-      data.map(async notify => {
-        await this.notifyGateway.handleSendNotify(notify)
-      })
-    )
+  async createMany(data: CreateNotifyDto[], branchId: string, deviceId: string) {
+    await this.notifyGateway.handleSendNotify(data, branchId, deviceId)
   }
 
   async read(id: string, accountId: string) {

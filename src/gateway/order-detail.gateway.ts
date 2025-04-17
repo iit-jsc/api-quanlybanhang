@@ -1,4 +1,3 @@
-import { OrderDetail } from '@prisma/client'
 import { WebSocketGateway } from '@nestjs/websockets'
 import { PrismaService } from 'nestjs-prisma'
 import { BaseGateway } from './base.gateway'
@@ -9,11 +8,16 @@ export class OrderDetailGateway extends BaseGateway {
     super(prisma, jwtService)
   }
 
-  async handleModifyOrderDetail(payload: OrderDetail, branchId: string) {
-    this.server.to(branchId).emit('order-detail', [payload])
-  }
+  async handleModifyOrderDetail(payload: any, branchId: string, deviceId: string) {
+    const emitData = Array.isArray(payload) ? payload : [payload]
 
-  async handleModifyOrderDetails(payload: OrderDetail[], branchId: string) {
-    this.server.to(branchId).emit('order-detail', payload)
+    if (deviceId) {
+      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      this.server
+        .to(branchId)
+        .emit('order-details', emitData, accountSocket ? { except: accountSocket.socketId } : {})
+    } else {
+      this.server.to(branchId).emit('order-details', emitData)
+    }
   }
 }

@@ -35,9 +35,9 @@ export class OrderDetailController {
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.delete)
   deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.orderDetailService.deleteMany(data, accountId, branchId)
+    return this.orderDetailService.deleteMany(data, accountId, branchId, deviceId)
   }
 
   @Get('')
@@ -53,26 +53,26 @@ export class OrderDetailController {
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.update)
   updateStatusOrderDetails(@Body() data: UpdateStatusOrderDetailsDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.orderDetailService.updateStatusOrderDetails(data, accountId, branchId)
+    return this.orderDetailService.updateStatusOrderDetails(data, accountId, branchId, deviceId)
   }
 
   @Patch('/:id/cancel')
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.cancel)
   cancel(@Body() data: CancelOrderDetailsDto, @Req() req: RequestJWT, @Param('id') id: string) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.orderDetailService.cancel(id, data, accountId, branchId)
+    return this.orderDetailService.cancel(id, data, accountId, branchId, deviceId)
   }
 
   @Patch('/:id')
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.order.update)
   update(@Body() data: UpdateOrderDetailDto, @Req() req: RequestJWT, @Param('id') id: string) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.orderDetailService.update(id, data, accountId, branchId)
+    return this.orderDetailService.update(id, data, accountId, branchId, deviceId)
   }
 }

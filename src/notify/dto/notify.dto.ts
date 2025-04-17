@@ -6,9 +6,6 @@ export class CreateNotifyDto {
   content?: string
 
   @IsNotEmpty()
-  branchId: string
-
-  @IsNotEmpty()
   @IsEnum(NotifyType)
   type: NotifyType
 }

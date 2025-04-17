@@ -76,4 +76,12 @@ export class AuthController {
 
     return this.authService.refreshToken(refreshToken)
   }
+
+  @Post('/logout')
+  @HttpCode(HttpStatus.OK)
+  logout(@Req() req: RequestJWT) {
+    const { deviceId } = req
+
+    return this.authService.logout(deviceId)
+  }
 }

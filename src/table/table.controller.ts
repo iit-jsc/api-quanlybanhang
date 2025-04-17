@@ -53,9 +53,9 @@ export class TableController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(permissions.table.addDish)
   addDish(@Param('id') id: string, @Body() data: AddDishDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.tableService.addDish(id, data, accountId, branchId)
+    return this.tableService.addDish(id, data, accountId, branchId, deviceId)
   }
 
   @Post(':id/add-dish-by-customer')
@@ -88,15 +88,6 @@ export class TableController {
     const { accountId, branchId } = req
 
     return this.tableService.separateTable(id, data, accountId, branchId)
-  }
-
-  @Patch(':id/report-to-kitchen')
-  @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.update)
-  reportToKitchen(@Req() req: RequestJWT, @Param('id') id: string) {
-    const { accountId, branchId } = req
-
-    return this.tableService.reportToKitchen(id, accountId, branchId)
   }
 
   @Patch(':id')
