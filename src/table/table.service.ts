@@ -2,6 +2,7 @@ import {
   ActivityAction,
   NotifyType,
   OrderDetailStatus,
+  OrderStatus,
   OrderType,
   Prisma,
   PrismaClient
@@ -303,7 +304,7 @@ export class TableService {
               code: data.code || generateCode('DH'),
               note: data.note,
               type: OrderType.OFFLINE,
-              status: data.status,
+              status: data.status || OrderStatus.SUCCESS,
               discountCodeValue,
               voucherValue: voucher.voucherValue,
               voucherProducts: voucher.voucherProducts,

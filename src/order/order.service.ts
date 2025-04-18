@@ -149,7 +149,7 @@ export class OrderService {
           discountCodeValue,
           customerDiscountValue,
           moneyReceived: data.moneyReceived,
-          status: data.status,
+          status: data.status || OrderStatus.SUCCESS,
           bankingImages: data.bankingImages,
           customerId: data.customerId,
           paymentMethodId: data.paymentMethodId,
