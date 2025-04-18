@@ -1,7 +1,6 @@
 import { ActivityAction, Prisma, PrismaClient, RequestStatus } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { CustomerRequestGateway } from 'src/gateway/customer-request.gateway'
 import {
   CreateCustomerRequestDto,
   FindManyCustomerRequestDto,
@@ -13,12 +12,13 @@ import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
+import { MainGateway } from 'src/gateway/main.gateway'
 
 @Injectable()
 export class CustomerRequestService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly customerRequestGateway: CustomerRequestGateway,
+    private readonly mainGateway: MainGateway,
     private readonly trashService: TrashService,
     private readonly activityLogService: ActivityLogService
   ) {}
@@ -39,7 +39,7 @@ export class CustomerRequestService {
 
       // Gửi socket và thông báo
       setImmediate(() => {
-        this.customerRequestGateway.handleCreateCustomerRequest(customerRequest)
+        this.mainGateway.handleCreateCustomerRequest(customerRequest)
       })
 
       return customerRequest

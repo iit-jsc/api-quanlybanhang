@@ -1,3 +1,4 @@
+import { MainGateway } from 'src/gateway/main.gateway'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateNotifyDto } from './dto/notify.dto'
@@ -5,21 +6,20 @@ import { FindManyDto } from 'utils/Common.dto'
 import { Prisma } from '@prisma/client'
 import { customPaginate } from 'utils/Helps'
 import { notifySelect } from 'responses/notify.response'
-import { NotifyGateway } from 'src/gateway/notify.gateway'
 
 @Injectable()
 export class NotifyService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly notifyGateway: NotifyGateway
+    private readonly mainGateway: MainGateway
   ) {}
 
   async create(data: CreateNotifyDto, branchId: string, deviceId?: string) {
-    await this.notifyGateway.handleSendNotify(data, branchId, deviceId)
+    await this.mainGateway.handleSendNotify(data, branchId, deviceId)
   }
 
   async createMany(data: CreateNotifyDto[], branchId: string, deviceId: string) {
-    await this.notifyGateway.handleSendNotify(data, branchId, deviceId)
+    await this.mainGateway.handleSendNotify(data, branchId, deviceId)
   }
 
   async read(id: string, accountId: string) {
