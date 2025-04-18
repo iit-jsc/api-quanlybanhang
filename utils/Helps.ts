@@ -196,6 +196,7 @@ export async function getOrderDetails(
         amount: item.amount,
         status: item.status || defaultStatus,
         product: product,
+        productOriginId: product.id,
         note: item.note,
         productOptions: productOptions,
         branchId,

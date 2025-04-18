@@ -24,17 +24,3 @@ export type IOrderDetail = {
     }
   }
 }
-
-export type IProductGroup = {
-  productId: string
-  productName?: string
-  totalAmount: number
-  status: string
-}
-
-export type ITableGroup = {
-  tableId: string
-  tableName: string
-  areaName: string
-  products: Record<string, IProductGroup>
-}

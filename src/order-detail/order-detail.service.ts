@@ -13,7 +13,7 @@ import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { NotifyService } from 'src/notify/notify.service'
-import { IOrderDetail, IProductGroup, ITableGroup } from 'interfaces/orderDetail.interface'
+import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
 
 @Injectable()
@@ -178,7 +178,14 @@ export class OrderDetailService {
     return this.prisma.$transaction(async prisma => {
       const orderDetail = await prisma.orderDetail.findFirstOrThrow({
         where: { id, branchId },
-        select: orderDetailSelect
+        select: {
+          amount: true,
+          productOrigin: {
+            select: {
+              name: true
+            }
+          }
+        }
       })
 
       // Kiểm tra số lượng hủy
@@ -211,6 +218,16 @@ export class OrderDetailService {
       })
 
       setImmediate(async () => {
+        const tableName = newOrderDetail?.table?.name
+        const orderCode = newOrderDetail?.order?.code
+
+        let contentPrefix = 'Món đã hủy'
+        if (tableName) {
+          contentPrefix = `${tableName} đã hủy`
+        } else if (orderCode) {
+          contentPrefix = `Đơn #${orderCode} đã hủy`
+        }
+
         await Promise.all([
           this.orderDetailGatewayHandler.handleCancelOrderDetails(
             newOrderDetail,
@@ -220,7 +237,7 @@ export class OrderDetailService {
           this.notifyService.create(
             {
               type: 'CANCEL_DISH',
-              content: `${orderDetail.table.name} đã hủy (${data.amount}) ${orderDetail.productOrigin.name}`
+              content: `${contentPrefix} (${data.amount}) ${orderDetail.productOrigin?.name}`
             },
             branchId,
             deviceId
@@ -311,33 +328,27 @@ export class OrderDetailService {
 
       // Batch notification creation
       const notify = getNotifyInfo(data.status)
-      const messages = this.getMessagesToNotify(updateOrderDetail, notify.content)
-
-      // Chuyển messages thành mảng CreateNotifyDto
-      const notifyDtos = messages.map(content => ({
-        modelName: 'Order',
-        type: notify.type,
-        content
-      }))
 
       setImmediate(async () => {
-        const ALLOWED_STATUSES = ['INFORMED']
-
-        const status = data.status || (Array.isArray(results) && results[0]?.status)
+        const allowedStatuses = ['INFORMED']
+        const status = data.status ?? results?.[0]?.status
 
         const promises = [
           this.orderDetailGatewayHandler
             .handleUpdateOrderDetails(results, branchId, deviceId)
-            .catch(error => {
-              console.error('Failed to handle modify order details:', error)
-            })
+            .catch(err => console.error('Failed to handle modify order details:', err))
         ]
 
-        if (status && ALLOWED_STATUSES.includes(status)) {
+        if (status && allowedStatuses.includes(status)) {
           promises.push(
-            this.notifyService.createMany(notifyDtos, branchId, deviceId).catch(error => {
-              console.error('Failed to send notifications:', error)
-            })
+            this.notifyService.create(
+              {
+                type: notify.type,
+                content: `Có món ${notify.content}!`
+              },
+              branchId,
+              deviceId
+            )
           )
         }
 
@@ -348,53 +359,52 @@ export class OrderDetailService {
     })
   }
 
-  getMessagesToNotify(orderDetails: any, content: string): string[] {
-    const groupedByTable = orderDetails.reduce((acc: Record<string, ITableGroup>, detail) => {
-      const fallbackId = detail.order?.code ?? 'unknown'
-      const tableId = detail.table?.id ?? detail.tableId ?? fallbackId
-      const productId = detail.product?.id ?? detail.productOriginId ?? 'unknown'
-      const tableName =
-        detail.table?.name ?? (detail.order?.code ? `Đơn #${detail.order.code}` : '')
-      const areaName = detail.table?.area?.name ?? ''
-      const productName = detail.product?.name
-      const amount = detail.amount
-      const status = detail.status
+  // getMessagesToNotify(orderDetails: any[], content: string): string[] {
+  //   const groupedByTable: Record<string, ITableGroup> = {}
 
-      // Initialize table group
-      if (!acc[tableId]) {
-        acc[tableId] = {
-          tableId,
-          tableName,
-          areaName,
-          products: {}
-        }
-      }
+  //   for (const detail of orderDetails) {
+  //     const fallbackId = detail.order?.code ?? 'unknown'
+  //     const tableId = detail.table?.id ?? detail.tableId ?? fallbackId
+  //     const tableName =
+  //       detail.table?.name ?? (detail.order?.code ? `Đơn #${detail.order.code}` : 'Chưa rõ bàn')
+  //     const areaName = detail.table?.area?.name ?? ''
+  //     const productId = detail.product?.id ?? detail.productOriginId ?? 'unknown'
+  //     const productName = detail.product?.name ?? detail.productOrigin?.name ?? 'Sản phẩm không tên'
+  //     const amount = detail.amount ?? 0
+  //     const status = detail.status
 
-      // Initialize product group
-      if (!acc[tableId].products[productId]) {
-        acc[tableId].products[productId] = {
-          productId,
-          productName,
-          totalAmount: 0,
-          status
-        }
-      }
+  //     if (!groupedByTable[tableId]) {
+  //       groupedByTable[tableId] = {
+  //         tableId,
+  //         tableName,
+  //         areaName,
+  //         products: {}
+  //       }
+  //     }
 
-      // Aggregate amount
-      acc[tableId].products[productId].totalAmount += amount
+  //     const productGroup = groupedByTable[tableId].products
 
-      return acc
-    }, {})
+  //     if (!productGroup[productId]) {
+  //       productGroup[productId] = {
+  //         productId,
+  //         productName,
+  //         totalAmount: 0,
+  //         status
+  //       }
+  //     }
 
-    // Step 2: Format output as list of strings
-    const formattedOutput = Object.values(groupedByTable).flatMap((table: ITableGroup) => {
-      return Object.values(table.products).map((product: IProductGroup) => {
-        return `${table.tableName} - ${table.areaName} | ${product.totalAmount} - ${
-          product.productName ?? 'Unknown Product'
-        } ${content}`
-      })
-    })
+  //     productGroup[productId].totalAmount += amount
+  //   }
 
-    return formattedOutput
-  }
+  //   // Convert to notification messages
+  //   return Object.values(groupedByTable).map(tableGroup => {
+  //     const productMsgs = Object.values(tableGroup.products)
+  //       .map(p => `(${p.totalAmount}) ${p.productName}`)
+  //       .join(', ')
+
+  //     const tableDisplay = tableGroup.tableName || 'Không xác định bàn'
+
+  //     return `${tableDisplay} ${content} ${productMsgs}`
+  //   })
+  // }
 }
