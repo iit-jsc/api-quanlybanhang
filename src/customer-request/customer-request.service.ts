@@ -38,9 +38,7 @@ export class CustomerRequestService {
       })
 
       // Gửi socket và thông báo
-      setImmediate(() => {
-        this.mainGateway.handleCreateCustomerRequest(customerRequest)
-      })
+      await this.mainGateway.handleCreateCustomerRequest(customerRequest)
 
       return customerRequest
     })

@@ -72,7 +72,7 @@ export class OrderService {
         select: orderSortSelect
       })
 
-      setImmediate(() => {
+      await Promise.all([
         this.activityLogService.create(
           {
             action: ActivityAction.CREATE,
@@ -82,9 +82,9 @@ export class OrderService {
           },
           { branchId },
           accountId
-        )
+        ),
         this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId)
-      })
+      ])
 
       return order
     })
@@ -145,21 +145,19 @@ export class OrderService {
         select: orderSortSelect
       })
 
-      setImmediate(async () => {
-        await Promise.all([
-          this.activityLogService.create(
-            {
-              action: ActivityAction.PAYMENT,
-              modelName: 'Order',
-              targetName: order.code,
-              targetId: order.id
-            },
-            { branchId },
-            accountId
-          ),
-          this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId)
-        ])
-      })
+      await Promise.all([
+        this.activityLogService.create(
+          {
+            action: ActivityAction.PAYMENT,
+            modelName: 'Order',
+            targetName: order.code,
+            targetId: order.id
+          },
+          { branchId },
+          accountId
+        ),
+        this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId)
+      ])
 
       return newOrder
     })
@@ -198,9 +196,7 @@ export class OrderService {
         accountId
       )
 
-      setImmediate(() => {
-        this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
-      })
+      await this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
 
       return order
     })
@@ -300,9 +296,7 @@ export class OrderService {
         select: orderSortSelect
       })
 
-      setImmediate(() => {
-        this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
-      })
+      await this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
 
       return order
     })
@@ -343,9 +337,7 @@ export class OrderService {
         accountId
       )
 
-      setImmediate(() => {
-        this.orderGatewayHandler.handleCancelOrder(order, branchId, deviceId)
-      })
+      await this.orderGatewayHandler.handleCancelOrder(order, branchId, deviceId)
 
       return order
     })
@@ -395,9 +387,7 @@ export class OrderService {
         }
       })
 
-      setImmediate(() => {
-        this.orderGatewayHandler.handleDeleteOrder(order, branchId, deviceId)
-      })
+      await this.orderGatewayHandler.handleDeleteOrder(order, branchId, deviceId)
 
       return order
     })

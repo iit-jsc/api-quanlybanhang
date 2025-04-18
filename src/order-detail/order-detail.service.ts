@@ -161,9 +161,7 @@ export class OrderDetailService {
       select: orderDetailSelect
     })
 
-    setImmediate(() => {
-      this.orderDetailGatewayHandler.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
-    })
+    await this.orderDetailGatewayHandler.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
 
     return orderDetail
   }
@@ -217,33 +215,35 @@ export class OrderDetailService {
         select: orderDetailSelect
       })
 
-      setImmediate(async () => {
-        const tableName = newOrderDetail?.table?.name
-        const orderCode = newOrderDetail?.order?.code
+      Promise.all([
+        (async () => {
+          const tableName = newOrderDetail?.table?.name
+          const orderCode = newOrderDetail?.order?.code
 
-        let contentPrefix = 'Món đã hủy'
-        if (tableName) {
-          contentPrefix = `${tableName} đã hủy`
-        } else if (orderCode) {
-          contentPrefix = `Đơn #${orderCode} đã hủy`
-        }
+          let contentPrefix = 'Món đã hủy'
+          if (tableName) {
+            contentPrefix = `${tableName} đã hủy`
+          } else if (orderCode) {
+            contentPrefix = `Đơn #${orderCode} đã hủy`
+          }
 
-        await Promise.all([
-          this.orderDetailGatewayHandler.handleCancelOrderDetails(
-            newOrderDetail,
-            branchId,
-            deviceId
-          ),
-          this.notifyService.create(
-            {
-              type: 'CANCEL_DISH',
-              content: `${contentPrefix} (${data.amount}) ${orderDetail.productOrigin?.name}`
-            },
-            branchId,
-            deviceId
-          )
-        ])
-      })
+          await Promise.all([
+            this.orderDetailGatewayHandler.handleCancelOrderDetails(
+              newOrderDetail,
+              branchId,
+              deviceId
+            ),
+            this.notifyService.create(
+              {
+                type: 'CANCEL_DISH',
+                content: `${contentPrefix} (${data.amount}) ${orderDetail.productOrigin?.name}`
+              },
+              branchId,
+              deviceId
+            )
+          ])
+        })()
+      ])
 
       return newOrderDetail
     })
@@ -329,31 +329,29 @@ export class OrderDetailService {
       // Batch notification creation
       const notify = getNotifyInfo(data.status)
 
-      setImmediate(async () => {
-        const allowedStatuses = ['INFORMED']
-        const status = data.status ?? results?.[0]?.status
+      const allowedStatuses = ['INFORMED']
+      const status = data.status ?? results?.[0]?.status
 
-        const promises = [
-          this.orderDetailGatewayHandler
-            .handleUpdateOrderDetails(results, branchId, deviceId)
-            .catch(err => console.error('Failed to handle modify order details:', err))
-        ]
+      const promises = [
+        this.orderDetailGatewayHandler
+          .handleUpdateOrderDetails(results, branchId, deviceId)
+          .catch(err => console.error('Failed to handle modify order details:', err))
+      ]
 
-        if (status && allowedStatuses.includes(status)) {
-          promises.push(
-            this.notifyService.create(
-              {
-                type: notify.type,
-                content: `Có món ${notify.content}!`
-              },
-              branchId,
-              deviceId
-            )
+      if (status && allowedStatuses.includes(status)) {
+        promises.push(
+          this.notifyService.create(
+            {
+              type: notify.type,
+              content: `Có món ${notify.content}!`
+            },
+            branchId,
+            deviceId
           )
-        }
+        )
+      }
 
-        await Promise.all(promises)
-      })
+      await Promise.all(promises)
 
       return results
     })

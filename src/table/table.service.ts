@@ -218,8 +218,8 @@ export class TableService {
       const notify = getNotifyInfo(data.orderProducts[0].status)
 
       // Bắn socket
-      setImmediate(() => {
-        this.tableGatewayHandler.handleAddDish(table, branchId, deviceId)
+      await Promise.all([
+        this.tableGatewayHandler.handleAddDish(table, branchId, deviceId),
         this.notifyService.create(
           {
             type: notify.type,
@@ -228,7 +228,7 @@ export class TableService {
           branchId,
           deviceId
         )
-      })
+      ])
 
       return table
     })
@@ -257,18 +257,16 @@ export class TableService {
     const notify = getNotifyInfo(data.orderProducts[0].status)
 
     // Bắn socket
-    setImmediate(async () => {
-      await Promise.all([
-        this.tableGatewayHandler.handleAddDish(table, data.branchId),
-        this.notifyService.create(
-          {
-            type: notify.type,
-            content: `${table.name} - ${table.area.name} có món ${notify.content}`
-          },
-          data.branchId
-        )
-      ])
-    })
+    Promise.all([
+      this.tableGatewayHandler.handleAddDish(table, data.branchId),
+      this.notifyService.create(
+        {
+          type: notify.type,
+          content: `${table.name} - ${table.area.name} có món ${notify.content}`
+        },
+        data.branchId
+      )
+    ])
 
     return table
   }
@@ -338,22 +336,20 @@ export class TableService {
         const fullOrder = { ...newOrder, orderDetails: orderDetailsInTable }
 
         // Gửi socket, lưu log
-        setImmediate(async () => {
-          await Promise.all([
-            this.activityLogService.create(
-              {
-                action: ActivityAction.PAYMENT,
-                modelName: 'Order',
-                targetName: fullOrder.code,
-                targetId: fullOrder.id
-              },
-              { branchId },
-              accountId
-            ),
-            this.orderGatewayHandler.handleCreateOrder(fullOrder, branchId, deviceId),
-            this.tableGatewayHandler.handleUpdateTable(fullOrder.table, branchId, deviceId)
-          ])
-        })
+        Promise.all([
+          this.activityLogService.create(
+            {
+              action: ActivityAction.PAYMENT,
+              modelName: 'Order',
+              targetName: fullOrder.code,
+              targetId: fullOrder.id
+            },
+            { branchId },
+            accountId
+          ),
+          this.orderGatewayHandler.handleCreateOrder(fullOrder, branchId, deviceId),
+          this.tableGatewayHandler.handleUpdateTable(fullOrder.table, branchId, deviceId)
+        ])
 
         return fullOrder
       },
@@ -474,8 +470,8 @@ export class TableService {
       })
 
       // Ghi log hoạt động
-      setImmediate(() => {
-        this.tableGatewayHandler.handleUpdateTable(tableUpdates, branchId)
+      Promise.all([
+        this.tableGatewayHandler.handleUpdateTable(tableUpdates, branchId),
         this.activityLogService.create(
           {
             action: ActivityAction.SEPARATE_TABLE,
@@ -487,7 +483,7 @@ export class TableService {
           { branchId },
           accountId
         )
-      })
+      ])
 
       return tableUpdates
     })
