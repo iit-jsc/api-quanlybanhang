@@ -523,10 +523,14 @@ export async function handleOrderDetailsBeforePayment(
 
 export function getNotifyInfo(status: OrderDetailStatus): { type: NotifyType; content: string } {
   switch (status) {
+    case OrderDetailStatus.APPROVED:
+      return { type: NotifyType.REPORT_TO_KITCHEN, content: 'chờ chuyển xuống bếp' }
     case OrderDetailStatus.PROCESSING:
       return { type: NotifyType.REPORT_TO_KITCHEN, content: 'yêu cầu chế biến' }
     case OrderDetailStatus.INFORMED:
       return { type: NotifyType.REPORT_TO_KITCHEN, content: 'đã chuyển bếp' }
+    case OrderDetailStatus.SUCCESS:
+      return { type: NotifyType.REPORT_TO_KITCHEN, content: 'đã cung ứng' }
     default:
       return { type: NotifyType.REPORT_TO_KITCHEN, content: 'yêu cầu chế biến' }
   }

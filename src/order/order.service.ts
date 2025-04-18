@@ -32,13 +32,13 @@ import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
-import { MainGateway } from 'src/gateway/main.gateway'
+import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 
 @Injectable()
 export class OrderService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly mainGateway: MainGateway,
+    private readonly orderGatewayHandler: OrderGatewayHandler,
     private readonly trashService: TrashService,
     private readonly activityLogService: ActivityLogService
   ) {}
@@ -83,7 +83,7 @@ export class OrderService {
           { branchId },
           accountId
         )
-        this.mainGateway.handleCreateOrder(order, branchId, deviceId)
+        this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId)
       })
 
       return order
@@ -135,7 +135,7 @@ export class OrderService {
       ])
 
       setImmediate(() => {
-        this.mainGateway.handleUpdateOrder(order, branchId, deviceId)
+        this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
       })
 
       return prisma.order.update({
@@ -195,7 +195,7 @@ export class OrderService {
       )
 
       setImmediate(() => {
-        this.mainGateway.handleUpdateOrder(order, branchId, deviceId)
+        this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
       })
 
       return order
@@ -297,7 +297,7 @@ export class OrderService {
       })
 
       setImmediate(() => {
-        this.mainGateway.handleUpdateOrder(order, branchId, deviceId)
+        this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
       })
 
       return order
@@ -340,7 +340,7 @@ export class OrderService {
       )
 
       setImmediate(() => {
-        this.mainGateway.handleCancelOrder(order, branchId, deviceId)
+        this.orderGatewayHandler.handleCancelOrder(order, branchId, deviceId)
       })
 
       return order
@@ -392,7 +392,7 @@ export class OrderService {
       })
 
       setImmediate(() => {
-        this.mainGateway.handleDeleteOrder(order, branchId, deviceId)
+        this.orderGatewayHandler.handleDeleteOrder(order, branchId, deviceId)
       })
 
       return order

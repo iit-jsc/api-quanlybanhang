@@ -14,14 +14,14 @@ import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { NotifyService } from 'src/notify/notify.service'
 import { IOrderDetail, IProductGroup, ITableGroup } from 'interfaces/orderDetail.interface'
-import { MainGateway } from 'src/gateway/main.gateway'
+import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
 
 @Injectable()
 export class OrderDetailService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
-    private readonly mainGateway: MainGateway,
+    private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler,
     private readonly notifyService: NotifyService
   ) {}
 
@@ -46,7 +46,7 @@ export class OrderDetailService {
 
       await Promise.all([
         this.trashService.createMany(dataTrash, prisma),
-        this.mainGateway.handleDeleteOrderDetails(entities, branchId, deviceId)
+        this.orderDetailGatewayHandler.handleDeleteOrderDetails(entities, branchId, deviceId)
       ])
 
       return prisma.orderDetail.deleteMany({
@@ -162,7 +162,7 @@ export class OrderDetailService {
     })
 
     setImmediate(() => {
-      this.mainGateway.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
+      this.orderDetailGatewayHandler.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
     })
 
     return orderDetail
@@ -212,7 +212,11 @@ export class OrderDetailService {
 
       setImmediate(async () => {
         await Promise.all([
-          this.mainGateway.handleCancelOrderDetails(newOrderDetail, branchId, deviceId),
+          this.orderDetailGatewayHandler.handleCancelOrderDetails(
+            newOrderDetail,
+            branchId,
+            deviceId
+          ),
           this.notifyService.create(
             {
               type: 'CANCEL_DISH',
@@ -322,9 +326,11 @@ export class OrderDetailService {
         const status = data.status || (Array.isArray(results) && results[0]?.status)
 
         const promises = [
-          this.mainGateway.handleUpdateOrderDetails(results, branchId, deviceId).catch(error => {
-            console.error('Failed to handle modify order details:', error)
-          })
+          this.orderDetailGatewayHandler
+            .handleUpdateOrderDetails(results, branchId, deviceId)
+            .catch(error => {
+              console.error('Failed to handle modify order details:', error)
+            })
         ]
 
         if (status && ALLOWED_STATUSES.includes(status)) {

@@ -41,14 +41,14 @@ import { orderDetailSortSelect } from 'responses/order-detail.response'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
-import { MainGateway } from 'src/gateway/main.gateway'
+import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 
 @Injectable()
 export class TableService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
-    private readonly mainGateway: MainGateway,
+    private readonly tableGatewayHandler: TableGatewayHandler,
     private readonly activityLogService: ActivityLogService,
     private readonly notifyService: NotifyService
   ) {}
@@ -219,7 +219,7 @@ export class TableService {
 
       // Bắn socket
       setImmediate(() => {
-        this.mainGateway.handleAddDish(table, branchId, deviceId)
+        this.tableGatewayHandler.handleAddDish(table, branchId, deviceId)
         this.notifyService.create(
           {
             type: notify.type,
@@ -258,7 +258,7 @@ export class TableService {
     // Bắn socket
     setImmediate(async () => {
       await Promise.all([
-        this.mainGateway.handleAddDish(table, data.branchId),
+        this.tableGatewayHandler.handleAddDish(table, data.branchId),
         this.notifyService.create(
           {
             type: notify.type,
@@ -468,7 +468,7 @@ export class TableService {
 
       // Ghi log hoạt động
       setImmediate(() => {
-        this.mainGateway.handleAddDish(tableUpdates, branchId)
+        this.tableGatewayHandler.handleAddDish(tableUpdates, branchId)
         this.activityLogService.create(
           {
             action: ActivityAction.SEPARATE_TABLE,

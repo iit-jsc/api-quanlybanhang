@@ -11,9 +11,12 @@ import {
 import { Server, Socket } from 'socket.io'
 import { PrismaService } from 'nestjs-prisma'
 import { JwtService } from '@nestjs/jwt'
-import { CustomerRequest, Table } from '@prisma/client'
-import { CreateNotifyDto } from 'src/notify/dto/notify.dto'
+import { CustomerRequest } from '@prisma/client'
 import { TokenPayload } from 'interfaces/common.interface'
+import { TableGatewayHandler } from './handlers/table.handler'
+import { NotifyGatewayHandler } from './handlers/notify.handler'
+import { OrderDetailGatewayHandler } from './handlers/order-detail-gateway.handler'
+import { OrderGatewayHandler } from './handlers/order-gateway.handler'
 
 @WebSocketGateway({
   cors: true,
@@ -29,11 +32,18 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
   constructor(
     private readonly prisma: PrismaService,
-    private readonly jwtService: JwtService
+    private readonly jwtService: JwtService,
+    private readonly tableHandler: TableGatewayHandler,
+    private readonly notifyGatewayHandler: NotifyGatewayHandler,
+    private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler,
+    private readonly orderGatewayHandler: OrderGatewayHandler
   ) {}
 
   afterInit() {
-    console.log('WebSocket Gateway initialized')
+    this.tableHandler.setServer(this.server)
+    this.notifyGatewayHandler.setServer(this.server)
+    this.orderDetailGatewayHandler.setServer(this.server)
+    this.orderGatewayHandler.setServer(this.server)
   }
 
   async handleConnection(client: Socket) {
@@ -92,8 +102,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
 
       client.join(decoded.branchId)
 
-      console.log(client.rooms)
-
       const accountSocket = await this.prisma.accountSocket.upsert({
         where: { socketId: client.id },
         create: {
@@ -125,164 +133,164 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
     }
   }
 
-  async handleAddDish(payload: Table | Table[], branchId: string, deviceId?: string) {
-    const emitData = Array.isArray(payload) ? payload : [payload]
+  // async handleAddDish(payload: Table | Table[], branchId: string, deviceId?: string) {
+  //   const emitData = Array.isArray(payload) ? payload : [payload]
 
-    const target = this.server.to(branchId)
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('add-dish-to-table', emitData)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('add-dish-to-table', emitData)
+  //       return
+  //     }
+  //   }
 
-    target.emit('add-dish-to-table', emitData)
-  }
+  //   target.emit('add-dish-to-table', emitData)
+  // }
 
-  async handleCreateOrder(payload: any, branchId: string, deviceId: string) {
-    const target = this.server.to(branchId)
+  // async handleCreateOrder(payload: any, branchId: string, deviceId: string) {
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('create-order', payload)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('create-order', payload)
+  //       return
+  //     }
+  //   }
 
-    target.emit('create-order', payload)
-  }
+  //   target.emit('create-order', payload)
+  // }
 
-  async handleUpdateOrder(payload: any, branchId: string, deviceId: string) {
-    const target = this.server.to(branchId)
+  // async handleUpdateOrder(payload: any, branchId: string, deviceId: string) {
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('update-order', payload)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('update-order', payload)
+  //       return
+  //     }
+  //   }
 
-    target.emit('update-order', payload)
-  }
+  //   target.emit('update-order', payload)
+  // }
 
-  async handleDeleteOrder(payload: any, branchId: string, deviceId: string) {
-    const target = this.server.to(branchId)
+  // async handleDeleteOrder(payload: any, branchId: string, deviceId: string) {
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('delete-order', payload)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('delete-order', payload)
+  //       return
+  //     }
+  //   }
 
-    target.emit('delete-order', payload)
-  }
+  //   target.emit('delete-order', payload)
+  // }
 
-  async handleCancelOrder(payload: any, branchId: string, deviceId: string) {
-    const target = this.server.to(branchId)
+  // async handleCancelOrder(payload: any, branchId: string, deviceId: string) {
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('cancel-order', payload)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('cancel-order', payload)
+  //       return
+  //     }
+  //   }
 
-    target.emit('cancel-order', payload)
-  }
+  //   target.emit('cancel-order', payload)
+  // }
 
-  async handleCreateOrderDetails(payload: any, branchId: string, deviceId: string) {
-    const emitData = Array.isArray(payload) ? payload : [payload]
+  // async handleCreateOrderDetails(payload: any, branchId: string, deviceId: string) {
+  //   const emitData = Array.isArray(payload) ? payload : [payload]
 
-    const target = this.server.to(branchId)
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('create-order-details', emitData)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('create-order-details', emitData)
+  //       return
+  //     }
+  //   }
 
-    target.emit('create-order-details', emitData)
-  }
+  //   target.emit('create-order-details', emitData)
+  // }
 
-  async handleDeleteOrderDetails(payload: any, branchId: string, deviceId: string) {
-    const emitData = Array.isArray(payload) ? payload : [payload]
+  // async handleDeleteOrderDetails(payload: any, branchId: string, deviceId: string) {
+  //   const emitData = Array.isArray(payload) ? payload : [payload]
 
-    const target = this.server.to(branchId)
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('delete-order-details', emitData)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('delete-order-details', emitData)
+  //       return
+  //     }
+  //   }
 
-    target.emit('delete-order-details', emitData)
-  }
+  //   target.emit('delete-order-details', emitData)
+  // }
 
-  async handleUpdateOrderDetails(payload: any, branchId: string, deviceId: string) {
-    const emitData = Array.isArray(payload) ? payload : [payload]
+  // async handleUpdateOrderDetails(payload: any, branchId: string, deviceId: string) {
+  //   const emitData = Array.isArray(payload) ? payload : [payload]
 
-    const target = this.server.to(branchId)
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('update-order-details', emitData)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('update-order-details', emitData)
+  //       return
+  //     }
+  //   }
 
-    target.emit('update-order-details', emitData)
-  }
+  //   target.emit('update-order-details', emitData)
+  // }
 
-  async handleCancelOrderDetails(payload: any, branchId: string, deviceId: string) {
-    const emitData = Array.isArray(payload) ? payload : [payload]
+  // async handleCancelOrderDetails(payload: any, branchId: string, deviceId: string) {
+  //   const emitData = Array.isArray(payload) ? payload : [payload]
 
-    const target = this.server.to(branchId)
+  //   const target = this.server.to(branchId)
 
-    if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //   if (deviceId) {
+  //     const accountSocket = await this.prisma.accountSocket.findUnique({ where: { deviceId } })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit('cancel-order-details', emitData)
-        return
-      }
-    }
+  //     if (accountSocket?.socketId) {
+  //       target.except(accountSocket.socketId).emit('cancel-order-details', emitData)
+  //       return
+  //     }
+  //   }
 
-    target.emit('cancel-order-details', emitData)
-  }
+  //   target.emit('cancel-order-details', emitData)
+  // }
 
-  async handleSendNotify(
-    payload: CreateNotifyDto | CreateNotifyDto[],
-    branchId: string,
-    deviceId: string
-  ) {
-    const emitData = Array.isArray(payload) ? payload : [payload]
+  // async handleSendNotify(
+  //   payload: CreateNotifyDto | CreateNotifyDto[],
+  //   branchId: string,
+  //   deviceId: string
+  // ) {
+  //   const emitData = Array.isArray(payload) ? payload : [payload]
 
-    const accountSocket = deviceId
-      ? await this.prisma.accountSocket.findUnique({ where: { deviceId } })
-      : null
+  //   const accountSocket = deviceId
+  //     ? await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+  //     : null
 
-    this.server.to(branchId).except(accountSocket?.socketId).emit('notifies', emitData)
-  }
+  //   this.server.to(branchId).except(accountSocket?.socketId).emit('notifies', emitData)
+  // }
 
   async handleCreateCustomerRequest(payload: CustomerRequest) {
     this.server.to(payload.branchId).emit('customer-request', payload)
