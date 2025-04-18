@@ -96,10 +96,15 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         room => room !== client.id && room !== decoded.branchId
       )
 
+      // rời các chi nhánh hiện tại
       for (const room of rooms) {
         client.leave(room)
       }
 
+      // join chi nhánh mới
+      client.join(decoded.branchId)
+
+      // Cập nhật socket id vào db
       const existing = await this.prisma.accountSocket.findFirst({
         where: {
           OR: [{ socketId: client.id }, { deviceId: decoded.deviceId }]

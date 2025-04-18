@@ -19,7 +19,6 @@ export class NotifyGatewayHandler {
     deviceId?: string
   ) {
     const emitData = Array.isArray(payload) ? payload : [payload]
-    console.log(deviceId)
 
     const accountSocket = deviceId
       ? await prisma.accountSocket.findUnique({ where: { deviceId } })
