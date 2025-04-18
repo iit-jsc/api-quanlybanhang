@@ -481,7 +481,9 @@ export async function getCustomerDiscount(
 
   const customerValue = 0
 
-  const customer = await prisma.customer.findFirstOrThrow({
+  if (!customerId) return customerValue
+
+  const customer = await prisma.customer.findUniqueOrThrow({
     where: { id: customerId },
     select: customerSelect
   })

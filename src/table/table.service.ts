@@ -43,15 +43,17 @@ import { SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
+import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 
 @Injectable()
 export class TableService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
-    private readonly tableGatewayHandler: TableGatewayHandler,
     private readonly activityLogService: ActivityLogService,
-    private readonly notifyService: NotifyService
+    private readonly notifyService: NotifyService,
+    private readonly tableGatewayHandler: TableGatewayHandler,
+    private readonly orderGatewayHandler: OrderGatewayHandler
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
@@ -274,7 +276,13 @@ export class TableService {
     return table
   }
 
-  async payment(tableId: string, data: PaymentFromTableDto, accountId: string, branchId: string) {
+  async payment(
+    tableId: string,
+    data: PaymentFromTableDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const [orderDetails, order] = await Promise.all([
         this.getOrderDetailsInTable(tableId, prisma),
@@ -322,24 +330,31 @@ export class TableService {
         })()
       ])
 
-      await Promise.all([
-        this.activityLogService.create(
-          {
-            action: ActivityAction.PAYMENT,
-            modelName: 'Order',
-            targetName: order.code,
-            targetId: order.id
-          },
-          { branchId },
-          accountId
-        ),
-        this.passOrderDetailToOrder(orderDetails, order.id, accountId, prisma)
-      ])
+      await this.passOrderDetailToOrder(orderDetails, order.id, accountId, prisma)
 
-      return prisma.order.findUnique({
+      const newOrder = await prisma.order.findUnique({
         where: { id: order.id },
         select: orderSortSelect
       })
+
+      setImmediate(async () => {
+        await Promise.all([
+          this.activityLogService.create(
+            {
+              action: ActivityAction.PAYMENT,
+              modelName: 'Order',
+              targetName: order.code,
+              targetId: order.id
+            },
+            { branchId },
+            accountId
+          ),
+          this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId),
+          this.tableGatewayHandler.handleUpdateTable(order.table, branchId, deviceId)
+        ])
+      })
+
+      return newOrder
     })
   }
 

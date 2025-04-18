@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { accountSortSelect } from './account.response'
 import { orderDetailSortSelect } from './order-detail.response'
 import { paymentMethodSelect } from './payment-method.response'
+import { tableSortSelect } from './table.response'
 
 export const orderSortSelect: Prisma.OrderSelect = {
   id: true,
@@ -17,12 +18,7 @@ export const orderSortSelect: Prisma.OrderSelect = {
   note: true,
   bankingImages: true,
   table: {
-    select: {
-      id: true,
-      name: true,
-      seat: true,
-      updatedAt: true
-    }
+    select: tableSortSelect
   },
   paymentMethod: {
     select: paymentMethodSelect
@@ -51,12 +47,7 @@ export const orderSelect: Prisma.OrderSelect = {
   note: true,
   bankingImages: true,
   table: {
-    select: {
-      id: true,
-      name: true,
-      seat: true,
-      updatedAt: true
-    }
+    select: tableSortSelect
   },
   paymentMethod: {
     select: paymentMethodSelect

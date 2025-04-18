@@ -134,11 +134,7 @@ export class OrderService {
         )
       ])
 
-      setImmediate(() => {
-        this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
-      })
-
-      return prisma.order.update({
+      const newOrder = await prisma.order.update({
         where: { id },
         data: {
           isPaid: true,
@@ -158,6 +154,24 @@ export class OrderService {
         },
         select: orderSortSelect
       })
+
+      setImmediate(async () => {
+        await Promise.all([
+          this.activityLogService.create(
+            {
+              action: ActivityAction.PAYMENT,
+              modelName: 'Order',
+              targetName: order.code,
+              targetId: order.id
+            },
+            { branchId },
+            accountId
+          ),
+          this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId)
+        ])
+      })
+
+      return newOrder
     })
   }
 

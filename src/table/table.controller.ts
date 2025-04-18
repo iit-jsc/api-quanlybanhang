@@ -69,9 +69,9 @@ export class TableController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(permissions.order.payment)
   payment(@Param('id') id: string, @Body() data: PaymentFromTableDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
+    const { accountId, branchId, deviceId } = req
 
-    return this.tableService.payment(id, data, accountId, branchId)
+    return this.tableService.payment(id, data, accountId, branchId, deviceId)
   }
 
   @Post('/:id/request-payment')

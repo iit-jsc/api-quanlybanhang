@@ -38,4 +38,8 @@ export class TableGatewayHandler {
   async handleAddDish(payload: any, branchId: string, deviceId?: string) {
     await this.emitTableDishEvent('add-dish-to-table', payload, branchId, deviceId)
   }
+
+  async handleUpdateTable(payload: any, branchId: string, deviceId?: string) {
+    await this.emitTableDishEvent('update-table', payload, branchId, deviceId)
+  }
 }
