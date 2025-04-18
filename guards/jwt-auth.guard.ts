@@ -6,7 +6,7 @@ import {
   HttpException
 } from '@nestjs/common'
 import { JwtService } from '@nestjs/jwt'
-import { TokenCustomerPayload } from 'interfaces/common.interface'
+import { TokenCustomerPayload, TokenPayload } from 'interfaces/common.interface'
 import { PrismaService } from 'nestjs-prisma'
 import { AccountStatus } from '@prisma/client'
 import { accountJWTAuthSelect } from 'responses/account.response'
@@ -31,7 +31,7 @@ export class JwtAuthGuard implements CanActivate {
     if (!token) throw new HttpException('Không tìm thấy token!', HttpStatus.NOT_FOUND)
 
     try {
-      const payload = await this.jwtService.verifyAsync(token, {
+      const payload: TokenPayload = await this.jwtService.verifyAsync(token, {
         secret: process.env.SECRET_KEY
       })
 
@@ -48,6 +48,7 @@ export class JwtAuthGuard implements CanActivate {
         throw new HttpException('Phiên bản đăng nhập đã hết hạn!', HttpStatus.UNAUTHORIZED)
 
       request.branchId = payload.branchId
+      request.deviceId = payload.deviceId
       request.accountId = account.id
       request.roles = account.roles
       request.shopId = account.branches?.[0]?.shopId

@@ -225,7 +225,8 @@ export class TableService {
             type: notify.type,
             content: `${table.name} - ${table.area.name} có món ${notify.content}`
           },
-          branchId
+          branchId,
+          deviceId
         )
       })
 

@@ -1,12 +1,12 @@
 import { Server } from 'socket.io'
-import { PrismaService } from 'nestjs-prisma'
 import { WebSocketServer } from '@nestjs/websockets'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export class OrderDetailGatewayHandler {
   @WebSocketServer()
   private server: Server
-
-  constructor(private readonly prisma: PrismaService) {}
 
   setServer(server: Server) {
     this.server = server
@@ -22,7 +22,7 @@ export class OrderDetailGatewayHandler {
     const target = this.server.to(branchId)
 
     if (deviceId) {
-      const accountSocket = await this.prisma.accountSocket.findUnique({
+      const accountSocket = await prisma.accountSocket.findUnique({
         where: { deviceId }
       })
 

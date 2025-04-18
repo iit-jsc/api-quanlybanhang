@@ -1,13 +1,13 @@
 import { Server } from 'socket.io'
-import { PrismaService } from 'nestjs-prisma'
 import { CreateNotifyDto } from 'src/notify/dto/notify.dto'
 import { WebSocketServer } from '@nestjs/websockets'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export class NotifyGatewayHandler {
   @WebSocketServer()
   private server: Server
-
-  constructor(private readonly prisma: PrismaService) {}
 
   setServer(server: Server) {
     this.server = server
@@ -19,8 +19,10 @@ export class NotifyGatewayHandler {
     deviceId?: string
   ) {
     const emitData = Array.isArray(payload) ? payload : [payload]
+    console.log(deviceId)
+
     const accountSocket = deviceId
-      ? await this.prisma.accountSocket.findUnique({ where: { deviceId } })
+      ? await prisma.accountSocket.findUnique({ where: { deviceId } })
       : null
 
     this.server
