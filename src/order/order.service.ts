@@ -121,17 +121,7 @@ export class OrderService {
       const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
         getVoucher(voucherParams, prisma),
         getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
-        getCustomerDiscount(data.customerId, orderTotal, prisma),
-        this.activityLogService.create(
-          {
-            action: ActivityAction.PAYMENT,
-            modelName: 'Order',
-            targetName: order.code,
-            targetId: order.id
-          },
-          { branchId },
-          accountId
-        )
+        getCustomerDiscount(data.customerId, orderTotal, prisma)
       ])
 
       const newOrder = await prisma.order.update({

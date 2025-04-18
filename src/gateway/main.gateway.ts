@@ -111,6 +111,8 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         }
       })
 
+      console.log(existing)
+
       const accountSocket = existing
         ? await this.prisma.accountSocket.update({
             where: { socketId: existing.socketId },

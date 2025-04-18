@@ -19,6 +19,8 @@ export class NotifyService {
   }
 
   async createMany(data: CreateNotifyDto[], branchId: string, deviceId: string) {
+    console.log(deviceId)
+
     await this.notifyGatewayHandler.handleSendNotify(data, branchId, deviceId)
   }
 

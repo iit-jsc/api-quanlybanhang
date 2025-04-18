@@ -59,7 +59,21 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
       note: true,
       bankingImages: true,
       updatedAt: true,
-      createdAt: true
+      createdAt: true,
+      table: {
+        select: {
+          id: true,
+          name: true,
+          seat: true,
+          area: {
+            select: {
+              id: true,
+              name: true,
+              photoURL: true
+            }
+          }
+        }
+      }
     }
   },
   updatedAt: true,

@@ -6,7 +6,7 @@ import {
   UpdateOrderDetailDto,
   UpdateStatusOrderDetailsDto
 } from './dto/order-detail.dto'
-import { ActivityAction, OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { customPaginate, getNotifyInfo } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -348,26 +348,14 @@ export class OrderDetailService {
     })
   }
 
-  getActivityActionByStatus(status: OrderDetailStatus) {
-    if (status === OrderDetailStatus.APPROVED) {
-      return ActivityAction.APPROVE_DISH
-    }
-
-    if (status === OrderDetailStatus.PROCESSING) {
-      return ActivityAction.REPORT_TO_KITCHEN
-    }
-
-    if (status === OrderDetailStatus.SUCCESS) {
-      return ActivityAction.SUCCESS_DISH
-    }
-  }
-
   getMessagesToNotify(orderDetails: any, content: string): string[] {
     const groupedByTable = orderDetails.reduce((acc: Record<string, ITableGroup>, detail) => {
-      const tableId = detail.table?.id ?? detail.tableId ?? 'unknown'
+      const fallbackId = detail.order?.code ?? 'unknown'
+      const tableId = detail.table?.id ?? detail.tableId ?? fallbackId
       const productId = detail.product?.id ?? detail.productOriginId ?? 'unknown'
-      const tableName = detail.table?.name ?? 'Unknown Table'
-      const areaName = detail.table?.area?.name ?? 'Unknown Area'
+      const tableName =
+        detail.table?.name ?? (detail.order?.code ? `Đơn #${detail.order.code}` : '')
+      const areaName = detail.table?.area?.name ?? ''
       const productName = detail.product?.name
       const amount = detail.amount
       const status = detail.status
