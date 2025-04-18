@@ -760,7 +760,6 @@ enum RequestStatus {
 }
 
 enum PaymentMethodType {
-  QR_CODE
   BANKING
   CASH
 }

@@ -549,13 +549,6 @@ export class ShopService {
         bankName: null,
         bankCode: null,
         representative: null,
-        type: PaymentMethodType.QR_CODE,
-        active: false
-      },
-      {
-        bankName: null,
-        bankCode: null,
-        representative: null,
         type: PaymentMethodType.CASH,
         active: true
       }
