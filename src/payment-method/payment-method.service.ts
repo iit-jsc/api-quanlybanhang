@@ -8,6 +8,7 @@ import {
 import { ActivityAction, Prisma } from '@prisma/client'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
+import { paymentMethodSelect } from 'responses/payment-method.response'
 
 @Injectable()
 export class PaymentMethodService {
@@ -27,7 +28,8 @@ export class PaymentMethodService {
         type: data.type,
         createdBy: accountId,
         branchId
-      }
+      },
+      select: paymentMethodSelect
     })
   }
 
@@ -46,7 +48,8 @@ export class PaymentMethodService {
           representative: data.representative,
           type: data.type,
           updatedBy: accountId
-        }
+        },
+        select: paymentMethodSelect
       })
 
       await this.activityLogService.create(
@@ -68,7 +71,8 @@ export class PaymentMethodService {
       where: {
         id,
         branchId
-      }
+      },
+      select: paymentMethodSelect
     })
   }
 
@@ -90,7 +94,8 @@ export class PaymentMethodService {
       this.prisma.paymentMethod,
       {
         orderBy: orderBy || { createdAt: 'desc' },
-        where
+        where,
+        select: paymentMethodSelect
       },
       {
         page,
