@@ -100,8 +100,6 @@ export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewa
         client.leave(room)
       }
 
-      client.join(decoded.branchId)
-
       const existing = await this.prisma.accountSocket.findFirst({
         where: {
           OR: [{ socketId: client.id }, { deviceId: decoded.deviceId }]
