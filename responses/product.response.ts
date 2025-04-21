@@ -37,5 +37,8 @@ export const productSortSelect: Prisma.ProductSelect = {
   photoURLs: true,
   status: true,
   slug: true,
+  measurementUnit: {
+    select: measurementUnitSelect
+  },
   updatedAt: true
 }

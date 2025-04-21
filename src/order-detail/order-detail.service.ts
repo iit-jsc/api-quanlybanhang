@@ -174,7 +174,7 @@ export class OrderDetailService {
     deviceId: string
   ) {
     return this.prisma.$transaction(async prisma => {
-      const orderDetail = await prisma.orderDetail.findFirstOrThrow({
+      const orderDetail = await prisma.orderDetail.findUniqueOrThrow({
         where: { id, branchId },
         select: {
           amount: true,
@@ -215,34 +215,26 @@ export class OrderDetailService {
         select: orderDetailSelect
       })
 
+      const tableName = newOrderDetail?.table?.name
+      const orderCode = newOrderDetail?.order?.code
+
+      let contentPrefix = 'Món đã hủy'
+      if (tableName) {
+        contentPrefix = `${tableName} đã hủy`
+      } else if (orderCode) {
+        contentPrefix = `Đơn #${orderCode} đã hủy`
+      }
+
       Promise.all([
-        (async () => {
-          const tableName = newOrderDetail?.table?.name
-          const orderCode = newOrderDetail?.order?.code
-
-          let contentPrefix = 'Món đã hủy'
-          if (tableName) {
-            contentPrefix = `${tableName} đã hủy`
-          } else if (orderCode) {
-            contentPrefix = `Đơn #${orderCode} đã hủy`
-          }
-
-          await Promise.all([
-            this.orderDetailGatewayHandler.handleCancelOrderDetails(
-              newOrderDetail,
-              branchId,
-              deviceId
-            ),
-            this.notifyService.create(
-              {
-                type: 'CANCEL_DISH',
-                content: `${contentPrefix} (${data.amount}) ${orderDetail.productOrigin?.name}`
-              },
-              branchId,
-              deviceId
-            )
-          ])
-        })()
+        this.orderDetailGatewayHandler.handleCancelOrderDetails(newOrderDetail, branchId, deviceId),
+        this.notifyService.create(
+          {
+            type: 'CANCEL_DISH',
+            content: `${contentPrefix} (${data.amount}) ${orderDetail.productOrigin?.name}` // đã được lấy ra trước từ transaction
+          },
+          branchId,
+          deviceId
+        )
       ])
 
       return newOrderDetail
