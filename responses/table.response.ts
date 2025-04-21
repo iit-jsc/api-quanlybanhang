@@ -34,6 +34,7 @@ export const tableSelect: Prisma.TableSelect = {
       createdAt: true,
       product: true,
       productOptions: true,
+      tableId: true,
       canceledOrderDetails: {
         select: {
           id: true,

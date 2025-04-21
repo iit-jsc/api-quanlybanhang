@@ -365,7 +365,7 @@ export class TableService {
       this.tableGatewayHandler.handleUpdateTable(result.table, branchId, deviceId)
     ])
 
-    return
+    return result
   }
 
   async passOrderDetailToOrder(

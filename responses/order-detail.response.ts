@@ -30,6 +30,7 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
       }
     }
   },
+  tableId: true,
   table: {
     select: {
       id: true,

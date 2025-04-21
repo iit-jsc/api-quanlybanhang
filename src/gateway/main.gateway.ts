@@ -19,13 +19,7 @@ import { OrderDetailGatewayHandler } from './handlers/order-detail-gateway.handl
 import { OrderGatewayHandler } from './handlers/order-gateway.handler'
 
 @WebSocketGateway({
-  cors: true,
-  transports: ['websocket'],
-  allowUpgrades: true,
-  connectionStateRecovery: {
-    maxDisconnectionDuration: 2 * 60 * 1000,
-    skipMiddlewares: false
-  }
+  cors: { origin: '*' }
 })
 export class MainGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect {
   @WebSocketServer() server: Server
