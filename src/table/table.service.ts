@@ -153,7 +153,7 @@ export class TableService {
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+    const result = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const entities = await prisma.table.findMany({
         where: { id: { in: data.ids } }
       })
@@ -166,26 +166,30 @@ export class TableService {
 
       await Promise.all([
         this.trashService.createMany(dataTrash, prisma),
-        this.activityLogService.create(
-          {
-            action: ActivityAction.DELETE,
-            modelName: 'Table',
-            targetName: entities.map(item => item.name).join(', ')
-          },
-          { branchId },
-          accountId
-        )
+        prisma.table.deleteMany({
+          where: {
+            id: { in: data.ids },
+            branchId
+          }
+        })
       ])
 
-      return prisma.table.deleteMany({
-        where: {
-          id: {
-            in: data.ids
-          },
-          branchId
-        }
-      })
+      return entities
     })
+
+    await Promise.all([
+      this.activityLogService.create(
+        {
+          action: ActivityAction.DELETE,
+          modelName: 'Table',
+          targetName: result.map(item => item.name).join(', ')
+        },
+        { branchId },
+        accountId
+      )
+    ])
+
+    return result
   }
 
   async addDish(
@@ -195,7 +199,7 @@ export class TableService {
     branchId: string,
     deviceId: string
   ) {
-    return this.prisma.$transaction(async prisma => {
+    const result = await this.prisma.$transaction(async prisma => {
       const orderDetails = await getOrderDetails(
         data.orderProducts,
         OrderDetailStatus.PROCESSING,
@@ -215,23 +219,25 @@ export class TableService {
         select: tableSelect
       })
 
-      const notify = getNotifyInfo(data.orderProducts[0].status)
-
-      // Bắn socket
-      await Promise.all([
-        this.tableGatewayHandler.handleAddDish(table, branchId, deviceId),
-        this.notifyService.create(
-          {
-            type: notify.type,
-            content: `${table.name} - ${table.area.name} có món ${notify.content}`
-          },
-          branchId,
-          deviceId
-        )
-      ])
-
       return table
     })
+
+    const notify = getNotifyInfo(data.orderProducts[0].status)
+
+    // Bắn socket
+    await Promise.all([
+      this.tableGatewayHandler.handleAddDish(result, branchId, deviceId),
+      this.notifyService.create(
+        {
+          type: notify.type,
+          content: `${result.name} - ${result.area.name} có món ${notify.content}`
+        },
+        branchId,
+        deviceId
+      )
+    ])
+
+    return result
   }
 
   async addDishByCustomer(id: string, data: AddDishByCustomerDto) {
@@ -257,7 +263,7 @@ export class TableService {
     const notify = getNotifyInfo(data.orderProducts[0].status)
 
     // Bắn socket
-    Promise.all([
+    await Promise.all([
       this.tableGatewayHandler.handleAddDish(table, data.branchId),
       this.notifyService.create(
         {
@@ -278,7 +284,7 @@ export class TableService {
     branchId: string,
     deviceId: string
   ) {
-    return await this.prisma.$transaction(
+    const result = await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
         const orderDetailsInTable = await this.getOrderDetailsInTable(tableId, prisma)
         const orderTotal = getOrderTotal(orderDetailsInTable)
@@ -335,22 +341,6 @@ export class TableService {
         // Đơn hàng chi tiết (món mới chuyển từ bàn)
         const fullOrder = { ...newOrder, orderDetails: orderDetailsInTable }
 
-        // Gửi socket, lưu log
-        Promise.all([
-          this.activityLogService.create(
-            {
-              action: ActivityAction.PAYMENT,
-              modelName: 'Order',
-              targetName: fullOrder.code,
-              targetId: fullOrder.id
-            },
-            { branchId },
-            accountId
-          ),
-          this.orderGatewayHandler.handleCreateOrder(fullOrder, branchId, deviceId),
-          this.tableGatewayHandler.handleUpdateTable(fullOrder.table, branchId, deviceId)
-        ])
-
         return fullOrder
       },
       {
@@ -358,6 +348,24 @@ export class TableService {
         maxWait: 15_000
       }
     )
+
+    // Gửi socket, lưu log
+    await Promise.all([
+      this.activityLogService.create(
+        {
+          action: ActivityAction.PAYMENT,
+          modelName: 'Order',
+          targetName: result.code,
+          targetId: result.id
+        },
+        { branchId },
+        accountId
+      ),
+      this.orderGatewayHandler.handleCreateOrder(result, branchId, deviceId),
+      this.tableGatewayHandler.handleUpdateTable(result.table, branchId, deviceId)
+    ])
+
+    return
   }
 
   async passOrderDetailToOrder(
@@ -396,17 +404,17 @@ export class TableService {
   async separateTable(id: string, data: SeparateTableDto, accountId: string, branchId: string) {
     const { toTableId, orderDetails } = data
 
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      // Kiểm tra bàn nguồn và bàn đích
-      const [fromTable, toTable] = await Promise.all([
-        prisma.table.findUnique({ where: { id } }),
-        prisma.table.findUnique({ where: { id: toTableId } })
-      ])
+    const [fromTable, toTable] = await Promise.all([
+      this.prisma.table.findUnique({ where: { id } }),
+      this.prisma.table.findUnique({ where: { id: toTableId } })
+    ])
 
-      if (!fromTable || !toTable) {
-        throw new HttpException('Không tìm thấy bàn nguồn hoặc bàn đích!', HttpStatus.NOT_FOUND)
-      }
+    // Kiểm tra bàn nguồn và bàn đích
+    if (!fromTable || !toTable) {
+      throw new HttpException('Không tìm thấy bàn nguồn hoặc bàn đích!', HttpStatus.NOT_FOUND)
+    }
 
+    const result = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       // Cập nhật hoặc tạo mới orderDetail dựa trên amount
       const updatePromises = orderDetails.map(async ({ id: orderDetailId, amount }) => {
         const orderDetail = await prisma.orderDetail.findUnique({
@@ -469,24 +477,26 @@ export class TableService {
         select: tableSelect
       })
 
-      // Ghi log hoạt động
-      Promise.all([
-        this.tableGatewayHandler.handleUpdateTable(tableUpdates, branchId),
-        this.activityLogService.create(
-          {
-            action: ActivityAction.SEPARATE_TABLE,
-            modelName: 'Table',
-            targetId: toTable.id,
-            targetName: toTable.name,
-            relatedName: fromTable.name
-          },
-          { branchId },
-          accountId
-        )
-      ])
-
       return tableUpdates
     })
+
+    // Ghi log hoạt động
+    await Promise.all([
+      this.tableGatewayHandler.handleUpdateTable(result, branchId),
+      this.activityLogService.create(
+        {
+          action: ActivityAction.SEPARATE_TABLE,
+          modelName: 'Table',
+          targetId: toTable.id,
+          targetName: toTable.name,
+          relatedName: fromTable.name
+        },
+        { branchId },
+        accountId
+      )
+    ])
+
+    return result
   }
 
   async requestPayment(id: string, branchId: string) {

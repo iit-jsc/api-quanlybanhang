@@ -26,7 +26,7 @@ export class OrderDetailService {
   ) {}
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string, deviceId: string) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+    const result = await this.prisma.$transaction(async (prisma: PrismaClient) => {
       await this.checkOrderPaidByDetailIds(data.ids)
 
       const entities = await prisma.orderDetail.findMany({
@@ -44,22 +44,22 @@ export class OrderDetailService {
         modelName: 'OrderDetail'
       }
 
-      await Promise.all([
-        this.trashService.createMany(dataTrash, prisma),
-        this.orderDetailGatewayHandler.handleDeleteOrderDetails(entities, branchId, deviceId)
-      ])
-
-      await prisma.orderDetail.deleteMany({
-        where: {
-          id: {
-            in: data.ids
-          },
-          branchId
-        }
-      })
+      await this.trashService.createMany(dataTrash, prisma),
+        await prisma.orderDetail.deleteMany({
+          where: {
+            id: {
+              in: data.ids
+            },
+            branchId
+          }
+        })
 
       return entities
     })
+
+    await this.orderDetailGatewayHandler.handleDeleteOrderDetails(result, branchId, deviceId)
+
+    return result
   }
 
   async checkOrderPaidByDetailIds(orderDetailIds: string[]) {
@@ -175,7 +175,7 @@ export class OrderDetailService {
     branchId: string,
     deviceId: string
   ) {
-    return this.prisma.$transaction(async prisma => {
+    const result = await this.prisma.$transaction(async prisma => {
       const orderDetail = await prisma.orderDetail.findUniqueOrThrow({
         where: { id, branchId },
         select: {
@@ -217,30 +217,33 @@ export class OrderDetailService {
         select: orderDetailSelect
       })
 
-      const tableName = newOrderDetail?.table?.name
-      const orderCode = newOrderDetail?.order?.code
-
-      let contentPrefix = 'Món đã hủy'
-      if (tableName) {
-        contentPrefix = `${tableName} đã hủy`
-      } else if (orderCode) {
-        contentPrefix = `Đơn #${orderCode} đã hủy`
-      }
-
-      Promise.all([
-        this.orderDetailGatewayHandler.handleCancelOrderDetails(newOrderDetail, branchId, deviceId),
-        this.notifyService.create(
-          {
-            type: 'CANCEL_DISH',
-            content: `${contentPrefix} (${data.amount}) ${orderDetail.productOrigin?.name}` // đã được lấy ra trước từ transaction
-          },
-          branchId,
-          deviceId
-        )
-      ])
-
       return newOrderDetail
     })
+
+    const tableName = result?.table?.name
+    const orderCode = result?.order?.code
+    const productName = (result.product as { name: string })?.name
+
+    let contentPrefix = 'Món đã hủy'
+    if (tableName) {
+      contentPrefix = `${tableName} đã hủy`
+    } else if (orderCode) {
+      contentPrefix = `Đơn #${orderCode} đã hủy`
+    }
+
+    await Promise.all([
+      this.orderDetailGatewayHandler.handleCancelOrderDetails(result, branchId, deviceId),
+      this.notifyService.create(
+        {
+          type: 'CANCEL_DISH',
+          content: `${contentPrefix} (${data.amount}) ${productName}` // đã được lấy ra trước từ transaction
+        },
+        branchId,
+        deviceId
+      )
+    ])
+
+    return result
   }
 
   async updateStatusOrderDetails(
@@ -249,7 +252,7 @@ export class OrderDetailService {
     branchId: string,
     deviceId: string
   ) {
-    return this.prisma.$transaction(
+    const result = await this.prisma.$transaction(
       async prisma => {
         // Fetch all current details in one query to reduce database round-trips
         const currentDetails = await prisma.orderDetail.findMany({
@@ -321,33 +324,6 @@ export class OrderDetailService {
 
         const results = [...updateOrderDetail, ...newOrderDetails]
 
-        // Batch notification creation
-        const notify = getNotifyInfo(data.status)
-
-        const allowedStatuses = ['INFORMED']
-        const status = data.status ?? results?.[0]?.status
-
-        const promises = [
-          this.orderDetailGatewayHandler
-            .handleUpdateOrderDetails(results, branchId, deviceId)
-            .catch(err => console.error('Failed to handle modify order details:', err))
-        ]
-
-        if (status && allowedStatuses.includes(status)) {
-          promises.push(
-            this.notifyService.create(
-              {
-                type: notify.type,
-                content: `Có món ${notify.content}!`
-              },
-              branchId,
-              deviceId
-            )
-          )
-        }
-
-        await Promise.all(promises)
-
         return results
       },
       {
@@ -355,6 +331,35 @@ export class OrderDetailService {
         maxWait: 15_000
       }
     )
+
+    const notify = getNotifyInfo(data.status)
+    const allowedStatuses = ['INFORMED']
+    const status = data.status ?? result?.[0]?.status
+
+    const asyncTasks = [
+      this.orderDetailGatewayHandler
+        .handleUpdateOrderDetails(result, branchId, deviceId)
+        .catch(err => console.error('Socket thất bại:', err))
+    ]
+
+    if (status && allowedStatuses.includes(status)) {
+      asyncTasks.push(
+        this.notifyService
+          .create(
+            {
+              type: notify.type,
+              content: `Có món ${notify.content}!`
+            },
+            branchId,
+            deviceId
+          )
+          .catch(err => console.error('Notify thất bại:', err))
+      )
+    }
+
+    await Promise.all(asyncTasks)
+
+    return result
   }
 
   // getMessagesToNotify(orderDetails: any[], content: string): string[] {
