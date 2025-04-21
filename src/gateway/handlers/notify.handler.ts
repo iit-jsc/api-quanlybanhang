@@ -18,6 +18,7 @@ export class NotifyGatewayHandler {
     branchId: string,
     deviceId?: string
   ) {
+    // Nếu payload là mảng, sử dụng trực tiếp; nếu không, bọc trong mảng
     const emitData = Array.isArray(payload) ? payload : [payload]
 
     const accountSocket = deviceId

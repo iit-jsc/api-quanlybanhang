@@ -49,7 +49,7 @@ export class OrderDetailService {
         this.orderDetailGatewayHandler.handleDeleteOrderDetails(entities, branchId, deviceId)
       ])
 
-      return prisma.orderDetail.deleteMany({
+      await prisma.orderDetail.deleteMany({
         where: {
           id: {
             in: data.ids
@@ -57,6 +57,8 @@ export class OrderDetailService {
           branchId
         }
       })
+
+      return entities
     })
   }
 
@@ -247,106 +249,112 @@ export class OrderDetailService {
     branchId: string,
     deviceId: string
   ) {
-    return this.prisma.$transaction(async prisma => {
-      // Fetch all current details in one query to reduce database round-trips
-      const currentDetails = await prisma.orderDetail.findMany({
-        where: {
-          id: { in: data.orderDetails.map(detail => detail.id) },
-          branchId
-        }
-      })
-
-      // Create a map for faster lookup
-      const detailsMap = new Map(currentDetails.map(detail => [detail.id, detail]))
-
-      const newOrderDetails = []
-      const updatePromises = data.orderDetails.map(async (detail: IOrderDetail) => {
-        const currentDetail = detailsMap.get(detail.id)
-
-        if (!currentDetail)
-          throw new HttpException('Không tìm thấy chi tiết món!', HttpStatus.NOT_FOUND)
-
-        if (detail.amount > currentDetail.amount) {
-          throw new HttpException(
-            `Số lượng vượt quá: còn lại ${currentDetail.amount}, yêu cầu ${detail.amount}`,
-            HttpStatus.CONFLICT
-          )
-        }
-
-        const baseUpdateData = {
-          status: data.status,
-          updatedBy: accountId,
-          amount: detail.amount,
-          updatedAt: new Date()
-        }
-
-        if (detail.amount !== currentDetail.amount) {
-          const newOrderDetail = await prisma.orderDetail.create({
-            data: {
-              ...currentDetail,
-              id: undefined,
-              amount: detail.amount,
-              status: data.status,
-              updatedBy: accountId,
-              createdAt: new Date(),
-              updatedAt: new Date()
-            },
-            select: orderDetailSelect
-          })
-
-          newOrderDetails.push(newOrderDetail)
-
-          return await prisma.orderDetail.update({
-            where: { id: detail.id, branchId },
-            data: {
-              amount: { decrement: detail.amount },
-              updatedBy: accountId,
-              updatedAt: new Date()
-            },
-            select: orderDetailSelect
-          })
-        }
-
-        return prisma.orderDetail.update({
-          where: { id: detail.id, branchId },
-          data: baseUpdateData,
-          select: orderDetailSelect
+    return this.prisma.$transaction(
+      async prisma => {
+        // Fetch all current details in one query to reduce database round-trips
+        const currentDetails = await prisma.orderDetail.findMany({
+          where: {
+            id: { in: data.orderDetails.map(detail => detail.id) },
+            branchId
+          }
         })
-      })
 
-      const updateOrderDetail = await Promise.all(updatePromises)
+        // Create a map for faster lookup
+        const detailsMap = new Map(currentDetails.map(detail => [detail.id, detail]))
 
-      const results = [...updateOrderDetail, ...newOrderDetails]
+        const newOrderDetails = []
+        const updatePromises = data.orderDetails.map(async (detail: IOrderDetail) => {
+          const currentDetail = detailsMap.get(detail.id)
 
-      // Batch notification creation
-      const notify = getNotifyInfo(data.status)
+          if (!currentDetail)
+            throw new HttpException('Không tìm thấy chi tiết món!', HttpStatus.NOT_FOUND)
 
-      const allowedStatuses = ['INFORMED']
-      const status = data.status ?? results?.[0]?.status
+          if (detail.amount > currentDetail.amount) {
+            throw new HttpException(
+              `Số lượng vượt quá: còn lại ${currentDetail.amount}, yêu cầu ${detail.amount}`,
+              HttpStatus.CONFLICT
+            )
+          }
 
-      const promises = [
-        this.orderDetailGatewayHandler
-          .handleUpdateOrderDetails(results, branchId, deviceId)
-          .catch(err => console.error('Failed to handle modify order details:', err))
-      ]
+          const baseUpdateData = {
+            status: data.status,
+            updatedBy: accountId,
+            amount: detail.amount,
+            updatedAt: new Date()
+          }
 
-      if (status && allowedStatuses.includes(status)) {
-        promises.push(
-          this.notifyService.create(
-            {
-              type: notify.type,
-              content: `Có món ${notify.content}!`
-            },
-            branchId,
-            deviceId
+          if (detail.amount !== currentDetail.amount) {
+            const newOrderDetail = await prisma.orderDetail.create({
+              data: {
+                ...currentDetail,
+                id: undefined,
+                amount: detail.amount,
+                status: data.status,
+                updatedBy: accountId,
+                createdAt: new Date(),
+                updatedAt: new Date()
+              },
+              select: orderDetailSelect
+            })
+
+            newOrderDetails.push(newOrderDetail)
+
+            return await prisma.orderDetail.update({
+              where: { id: detail.id, branchId },
+              data: {
+                amount: { decrement: detail.amount },
+                updatedBy: accountId,
+                updatedAt: new Date()
+              },
+              select: orderDetailSelect
+            })
+          }
+
+          return prisma.orderDetail.update({
+            where: { id: detail.id, branchId },
+            data: baseUpdateData,
+            select: orderDetailSelect
+          })
+        })
+
+        const updateOrderDetail = await Promise.all(updatePromises)
+
+        const results = [...updateOrderDetail, ...newOrderDetails]
+
+        // Batch notification creation
+        const notify = getNotifyInfo(data.status)
+
+        const allowedStatuses = ['INFORMED']
+        const status = data.status ?? results?.[0]?.status
+
+        const promises = [
+          this.orderDetailGatewayHandler
+            .handleUpdateOrderDetails(results, branchId, deviceId)
+            .catch(err => console.error('Failed to handle modify order details:', err))
+        ]
+
+        if (status && allowedStatuses.includes(status)) {
+          promises.push(
+            this.notifyService.create(
+              {
+                type: notify.type,
+                content: `Có món ${notify.content}!`
+              },
+              branchId,
+              deviceId
+            )
           )
-        )
+        }
+
+        await Promise.all(promises)
+
+        return results
+      },
+      {
+        timeout: 10_000,
+        maxWait: 15_000
       }
-
-      await Promise.all(promises)
-
-      return results
-    })
+    )
   }
 
   // getMessagesToNotify(orderDetails: any[], content: string): string[] {

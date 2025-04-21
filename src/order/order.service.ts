@@ -97,70 +97,77 @@ export class OrderService {
     branchId: string,
     deviceId: string
   ) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      await handleOrderDetailsBeforePayment(prisma, { orderId: id })
+    return await this.prisma.$transaction(
+      async (prisma: PrismaClient) => {
+        await handleOrderDetailsBeforePayment(prisma, { orderId: id })
 
-      const order = await prisma.order.findFirstOrThrow({
-        where: { id },
-        select: orderSortSelect
-      })
+        const order = await prisma.order.findFirstOrThrow({
+          where: { id },
+          select: orderSortSelect
+        })
 
-      if (order.isPaid) throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
+        if (order.isPaid)
+          throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
 
-      const orderTotal = getOrderTotal(order.orderDetails)
+        const orderTotal = getOrderTotal(order.orderDetails)
 
-      const voucherParams = {
-        voucherId: data.voucherId,
-        branchId,
-        orderDetails: order.orderDetails,
-        voucherCheckRequest: {
-          orderTotal
+        const voucherParams = {
+          voucherId: data.voucherId,
+          branchId,
+          orderDetails: order.orderDetails,
+          voucherCheckRequest: {
+            orderTotal
+          }
         }
-      }
 
-      const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
-        getVoucher(voucherParams, prisma),
-        getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
-        getCustomerDiscount(data.customerId, orderTotal, prisma)
-      ])
+        const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
+          getVoucher(voucherParams, prisma),
+          getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
+          getCustomerDiscount(data.customerId, orderTotal, prisma)
+        ])
 
-      const newOrder = await prisma.order.update({
-        where: { id },
-        data: {
-          isPaid: true,
-          note: data.note,
-          type: data.type,
-          voucherProducts: voucher.voucherProducts,
-          voucherValue: voucher.voucherValue,
-          discountCodeValue,
-          customerDiscountValue,
-          moneyReceived: data.moneyReceived,
-          status: data.status || OrderStatus.SUCCESS,
-          bankingImages: data.bankingImages,
-          customerId: data.customerId,
-          paymentMethodId: data.paymentMethodId,
-          paymentAt: new Date(),
-          updatedBy: accountId
-        },
-        select: orderSortSelect
-      })
-
-      await Promise.all([
-        this.activityLogService.create(
-          {
-            action: ActivityAction.PAYMENT,
-            modelName: 'Order',
-            targetName: order.code,
-            targetId: order.id
+        const newOrder = await prisma.order.update({
+          where: { id },
+          data: {
+            isPaid: true,
+            note: data.note,
+            type: data.type,
+            voucherProducts: voucher.voucherProducts,
+            voucherValue: voucher.voucherValue,
+            discountCodeValue,
+            customerDiscountValue,
+            moneyReceived: data.moneyReceived,
+            status: data.status || OrderStatus.SUCCESS,
+            bankingImages: data.bankingImages,
+            customerId: data.customerId,
+            paymentMethodId: data.paymentMethodId,
+            paymentAt: new Date(),
+            updatedBy: accountId
           },
-          { branchId },
-          accountId
-        ),
-        this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId)
-      ])
+          select: orderSortSelect
+        })
 
-      return newOrder
-    })
+        await Promise.all([
+          this.activityLogService.create(
+            {
+              action: ActivityAction.PAYMENT,
+              modelName: 'Order',
+              targetName: order.code,
+              targetId: order.id
+            },
+            { branchId },
+            accountId
+          ),
+          this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId)
+        ])
+
+        return newOrder
+      },
+      {
+        timeout: 10_000,
+        maxWait: 15_000
+      }
+    )
   }
 
   async update(

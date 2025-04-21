@@ -48,7 +48,7 @@ export class OrderDetailAmount {
   id: string
 
   @IsNumber()
-  @Min(1)
+  @Min(0)
   amount: number
 }
 
