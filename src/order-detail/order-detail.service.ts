@@ -287,30 +287,33 @@ export class OrderDetailService {
           }
 
           if (detail.amount !== currentDetail.amount) {
-            const newOrderDetail = await prisma.orderDetail.create({
-              data: {
-                ...currentDetail,
-                id: undefined,
-                amount: detail.amount,
-                status: data.status,
-                updatedBy: accountId,
-                createdAt: new Date(),
-                updatedAt: new Date()
-              },
-              select: orderDetailSelect
-            })
+            const [newOrderDetail, updatedOldDetail] = await Promise.all([
+              prisma.orderDetail.create({
+                data: {
+                  ...currentDetail,
+                  id: undefined,
+                  amount: detail.amount,
+                  status: data.status,
+                  updatedBy: accountId,
+                  createdAt: new Date(),
+                  updatedAt: new Date()
+                },
+                select: orderDetailSelect
+              }),
+              prisma.orderDetail.update({
+                where: { id: detail.id, branchId },
+                data: {
+                  amount: { decrement: detail.amount },
+                  updatedBy: accountId,
+                  updatedAt: new Date()
+                },
+                select: orderDetailSelect
+              })
+            ])
 
             newOrderDetails.push(newOrderDetail)
 
-            return await prisma.orderDetail.update({
-              where: { id: detail.id, branchId },
-              data: {
-                amount: { decrement: detail.amount },
-                updatedBy: accountId,
-                updatedAt: new Date()
-              },
-              select: orderDetailSelect
-            })
+            return updatedOldDetail
           }
 
           return prisma.orderDetail.update({

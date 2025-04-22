@@ -20,7 +20,6 @@ export class NotifyGatewayHandler {
   ) {
     // Nếu payload là mảng, sử dụng trực tiếp; nếu không, bọc trong mảng
     const emitData = Array.isArray(payload) ? payload : [payload]
-    console.log('emitData before emit:', JSON.stringify(emitData)) // Log để kiểm tra
 
     const accountSocket = deviceId
       ? await prisma.accountSocket.findUnique({ where: { deviceId } })

@@ -76,8 +76,10 @@ export class TableController {
 
   @Post('/:id/request-payment')
   @HttpCode(HttpStatus.OK)
-  requestPayment(@Param('id') id: string, @Body() data: RequestPaymentDto) {
-    return this.tableService.requestPayment(id, data.branchId)
+  @UseGuards(JwtAuthGuard)
+  requestPayment(@Param('id') id: string, @Body() data: RequestPaymentDto, @Req() req: RequestJWT) {
+    const { deviceId } = req
+    return this.tableService.requestPayment(id, data.branchId, deviceId)
   }
 
   @Post(':id/separate')
