@@ -32,15 +32,16 @@ import {
 import { tableSelect } from 'responses/table.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
-import { orderSortSelect } from 'responses/order.response'
+import { orderShortSelect } from 'responses/order.response'
 import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
-import { orderDetailSortSelect } from 'responses/order-detail.response'
+import { orderDetailShortSelect } from 'responses/order-detail.response'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
+import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
 
 @Injectable()
 export class TableService {
@@ -50,7 +51,8 @@ export class TableService {
     private readonly activityLogService: ActivityLogService,
     private readonly notifyService: NotifyService,
     private readonly tableGatewayHandler: TableGatewayHandler,
-    private readonly orderGatewayHandler: OrderGatewayHandler
+    private readonly orderGatewayHandler: OrderGatewayHandler,
+    private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
@@ -227,6 +229,11 @@ export class TableService {
     // Bắn socket
     await Promise.all([
       this.tableGatewayHandler.handleAddDish(result, branchId, deviceId),
+      this.orderDetailGatewayHandler.handleUpdateOrderDetails(
+        result.orderDetails,
+        branchId,
+        deviceId
+      ),
       this.notifyService.create(
         {
           type: notify.type,
@@ -265,6 +272,7 @@ export class TableService {
     // Bắn socket
     await Promise.all([
       this.tableGatewayHandler.handleAddDish(table, data.branchId),
+      this.orderDetailGatewayHandler.handleUpdateOrderDetails(table.orderDetails, data.branchId),
       this.notifyService.create(
         {
           type: notify.type,
@@ -327,7 +335,7 @@ export class TableService {
             branchId,
             ...(data.customerId && { customerId: data.customerId })
           },
-          select: orderSortSelect
+          select: orderShortSelect
         })
 
         // Gán chi tiết đơn hàng
@@ -393,7 +401,7 @@ export class TableService {
   async getOrderDetailsInTable(tableId: string, prisma: PrismaClient): Promise<any[]> {
     const orderDetails = await prisma.orderDetail.findMany({
       where: { tableId },
-      select: orderDetailSortSelect
+      select: orderDetailShortSelect
     })
 
     if (!orderDetails.length) throw new HttpException('Không tìm thấy món!', HttpStatus.NOT_FOUND)

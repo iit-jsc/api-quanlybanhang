@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { productTypeSortSelect } from './product-type.response'
+import { productTypeShortSelect } from './product-type.response'
 import { measurementUnitSelect } from './measurement-unit.response'
 
 export const productSelect: Prisma.ProductSelect = {
@@ -19,12 +19,12 @@ export const productSelect: Prisma.ProductSelect = {
     select: measurementUnitSelect
   },
   productType: {
-    select: productTypeSortSelect
+    select: productTypeShortSelect
   },
   updatedAt: true
 }
 
-export const productSortSelect: Prisma.ProductSelect = {
+export const productShortSelect: Prisma.ProductSelect = {
   id: true,
   branchId: true,
   unitId: true,

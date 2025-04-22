@@ -9,9 +9,9 @@ import { mapResponseLogin } from 'map-responses/account.map-response'
 import { AnyObject, TokenPayload } from 'interfaces/common.interface'
 import { AccessBranchDto } from './dto/access-branch.dto'
 import { AccountStatus } from '@prisma/client'
-import { userSortSelect } from 'responses/user.response'
+import { userShortSelect } from 'responses/user.response'
 import { roleSelect } from 'responses/role.response'
-import { accountLoginSelect, accountSortSelect } from 'responses/account.response'
+import { accountLoginSelect, accountShortSelect } from 'responses/account.response'
 import { shopLoginSelect } from 'responses/shop.response'
 import { ChangeMyPasswordDto } from './dto/change-password.dto'
 
@@ -140,7 +140,7 @@ export class AuthService {
       select: {
         id: true,
         user: {
-          select: userSortSelect
+          select: userShortSelect
         },
         roles: {
           select: roleSelect
@@ -197,7 +197,7 @@ export class AuthService {
       data: {
         password: bcrypt.hashSync(data.newPassword, 10)
       },
-      select: accountSortSelect
+      select: accountShortSelect
     })
   }
 

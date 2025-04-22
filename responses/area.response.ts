@@ -1,12 +1,12 @@
 import { Prisma } from '@prisma/client'
-import { tableSortSelect } from './table.response'
+import { tableSelect } from './table.response'
 
 export const areaSelect: Prisma.AreaSelect = {
   id: true,
   name: true,
   photoURL: true,
   tables: {
-    select: tableSortSelect
+    select: tableSelect
   },
   createdAt: true,
   updatedAt: true

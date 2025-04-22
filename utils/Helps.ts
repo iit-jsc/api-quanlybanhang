@@ -6,7 +6,7 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { extname } from 'path'
 import { PER_PAGE } from 'enums/common.enum'
-import { productSortSelect } from 'responses/product.response'
+import { productShortSelect } from 'responses/product.response'
 import { productOptionSelect } from 'responses/product-option-group.response'
 import {
   ConditionOperator,
@@ -179,7 +179,7 @@ export async function getOrderDetails(
 
       const product = await prisma.product.findUniqueOrThrow({
         where: { id: item.productId },
-        select: productSortSelect
+        select: productShortSelect
       })
 
       if (item.productOptionIds)

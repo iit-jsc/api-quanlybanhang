@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { branchSortSelect } from './branch.response'
+import { branchShortSelect } from './branch.response'
 
 export const shopLoginSelect = (id: string): Prisma.ShopSelect => ({
   id: true,
@@ -10,7 +10,7 @@ export const shopLoginSelect = (id: string): Prisma.ShopSelect => ({
   email: true,
   phone: true,
   branches: {
-    select: branchSortSelect,
+    select: branchShortSelect,
     where: {
       accounts: {
         some: {

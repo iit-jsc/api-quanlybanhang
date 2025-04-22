@@ -1,8 +1,8 @@
 import { Prisma } from '@prisma/client'
 import { roleSelect } from './role.response'
-import { branchSortSelect } from './branch.response'
+import { branchShortSelect } from './branch.response'
 
-export const userSortSelect: Prisma.UserSelect = {
+export const userShortSelect: Prisma.UserSelect = {
   id: true,
   name: true,
   code: true,
@@ -59,7 +59,7 @@ export const userDetailSelect: Prisma.UserSelect = {
     select: {
       status: true,
       branches: {
-        select: branchSortSelect
+        select: branchShortSelect
       },
       roles: {
         select: roleSelect

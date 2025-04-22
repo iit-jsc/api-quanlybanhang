@@ -26,7 +26,7 @@ import {
   handleOrderDetailsBeforePayment,
   removeDiacritics
 } from 'utils/Helps'
-import { orderSelect, orderSortSelect } from 'responses/order.response'
+import { orderSelect, orderShortSelect } from 'responses/order.response'
 import { PaymentOrderDto } from './dto/payment.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -69,7 +69,7 @@ export class OrderService {
           branchId,
           createdBy: accountId
         },
-        select: orderSortSelect
+        select: orderShortSelect
       })
 
       await Promise.all([
@@ -103,7 +103,7 @@ export class OrderService {
 
         const order = await prisma.order.findFirstOrThrow({
           where: { id },
-          select: orderSortSelect
+          select: orderShortSelect
         })
 
         if (order.isPaid)
@@ -144,7 +144,7 @@ export class OrderService {
             paymentAt: new Date(),
             updatedBy: accountId
           },
-          select: orderSortSelect
+          select: orderShortSelect
         })
 
         return newOrder
@@ -191,7 +191,7 @@ export class OrderService {
           bankingImages: data.bankingImages,
           updatedBy: accountId
         },
-        select: orderSortSelect
+        select: orderShortSelect
       })
 
       await this.activityLogService.create(
@@ -272,7 +272,7 @@ export class OrderService {
       {
         orderBy: orderBy || { createdAt: 'desc' },
         where,
-        select: orderSortSelect
+        select: orderShortSelect
       },
       {
         page,
@@ -302,7 +302,7 @@ export class OrderService {
           isSave: data.isSave,
           note: data.note
         },
-        select: orderSortSelect
+        select: orderShortSelect
       })
 
       await this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
@@ -330,7 +330,7 @@ export class OrderService {
           status: OrderStatus.CANCELLED,
           updatedBy: accountId
         },
-        select: orderSortSelect
+        select: orderShortSelect
       })
 
       if (order.isPaid) throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)

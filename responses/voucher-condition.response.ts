@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { productSortSelect } from './product.response'
+import { productShortSelect } from './product.response'
 
 export const voucherConditionSelect: Prisma.VoucherConditionSelect = {
   id: true,
@@ -8,6 +8,6 @@ export const voucherConditionSelect: Prisma.VoucherConditionSelect = {
   minOrderTotal: true,
   minQuantity: true,
   product: {
-    select: productSortSelect
+    select: productShortSelect
   }
 }

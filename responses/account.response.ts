@@ -1,11 +1,11 @@
 import { Prisma } from '@prisma/client'
-import { userSortSelect } from './user.response'
+import { userShortSelect } from './user.response'
 
-export const accountSortSelect: Prisma.AccountSelect = {
+export const accountShortSelect: Prisma.AccountSelect = {
   id: true,
   status: true,
   user: {
-    select: userSortSelect
+    select: userShortSelect
   }
 }
 
@@ -14,7 +14,7 @@ export const accountLoginSelect: Prisma.AccountSelect = {
   updatedAt: true,
   password: true,
   user: {
-    select: userSortSelect
+    select: userShortSelect
   }
 }
 
