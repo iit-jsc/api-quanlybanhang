@@ -6,7 +6,7 @@ import {
   UpdateOrderDetailDto,
   UpdateStatusOrderDetailsDto
 } from './dto/order-detail.dto'
-import { OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { customPaginate, generateCompositeKey, getNotifyInfo } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -162,7 +162,6 @@ export class OrderDetailService {
     const compositeKey = generateCompositeKey(
       existing.tableId,
       existing.productOriginId,
-      OrderDetailStatus.APPROVED,
       data.note,
       optionIds
     )
@@ -284,8 +283,11 @@ export class OrderDetailService {
         const detailsMap = new Map(currentDetails.map(detail => [detail.id, detail]))
 
         const newOrderDetails = []
+
         const updatePromises = data.orderDetails.map(async (detail: IOrderDetail) => {
           const currentDetail = detailsMap.get(detail.id)
+
+          const compositeKey = null
 
           if (!currentDetail)
             throw new HttpException('Không tìm thấy chi tiết món!', HttpStatus.NOT_FOUND)
@@ -297,13 +299,6 @@ export class OrderDetailService {
             )
           }
 
-          const baseUpdateData = {
-            status: data.status,
-            updatedBy: accountId,
-            amount: detail.amount,
-            updatedAt: new Date()
-          }
-
           if (detail.amount !== currentDetail.amount) {
             const [newOrderDetail, updatedOldDetail] = await Promise.all([
               prisma.orderDetail.create({
@@ -311,6 +306,7 @@ export class OrderDetailService {
                   ...currentDetail,
                   id: undefined,
                   amount: detail.amount,
+                  compositeKey,
                   status: data.status,
                   updatedBy: accountId,
                   createdAt: new Date(),
@@ -323,6 +319,7 @@ export class OrderDetailService {
                 data: {
                   amount: { decrement: detail.amount },
                   updatedBy: accountId,
+                  compositeKey,
                   updatedAt: new Date()
                 },
                 select: orderDetailSelect
@@ -336,7 +333,12 @@ export class OrderDetailService {
 
           return prisma.orderDetail.update({
             where: { id: detail.id, branchId },
-            data: baseUpdateData,
+            data: {
+              status: data.status,
+              compositeKey,
+              updatedBy: accountId,
+              amount: detail.amount
+            },
             select: orderDetailSelect
           })
         })

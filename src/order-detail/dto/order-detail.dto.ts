@@ -8,7 +8,10 @@ import {
   IsNumber,
   IsOptional,
   Min,
-  ValidateNested
+  Validate,
+  ValidateNested,
+  ValidatorConstraint,
+  ValidatorConstraintInterface
 } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
@@ -51,6 +54,16 @@ export class OrderDetailAmount {
   @Min(0)
   amount: number
 }
+@ValidatorConstraint({ name: 'isNotApproved', async: false })
+class IsNotApprovedConstraint implements ValidatorConstraintInterface {
+  validate(status: any) {
+    return status !== OrderDetailStatus.APPROVED
+  }
+
+  defaultMessage() {
+    return 'Status không được là APPROVED'
+  }
+}
 
 export class UpdateStatusOrderDetailsDto {
   @ArrayNotEmpty()
@@ -60,6 +73,7 @@ export class UpdateStatusOrderDetailsDto {
 
   @IsNotEmpty()
   @IsEnum(OrderDetailStatus)
+  @Validate(IsNotApprovedConstraint)
   status?: OrderDetailStatus
 }
 

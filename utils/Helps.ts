@@ -542,7 +542,6 @@ export function getNotifyInfo(status: OrderDetailStatus): { type: NotifyType; co
 export function generateCompositeKey(
   tableId: string,
   productId: string,
-  status: string,
   note?: string,
   productOptionIds?: string[]
 ): string {
@@ -551,5 +550,5 @@ export function generateCompositeKey(
 
   const notePart = note?.trim() ? note.trim() : 'empty'
 
-  return `${tableId || 'empty'}_${productId || 'empty'}_${status || 'empty'}_${sortedOptions}_${notePart}`
+  return `${tableId || 'empty'}_${productId || 'empty'}_${sortedOptions}_${notePart}`
 }

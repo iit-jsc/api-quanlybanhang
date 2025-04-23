@@ -208,7 +208,6 @@ export class TableService {
         const compositeKey = generateCompositeKey(
           tableId,
           item.productId,
-          OrderDetailStatus.APPROVED,
           item.note,
           item.productOptionIds
         )
@@ -513,7 +512,6 @@ export class TableService {
     const compositeKey = generateCompositeKey(
       tableId,
       data.productId,
-      OrderDetailStatus.APPROVED,
       data.note,
       data.productOptionIds
     )
