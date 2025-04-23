@@ -1,0 +1,412 @@
+[
+  {
+    "name": "Quản lý khu vực",
+    "code": "AREA",
+    "type": "FOOD_BEVERAGE",
+    "permissions": [
+      {
+        "code": "CREATE_AREA",
+        "name": "Tạo khu vực"
+      },
+      {
+        "code": "UPDATE_AREA",
+        "name": "Cập nhật khu vực"
+      },
+      {
+        "code": "DELETE_AREA",
+        "name": "Xóa khu vực"
+      },
+      {
+        "code": "VIEW_AREA",
+        "name": "Xem khu vực"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý bàn",
+    "code": "TABLE",
+    "type": "FOOD_BEVERAGE",
+    "permissions": [
+      {
+        "code": "CREATE_TABLE",
+        "name": "Tạo khu vực"
+      },
+      {
+        "code": "UPDATE_TABLE",
+        "name": "Cập nhật khu vực"
+      },
+      {
+        "code": "DELETE_TABLE",
+        "name": "Xóa khu vực"
+      },
+      {
+        "code": "VIEW_TABLE",
+        "name": "Xem khu vực"
+      },
+      {
+        "code": "ADD_DISH_TO_TABLE",
+        "name": "Thêm món vào bàn"
+      },
+      {
+        "code": "SEPARATE_TABLE",
+        "name": "Tách bàn"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý quyền hạn",
+    "code": "ROLE",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_ROLE",
+        "name": "Tạo quyền hạn"
+      },
+      {
+        "code": "UPDATE_ROLE",
+        "name": "Cập nhật quyền hạn"
+      },
+      {
+        "code": "DELETE_ROLE",
+        "name": "Xóa quyền hạn"
+      },
+      {
+        "code": "VIEW_ROLE",
+        "name": "Xem quyền hạn"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý loại khách hàng",
+    "code": "CUSTOMER_TYPE",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_CUSTOMER_TYPE",
+        "name": "Tạo loại khách hàng"
+      },
+      {
+        "code": "UPDATE_CUSTOMER_TYPE",
+        "name": "Cập nhật loại khách hàng"
+      },
+      {
+        "code": "DELETE_CUSTOMER_TYPE",
+        "name": "Xóa loại khách hàng"
+      },
+      {
+        "code": "VIEW_CUSTOMER_TYPE",
+        "name": "Xem loại khách hàng"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý khách hàng",
+    "code": "CUSTOMER",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_CUSTOMER",
+        "name": "Tạo khách hàng"
+      },
+      {
+        "code": "UPDATE_CUSTOMER",
+        "name": "Cập nhật khách hàng"
+      },
+      {
+        "code": "DELETE_CUSTOMER",
+        "name": "Xóa khách hàng"
+      },
+      {
+        "code": "VIEW_CUSTOMER",
+        "name": "Xem khách hàng"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý loại sản phẩm",
+    "code": "PRODUCT_TYPE",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_PRODUCT_TYPE",
+        "name": "Tạo loại sản phẩm"
+      },
+      {
+        "code": "UPDATE_PRODUCT_TYPE",
+        "name": "Cập nhật loại sản phẩm"
+      },
+      {
+        "code": "DELETE_PRODUCT_TYPE",
+        "name": "Xóa loại sản phẩm"
+      },
+      {
+        "code": "VIEW_PRODUCT_TYPE",
+        "name": "Xem loại sản phẩm"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý sản phẩm",
+    "code": "PRODUCT",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_PRODUCT",
+        "name": "Tạo sản phẩm"
+      },
+      {
+        "code": "UPDATE_PRODUCT",
+        "name": "Cập nhật sản phẩm"
+      },
+      {
+        "code": "DELETE_PRODUCT",
+        "name": "Xóa sản phẩm"
+      },
+      {
+        "code": "VIEW_PRODUCT",
+        "name": "Xem sản phẩm"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý đơn vị tính",
+    "code": "MEASUREMENT_UNIT",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_MEASUREMENT_UNIT",
+        "name": "Tạo đơn vị tính"
+      },
+      {
+        "code": "UPDATE_MEASUREMENT_UNIT",
+        "name": "Cập nhật đơn vị tính"
+      },
+      {
+        "code": "DELETE_MEASUREMENT_UNIT",
+        "name": "Xóa đơn vị tính"
+      },
+      {
+        "code": "VIEW_MEASUREMENT_UNIT",
+        "name": "Xem đơn vị tính"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý tùy chọn sản phẩm",
+    "code": "PRODUCT_OPTION_GROUP",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_PRODUCT_OPTION_GROUP",
+        "name": "Tạo tùy chọn sản phẩm"
+      },
+      {
+        "code": "UPDATE_PRODUCT_OPTION_GROUP",
+        "name": "Cập nhật tùy chọn sản phẩm"
+      },
+      {
+        "code": "DELETE_PRODUCT_OPTION_GROUP",
+        "name": "Xóa tùy chọn sản phẩm"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý phương thức thanh toán",
+    "code": "PAYMENT_METHOD",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "UPDATE_PAYMENT_METHOD",
+        "name": "Cập nhật phương thức thanh toán"
+      },
+      {
+        "code": "VIEW_PAYMENT_METHOD",
+        "name": "Xem phương thức thanh toán"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý đợt khuyến mãi",
+    "code": "DISCOUNT_ISSUE",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_DISCOUNT_ISSUE",
+        "name": "Tạo đợt khuyến mãi"
+      },
+      {
+        "code": "UPDATE_DISCOUNT_ISSUE",
+        "name": "Cập nhật đợt khuyến mãi"
+      },
+      {
+        "code": "DELETE_DISCOUNT_ISSUE",
+        "name": "Xóa đợt khuyến mãi"
+      },
+      {
+        "code": "VIEW_DISCOUNT_ISSUE",
+        "name": "Xem đợt khuyến mãi"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý mã khuyến mãi",
+    "code": "DISCOUNT_CODE",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_DISCOUNT_CODE",
+        "name": "Tạo mã khuyến mãi"
+      },
+      {
+        "code": "DELETE_DISCOUNT_CODE",
+        "name": "Xóa mã khuyến mãi"
+      },
+      {
+        "code": "VIEW_DISCOUNT_CODE",
+        "name": "Xem mã khuyến mãi"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý voucher",
+    "code": "VOUCHER",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_VOUCHER",
+        "name": "Tạo voucher"
+      },
+      {
+        "code": "DELETE_VOUCHER",
+        "name": "Xóa voucher"
+      },
+      {
+        "code": "UPDATE_VOUCHER",
+        "name": "Cập nhật voucher"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý nhóm nhân viên",
+    "code": "EMPLOYEE_GROUP",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_EMPLOYEE_GROUP",
+        "name": "Tạo nhóm nhân viên"
+      },
+      {
+        "code": "UPDATE_EMPLOYEE_GROUP",
+        "name": "Cập nhật nhóm nhân viên"
+      },
+      {
+        "code": "DELETE_EMPLOYEE_GROUP",
+        "name": "Xóa nhóm nhân viên"
+      },
+      {
+        "code": "VIEW_EMPLOYEE_GROUP",
+        "name": "Xem nhóm nhân viên"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý người dùng",
+    "code": "USER",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_USER",
+        "name": "Tạo người dùng"
+      },
+      {
+        "code": "UPDATE_USER",
+        "name": "Cập nhật người dùng"
+      },
+      {
+        "code": "DELETE_USER",
+        "name": "Xóa người dùng"
+      },
+      {
+        "code": "VIEW_USER",
+        "name": "Xem người dùng"
+      },
+      {
+        "code": "UPDATE_MY_INFORMATION",
+        "name": "Cập nhật thông tin của tôi"
+      }
+    ]
+  },
+  {
+    "name": "Yêu cầu khách hàng",
+    "code": "CUSTOMER_REQUEST",
+    "type": "FOOD_BEVERAGE",
+    "permissions": [
+      {
+        "code": "DELETE_CUSTOMER_REQUEST",
+        "name": "Tạo yêu cầu khách hàng"
+      },
+      {
+        "code": "UPDATE_CUSTOMER_REQUEST",
+        "name": "Cập nhật yêu cầu khách hàng"
+      }
+    ]
+  },
+  {
+    "name": "Quản lý đơn hàng",
+    "code": "ORDER",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CREATE_ORDER",
+        "name": "Tạo đơn hàng"
+      },
+      {
+        "code": "UPDATE_ORDER",
+        "name": "Cập nhật đơn hàng"
+      },
+      {
+        "code": "DELETE_ORDER",
+        "name": "Xóa đơn hàng"
+      },
+      {
+        "code": "VIEW_ORDER",
+        "name": "Xem đơn hàng"
+      },
+      {
+        "code": "PAYMENT_ORDER",
+        "name": "Thanh toán đơn hàng"
+      },
+      {
+        "code": "SAVE_ORDER",
+        "name": "Lưu đơn hàng"
+      },
+      {
+        "code": "CANCEL_ORDER",
+        "name": "Hủy đơn hàng"
+      }
+    ]
+  },
+    {
+    "name": "Truy cập giao diện",
+    "code": "VIEW_ACCESS",
+    "type": "SHARED",
+    "permissions": [
+      {
+        "code": "CASHIER_VIEW",
+        "name": "Giao diện thu ngân"
+      },
+      {
+        "code": "STAFF_VIEW",
+        "name": "Giao diện thu ngân"
+      },
+      {
+        "code": "CHEF_VIEW",
+        "name": "Giao diện bếp"
+      },
+      {
+        "code": "MANAGE_VIEW",
+        "name": "Giao diện quản lý"
+      }
+    ]
+  }
+]

@@ -6,12 +6,13 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { extname } from 'path'
 import { PER_PAGE } from 'enums/common.enum'
-import { productSortSelect } from 'responses/product.response'
+import { productShortSelect } from 'responses/product.response'
 import { productOptionSelect } from 'responses/product-option-group.response'
 import {
   ConditionOperator,
   DiscountFor,
   DiscountType,
+  NotifyType,
   OrderDetailStatus,
   PrismaClient,
   VoucherConditionType,
@@ -55,7 +56,7 @@ const imageFileFilter = (req, file, callback) => {
   callback(null, true)
 }
 
-const maxSize = 2 * 1024 * 1024
+const maxSize = 10 * 1024 * 1024
 
 export const CustomFileInterceptor = (
   fieldName: string,
@@ -168,7 +169,7 @@ export function generateSlug(text) {
 
 export async function getOrderDetails(
   data: CreateOrderProductsDto[],
-  status: OrderDetailStatus,
+  defaultStatus: OrderDetailStatus,
   accountId: string,
   branchId: string
 ) {
@@ -178,7 +179,7 @@ export async function getOrderDetails(
 
       const product = await prisma.product.findUniqueOrThrow({
         where: { id: item.productId },
-        select: productSortSelect
+        select: productShortSelect
       })
 
       if (item.productOptionIds)
@@ -193,8 +194,9 @@ export async function getOrderDetails(
 
       return {
         amount: item.amount,
-        status,
+        status: item.status || defaultStatus,
         product: product,
+        productOriginId: product.id,
         note: item.note,
         productOptions: productOptions,
         branchId,
@@ -480,7 +482,9 @@ export async function getCustomerDiscount(
 
   const customerValue = 0
 
-  const customer = await prisma.customer.findFirstOrThrow({
+  if (!customerId) return customerValue
+
+  const customer = await prisma.customer.findUniqueOrThrow({
     where: { id: customerId },
     select: customerSelect
   })
@@ -507,13 +511,6 @@ export async function handleOrderDetailsBeforePayment(
   prisma: PrismaClient,
   conditions: { tableId?: string; orderId?: string }
 ) {
-  await prisma.orderDetail.deleteMany({
-    where: {
-      ...conditions,
-      status: OrderDetailStatus.CANCELLED
-    }
-  })
-
   await prisma.orderDetail.updateMany({
     where: {
       ...conditions,
@@ -525,4 +522,33 @@ export async function handleOrderDetailsBeforePayment(
       status: OrderDetailStatus.SUCCESS
     }
   })
+}
+
+export function getNotifyInfo(status: OrderDetailStatus): { type: NotifyType; content: string } {
+  switch (status) {
+    case OrderDetailStatus.APPROVED:
+      return { type: NotifyType.APPROVED_DISH, content: 'chờ chuyển xuống bếp' }
+    case OrderDetailStatus.INFORMED:
+      return { type: NotifyType.INFORMED_DISH, content: 'yêu cầu chế biến' }
+    case OrderDetailStatus.PROCESSING:
+      return { type: NotifyType.PROCESSING_DISH, content: 'đang chế biến' }
+    case OrderDetailStatus.SUCCESS:
+      return { type: NotifyType.SUCCESS_DISH, content: 'đã cung ứng' }
+    default:
+      return { type: NotifyType.INFORMED_DISH, content: 'yêu cầu chế biến' }
+  }
+}
+
+export function generateCompositeKey(
+  tableId: string,
+  productId: string,
+  note?: string,
+  productOptionIds?: string[]
+): string {
+  const sortedOptions =
+    productOptionIds && productOptionIds.length > 0 ? productOptionIds.sort().join('_') : 'empty'
+
+  const notePart = note?.trim() ? note.trim() : 'empty'
+
+  return `${tableId || 'empty'}_${productId || 'empty'}_${sortedOptions}_${notePart}`
 }

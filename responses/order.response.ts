@@ -1,9 +1,10 @@
 import { Prisma } from '@prisma/client'
-import { accountSortSelect } from './account.response'
-import { orderDetailSelect } from './order-detail.response'
+import { accountShortSelect } from './account.response'
+import { orderDetailShortSelect } from './order-detail.response'
 import { paymentMethodSelect } from './payment-method.response'
+import { tableSelect } from './table.response'
 
-export const orderSortSelect: Prisma.OrderSelect = {
+export const orderShortSelect: Prisma.OrderSelect = {
   id: true,
   code: true,
   status: true,
@@ -16,14 +17,17 @@ export const orderSortSelect: Prisma.OrderSelect = {
   isSave: true,
   note: true,
   bankingImages: true,
+  table: {
+    select: tableSelect
+  },
   paymentMethod: {
     select: paymentMethodSelect
   },
   creator: {
-    select: accountSortSelect
+    select: accountShortSelect
   },
   orderDetails: {
-    select: orderDetailSelect
+    select: orderDetailShortSelect
   },
   updatedAt: true,
   createdAt: true
@@ -42,17 +46,20 @@ export const orderSelect: Prisma.OrderSelect = {
   isSave: true,
   note: true,
   bankingImages: true,
+  table: {
+    select: tableSelect
+  },
   paymentMethod: {
     select: paymentMethodSelect
   },
   creator: {
-    select: accountSortSelect
+    select: accountShortSelect
   },
   updater: {
-    select: accountSortSelect
+    select: accountShortSelect
   },
   orderDetails: {
-    select: orderDetailSelect
+    select: orderDetailShortSelect
   },
   updatedAt: true,
   createdAt: true

@@ -3,12 +3,7 @@ import { NotifyType } from '@prisma/client'
 import { IsEnum, IsNotEmpty } from 'class-validator'
 
 export class CreateNotifyDto {
-  orderId?: string
-  tableId?: string
-  customerRequestId?: string
-
-  @IsNotEmpty()
-  branchId: string
+  content?: string
 
   @IsNotEmpty()
   @IsEnum(NotifyType)

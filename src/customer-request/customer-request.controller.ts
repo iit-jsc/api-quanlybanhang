@@ -22,6 +22,9 @@ import {
   FindUniqCustomerRequestDto,
   UpdateCustomerRequestDto
 } from './dto/customer-request.dto'
+import { RolesGuard } from 'guards/roles.guard'
+import { Roles } from 'guards/roles.decorator'
+import { permissions } from 'enums/permissions.enum'
 
 @Controller('customer-request')
 export class CustomerRequestController {
@@ -35,7 +38,6 @@ export class CustomerRequestController {
 
   @Get('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
   findAll(@Query() data: FindManyCustomerRequestDto) {
     const { branchId } = data
 
@@ -53,6 +55,7 @@ export class CustomerRequestController {
   @Patch(':id')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
+  @Roles(permissions.customerRequest.update)
   update(@Param('id') id: string, @Body() data: UpdateCustomerRequestDto, @Req() req: RequestJWT) {
     const { accountId, branchId } = req
 
@@ -61,7 +64,8 @@ export class CustomerRequestController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(permissions.customerRequest.delete)
   deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
     const { accountId, branchId } = req
 

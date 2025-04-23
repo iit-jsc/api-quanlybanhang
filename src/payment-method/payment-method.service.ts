@@ -5,12 +5,18 @@ import {
   FindManyPaymentMethodDto,
   UpdatePaymentMethodDto
 } from './dto/payment-method.dto'
-import { Prisma } from '@prisma/client'
+import { ActivityAction, Prisma } from '@prisma/client'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
+import { paymentMethodSelect } from 'responses/payment-method.response'
 
 @Injectable()
 export class PaymentMethodService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly activityLogService: ActivityLogService
+  ) {}
+
   async create(data: CreatePaymentMethodDto, accountId: string, branchId: string) {
     return this.prisma.paymentMethod.create({
       data: {
@@ -22,25 +28,42 @@ export class PaymentMethodService {
         type: data.type,
         createdBy: accountId,
         branchId
-      }
+      },
+      select: paymentMethodSelect
     })
   }
 
   async update(id: string, data: UpdatePaymentMethodDto, accountId: string, branchId: string) {
-    return await this.prisma.paymentMethod.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        active: data.active,
-        bankCode: data.bankCode,
-        bankName: data.bankName,
-        photoURL: data.photoURL,
-        representative: data.representative,
-        type: data.type,
-        updatedBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const paymentMethod = await prisma.paymentMethod.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          active: data.active,
+          bankCode: data.bankCode,
+          bankName: data.bankName,
+          photoURL: data.photoURL,
+          representative: data.representative,
+          type: data.type,
+          updatedBy: accountId
+        },
+        select: paymentMethodSelect
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE_PAYMENT_METHOD,
+          modelName: 'PaymentMethod',
+          targetId: paymentMethod.id,
+          targetName: paymentMethod.type
+        },
+        { branchId },
+        accountId
+      )
+
+      return paymentMethod
     })
   }
   async findUniq(id: string, branchId: string) {
@@ -48,7 +71,8 @@ export class PaymentMethodService {
       where: {
         id,
         branchId
-      }
+      },
+      select: paymentMethodSelect
     })
   }
 
@@ -70,7 +94,8 @@ export class PaymentMethodService {
       this.prisma.paymentMethod,
       {
         orderBy: orderBy || { createdAt: 'desc' },
-        where
+        where,
+        select: paymentMethodSelect
       },
       {
         page,

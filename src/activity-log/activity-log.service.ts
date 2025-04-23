@@ -1,50 +1,79 @@
 import { Injectable } from '@nestjs/common'
-import { Prisma } from '@prisma/client'
-import { TokenPayload } from 'interfaces/common.interface'
 import { PrismaService } from 'nestjs-prisma'
-import { customPaginate } from 'utils/Helps'
-import { FindManyActivityLogDto } from './dto/activity-log.dto'
-
+import { CreateActivityLogDto, FindManyActivityLogDto } from './dto/activity-log.dto'
+import { Prisma } from '@prisma/client'
+import { customPaginate, removeDiacritics } from 'utils/Helps'
 @Injectable()
 export class ActivityLogService {
   constructor(private readonly prisma: PrismaService) {}
-  async findAll(params: FindManyActivityLogDto, tokenPayload: TokenPayload) {
-    //   const { page, perPage, orderBy, from, to } = params
-    //   const where: Prisma.ActivityLogWhereInput = {
-    //     branch: {
-    //       id: tokenPayload.branchId,
-    //       isPublic: true
-    //     },
-    //     ...(from &&
-    //       to && {
-    //         createdAt: {
-    //           gte: new Date(new Date(from).setHours(0, 0, 0, 0)),
-    //           lte: new Date(new Date(to).setHours(23, 59, 59, 999))
-    //         }
-    //       }),
-    //     ...(from &&
-    //       !to && {
-    //         createdAt: {
-    //           gte: new Date(new Date(from).setHours(0, 0, 0, 0))
-    //         }
-    //       }),
-    //     ...(!from &&
-    //       to && {
-    //         createdAt: {
-    //           lte: new Date(new Date(to).setHours(23, 59, 59, 999))
-    //         }
-    //       })
-    //   }
-    //   return await customPaginate(
-    //     this.prisma.activityLog,
-    //     {
-    //       orderBy: orderBy || { createdAt: 'desc' },
-    //       where
-    //     },
-    //     {
-    //       page,
-    //       perPage
-    //     }
-    //   )
+
+  async create(
+    data: CreateActivityLogDto,
+    options: {
+      branchId?: string
+      shopId?: string
+    },
+    accountId: string
+  ) {
+    if (!['Order', 'OrderDetail', 'Table'].includes(data.modelName)) return
+    return this.prisma.activityLog.create({
+      data: {
+        action: data.action,
+        modelName: data.modelName,
+        targetId: data.targetId,
+        targetName: data.targetName,
+        relatedName: data.relatedName,
+        relatedModel: data.relatedModel,
+        accountId,
+        branchId: options.branchId,
+        shopId: options.shopId
+      }
+    })
+  }
+
+  async findAll(params: FindManyActivityLogDto, branchId: string) {
+    const { from, to, keyword, orderBy, page, perPage } = params
+
+    const keySearch = ['targetName', 'relatedName']
+
+    const where: Prisma.ActivityLogWhereInput = {
+      branchId,
+      ...(keyword && {
+        OR: keySearch.map(key => ({
+          [key]: { contains: removeDiacritics(keyword) }
+        }))
+      }),
+      ...(from &&
+        to && {
+          createdAt: {
+            gte: new Date(from),
+            lte: new Date(to)
+          }
+        }),
+      ...(from &&
+        !to && {
+          createdAt: {
+            gte: new Date(from)
+          }
+        }),
+      ...(!from &&
+        to && {
+          createdAt: {
+            lte: new Date(to)
+          }
+        })
+    }
+
+    return await customPaginate(
+      this.prisma.activityLog,
+      {
+        orderBy: orderBy || { createdAt: 'desc' },
+        where
+      },
+      {
+        page,
+        perPage
+      }
+    )
   }
 }

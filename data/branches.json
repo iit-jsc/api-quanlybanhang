@@ -1,0 +1,26 @@
+[
+  {
+    "name": "Highland - Chi Nhánh 1",
+    "shopCode": "CAFE001",
+    "address": "Q1, TP.HCM",
+    "phone": "0901000001"
+  },
+  {
+    "name": "Highland - Chi Nhánh 2",
+    "shopCode": "CAFE001",
+    "address": "Q3, TP.HCM",
+    "phone": "0901000002"
+  },
+  {
+    "name": "Tech Store - CN Hà Nội",
+    "shopCode": "FASHION001",
+    "address": "Cầu Giấy, Hà Nội",
+    "phone": "0123000001"
+  },
+  {
+    "name": "Tech Store - CN TP.HCM",
+    "shopCode": "FASHION001",
+    "address": "Quận 10, TP.HCM",
+    "phone": "0123000002"
+  }
+]

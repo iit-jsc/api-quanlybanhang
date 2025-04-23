@@ -6,19 +6,33 @@ import {
   IsDate,
   IsEnum,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
-  IsString,
-  ValidateNested
+  Min,
+  Validate,
+  ValidateNested,
+  ValidatorConstraint,
+  ValidatorConstraintInterface
 } from 'class-validator'
 import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
 import { FindManyDto } from 'utils/Common.dto'
 
+@ValidatorConstraint({ name: 'isNotCancel', async: false })
+export class IsNotCancelConstraint implements ValidatorConstraintInterface {
+  validate(status: OrderStatus) {
+    return status !== OrderStatus.CANCELLED
+  }
+
+  defaultMessage() {
+    return 'Không thể cập nhật trạng thái hủy!'
+  }
+}
 export class CreateOrderDto {
   @IsOptional()
-  @IsEnum(OrderDetailStatus)
-  status: OrderDetailStatus
+  @IsEnum(OrderStatus)
+  status: OrderStatus
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsEnum(OrderType)
   type: OrderType
 
@@ -41,16 +55,23 @@ export class CreateOrderProductsDto {
   amount: number
 
   note?: string
+
+  @IsOptional()
+  @IsEnum(OrderDetailStatus)
+  status: OrderDetailStatus
+
   productOptionIds?: string[]
 }
 
 export class UpdateOrderDto {
   bankingImages?: string[]
   note?: string
+  cancelReason?: string
 
   @IsOptional()
-  @IsEnum(OrderDetailStatus)
-  status: OrderDetailStatus
+  @IsEnum(OrderStatus)
+  @Validate(IsNotCancelConstraint)
+  status: OrderStatus
 }
 
 export class CancelOrderDto {
@@ -110,12 +131,20 @@ export class SaveOrderDto {
   isSave: boolean
 }
 
+export class OrderDetailSeparateDto {
+  @IsNotEmpty()
+  id: string
+
+  @IsNumber()
+  @Min(0)
+  amount: number
+}
 export class SeparateTableDto {
   @IsNotEmpty()
-  @IsString()
   toTableId: string
 
-  @IsNotEmpty()
   @ArrayNotEmpty()
-  orderDetailIds: string[]
+  @ValidateNested({ each: true })
+  @Type(() => OrderDetailSeparateDto)
+  orderDetails: OrderDetailSeparateDto[]
 }

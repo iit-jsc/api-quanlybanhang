@@ -1,4 +1,5 @@
 import { Prisma } from '@prisma/client'
+import { AnyObject } from 'interfaces/common.interface'
 import { DeleteManyDto, FindManyDto } from 'utils/common.dto'
 
 export class FindManyTrashDto extends FindManyDto {
@@ -10,15 +11,13 @@ export class FindManyTrashDto extends FindManyDto {
 export class DeleteManyTrashDto extends DeleteManyDto {}
 
 export class CreateTrashDto {
-  id: string
   modelName: Prisma.ModelName
   accountId: string
-  include?: Record<string, any>
+  entity: AnyObject
 }
 
 export class CreateManyTrashDto {
-  ids: string[]
   modelName: Prisma.ModelName
   accountId: string
-  include?: Record<string, any>
+  entities: AnyObject
 }

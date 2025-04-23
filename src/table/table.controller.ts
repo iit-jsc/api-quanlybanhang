@@ -17,17 +17,18 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RequestJWT } from 'interfaces/common.interface'
 import { DeleteManyDto } from 'utils/Common.dto'
 import {
-  AddDishByCustomerDto,
-  AddDishDto,
+  AddDishesByCustomerDto,
+  AddDishesDto,
   CreateTableDto,
   FindManyTableDto,
+  UpdateDishDto,
   UpdateTableDto
 } from './dto/table.dto'
 import { Roles } from 'guards/roles.decorator'
 import { RolesGuard } from 'guards/roles.guard'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
-import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
+import { PaymentFromTableDto, RequestPaymentDto } from 'src/order/dto/payment.dto'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 
 @Controller('table')
@@ -48,33 +49,54 @@ export class TableController {
     return this.tableService.create(data, accountId, branchId)
   }
 
-  @Post(':id/add-dish')
+  @Post(':id/add-dishes')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  addDish(@Param('id') id: string, @Body() data: AddDishDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
+  @Roles(permissions.table.addDish)
+  addDishes(@Param('id') id: string, @Body() data: AddDishesDto, @Req() req: RequestJWT) {
+    const { accountId, branchId, deviceId } = req
 
-    return this.tableService.addDish(id, data, accountId, branchId)
+    return this.tableService.addDishes(id, data, accountId, branchId, deviceId)
   }
 
-  @Post(':id/add-dish-by-customer')
+  @Post(':id/update-dish')
   @HttpCode(HttpStatus.OK)
-  addDishByCustomer(@Param('id') id: string, @Body() data: AddDishByCustomerDto) {
-    return this.tableService.addDishByCustomer(id, data)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(permissions.table.addDish)
+  updateDish(@Param('id') id: string, @Body() data: UpdateDishDto, @Req() req: RequestJWT) {
+    const { accountId, branchId, deviceId } = req
+
+    return this.tableService.updateDish(id, data, accountId, branchId, deviceId)
+  }
+
+  @Post(':id/add-dishes-by-customer')
+  @HttpCode(HttpStatus.OK)
+  addDishesByCustomer(@Param('id') id: string, @Body() data: AddDishesByCustomerDto) {
+    return this.tableService.addDishesByCustomer(id, data)
   }
 
   @Post('/:id/payment')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
-  paymentOrder(@Param('id') id: string, @Body() data: PaymentFromTableDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
+  @Roles(permissions.order.payment)
+  payment(@Param('id') id: string, @Body() data: PaymentFromTableDto, @Req() req: RequestJWT) {
+    const { accountId, branchId, deviceId } = req
 
-    return this.tableService.payment(id, data, accountId, branchId)
+    return this.tableService.payment(id, data, accountId, branchId, deviceId)
+  }
+
+  @Post('/:id/request-payment')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  requestPayment(@Param('id') id: string, @Body() data: RequestPaymentDto, @Req() req: RequestJWT) {
+    const { deviceId } = req
+    return this.tableService.requestPayment(id, data.branchId, deviceId)
   }
 
   @Post(':id/separate')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(permissions.table.separate)
   separateTable(@Param('id') id: string, @Body() data: SeparateTableDto, @Req() req: RequestJWT) {
     const { accountId, branchId } = req
 

@@ -10,7 +10,7 @@ export const productTypeSelect: Prisma.ProductTypeSelect = {
   updatedAt: true
 }
 
-export const productTypeSortSelect: Prisma.ProductTypeSelect = {
+export const productTypeShortSelect: Prisma.ProductTypeSelect = {
   id: true,
   slug: true,
   branchId: true,

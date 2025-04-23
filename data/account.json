@@ -1,0 +1,15 @@
+[
+  {
+    "status": "ACTIVE",
+    "password": "aA@123",
+    "email": "user1@example.com",
+    "branches": ["Highland - Chi Nhánh 1", "Highland - Chi Nhánh 2"]
+  },
+  {
+    "status": "ACTIVE",
+    "password": "aA@123",
+    "email": "user2@example.com",
+    "branches": ["Tech Store - CN Hà Nội"]
+  }
+]
+ 

@@ -1,4 +1,4 @@
-import { IsString, IsNotEmpty, IsOptional } from 'class-validator'
+import { IsString, IsNotEmpty } from 'class-validator'
 
 export class ChangePasswordDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
@@ -14,7 +14,4 @@ export class ChangeMyPasswordDto {
   @IsNotEmpty({ message: 'Không được để trống!' })
   @IsString()
   oldPassword: string
-
-  @IsOptional()
-  isLoggedOutAll: boolean
 }

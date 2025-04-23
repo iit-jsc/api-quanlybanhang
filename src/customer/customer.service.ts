@@ -1,44 +1,61 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from './dto/customer.dto'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
 import { customerSelect } from 'responses/customer.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class CustomerService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateCustomerDto, accountId, shopId: string) {
-    return await this.prisma.customer.create({
-      data: {
-        name: data.name,
-        discountFor: data.discountFor,
-        phone: data.phone,
-        isOrganize: data.isOrganize,
-        address: data.address,
-        birthday: data.birthday,
-        description: data.description,
-        discount: data.discount,
-        discountType: data.discountType,
-        email: data.email,
-        fax: data.fax,
-        tax: data.tax,
-        sex: data.sex,
-        representativeName: data.representativeName,
-        representativePhone: data.representativePhone,
-        ...(data.customerTypeId && {
-          customerTypeId: data.customerTypeId
-        }),
-        shopId,
-        createdBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const customer = await prisma.customer.create({
+        data: {
+          name: data.name,
+          discountFor: data.discountFor,
+          phone: data.phone,
+          isOrganize: data.isOrganize,
+          address: data.address,
+          birthday: data.birthday,
+          description: data.description,
+          discount: data.discount,
+          discountType: data.discountType,
+          email: data.email,
+          fax: data.fax,
+          tax: data.tax,
+          sex: data.sex,
+          representativeName: data.representativeName,
+          representativePhone: data.representativePhone,
+          ...(data.customerTypeId && {
+            customerTypeId: data.customerTypeId
+          }),
+          shopId,
+          createdBy: accountId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.CREATE,
+          modelName: 'Customer',
+          targetName: customer.name,
+          targetId: customer.id
+        },
+        { shopId },
+        accountId
+      )
+
+      return customer
     })
   }
 
@@ -105,42 +122,72 @@ export class CustomerService {
   }
 
   async update(id: string, data: UpdateCustomerDto, accountId: string, shopId: string) {
-    return await this.prisma.customer.update({
-      where: {
-        id,
-        shopId
-      },
-      data: {
-        name: data.name,
-        discountFor: data.discountFor,
-        isOrganize: data.isOrganize,
-        phone: data.phone,
-        address: data.address,
-        birthday: data.birthday,
-        description: data.description,
-        discount: data.discount,
-        discountType: data.discountType,
-        email: data.email,
-        fax: data.fax,
-        tax: data.tax,
-        sex: data.sex,
-        representativeName: data.representativeName,
-        representativePhone: data.representativePhone,
-        customerTypeId: data.customerTypeId,
-        updatedBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const customer = await prisma.customer.update({
+        where: {
+          id,
+          shopId
+        },
+        data: {
+          name: data.name,
+          discountFor: data.discountFor,
+          isOrganize: data.isOrganize,
+          phone: data.phone,
+          address: data.address,
+          birthday: data.birthday,
+          description: data.description,
+          discount: data.discount,
+          discountType: data.discountType,
+          email: data.email,
+          fax: data.fax,
+          tax: data.tax,
+          sex: data.sex,
+          representativeName: data.representativeName,
+          representativePhone: data.representativePhone,
+          customerTypeId: data.customerTypeId,
+          updatedBy: accountId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE,
+          modelName: 'Customer',
+          targetId: customer.id,
+          targetName: customer.name
+        },
+        { shopId },
+        accountId
+      )
+
+      return customer
     })
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const entities = await prisma.customer.findMany({
+        where: { id: { in: data.ids } }
+      })
+
       const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
+        entities,
         accountId,
         modelName: 'Customer'
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'Customer',
+            targetName: entities.map(item => item.name).join(', ')
+          },
+          { shopId },
+          accountId
+        )
+      ])
 
       return prisma.customer.deleteMany({
         where: {

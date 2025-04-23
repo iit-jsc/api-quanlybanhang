@@ -11,7 +11,7 @@ datasource db {
 model PermissionGroup {
   name        String
   code        String              @unique
-  type        PermissionGroupType @default(FOOD_BEVERAGE)
+  type        PermissionGroupType @default(SHARED)
   permissions Permission[]
 }
 
@@ -20,7 +20,6 @@ model Permission {
   code            String           @id @unique
   groupCode       String
   permissionGroup PermissionGroup? @relation(fields: [groupCode], references: [code])
-  permissionCode  String?
   roles           Role[]
 }
 
@@ -49,63 +48,64 @@ model Role {
 }
 
 model Account {
-  id                        String               @id @default(uuid())
-  status                    AccountStatus        @default(ACTIVE)
+  id                        String                @id @default(uuid())
+  status                    AccountStatus         @default(ACTIVE)
   password                  String?
-  userId                    String               @unique
-  user                      User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
-  roleId                    String?
-  role                      Role?                @relation("roleAccount", fields: [roleId], references: [id])
+  userId                    String                @unique
+  user                      User?                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  roles                     Role[]                @relation("roleAccount")
   branches                  Branch[]
   createdBy                 String?
   updatedBy                 String?
-  createdAt                 DateTime             @default(now())
-  updatedAt                 DateTime             @updatedAt
-  createOrders              Order[]              @relation("creator")
-  updateOrders              Order[]              @relation("updater")
-  creatorBranches           Branch[]             @relation("creator")
-  updaterBranches           Branch[]             @relation("updater")
-  creatorMeasurementUnits   MeasurementUnit[]    @relation("creator")
-  updaterMeasurementUnits   MeasurementUnit[]    @relation("updater")
-  creatorProductTypes       ProductType[]        @relation("creator")
-  updaterProductTypes       ProductType[]        @relation("updater")
-  creatorProducts           Product[]            @relation("creator")
-  updaterProducts           Product[]            @relation("updater")
-  creatorEmployeeGroups     EmployeeGroup[]      @relation("creator")
-  updaterEmployeeGroups     EmployeeGroup[]      @relation("updater")
-  creatorCustomerTypes      CustomerType[]       @relation("creator")
-  updaterCustomerTypes      CustomerType[]       @relation("updater")
-  creatorAreas              Area[]               @relation("creator")
-  updaterAreas              Area[]               @relation("updater")
-  creatorTables             Table[]              @relation("creator")
-  updaterTables             Table[]              @relation("updater")
-  creatorCustomers          Customer[]           @relation("creator")
-  updaterCustomers          Customer[]           @relation("updater")
-  creatorUsers              User[]               @relation("creator")
-  updaterUsers              User[]               @relation("updater")
-  creatorShops              Shop[]               @relation("creator")
-  updaterShops              Shop[]               @relation("updater")
-  creatorSupplierTypes      SupplierType[]       @relation("creator")
-  updaterSupplierTypes      SupplierType[]       @relation("updater")
-  creatorSupplier           Supplier[]           @relation("creator")
-  updaterSupplier           Supplier[]           @relation("updater")
-  creatorVoucher            Voucher[]            @relation("creator")
-  updaterVoucher            Voucher[]            @relation("updater")
-  creatorOrderDetail        OrderDetail[]        @relation("creator")
-  updaterOrderDetail        OrderDetail[]        @relation("updater")
-  creatorDiscountIssue      DiscountIssue[]      @relation("creator")
-  updaterDiscountIssue      DiscountIssue[]      @relation("updater")
-  creatorDiscountCode       DiscountCode[]       @relation("creator")
-  updaterDiscountCode       DiscountCode[]       @relation("updater")
-  creatorPaymentMethod      PaymentMethod[]      @relation("creator")
-  updaterPaymentMethod      PaymentMethod[]      @relation("updater")
-  creatorProductOptionGroup ProductOptionGroup[] @relation("creator")
-  updaterProductOptionGroup ProductOptionGroup[] @relation("updater")
-  updaterCustomerRequest    CustomerRequest[]    @relation("updater")
-  updaterRole               Role[]               @relation("updater")
-  creatorRole               Role[]               @relation("creator")
-  trashes                   Trash[]              @relation("creator")
+  createdAt                 DateTime              @default(now())
+  updatedAt                 DateTime              @updatedAt
+  createOrders              Order[]               @relation("creator")
+  updateOrders              Order[]               @relation("updater")
+  creatorBranches           Branch[]              @relation("creator")
+  updaterBranches           Branch[]              @relation("updater")
+  creatorMeasurementUnits   MeasurementUnit[]     @relation("creator")
+  updaterMeasurementUnits   MeasurementUnit[]     @relation("updater")
+  creatorProductTypes       ProductType[]         @relation("creator")
+  updaterProductTypes       ProductType[]         @relation("updater")
+  creatorProducts           Product[]             @relation("creator")
+  updaterProducts           Product[]             @relation("updater")
+  creatorEmployeeGroups     EmployeeGroup[]       @relation("creator")
+  updaterEmployeeGroups     EmployeeGroup[]       @relation("updater")
+  creatorCustomerTypes      CustomerType[]        @relation("creator")
+  updaterCustomerTypes      CustomerType[]        @relation("updater")
+  creatorAreas              Area[]                @relation("creator")
+  updaterAreas              Area[]                @relation("updater")
+  creatorTables             Table[]               @relation("creator")
+  updaterTables             Table[]               @relation("updater")
+  creatorCustomers          Customer[]            @relation("creator")
+  updaterCustomers          Customer[]            @relation("updater")
+  creatorUsers              User[]                @relation("creator")
+  updaterUsers              User[]                @relation("updater")
+  creatorShops              Shop[]                @relation("creator")
+  updaterShops              Shop[]                @relation("updater")
+  creatorSupplierTypes      SupplierType[]        @relation("creator")
+  updaterSupplierTypes      SupplierType[]        @relation("updater")
+  creatorSupplier           Supplier[]            @relation("creator")
+  updaterSupplier           Supplier[]            @relation("updater")
+  creatorVoucher            Voucher[]             @relation("creator")
+  updaterVoucher            Voucher[]             @relation("updater")
+  creatorOrderDetail        OrderDetail[]         @relation("creator")
+  updaterOrderDetail        OrderDetail[]         @relation("updater")
+  creatorDiscountIssue      DiscountIssue[]       @relation("creator")
+  updaterDiscountIssue      DiscountIssue[]       @relation("updater")
+  creatorDiscountCode       DiscountCode[]        @relation("creator")
+  updaterDiscountCode       DiscountCode[]        @relation("updater")
+  creatorPaymentMethod      PaymentMethod[]       @relation("creator")
+  updaterPaymentMethod      PaymentMethod[]       @relation("updater")
+  creatorProductOptionGroup ProductOptionGroup[]  @relation("creator")
+  updaterProductOptionGroup ProductOptionGroup[]  @relation("updater")
+  updaterCustomerRequest    CustomerRequest[]     @relation("updater")
+  updaterRole               Role[]                @relation("updater")
+  creatorRole               Role[]                @relation("creator")
+  trashes                   Trash[]               @relation("creator")
   notifies                  Notify[]
+  activityLogs              ActivityLog[]
+  canceledOrderDetails      CanceledOrderDetail[] @relation("creator")
 }
 
 model User {
@@ -171,6 +171,7 @@ model Shop {
   updater          Account?        @relation("updater", fields: [updatedBy], references: [id])
   roles            Role[]
   employeeGroups   EmployeeGroup[]
+  activityLogs     ActivityLog[]
 }
 
 model MeasurementUnit {
@@ -235,9 +236,7 @@ model Product {
   creator                  Account?           @relation("creator", fields: [createdBy], references: [id])
   updater                  Account?           @relation("updater", fields: [updatedBy], references: [id])
   orderDetails             OrderDetail[]
-  excludedProductOptions   ProductOption[]    @relation("ExcludedProducts")
-  includedProductOptions   ProductOption[]    @relation("IncludedProducts")
-  productOptionId          String?
+  productOptions           ProductOption[]
 
   @@unique([branchId, slug])
   @@unique([branchId, code])
@@ -245,8 +244,8 @@ model Product {
 
 model ProductOption {
   id                   String              @id @default(uuid())
-  isAppliedToAll       Boolean?            @default(false)
   name                 String
+  type                 ProductOptionType   @default(APPLY_ALL)
   isDefault            Boolean?            @default(false)
   price                Float
   photoURL             String?             @db.Text
@@ -255,8 +254,7 @@ model ProductOption {
   productOptionGroup   ProductOptionGroup? @relation(fields: [productOptionGroupId], references: [id], onDelete: Cascade)
   productOptionGroupId String?
   productTypes         ProductType[]
-  products             Product[]           @relation("IncludedProducts")
-  excludedProducts     Product[]           @relation("ExcludedProducts")
+  products             Product[]
 }
 
 model ProductOptionGroup {
@@ -463,32 +461,46 @@ model Order {
   orderDetails          OrderDetail[]
   creator               Account?       @relation("creator", fields: [createdBy], references: [id])
   updater               Account?       @relation("updater", fields: [updatedBy], references: [id])
-  notifies              Notify[]
 
   @@unique([branchId, code])
 }
 
 model OrderDetail {
-  id              String             @id @default(uuid())
-  branchId        String
-  amount          Float
-  orderId         String?
-  note            String?
-  status          OrderDetailStatus? @default(WAITING)
-  productOptions  Json?
-  product         Json?
-  createdAt       DateTime           @default(now())
-  updatedAt       DateTime           @updatedAt
-  productOrigin   Product?           @relation(fields: [productOriginId], references: [id])
-  productOriginId String?
-  branch          Branch?            @relation(fields: [branchId], references: [id])
-  order           Order?             @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  table           Table?             @relation(fields: [tableId], references: [id])
-  tableId         String?
-  createdBy       String?
-  updatedBy       String?
-  creator         Account?           @relation("creator", fields: [createdBy], references: [id])
-  updater         Account?           @relation("updater", fields: [updatedBy], references: [id])
+  id                   String                @id @default(uuid())
+  branchId             String
+  amount               Float
+  compositeKey         String?
+  orderId              String?
+  note                 String?
+  status               OrderDetailStatus?    @default(APPROVED)
+  productOptions       Json?
+  product              Json?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+  productOrigin        Product?              @relation(fields: [productOriginId], references: [id])
+  productOriginId      String?
+  branch               Branch?               @relation(fields: [branchId], references: [id])
+  order                Order?                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  table                Table?                @relation(fields: [tableId], references: [id])
+  tableId              String?
+  createdBy            String?
+  updatedBy            String?
+  creator              Account?              @relation("creator", fields: [createdBy], references: [id])
+  updater              Account?              @relation("updater", fields: [updatedBy], references: [id])
+  canceledOrderDetails CanceledOrderDetail[]
+
+  @@unique([compositeKey, tableId, status])
+}
+
+model CanceledOrderDetail {
+  id            String       @id @default(uuid())
+  orderDetailId String
+  orderDetail   OrderDetail? @relation(fields: [orderDetailId], references: [id], onDelete: Cascade)
+  amount        Float
+  cancelReason  String?
+  createdAt     DateTime     @default(now())
+  createdBy     String?
+  creator       Account?     @relation("creator", fields: [createdBy], references: [id])
 }
 
 model Area {
@@ -523,7 +535,6 @@ model Table {
   updater          Account?          @relation("updater", fields: [updatedBy], references: [id])
   customerRequests CustomerRequest[]
   orders           Order[]
-  notifies         Notify[]
 }
 
 model DiscountIssue {
@@ -573,6 +584,7 @@ model DiscountCode {
 model CustomerRequest {
   id          String         @id @default(uuid())
   branchId    String
+  code        String?
   tableId     String
   requestType RequestType
   content     String         @db.Text
@@ -583,7 +595,6 @@ model CustomerRequest {
   updatedAt   DateTime       @updatedAt
   branch      Branch?        @relation(fields: [branchId], references: [id])
   table       Table?         @relation(fields: [tableId], references: [id])
-  notifies    Notify[]
 }
 
 model Branch {
@@ -617,12 +628,15 @@ model Branch {
   accounts            Account[]
   paymentMethods      PaymentMethod[]
   productOptionGroups ProductOptionGroup[]
+  activityLogs        ActivityLog[]
+  accountSockets      AccountSocket[]
 }
 
 model AccountSocket {
   socketId  String   @unique
+  deviceId  String   @unique
   branchId  String
-  shopId    String
+  branch    Branch?  @relation(fields: [branchId], references: [id])
   accountId String
   createdAt DateTime @default(now())
 }
@@ -659,23 +673,49 @@ model Trash {
 }
 
 model Notify {
-  id                String           @id @default(uuid())
-  orderId           String?
-  order             Order?           @relation(fields: [orderId], references: [id])
-  tableId           String?
-  table             Table?           @relation(fields: [tableId], references: [id])
-  customerRequestId String?
-  customerRequest   CustomerRequest? @relation(fields: [customerRequestId], references: [id])
-  type              NotifyType
-  accounts          Account[]
-  isRead            Boolean          @default(false)
-  createdAt         DateTime         @default(now())
+  id        String     @id @default(uuid())
+  content   String
+  type      NotifyType
+  accounts  Account[]
+  isRead    Boolean    @default(false)
+  createdAt DateTime   @default(now())
+}
+
+model ActivityLog {
+  id           String         @id @default(uuid())
+  action       ActivityAction
+  modelName    String
+  targetId     String?
+  targetName   String
+  relatedName  String?
+  relatedModel String?
+  accountId    String
+  account      Account?       @relation(fields: [accountId], references: [id])
+  branchId     String?
+  branch       Branch?        @relation(fields: [branchId], references: [id])
+  shopId       String?
+  shop         Shop?          @relation(fields: [shopId], references: [id])
+  createdAt    DateTime       @default(now())
+}
+
+enum ActivityAction {
+  CREATE
+  UPDATE
+  DELETE
+  GENERATE_DISCOUNT_CODES
+  PAYMENT
+  CANCEL_ORDER
+  UPDATE_PAYMENT_METHOD
+  SEPARATE_TABLE
 }
 
 enum NotifyType {
-  NEW_DISH_ADDED_TO_TABLE
-  NEW_ORDER
-  NEW_CUSTOMER_REQUEST
+  APPROVED_DISH
+  PROCESSING_DISH
+  INFORMED_DISH
+  SUCCESS_DISH
+  CANCEL_DISH
+  PAYMENT_REQUEST
 }
 
 enum AccountStatus {
@@ -721,7 +761,6 @@ enum RequestStatus {
 }
 
 enum PaymentMethodType {
-  QR_CODE
   BANKING
   CASH
 }
@@ -746,16 +785,16 @@ enum OrderStatus {
 }
 
 enum OrderDetailStatus {
-  WAITING
   APPROVED
-  TRANSPORTING
-  SUCCESS
-  CANCELLED
+  INFORMED // đã báo xuống bếp (chờ bếp nhận món)
+  PROCESSING // phụ bếp đã chuyển cho bếp chế biến
+  SUCCESS // Món đã phục vụ
 }
 
 enum PermissionGroupType {
   FOOD_BEVERAGE
   FASHION
+  SHARED
 }
 
 enum VoucherProductType {
@@ -773,4 +812,10 @@ enum VoucherConditionType {
 enum ConditionOperator {
   AND
   OR
+}
+
+enum ProductOptionType {
+  APPLY_ALL
+  EXCLUDE
+  INCLUDE
 }

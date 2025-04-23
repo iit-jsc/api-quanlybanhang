@@ -2,35 +2,52 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateRoleDto, FindManyRoleDto, UpdateRoleDto } from './dto/role.dto'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { roleSelect } from 'responses/role.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class RoleService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateRoleDto, accountId: string, shopId: string) {
-    return this.prisma.role.create({
-      data: {
-        name: data.name,
-        description: data.description,
-        createdBy: accountId,
-        shopId,
-        ...(data.permissionCodes && {
-          permissions: {
-            connect: data.permissionCodes.map(code => ({
-              code
-            }))
-          }
-        })
-      },
-      select: roleSelect
+    return this.prisma.$transaction(async prisma => {
+      const role = await prisma.role.create({
+        data: {
+          name: data.name,
+          description: data.description,
+          createdBy: accountId,
+          shopId,
+          ...(data.permissionCodes && {
+            permissions: {
+              connect: data.permissionCodes.map(code => ({
+                code
+              }))
+            }
+          })
+        },
+        select: roleSelect
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.CREATE,
+          modelName: 'Role',
+          targetName: role.name,
+          targetId: role.id
+        },
+        { shopId },
+        accountId
+      )
+
+      return role
     })
   }
 
@@ -57,23 +74,39 @@ export class RoleService {
   }
 
   async update(id: string, data: UpdateRoleDto, accountId: string, shopId: string) {
-    return await this.prisma.role.update({
-      data: {
-        name: data.name,
-        description: data.description,
-        updatedBy: accountId,
-        ...(data.permissionCodes && {
-          permissions: {
-            set: data.permissionCodes.map(code => ({
-              code
-            }))
-          }
-        })
-      },
-      where: {
-        id,
-        shopId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const role = await prisma.role.update({
+        data: {
+          name: data.name,
+          description: data.description,
+          updatedBy: accountId,
+          ...(data.permissionCodes && {
+            permissions: {
+              set: data.permissionCodes.map(code => ({
+                code
+              }))
+            }
+          })
+        },
+        select: roleSelect,
+        where: {
+          id,
+          shopId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE,
+          modelName: 'Role',
+          targetId: role.id,
+          targetName: role.name
+        },
+        { shopId },
+        accountId
+      )
+
+      return role
     })
   }
 
@@ -89,16 +122,31 @@ export class RoleService {
 
   async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
-        accountId,
-        modelName: 'Role',
+      const entities = await prisma.role.findMany({
+        where: { id: { in: data.ids } },
         include: {
           permissions: true
         }
+      })
+
+      const dataTrash: CreateManyTrashDto = {
+        entities,
+        accountId,
+        modelName: 'Role'
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'Role',
+            targetName: entities.map(item => item.name).join(', ')
+          },
+          { shopId },
+          accountId
+        )
+      ])
 
       return prisma.role.deleteMany({
         where: {

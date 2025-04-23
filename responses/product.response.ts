@@ -1,7 +1,6 @@
 import { Prisma } from '@prisma/client'
-import { productTypeSortSelect } from './product-type.response'
+import { productTypeShortSelect } from './product-type.response'
 import { measurementUnitSelect } from './measurement-unit.response'
-import { productOptionSelect } from './product-option-group.response'
 
 export const productSelect: Prisma.ProductSelect = {
   id: true,
@@ -16,19 +15,16 @@ export const productSelect: Prisma.ProductSelect = {
   photoURLs: true,
   status: true,
   slug: true,
-  includedProductOptions: {
-    select: productOptionSelect
-  },
   measurementUnit: {
     select: measurementUnitSelect
   },
   productType: {
-    select: productTypeSortSelect
+    select: productTypeShortSelect
   },
   updatedAt: true
 }
 
-export const productSortSelect: Prisma.ProductSelect = {
+export const productShortSelect: Prisma.ProductSelect = {
   id: true,
   branchId: true,
   unitId: true,
@@ -41,5 +37,8 @@ export const productSortSelect: Prisma.ProductSelect = {
   photoURLs: true,
   status: true,
   slug: true,
+  measurementUnit: {
+    select: measurementUnitSelect
+  },
   updatedAt: true
 }

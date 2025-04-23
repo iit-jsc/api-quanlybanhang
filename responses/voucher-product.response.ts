@@ -1,5 +1,5 @@
 import { Prisma } from '@prisma/client'
-import { productSortSelect } from './product.response'
+import { productShortSelect } from './product.response'
 
 export const voucherProductSelect: Prisma.VoucherProductSelect = {
   id: true,
@@ -10,6 +10,6 @@ export const voucherProductSelect: Prisma.VoucherProductSelect = {
   photoURL: true,
   limitQuantity: true,
   product: {
-    select: productSortSelect
+    select: productShortSelect
   }
 }

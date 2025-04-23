@@ -6,52 +6,66 @@ import {
   FindManyProductOptionGroupDto,
   UpdateProductOptionGroupDto
 } from './dto/product-option-group.dto'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
 import { productOptionGroupSelect } from 'responses/product-option-group.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { TrashService } from 'src/trash/trash.service'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
 
 @Injectable()
 export class ProductOptionGroupService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly trashService: TrashService
+    private readonly trashService: TrashService,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateProductOptionGroupDto, accountId: string, branchId: string) {
-    this.validateValidateProductOptions(data.productOptions)
+    this.validateDefaultProductOptions(data.productOptions)
 
-    return await this.prisma.productOptionGroup.create({
-      data: {
-        name: data.name,
-        productOptions: {
-          create: data.productOptions.map(option => ({
-            name: option.name,
-            price: option.price,
-            isDefault: option.isDefault,
-            isAppliedToAll: option.isAppliedToAll,
-            photoURL: option.photoURL,
-            products: {
-              connect: option.productIds?.map(id => ({ id }))
-            },
-            excludedProducts: {
-              connect: option.excludedProductIds?.map(id => ({ id }))
-            }
-          }))
+    return this.prisma.$transaction(async prisma => {
+      const productOptionGroup = await prisma.productOptionGroup.create({
+        data: {
+          name: data.name,
+          productOptions: {
+            create: data.productOptions.map(option => ({
+              name: option.name,
+              price: option.price,
+              isDefault: option.isDefault,
+              type: option.type,
+              photoURL: option.photoURL,
+              products: {
+                connect: option.productIds?.map(id => ({ id }))
+              }
+            }))
+          },
+          isMultiple: data.isMultiple,
+          isRequired: data.isRequired,
+          createdBy: accountId,
+          branchId
         },
-        isMultiple: data.isMultiple,
-        isRequired: data.isRequired,
-        createdBy: accountId,
-        branchId
-      },
-      select: productOptionGroupSelect()
+        select: productOptionGroupSelect()
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.CREATE,
+          modelName: 'ProductOptionGroup',
+          targetName: productOptionGroup.name,
+          targetId: productOptionGroup.id
+        },
+        { branchId },
+        accountId
+      )
+
+      return productOptionGroup
     })
   }
 
   async findAll(params: FindManyProductOptionGroupDto, branchId: string) {
-    const { page, perPage, keyword, orderBy, productTypeIds, productId } = params
+    const { page, perPage, keyword, orderBy, productTypeIds } = params
 
     const where: Prisma.ProductOptionGroupWhereInput = {
       ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
@@ -59,26 +73,6 @@ export class ProductOptionGroupService {
         productTypes: {
           some: { id: { in: productTypeIds } }
         }
-      }),
-      ...(productId && {
-        OR: [
-          {
-            productOptions: {
-              some: {
-                isAppliedToAll: true
-              }
-            }
-          },
-          {
-            productOptions: {
-              some: {
-                products: {
-                  some: { id: productId }
-                }
-              }
-            }
-          }
-        ]
       }),
       branchId
     }
@@ -88,7 +82,7 @@ export class ProductOptionGroupService {
       {
         orderBy: orderBy || { createdAt: 'desc' },
         where,
-        select: productOptionGroupSelect(productId)
+        select: productOptionGroupSelect()
       },
       {
         page,
@@ -111,7 +105,7 @@ export class ProductOptionGroupService {
       if (data.productOptions)
         await prisma.productOption.deleteMany({ where: { productOptionGroupId: id } })
 
-      return await prisma.productOptionGroup.update({
+      const productOptionGroup = await prisma.productOptionGroup.update({
         data: {
           name: data.name,
           isMultiple: data.isMultiple,
@@ -122,13 +116,10 @@ export class ProductOptionGroupService {
                 name: option.name,
                 price: option.price,
                 isDefault: option.isDefault,
-                isAppliedToAll: option.isAppliedToAll,
+                type: option.type,
                 photoURL: option.photoURL,
                 products: {
                   connect: option.productIds?.map(id => ({ id }))
-                },
-                excludedProducts: {
-                  connect: option.excludedProductIds?.map(id => ({ id }))
                 }
               }))
             }
@@ -141,21 +132,47 @@ export class ProductOptionGroupService {
         },
         select: productOptionGroupSelect()
       })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE,
+          modelName: 'ProductOptionGroup',
+          targetId: productOptionGroup.id,
+          targetName: productOptionGroup.name
+        },
+        { branchId },
+        accountId
+      )
     })
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
-        accountId,
-        modelName: 'ProductOptionGroup',
+      const entities = await prisma.productOptionGroup.findMany({
+        where: { id: { in: data.ids } },
         include: {
           productOptions: true
         }
+      })
+
+      const dataTrash: CreateManyTrashDto = {
+        entities,
+        accountId,
+        modelName: 'ProductOptionGroup'
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'ProductOptionGroup',
+            targetName: entities.map(item => item.name).join(', ')
+          },
+          { branchId },
+          accountId
+        )
+      ])
 
       return prisma.productOptionGroup.deleteMany({
         where: {
@@ -172,30 +189,5 @@ export class ProductOptionGroupService {
 
     if (defaultCount > 1)
       throw new HttpException('Chỉ có duy nhất dữ liệu là mặc định!', HttpStatus.CONFLICT)
-  }
-
-  validateValidateProductOptions(productOptions: CreateProductOptionDto[]) {
-    this.validateDefaultProductOptions(productOptions)
-
-    for (let i = 0; i < productOptions.length; i++) {
-      const option = productOptions[i]
-
-      if (option.isAppliedToAll && option.productIds.length > 0) {
-        throw new HttpException(
-          'Danh sách sản phẩm phải rỗng nếu như chọn áp dụng cho tất cả!',
-          HttpStatus.CONFLICT
-        )
-      }
-
-      for (let j = 0; j < option.productIds.length; j++) {
-        const productId = option.productIds[j]
-        if (option.excludedProductIds.includes(productId)) {
-          throw new HttpException(
-            'Sản phẩm không thể xuất hiện đồng thời cả 2 danh sách!',
-            HttpStatus.CONFLICT
-          )
-        }
-      }
-    }
   }
 }

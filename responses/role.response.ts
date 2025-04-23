@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 
-export const roleSortSelect: Prisma.RoleSelect = {
+export const roleShortSelect: Prisma.RoleSelect = {
   id: true,
   name: true,
   description: true

@@ -12,17 +12,14 @@ import {
   HttpCode,
   Query
 } from '@nestjs/common'
-import {
-  CreateSupplierTypeDto,
-  UpdateSupplierTypeDto
-} from './dto/supplier-type.dto'
+import { CreateSupplierTypeDto, UpdateSupplierTypeDto } from './dto/supplier-type.dto'
 import { SupplierTypeService } from './supplier-type.service'
-import { TokenPayload } from 'interfaces/common.interface'
-import { JwtAuthGuard } from 'guards/jwt-auth.guard'
-import { SPECIAL_ROLE } from 'enums/common.enum'
-import { Roles } from 'guards/roles.decorator'
-import { RolesGuard } from 'guards/roles.guard'
-import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
+// import { TokenPayload } from 'interfaces/common.interface'
+// import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+// import { SPECIAL_ROLE } from 'enums/common.enum'
+// import { Roles } from 'guards/roles.decorator'
+// import { RolesGuard } from 'guards/roles.guard'
+// import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
 
 @Controller('supplier-type')
 export class SupplierTypeController {

@@ -1,9 +1,18 @@
-import { NotifyType, OrderDetailStatus, OrderType, Prisma, PrismaClient } from '@prisma/client'
+import {
+  ActivityAction,
+  NotifyType,
+  OrderDetailStatus,
+  OrderStatus,
+  OrderType,
+  Prisma,
+  PrismaClient
+} from '@prisma/client'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import {
-  AddDishByCustomerDto,
-  AddDishDto,
+  UpdateDishDto,
+  AddDishesByCustomerDto,
+  AddDishesDto,
   CreateTableDto,
   FindManyTableDto,
   UpdateTableDto
@@ -12,46 +21,66 @@ import { DeleteManyDto } from 'utils/Common.dto'
 import {
   customPaginate,
   generateCode,
+  generateCompositeKey,
   getCustomerDiscount,
   getDiscountCode,
-  getOrderDetails,
   getOrderTotal,
   getVoucher,
-  handleOrderDetailsBeforePayment,
   removeDiacritics
 } from 'utils/Helps'
 
 import { tableSelect } from 'responses/table.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
-import { TableGateway } from 'src/gateway/table.gateway'
-import { orderSortSelect } from 'responses/order.response'
+import { orderShortSelect } from 'responses/order.response'
 import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
-import { IProduct } from 'interfaces/product.interface'
-import { IProductOption } from 'interfaces/productOption.interface'
-import { orderDetailSelect } from 'responses/order-detail.response'
+import { orderDetailSelect, orderDetailShortSelect } from 'responses/order-detail.response'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
+import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
+import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
+import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
+import { productShortSelect } from 'responses/product.response'
+import { productOptionSelect } from 'responses/product-option-group.response'
 
 @Injectable()
 export class TableService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly trashService: TrashService,
-    private readonly tableGateway: TableGateway,
-    private readonly notifyService: NotifyService
+    private readonly activityLogService: ActivityLogService,
+    private readonly notifyService: NotifyService,
+    private readonly tableGatewayHandler: TableGatewayHandler,
+    private readonly orderGatewayHandler: OrderGatewayHandler,
+    private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
-    return await this.prisma.table.create({
-      data: {
-        name: data.name,
-        seat: data.seat,
-        areaId: data.areaId,
-        branchId,
-        createdBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const table = await prisma.table.create({
+        data: {
+          name: data.name,
+          seat: data.seat,
+          areaId: data.areaId,
+          branchId,
+          createdBy: accountId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.CREATE,
+          modelName: 'Table',
+          targetName: table.name,
+          targetId: table.id
+        },
+        { branchId },
+        accountId
+      )
+
+      return table
     })
   }
 
@@ -98,162 +127,232 @@ export class TableService {
   }
 
   async update(id: string, data: UpdateTableDto, accountId: string, branchId: string) {
-    return await this.prisma.table.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        name: data.name,
-        seat: data.seat,
-        areaId: data.areaId,
-        updatedBy: accountId
-      }
+    return this.prisma.$transaction(async prisma => {
+      const table = await prisma.table.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          name: data.name,
+          seat: data.seat,
+          areaId: data.areaId,
+          updatedBy: accountId
+        }
+      })
+
+      await this.activityLogService.create(
+        {
+          action: ActivityAction.UPDATE,
+          modelName: 'Table',
+          targetId: table.id,
+          targetName: table.name
+        },
+        { branchId },
+        accountId
+      )
+
+      return table
     })
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+    const result = await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      const entities = await prisma.table.findMany({
+        where: { id: { in: data.ids } }
+      })
+
       const dataTrash: CreateManyTrashDto = {
-        ids: data.ids,
+        entities,
         accountId,
         modelName: 'Table'
       }
 
-      await this.trashService.createMany(dataTrash, prisma)
-
-      return prisma.table.deleteMany({
-        where: {
-          id: {
-            in: data.ids
-          },
-          branchId
-        }
-      })
-    })
-  }
-
-  async addDish(tableId: string, data: AddDishDto, accountId: string, branchId: string) {
-    const orderDetails = await getOrderDetails(
-      data.orderProducts,
-      OrderDetailStatus.APPROVED,
-      accountId,
-      branchId
-    )
-
-    const table = await this.prisma.table.update({
-      where: { id: tableId },
-      data: {
-        orderDetails: {
-          createMany: {
-            data: orderDetails
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        prisma.table.deleteMany({
+          where: {
+            id: { in: data.ids },
+            branchId
           }
-        }
-      },
-      select: tableSelect
-    })
-
-    // Bắn socket và thông báo cho nhân viên trong chi nhánh
-    setImmediate(() => {
-      this.tableGateway.handleModifyTable(table)
-      this.notifyService.create(
-        {
-          type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
-          branchId: branchId,
-          tableId: table.id
-        },
-        accountId
-      )
-    })
-
-    return table
-  }
-
-  async addDishByCustomer(id: string, data: AddDishByCustomerDto) {
-    const orderDetails = await getOrderDetails(
-      data.orderProducts,
-      OrderDetailStatus.WAITING,
-      null,
-      data.branchId
-    )
-
-    const table = await this.prisma.table.update({
-      where: { id },
-      data: {
-        orderDetails: {
-          createMany: {
-            data: orderDetails
-          }
-        }
-      },
-      select: tableSelect
-    })
-
-    setImmediate(() => {
-      this.tableGateway.handleModifyTable(table)
-      this.notifyService.create({
-        type: NotifyType.NEW_DISH_ADDED_TO_TABLE,
-        branchId: data.branchId,
-        tableId: table.id
-      })
-    })
-
-    return table
-  }
-
-  async payment(tableId: string, data: PaymentFromTableDto, accountId: string, branchId: string) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const orderDetails = await this.getOrderDetailsInTable(tableId, prisma)
-
-      const orderTotal = getOrderTotal(orderDetails)
-
-      const voucherParams = {
-        voucherId: data.voucherId,
-        branchId,
-        orderDetails,
-        voucherCheckRequest: {
-          orderTotal,
-          totalPeople: data.totalPeople
-        }
-      }
-
-      const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
-        getVoucher(voucherParams, prisma),
-        getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
-        getCustomerDiscount(data.customerId, orderTotal, prisma)
+        })
       ])
 
-      const order = await prisma.order.create({
-        data: {
-          isPaid: true,
-          code: data.code || generateCode('DH'),
-          note: data.note,
-          type: OrderType.OFFLINE,
-          status: data.status,
-          discountCodeValue: discountCodeValue,
-          voucherValue: voucher.voucherValue,
-          voucherProducts: voucher.voucherProducts,
-          customerDiscountValue: customerDiscountValue,
-          bankingImages: data.bankingImages,
-          moneyReceived: data.moneyReceived,
-          paymentAt: new Date(),
-          paymentMethodId: data.paymentMethodId,
-          createdBy: accountId,
-          branchId,
-          ...(data.customerId && {
-            customerId: data.customerId
-          })
-        },
-        select: orderSortSelect
-      })
-
-      await this.passOrderDetailToOrder(orderDetails, order.id, accountId, prisma)
-
-      return prisma.order.findUnique({
-        where: { id: order.id },
-        select: orderSortSelect
-      })
+      return entities
     })
+
+    await Promise.all([
+      this.activityLogService.create(
+        {
+          action: ActivityAction.DELETE,
+          modelName: 'Table',
+          targetName: result.map(item => item.name).join(', ')
+        },
+        { branchId },
+        accountId
+      )
+    ])
+
+    return result
+  }
+
+  async addDishes(
+    tableId: string,
+    data: AddDishesDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
+    const result = await this.prisma.$transaction(async prisma => {
+      const upsertTasks = data.orderProducts.map(async item => {
+        const compositeKey = generateCompositeKey(
+          tableId,
+          item.productId,
+          item.note,
+          item.productOptionIds
+        )
+
+        const [product, productOptions] = await Promise.all([
+          this.prisma.product.findUniqueOrThrow({
+            where: { id: item.productId },
+            select: productShortSelect
+          }),
+          this.prisma.productOption.findMany({
+            where: { id: { in: item.productOptionIds || [] } },
+            select: productOptionSelect
+          })
+        ])
+
+        return prisma.orderDetail.upsert({
+          where: {
+            compositeKey_tableId_status: {
+              compositeKey,
+              tableId,
+              status: OrderDetailStatus.APPROVED
+            }
+          },
+          create: {
+            compositeKey,
+            amount: item.amount,
+            tableId,
+            status: OrderDetailStatus.APPROVED,
+            createdBy: accountId,
+            note: item.note,
+            productOriginId: item.productId,
+            product,
+            productOptions: productOptions,
+            branchId
+          },
+          update: {
+            amount: { increment: item.amount },
+            note: item.note,
+            updatedBy: accountId
+          },
+          select: orderDetailSelect
+        })
+      })
+
+      return await Promise.all(upsertTasks)
+    })
+
+    await this.orderDetailGatewayHandler.handleCreateOrderDetails(result, branchId, deviceId)
+
+    return result
+  }
+
+  async addDishesByCustomer(id: string, data: AddDishesByCustomerDto) {
+    console.log(id, data)
+  }
+
+  async payment(
+    tableId: string,
+    data: PaymentFromTableDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
+    const result = await this.prisma.$transaction(
+      async (prisma: PrismaClient) => {
+        const orderDetailsInTable = await this.getOrderDetailsInTable(tableId, prisma)
+        const orderTotal = getOrderTotal(orderDetailsInTable)
+
+        const voucherParams = {
+          voucherId: data.voucherId,
+          branchId,
+          orderDetails: orderDetailsInTable,
+          voucherCheckRequest: {
+            orderTotal,
+            totalPeople: data.totalPeople
+          }
+        }
+
+        // Lấy thông tin giảm giá
+        const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
+          getVoucher(voucherParams, prisma),
+          getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
+          getCustomerDiscount(data.customerId, orderTotal, prisma)
+        ])
+
+        // Tạo order
+        const createOrderPromise = prisma.order.create({
+          data: {
+            isPaid: true,
+            tableId,
+            code: data.code || generateCode('DH'),
+            note: data.note,
+            type: OrderType.OFFLINE,
+            status: data.status || OrderStatus.SUCCESS,
+            discountCodeValue,
+            voucherValue: voucher.voucherValue,
+            voucherProducts: voucher.voucherProducts,
+            customerDiscountValue,
+            bankingImages: data.bankingImages,
+            moneyReceived: data.moneyReceived,
+            paymentAt: new Date(),
+            paymentMethodId: data.paymentMethodId,
+            createdBy: accountId,
+            branchId,
+            ...(data.customerId && { customerId: data.customerId })
+          },
+          select: orderShortSelect
+        })
+
+        // Gán chi tiết đơn hàng
+        const passOrderDetailPromise = createOrderPromise.then(order => {
+          return this.passOrderDetailToOrder(orderDetailsInTable, order.id, accountId, prisma)
+        })
+
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [newOrder, _] = await Promise.all([createOrderPromise, passOrderDetailPromise])
+
+        // Đơn hàng chi tiết (món mới chuyển từ bàn)
+        const fullOrder = { ...newOrder, orderDetails: orderDetailsInTable }
+
+        return fullOrder
+      },
+      {
+        timeout: 10_000,
+        maxWait: 15_000
+      }
+    )
+
+    // Gửi socket, lưu log
+    await Promise.all([
+      this.activityLogService.create(
+        {
+          action: ActivityAction.PAYMENT,
+          modelName: 'Order',
+          targetName: result.code,
+          targetId: result.id
+        },
+        { branchId },
+        accountId
+      ),
+      this.orderGatewayHandler.handleCreateOrder(result, branchId, deviceId),
+      this.tableGatewayHandler.handleUpdateTable(result.table, branchId, deviceId)
+    ])
+
+    return result
   }
 
   async passOrderDetailToOrder(
@@ -278,51 +377,239 @@ export class TableService {
     })
   }
 
-  async getOrderDetailsInTable(tableId: string, prisma: PrismaClient): Promise<IOrderDetail[]> {
-    await handleOrderDetailsBeforePayment(prisma, { tableId })
-
+  async getOrderDetailsInTable(tableId: string, prisma: PrismaClient): Promise<any[]> {
     const orderDetails = await prisma.orderDetail.findMany({
       where: { tableId },
-      select: orderDetailSelect
+      select: orderDetailShortSelect
     })
 
     if (!orderDetails.length) throw new HttpException('Không tìm thấy món!', HttpStatus.NOT_FOUND)
 
-    return orderDetails.map(orderDetail => ({
-      id: orderDetail.id,
-      branchId: orderDetail.branchId,
-      amount: orderDetail.amount,
-      orderId: orderDetail.orderId,
-      note: orderDetail.note,
-      product: orderDetail.product as unknown as IProduct,
-      createdAt: orderDetail.createdAt,
-      updatedAt: orderDetail.updatedAt,
-      productOriginId: orderDetail.productOriginId,
-      tableId: orderDetail.tableId,
-      productOptions: orderDetail.productOptions as unknown as IProductOption[],
-      productOrigin: orderDetail.productOrigin as IProduct
-    }))
+    return orderDetails
   }
 
   async separateTable(id: string, data: SeparateTableDto, accountId: string, branchId: string) {
-    const { toTableId, orderDetailIds } = data
+    const { toTableId, orderDetails } = data
 
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      await prisma.orderDetail.updateMany({
-        data: {
-          tableId: toTableId,
-          updatedBy: accountId,
-          branchId
-        },
-        where: {
-          id: {
-            in: orderDetailIds
-          },
-          tableId: id
+    const [fromTable, toTable] = await Promise.all([
+      this.prisma.table.findUnique({ where: { id } }),
+      this.prisma.table.findUnique({ where: { id: toTableId } })
+    ])
+
+    // Kiểm tra bàn nguồn và bàn đích
+    if (!fromTable || !toTable) {
+      throw new HttpException('Không tìm thấy bàn nguồn hoặc bàn đích!', HttpStatus.NOT_FOUND)
+    }
+
+    const result = await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      // Cập nhật hoặc tạo mới orderDetail dựa trên amount
+      const updatePromises = orderDetails.map(async ({ id: orderDetailId, amount }) => {
+        const orderDetail = await prisma.orderDetail.findUnique({
+          where: { id: orderDetailId }
+        })
+
+        if (!orderDetail) {
+          throw new HttpException(
+            `Không tìm thấy chi tiết đơn hàng với ID ${orderDetailId}!`,
+            HttpStatus.NOT_FOUND
+          )
+        }
+
+        if (amount > orderDetail.amount) {
+          throw new HttpException(
+            `Số lượng yêu cầu (${amount}) vượt quá số lượng hiện có (${orderDetail.amount})`,
+            HttpStatus.CONFLICT
+          )
+        }
+
+        if (amount === orderDetail.amount) {
+          // Nếu số lượng bằng nhau, chỉ cập nhật tableId
+          return prisma.orderDetail.update({
+            where: { id: orderDetailId },
+            data: {
+              tableId: toTableId,
+              updatedBy: accountId,
+              branchId
+            }
+          })
+        } else {
+          // Giảm số lượng ở bản ghi hiện tại
+          await prisma.orderDetail.update({
+            where: { id: orderDetailId },
+            data: {
+              amount: orderDetail.amount - amount,
+              updatedBy: accountId
+            }
+          })
+
+          // Tạo bản ghi mới cho bàn đích
+          return prisma.orderDetail.create({
+            data: {
+              ...orderDetail,
+              id: undefined,
+              tableId: toTableId,
+              amount,
+              createdBy: accountId,
+              branchId
+            }
+          })
         }
       })
 
-      return prisma.table.findFirstOrThrow({ where: { id: data.toTableId }, select: tableSelect })
+      await Promise.all(updatePromises)
+
+      // Trả về thông tin cả hai bàn
+      const tableUpdates = await prisma.table.findMany({
+        where: { id: { in: [toTableId, id] } },
+        select: tableSelect
+      })
+
+      return tableUpdates
     })
+
+    // Ghi log hoạt động
+    await Promise.all([
+      this.tableGatewayHandler.handleUpdateTable(result, branchId),
+      this.activityLogService.create(
+        {
+          action: ActivityAction.SEPARATE_TABLE,
+          modelName: 'Table',
+          targetId: toTable.id,
+          targetName: toTable.name,
+          relatedName: fromTable.name
+        },
+        { branchId },
+        accountId
+      )
+    ])
+
+    return result
+  }
+
+  async requestPayment(id: string, branchId: string, deviceId: string) {
+    const table = await this.prisma.table.findUniqueOrThrow({
+      where: { id, branchId },
+      include: { area: true }
+    })
+
+    return this.notifyService.create(
+      {
+        type: NotifyType.PAYMENT_REQUEST,
+        content: `${table.name} - ${table.area.name} yêu cầu thanh toán`
+      },
+      branchId,
+      deviceId
+    )
+  }
+
+  async updateDish(
+    tableId: string,
+    data: UpdateDishDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
+    const compositeKey = generateCompositeKey(
+      tableId,
+      data.productId,
+      data.note,
+      data.productOptionIds
+    )
+
+    const [product, productOptions] = await Promise.all([
+      this.prisma.product.findUniqueOrThrow({
+        where: { id: data.productId },
+        select: productShortSelect
+      }),
+      this.prisma.productOption.findMany({
+        where: { id: { in: data.productOptionIds || [] } },
+        select: productOptionSelect
+      })
+    ])
+
+    if (data.isNewLine) {
+      const newOrderDetail = await this.prisma.orderDetail.create({
+        data: {
+          amount: data.amount,
+          note: data.note,
+          tableId: tableId,
+          productOriginId: data.productId,
+          product,
+          productOptions,
+          status: OrderDetailStatus.APPROVED,
+          createdBy: accountId,
+          branchId
+        },
+        select: orderDetailSelect
+      })
+
+      await this.orderDetailGatewayHandler.handleCreateOrderDetails(
+        newOrderDetail,
+        branchId,
+        deviceId
+      )
+
+      return newOrderDetail
+    }
+
+    if (data.amount === 0) {
+      const orderDetailDeleted = await this.prisma.orderDetail.delete({
+        where: {
+          compositeKey_tableId_status: {
+            status: OrderDetailStatus.APPROVED,
+            tableId: tableId,
+            compositeKey
+          }
+        },
+        select: orderDetailSelect
+      })
+
+      await this.orderDetailGatewayHandler.handleDeleteOrderDetails(
+        orderDetailDeleted,
+        branchId,
+        deviceId
+      )
+
+      return orderDetailDeleted
+    }
+
+    if (data.amount !== 0) {
+      const newOrderDetail = await this.prisma.orderDetail.upsert({
+        create: {
+          amount: data.amount,
+          compositeKey,
+          note: data.note,
+          tableId: tableId,
+          productOriginId: data.productId,
+          product,
+          productOptions,
+          status: OrderDetailStatus.APPROVED,
+          createdBy: accountId,
+          branchId
+        },
+        update: {
+          amount: data.amount,
+          note: data.note,
+          tableId,
+          createdBy: accountId
+        },
+        where: {
+          compositeKey_tableId_status: {
+            status: OrderDetailStatus.APPROVED,
+            tableId: tableId,
+            compositeKey
+          }
+        },
+        select: orderDetailSelect
+      })
+
+      await this.orderDetailGatewayHandler.handleUpdateOrderDetails(
+        newOrderDetail,
+        branchId,
+        deviceId
+      )
+
+      return newOrderDetail
+    }
   }
 }

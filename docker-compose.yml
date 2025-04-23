@@ -1,31 +1,30 @@
-version: '3'
+version: '3.8'
+
 services:
   mysql:
-    image: mysql:8.0
-    container_name: mysql
+    image: mysql:8.0.42
+    container_name: mysql-container
+    restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD:
-      MYSQL_DATABASE: software_sell
-      MYSQL_USER: root
-      MYSQL_PASSWORD:
+      MYSQL_ROOT_PASSWORD: anhemiit123    # Mật khẩu root
+      MYSQL_DATABASE: safes_software               # DB mặc định
+      MYSQL_USER: root                   # User mặc định
+      MYSQL_PASSWORD: anhemiit123           # Mật khẩu user
     ports:
-      - '3306:3306'
+      - "3306:3306"
     volumes:
-      - ./data/mysql:/var/lib/mysql
+      - mysql_data:/var/lib/mysql
+    networks:
+      - backend
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  nestjs-app:
-    build: .
-    container_name: nestjs-app
-    ports:
-      - '4001:4001'
-    depends_on:
-      - mysql
-    environment:
-      DATABASE_HOST: mysql
-      DATABASE_PORT: 3306
-      DATABASE_USER: nestjs_user
-      DATABASE_PASSWORD: nestjs_password
-      DATABASE_NAME: nestjs_db
-    volumes:
-      - .:/usr/src/app
-    command: npm run start:dev
+volumes:
+  mysql_data:
+
+networks:
+  backend:
+    driver: bridge

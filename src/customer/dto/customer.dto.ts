@@ -44,8 +44,8 @@ export class CreateCustomerDto {
   discount: number
 
   @ValidateIf(o => o.discountFor === DiscountFor.CUSTOMER)
-  @IsNotEmpty()
   @IsEnum(DiscountType)
+  @IsNotEmpty()
   discountType: DiscountType
 
   @IsOptional()

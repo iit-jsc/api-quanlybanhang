@@ -8,30 +8,19 @@ import { customPaginate } from 'utils/Helps'
 export class TrashService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async create({ id, modelName, accountId, include = {} }: CreateTrashDto, prisma: PrismaClient) {
-    const data = await prisma[modelName].findUniqueOrThrow({
-      where: { id },
-      include
-    })
+  async create(data: CreateTrashDto, prisma: PrismaClient) {
+    const { entity, modelName, accountId } = data
 
     await prisma.trash.create({
       data: {
         modelName,
-        data,
+        data: entity,
         createdBy: accountId
       }
     })
   }
 
-  async createMany(
-    { ids, modelName, accountId, include = {} }: CreateManyTrashDto,
-    prisma: PrismaClient
-  ) {
-    const entities = await prisma[modelName].findMany({
-      where: { id: { in: ids } },
-      include
-    })
-
+  async createMany({ entities, modelName, accountId }: CreateManyTrashDto, prisma: PrismaClient) {
     if (entities.length === 0) {
       throw new HttpException(`Không tìm thấy dữ liệu!`, HttpStatus.NOT_FOUND)
     }

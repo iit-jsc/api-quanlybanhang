@@ -34,3 +34,8 @@ export class PaymentFromTableDto extends PaymentDto {
 
   code?: string
 }
+
+export class RequestPaymentDto {
+  @IsNotEmpty()
+  branchId: string
+}

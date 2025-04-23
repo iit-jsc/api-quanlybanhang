@@ -4,7 +4,7 @@ import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateAccountDto } from './dto/create-account.dto'
-import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum'
+// import { ACCOUNT_STATUS, ACCOUNT_TYPE } from 'enums/user.enum'
 import * as bcrypt from 'bcrypt'
 
 @Injectable()

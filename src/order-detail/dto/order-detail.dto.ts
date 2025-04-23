@@ -1,20 +1,30 @@
+import { OrderDetailStatus, OrderType } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import { IsDate, IsOptional } from 'class-validator'
+import {
+  ArrayNotEmpty,
+  IsDate,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  Min,
+  Validate,
+  ValidateNested,
+  ValidatorConstraint,
+  ValidatorConstraintInterface
+} from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class FindManyOrderDetailDto extends FindManyDto {
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: number) => +id)
+    return value?.split(',').map((id: OrderDetailStatus) => id)
   })
-  orderDetailStatuses?: number[]
+  statuses?: OrderDetailStatus[]
 
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: number) => +id)
+    return value?.split(',').map((id: OrderType) => id)
   })
-  orderTypes?: number[]
-
-  @Transform(({ value }) => value?.toString().toLowerCase() === 'true')
-  hasTable?: boolean
+  orderTypes?: OrderType[]
 
   @IsOptional()
   @Type(() => Date)
@@ -25,4 +35,52 @@ export class FindManyOrderDetailDto extends FindManyDto {
   @Type(() => Date)
   @IsDate()
   to?: Date
+
+  @Transform(({ value }) => value?.toString().toLowerCase() === 'true')
+  hasTable?: boolean
+}
+
+export class UpdateOrderDetailDto {
+  amount?: number
+
+  note?: string
+}
+
+export class OrderDetailAmount {
+  @IsNotEmpty()
+  id: string
+
+  @IsNumber()
+  @Min(0)
+  amount: number
+}
+@ValidatorConstraint({ name: 'isNotApproved', async: false })
+class IsNotApprovedConstraint implements ValidatorConstraintInterface {
+  validate(status: any) {
+    return status !== OrderDetailStatus.APPROVED
+  }
+
+  defaultMessage() {
+    return 'Status không được là APPROVED'
+  }
+}
+
+export class UpdateStatusOrderDetailsDto {
+  @ArrayNotEmpty()
+  @ValidateNested({ each: true })
+  @Type(() => OrderDetailAmount)
+  orderDetails: OrderDetailAmount[]
+
+  @IsNotEmpty()
+  @IsEnum(OrderDetailStatus)
+  @Validate(IsNotApprovedConstraint)
+  status?: OrderDetailStatus
+}
+
+export class CancelOrderDetailsDto {
+  @IsNumber()
+  @Min(1)
+  amount: number
+
+  cancelReason?: string
 }

@@ -1,22 +1,15 @@
 import { Injectable } from '@nestjs/common'
-import {
-  CreateSupplierTypeDto,
-  UpdateSupplierTypeDto
-} from './dto/supplier-type.dto'
+import { CreateSupplierTypeDto, UpdateSupplierTypeDto } from './dto/supplier-type.dto'
 import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
 import { Prisma } from '@prisma/client'
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
 import { PrismaService } from 'nestjs-prisma'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
-import { CommonService } from 'src/common/common.service'
-import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
+// import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()
 export class SupplierTypeService {
-  constructor(
-    private readonly prisma: PrismaService,
-    private readonly commonService: CommonService
-  ) {}
+  constructor(private readonly prisma: PrismaService) {}
 
   // async create(data: CreateSupplierTypeDto, tokenPayload: TokenPayload) {
   //   const result = await this.prisma.supplierType.create({

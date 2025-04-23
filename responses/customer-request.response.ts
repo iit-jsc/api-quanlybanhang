@@ -3,6 +3,7 @@ import { Prisma } from '@prisma/client'
 export const customerRequestSelect: Prisma.CustomerRequestSelect = {
   id: true,
   content: true,
+  code: true,
   status: true,
   requestType: true,
   createdAt: true,

@@ -1,0 +1,14 @@
+[
+  {  
+    "code": "FOOD_BEVERAGE",
+    "name": "Ăn Uống",
+    "icon": "☕",
+    "description": "Dịch vụ nhà hàng, quán cà phê, trà sữa và đồ uống."
+  },
+  {
+    "code": "FASHION",
+    "name": "Thời Trang",
+    "icon": "👗",
+    "description": "Cửa hàng quần áo, giày dép và phụ kiện thời trang."
+  }
+]

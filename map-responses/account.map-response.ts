@@ -5,7 +5,6 @@ export function mapResponseLogin(data: AnyObject) {
 
   return {
     account,
-    permissions: [],
     currentShop: currentShop,
     shops: shops
   }
