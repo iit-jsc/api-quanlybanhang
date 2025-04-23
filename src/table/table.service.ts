@@ -531,7 +531,6 @@ export class TableService {
       const newOrderDetail = await this.prisma.orderDetail.create({
         data: {
           amount: data.amount,
-          compositeKey,
           note: data.note,
           tableId: tableId,
           productOriginId: data.productId,
