@@ -51,6 +51,8 @@ export class UpdateDishDto {
   @Min(1)
   amount: number
 
+  isNewLine?: boolean = false
+
   note?: string
 
   productOptionIds?: string[]

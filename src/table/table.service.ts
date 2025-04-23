@@ -527,6 +527,32 @@ export class TableService {
       })
     ])
 
+    if (data.isNewLine) {
+      const newOrderDetail = await this.prisma.orderDetail.create({
+        data: {
+          amount: data.amount,
+          compositeKey,
+          note: data.note,
+          tableId: tableId,
+          productOriginId: data.productId,
+          product,
+          productOptions,
+          status: OrderDetailStatus.APPROVED,
+          createdBy: accountId,
+          branchId
+        },
+        select: orderDetailSelect
+      })
+
+      await this.orderDetailGatewayHandler.handleCreateOrderDetails(
+        newOrderDetail,
+        branchId,
+        deviceId
+      )
+
+      return newOrderDetail
+    }
+
     if (data.amount === 0) {
       const orderDetailDeleted = await this.prisma.orderDetail.delete({
         where: {
