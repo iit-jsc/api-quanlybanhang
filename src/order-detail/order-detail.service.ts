@@ -7,7 +7,7 @@ import {
   UpdateStatusOrderDetailsDto
 } from './dto/order-detail.dto'
 import { Prisma, PrismaClient } from '@prisma/client'
-import { customPaginate, getNotifyInfo } from 'utils/Helps'
+import { customPaginate, generateCompositeKey, getNotifyInfo } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -148,7 +148,23 @@ export class OrderDetailService {
     branchId: string,
     deviceId: string
   ) {
-    await this.checkOrderPaidByDetailIds([id])
+    const existing = await this.prisma.orderDetail.findUniqueOrThrow({
+      where: { id },
+      select: {
+        tableId: true,
+        productOriginId: true,
+        productOptions: true
+      }
+    })
+
+    const optionIds = (existing.productOptions as { id: string }[] | null)?.map(opt => opt.id) || []
+
+    const compositeKey = generateCompositeKey(
+      existing.tableId,
+      existing.productOriginId,
+      data.note,
+      optionIds
+    )
 
     const orderDetail = await this.prisma.orderDetail.update({
       where: {
@@ -158,7 +174,8 @@ export class OrderDetailService {
       data: {
         amount: data.amount,
         note: data.note,
-        updatedBy: accountId
+        updatedBy: accountId,
+        compositeKey
       },
       select: orderDetailSelect
     })

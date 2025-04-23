@@ -10,8 +10,9 @@ import {
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import {
-  AddDishByCustomerDto,
-  AddDishDto,
+  UpdateDishDto,
+  AddDishesByCustomerDto,
+  AddDishesDto,
   CreateTableDto,
   FindManyTableDto,
   UpdateTableDto
@@ -20,6 +21,7 @@ import { DeleteManyDto } from 'utils/Common.dto'
 import {
   customPaginate,
   generateCode,
+  generateCompositeKey,
   getCustomerDiscount,
   getDiscountCode,
   getNotifyInfo,
@@ -42,6 +44,8 @@ import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
+import { productShortSelect } from 'responses/product.response'
+import { productOptionSelect } from 'responses/product-option-group.response'
 
 @Injectable()
 export class TableService {
@@ -194,60 +198,105 @@ export class TableService {
     return result
   }
 
-  async addDish(
+  async addDishes(
     tableId: string,
-    data: AddDishDto,
+    data: AddDishesDto,
     accountId: string,
     branchId: string,
     deviceId: string
   ) {
     const result = await this.prisma.$transaction(async prisma => {
-      const orderDetails = await getOrderDetails(
-        data.orderProducts,
-        OrderDetailStatus.PROCESSING,
-        accountId,
-        branchId
-      )
+      const upsertTasks = data.orderProducts.map(async item => {
+        const compositeKey = generateCompositeKey(
+          tableId,
+          item.productId,
+          item.note,
+          item.productOptionIds
+        )
 
-      const table = await prisma.table.update({
-        where: { id: tableId },
-        data: {
-          orderDetails: {
-            createMany: {
-              data: orderDetails
+        const [product, productOptions] = await Promise.all([
+          this.prisma.product.findUniqueOrThrow({
+            where: { id: item.productId },
+            select: productShortSelect
+          }),
+          this.prisma.productOption.findMany({
+            where: { id: { in: item.productOptionIds || [] } },
+            select: productOptionSelect
+          })
+        ])
+
+        return prisma.orderDetail.upsert({
+          where: {
+            compositeKey_tableId_status: {
+              compositeKey,
+              tableId,
+              status: item.status
             }
+          },
+          create: {
+            compositeKey,
+            amount: 1,
+            branchId,
+            tableId,
+            status: item.status,
+            createdBy: accountId,
+            note: item.note,
+            productOriginId: item.productId,
+            product,
+            productOptions: productOptions
+          },
+          update: {
+            amount: { increment: 1 },
+            updatedBy: accountId
           }
-        },
-        select: tableSelect
+        })
       })
 
-      return table
+      return await Promise.all(upsertTasks)
+    })
+
+    const table = await this.prisma.table.findUniqueOrThrow({
+      where: { id: tableId },
+      select: {
+        id: true,
+        name: true,
+        seat: true,
+        updatedAt: true,
+        area: {
+          select: {
+            id: true,
+            name: true,
+            photoURL: true
+          }
+        }
+      }
     })
 
     const notify = getNotifyInfo(data.orderProducts[0].status)
 
-    // Bắn socket
-    await Promise.all([
-      this.tableGatewayHandler.handleAddDish(result, branchId, deviceId),
-      this.orderDetailGatewayHandler.handleUpdateOrderDetails(
-        result.orderDetails,
-        branchId,
-        deviceId
-      ),
-      this.notifyService.create(
-        {
-          type: notify.type,
-          content: `${result.name} - ${result.area.name} có món ${notify.content}`
-        },
-        branchId,
-        deviceId
+    const tasks = [
+      this.orderDetailGatewayHandler.handleCreateOrderDetails(result, branchId, deviceId)
+    ]
+
+    if (data.orderProducts[0].status === OrderDetailStatus.INFORMED) {
+      tasks.push(
+        this.notifyService.create(
+          {
+            type: notify.type,
+            content: `${table.name} - ${table.area.name} có món ${notify.content}`
+          },
+          branchId,
+          deviceId
+        )
       )
-    ])
+    }
+
+    await Promise.all(tasks)
 
     return result
   }
 
-  async addDishByCustomer(id: string, data: AddDishByCustomerDto) {
+  async addDishesByCustomer(id: string, data: AddDishesByCustomerDto) {
     const orderDetails = await getOrderDetails(
       data.orderProducts,
       OrderDetailStatus.APPROVED,
@@ -272,7 +321,7 @@ export class TableService {
     // Bắn socket
     await Promise.all([
       this.tableGatewayHandler.handleAddDish(table, data.branchId),
-      this.orderDetailGatewayHandler.handleUpdateOrderDetails(table.orderDetails, data.branchId),
+      this.orderDetailGatewayHandler.handleCreateOrderDetails(table.orderDetails, data.branchId),
       this.notifyService.create(
         {
           type: notify.type,
@@ -521,6 +570,81 @@ export class TableService {
       branchId,
       deviceId
     )
+  }
+
+  async updateDish(
+    tableId: string,
+    data: UpdateDishDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
+    const compositeKey = generateCompositeKey(
+      tableId,
+      data.productId,
+      data.note,
+      data.productOptionIds
+    )
+
+    let newOrderDetail = null
+
+    const [product, productOptions] = await Promise.all([
+      this.prisma.product.findUniqueOrThrow({
+        where: { id: data.productId },
+        select: productShortSelect
+      }),
+      this.prisma.productOption.findMany({
+        where: { id: { in: data.productOptionIds } },
+        select: productOptionSelect
+      })
+    ])
+
+    if (data.amount === 0)
+      await this.prisma.orderDetail.delete({
+        where: {
+          compositeKey_tableId_status: {
+            status: OrderDetailStatus.APPROVED,
+            tableId: tableId,
+            compositeKey
+          }
+        }
+      })
+
+    if (data.amount !== 0)
+      newOrderDetail = await this.prisma.orderDetail.upsert({
+        create: {
+          amount: data.amount,
+          compositeKey,
+          note: data.note,
+          tableId: tableId,
+          productOriginId: data.productId,
+          product,
+          productOptions,
+          status: OrderDetailStatus.APPROVED,
+          createdBy: accountId,
+          branchId
+        },
+        update: {
+          amount: data.amount,
+          tableId,
+          createdBy: accountId
+        },
+        where: {
+          compositeKey_tableId_status: {
+            status: OrderDetailStatus.APPROVED,
+            tableId: tableId,
+            compositeKey
+          }
+        }
+      })
+
+    await this.orderDetailGatewayHandler.handleCreateOrderDetails(
+      newOrderDetail,
+      branchId,
+      deviceId
+    )
+
+    return newOrderDetail
   }
 
   // async reportToKitchen(tableId: string, tokenPayload: TokenPayload) {

@@ -30,6 +30,7 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
   note: true,
   amount: true,
   productOptions: true,
+  compositeKey: true,
   canceledOrderDetails: {
     select: {
       id: true,

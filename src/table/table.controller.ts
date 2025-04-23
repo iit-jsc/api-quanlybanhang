@@ -17,10 +17,11 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RequestJWT } from 'interfaces/common.interface'
 import { DeleteManyDto } from 'utils/Common.dto'
 import {
-  AddDishByCustomerDto,
-  AddDishDto,
+  AddDishesByCustomerDto,
+  AddDishesDto,
   CreateTableDto,
   FindManyTableDto,
+  UpdateDishDto,
   UpdateTableDto
 } from './dto/table.dto'
 import { Roles } from 'guards/roles.decorator'
@@ -48,20 +49,30 @@ export class TableController {
     return this.tableService.create(data, accountId, branchId)
   }
 
-  @Post(':id/add-dish')
+  @Post(':id/add-dishes')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(permissions.table.addDish)
-  addDish(@Param('id') id: string, @Body() data: AddDishDto, @Req() req: RequestJWT) {
+  addDishes(@Param('id') id: string, @Body() data: AddDishesDto, @Req() req: RequestJWT) {
     const { accountId, branchId, deviceId } = req
 
-    return this.tableService.addDish(id, data, accountId, branchId, deviceId)
+    return this.tableService.addDishes(id, data, accountId, branchId, deviceId)
   }
 
-  @Post(':id/add-dish-by-customer')
+  @Post(':id/update-dish')
   @HttpCode(HttpStatus.OK)
-  addDishByCustomer(@Param('id') id: string, @Body() data: AddDishByCustomerDto) {
-    return this.tableService.addDishByCustomer(id, data)
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(permissions.table.addDish)
+  updateDish(@Param('id') id: string, @Body() data: UpdateDishDto, @Req() req: RequestJWT) {
+    const { accountId, branchId, deviceId } = req
+
+    return this.tableService.updateDish(id, data, accountId, branchId, deviceId)
+  }
+
+  @Post(':id/add-dishes-by-customer')
+  @HttpCode(HttpStatus.OK)
+  addDishesByCustomer(@Param('id') id: string, @Body() data: AddDishesByCustomerDto) {
+    return this.tableService.addDishesByCustomer(id, data)
   }
 
   @Post('/:id/payment')

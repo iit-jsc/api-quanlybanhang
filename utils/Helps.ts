@@ -538,3 +538,14 @@ export function getNotifyInfo(status: OrderDetailStatus): { type: NotifyType; co
       return { type: NotifyType.INFORMED_DISH, content: 'yêu cầu chế biến' }
   }
 }
+
+export function generateCompositeKey(
+  tableId: string,
+  productId: string,
+  note?: string,
+  productOptionIds?: string[]
+): string {
+  const sortedOptions = (productOptionIds || []).sort().join('_')
+  const notePart = note ? `_${note}` : ''
+  return `${tableId}_${productId}_${sortedOptions}${notePart}`
+}
