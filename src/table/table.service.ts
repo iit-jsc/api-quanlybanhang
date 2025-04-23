@@ -10,7 +10,7 @@ import {
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import {
-  UpdateDishDto,
+  addDishDto,
   AddDishesByCustomerDto,
   AddDishesDto,
   CreateTableDto,
@@ -502,9 +502,9 @@ export class TableService {
     )
   }
 
-  async updateDish(
+  async addDish(
     tableId: string,
-    data: UpdateDishDto,
+    data: addDishDto,
     accountId: string,
     branchId: string,
     deviceId: string
@@ -530,8 +530,8 @@ export class TableService {
     if (data.isNewLine) {
       const newOrderDetail = await this.prisma.orderDetail.create({
         data: {
-          amount: data.amount,
-          note: data.note,
+          amount: 1,
+          compositeKey: compositeKey + '_' + new Date(),
           tableId: tableId,
           productOriginId: data.productId,
           product,
@@ -552,64 +552,40 @@ export class TableService {
       return newOrderDetail
     }
 
-    if (data.amount === 0) {
-      const orderDetailDeleted = await this.prisma.orderDetail.delete({
-        where: {
-          compositeKey_tableId_status: {
-            status: OrderDetailStatus.APPROVED,
-            tableId: tableId,
-            compositeKey
-          }
-        },
-        select: orderDetailSelect
-      })
-
-      await this.orderDetailGatewayHandler.handleDeleteOrderDetails(
-        orderDetailDeleted,
-        branchId,
-        deviceId
-      )
-
-      return orderDetailDeleted
-    }
-
-    if (data.amount !== 0) {
-      const newOrderDetail = await this.prisma.orderDetail.upsert({
-        create: {
-          amount: data.amount,
-          compositeKey,
-          note: data.note,
-          tableId: tableId,
-          productOriginId: data.productId,
-          product,
-          productOptions,
+    const newOrderDetail = await this.prisma.orderDetail.upsert({
+      create: {
+        amount: 1,
+        compositeKey,
+        tableId: tableId,
+        productOriginId: data.productId,
+        product,
+        productOptions,
+        status: OrderDetailStatus.APPROVED,
+        createdBy: accountId,
+        branchId
+      },
+      update: {
+        amount: 1,
+        note: data.note,
+        tableId,
+        createdBy: accountId
+      },
+      where: {
+        compositeKey_tableId_status: {
           status: OrderDetailStatus.APPROVED,
-          createdBy: accountId,
-          branchId
-        },
-        update: {
-          amount: data.amount,
-          note: data.note,
-          tableId,
-          createdBy: accountId
-        },
-        where: {
-          compositeKey_tableId_status: {
-            status: OrderDetailStatus.APPROVED,
-            tableId: tableId,
-            compositeKey
-          }
-        },
-        select: orderDetailSelect
-      })
+          tableId: tableId,
+          compositeKey
+        }
+      },
+      select: orderDetailSelect
+    })
 
-      await this.orderDetailGatewayHandler.handleUpdateOrderDetails(
-        newOrderDetail,
-        branchId,
-        deviceId
-      )
+    await this.orderDetailGatewayHandler.handleUpdateOrderDetails(
+      newOrderDetail,
+      branchId,
+      deviceId
+    )
 
-      return newOrderDetail
-    }
+    return newOrderDetail
   }
 }
