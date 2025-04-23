@@ -6,7 +6,7 @@ import {
   UpdateOrderDetailDto,
   UpdateStatusOrderDetailsDto
 } from './dto/order-detail.dto'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
 import { customPaginate, generateCompositeKey, getNotifyInfo } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -162,6 +162,7 @@ export class OrderDetailService {
     const compositeKey = generateCompositeKey(
       existing.tableId,
       existing.productOriginId,
+      OrderDetailStatus.APPROVED,
       data.note,
       optionIds
     )

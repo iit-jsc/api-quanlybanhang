@@ -1,7 +1,6 @@
 import { PartialType } from '@nestjs/swagger'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
 import { ArrayNotEmpty, IsNotEmpty, IsString, Min, ValidateNested } from 'class-validator'
-import { CreateOrderProductsDto } from 'src/order/dto/order.dto'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateTableDto {
@@ -24,12 +23,24 @@ export class FindManyTableDto extends FindManyDto {
   areaIds: string[]
 }
 
+export class AddDishItemDto {
+  @IsNotEmpty()
+  productId: string
+
+  @IsNotEmpty()
+  amount: number
+
+  note?: string
+
+  productOptionIds?: string[]
+}
+
 export class AddDishesDto {
   @IsNotEmpty()
   @ArrayNotEmpty()
   @ValidateNested({ each: true })
-  @Type(() => CreateOrderProductsDto)
-  orderProducts: CreateOrderProductsDto[]
+  @Type(() => AddDishItemDto)
+  orderProducts: AddDishItemDto[]
 }
 
 export class UpdateDishDto {

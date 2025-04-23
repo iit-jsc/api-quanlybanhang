@@ -24,8 +24,6 @@ import {
   generateCompositeKey,
   getCustomerDiscount,
   getDiscountCode,
-  getNotifyInfo,
-  getOrderDetails,
   getOrderTotal,
   getVoucher,
   removeDiacritics
@@ -38,7 +36,7 @@ import { orderShortSelect } from 'responses/order.response'
 import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { orderDetailSelect, orderDetailShortSelect } from 'responses/order-detail.response'
-import { CreateOrderProductsDto, SeparateTableDto } from 'src/order/dto/order.dto'
+import { SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
@@ -198,23 +196,6 @@ export class TableService {
     return result
   }
 
-  groupOrderProducts(data: { orderProducts: CreateOrderProductsDto[] }) {
-    const map = new Map<string, CreateOrderProductsDto>()
-
-    for (const item of data.orderProducts) {
-      const key = generateCompositeKey(item.productId, item.note, item.note, item.productOptionIds)
-
-      if (map.has(key)) {
-        const existing = map.get(key)!
-        existing.amount += item.amount
-      } else {
-        map.set(key, { ...item })
-      }
-    }
-
-    return Array.from(map.values())
-  }
-
   async addDishes(
     tableId: string,
     data: AddDishesDto,
@@ -222,13 +203,12 @@ export class TableService {
     branchId: string,
     deviceId: string
   ) {
-    const groupedData = this.groupOrderProducts(data)
-
     const result = await this.prisma.$transaction(async prisma => {
-      const upsertTasks = groupedData.map(async item => {
+      const upsertTasks = data.orderProducts.map(async item => {
         const compositeKey = generateCompositeKey(
           tableId,
           item.productId,
+          OrderDetailStatus.APPROVED,
           item.note,
           item.productOptionIds
         )
@@ -249,14 +229,14 @@ export class TableService {
             compositeKey_tableId_status: {
               compositeKey,
               tableId,
-              status: item.status
+              status: OrderDetailStatus.APPROVED
             }
           },
           create: {
             compositeKey,
             amount: item.amount,
             tableId,
-            status: item.status,
+            status: OrderDetailStatus.APPROVED,
             createdBy: accountId,
             note: item.note,
             productOriginId: item.productId,
@@ -276,83 +256,13 @@ export class TableService {
       return await Promise.all(upsertTasks)
     })
 
-    const table = await this.prisma.table.findUniqueOrThrow({
-      where: { id: tableId },
-      select: {
-        id: true,
-        name: true,
-        seat: true,
-        updatedAt: true,
-        area: {
-          select: {
-            id: true,
-            name: true,
-            photoURL: true
-          }
-        }
-      }
-    })
-
-    const notify = getNotifyInfo(data.orderProducts[0].status)
-
-    const tasks = [
-      this.orderDetailGatewayHandler.handleCreateOrderDetails(result, branchId, deviceId)
-    ]
-
-    if (data.orderProducts[0].status === OrderDetailStatus.INFORMED) {
-      tasks.push(
-        this.notifyService.create(
-          {
-            type: notify.type,
-            content: `${table.name} - ${table.area.name} có món ${notify.content}`
-          },
-          branchId,
-          deviceId
-        )
-      )
-    }
-
-    await Promise.all(tasks)
+    await this.orderDetailGatewayHandler.handleCreateOrderDetails(result, branchId, deviceId)
 
     return result
   }
 
   async addDishesByCustomer(id: string, data: AddDishesByCustomerDto) {
-    const orderDetails = await getOrderDetails(
-      data.orderProducts,
-      OrderDetailStatus.APPROVED,
-      null,
-      data.branchId
-    )
-
-    const table = await this.prisma.table.update({
-      where: { id },
-      data: {
-        orderDetails: {
-          createMany: {
-            data: orderDetails
-          }
-        }
-      },
-      select: tableSelect
-    })
-
-    const notify = getNotifyInfo(data.orderProducts[0].status)
-
-    // Bắn socket
-    await Promise.all([
-      this.tableGatewayHandler.handleAddDish(table, data.branchId),
-      this.orderDetailGatewayHandler.handleCreateOrderDetails(table.orderDetails, data.branchId),
-      this.notifyService.create(
-        {
-          type: notify.type,
-          content: `${table.name} - ${table.area.name} có món ${notify.content}`
-        },
-        data.branchId
-      )
-    ])
-
-    return table
+    console.log(id, data)
   }
 
   async payment(
@@ -603,6 +513,7 @@ export class TableService {
     const compositeKey = generateCompositeKey(
       tableId,
       data.productId,
+      OrderDetailStatus.APPROVED,
       data.note,
       data.productOptionIds
     )
@@ -655,6 +566,7 @@ export class TableService {
         },
         update: {
           amount: data.amount,
+          note: data.note,
           tableId,
           createdBy: accountId
         },
