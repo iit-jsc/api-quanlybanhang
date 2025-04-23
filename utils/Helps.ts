@@ -545,7 +545,10 @@ export function generateCompositeKey(
   note?: string,
   productOptionIds?: string[]
 ): string {
-  const sortedOptions = (productOptionIds || []).sort().join('_')
-  const notePart = note ? `_${note}` : ''
-  return `${tableId}_${productId}_${sortedOptions}${notePart}`
+  const sortedOptions =
+    productOptionIds && productOptionIds.length > 0 ? productOptionIds.sort().join('_') : 'empty'
+
+  const notePart = note?.trim() ? note.trim() : 'empty'
+
+  return `${tableId || 'empty'}_${productId || 'empty'}_${sortedOptions}_${notePart}`
 }

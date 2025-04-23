@@ -37,8 +37,8 @@ import { TrashService } from 'src/trash/trash.service'
 import { orderShortSelect } from 'responses/order.response'
 import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
-import { orderDetailShortSelect } from 'responses/order-detail.response'
-import { SeparateTableDto } from 'src/order/dto/order.dto'
+import { orderDetailSelect, orderDetailShortSelect } from 'responses/order-detail.response'
+import { CreateOrderProductsDto, SeparateTableDto } from 'src/order/dto/order.dto'
 import { NotifyService } from 'src/notify/notify.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
@@ -198,6 +198,23 @@ export class TableService {
     return result
   }
 
+  groupOrderProducts(data: { orderProducts: CreateOrderProductsDto[] }) {
+    const map = new Map<string, CreateOrderProductsDto>()
+
+    for (const item of data.orderProducts) {
+      const key = generateCompositeKey(item.productId, item.note, item.note, item.productOptionIds)
+
+      if (map.has(key)) {
+        const existing = map.get(key)!
+        existing.amount += item.amount
+      } else {
+        map.set(key, { ...item })
+      }
+    }
+
+    return Array.from(map.values())
+  }
+
   async addDishes(
     tableId: string,
     data: AddDishesDto,
@@ -205,8 +222,10 @@ export class TableService {
     branchId: string,
     deviceId: string
   ) {
+    const groupedData = this.groupOrderProducts(data)
+
     const result = await this.prisma.$transaction(async prisma => {
-      const upsertTasks = data.orderProducts.map(async item => {
+      const upsertTasks = groupedData.map(async item => {
         const compositeKey = generateCompositeKey(
           tableId,
           item.productId,
@@ -235,20 +254,22 @@ export class TableService {
           },
           create: {
             compositeKey,
-            amount: 1,
-            branchId,
+            amount: item.amount,
             tableId,
             status: item.status,
             createdBy: accountId,
             note: item.note,
             productOriginId: item.productId,
             product,
-            productOptions: productOptions
+            productOptions: productOptions,
+            branchId
           },
           update: {
-            amount: { increment: 1 },
+            amount: { increment: item.amount },
+            note: item.note,
             updatedBy: accountId
-          }
+          },
+          select: orderDetailSelect
         })
       })
 
@@ -586,32 +607,40 @@ export class TableService {
       data.productOptionIds
     )
 
-    let newOrderDetail = null
-
     const [product, productOptions] = await Promise.all([
       this.prisma.product.findUniqueOrThrow({
         where: { id: data.productId },
         select: productShortSelect
       }),
       this.prisma.productOption.findMany({
-        where: { id: { in: data.productOptionIds } },
+        where: { id: { in: data.productOptionIds || [] } },
         select: productOptionSelect
       })
     ])
 
-    if (data.amount === 0)
-      await this.prisma.orderDetail.delete({
+    if (data.amount === 0) {
+      const orderDetailDeleted = await this.prisma.orderDetail.delete({
         where: {
           compositeKey_tableId_status: {
             status: OrderDetailStatus.APPROVED,
             tableId: tableId,
             compositeKey
           }
-        }
+        },
+        select: orderDetailSelect
       })
 
-    if (data.amount !== 0)
-      newOrderDetail = await this.prisma.orderDetail.upsert({
+      await this.orderDetailGatewayHandler.handleDeleteOrderDetails(
+        orderDetailDeleted,
+        branchId,
+        deviceId
+      )
+
+      return orderDetailDeleted
+    }
+
+    if (data.amount !== 0) {
+      const newOrderDetail = await this.prisma.orderDetail.upsert({
         create: {
           amount: data.amount,
           compositeKey,
@@ -635,64 +664,17 @@ export class TableService {
             tableId: tableId,
             compositeKey
           }
-        }
+        },
+        select: orderDetailSelect
       })
 
-    await this.orderDetailGatewayHandler.handleCreateOrderDetails(
-      newOrderDetail,
-      branchId,
-      deviceId
-    )
+      await this.orderDetailGatewayHandler.handleUpdateOrderDetails(
+        newOrderDetail,
+        branchId,
+        deviceId
+      )
 
-    return newOrderDetail
+      return newOrderDetail
+    }
   }
-
-  // async reportToKitchen(tableId: string, tokenPayload: TokenPayload) {
-  //   return await this.prisma.$transaction(async prisma => {
-  //     const table = await prisma.table.findFirstOrThrow({
-  //       where: {
-  //         id: tableId
-  //       },
-  //       include: { area: true }
-  //     })
-
-  //     const orderDetails = await prisma.orderDetail.findMany({
-  //       where: {
-  //         tableId
-  //       }
-  //     })
-
-  //     await prisma.orderDetail.updateMany({
-  //       where: {
-  //         tableId
-  //       },
-  //       data: {
-  //         status: OrderDetailStatus.PROCESSING,
-  //         updatedBy: tokenPayload.accountId
-  //       }
-  //     })
-
-  //     const updatedOrderDetails = orderDetails.map(detail => ({
-  //       ...detail,
-  //       status: OrderDetailStatus.PROCESSING
-  //     }))
-
-  //     await Promise.all([
-  //       this.orderDetailGateway.handleModifyOrderDetails(
-  //         updatedOrderDetails,
-  //         tokenPayload.branchId
-  //       ),
-  //       this.notifyService.create(
-  //         {
-  //           branchId: tokenPayload.branchId,
-  //           type: NotifyType.REPORT_TO_KITCHEN,
-  //           content: `${table.name} - ${table.area.name}`
-  //         },
-  //         tokenPayload.deviceId
-  //       )
-  //     ])
-
-  //     return updatedOrderDetails
-  //   })
-  // }
 }
