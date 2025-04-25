@@ -21,7 +21,6 @@ import { DeleteManyDto } from 'utils/Common.dto'
 import {
   customPaginate,
   generateCode,
-  generateCompositeKey,
   getCustomerDiscount,
   getDiscountCode,
   getOrderTotal,
@@ -205,13 +204,6 @@ export class TableService {
   ) {
     const result = await this.prisma.$transaction(async prisma => {
       const upsertTasks = data.orderProducts.map(async item => {
-        const compositeKey = generateCompositeKey(
-          tableId,
-          item.productId,
-          item.note,
-          item.productOptionIds
-        )
-
         const [product, productOptions] = await Promise.all([
           this.prisma.product.findUniqueOrThrow({
             where: { id: item.productId },
@@ -223,16 +215,8 @@ export class TableService {
           })
         ])
 
-        return prisma.orderDetail.upsert({
-          where: {
-            compositeKey_tableId_status: {
-              compositeKey,
-              tableId,
-              status: OrderDetailStatus.APPROVED
-            }
-          },
-          create: {
-            compositeKey,
+        return prisma.orderDetail.create({
+          data: {
             amount: item.amount,
             tableId,
             status: OrderDetailStatus.APPROVED,
@@ -242,11 +226,6 @@ export class TableService {
             product,
             productOptions: productOptions,
             branchId
-          },
-          update: {
-            amount: { increment: item.amount },
-            note: item.note,
-            updatedBy: accountId
           },
           select: orderDetailSelect
         })
@@ -509,13 +488,6 @@ export class TableService {
     branchId: string,
     deviceId: string
   ) {
-    const compositeKey = generateCompositeKey(
-      tableId,
-      data.productId,
-      data.note,
-      data.productOptionIds
-    )
-
     const [product, productOptions] = await Promise.all([
       this.prisma.product.findUniqueOrThrow({
         where: { id: data.productId },
@@ -527,55 +499,17 @@ export class TableService {
       })
     ])
 
-    if (data.isNewLine) {
-      const newOrderDetail = await this.prisma.orderDetail.create({
-        data: {
-          amount: 1,
-          compositeKey: compositeKey + '_' + new Date(),
-          tableId: tableId,
-          productOriginId: data.productId,
-          product,
-          productOptions,
-          status: OrderDetailStatus.APPROVED,
-          createdBy: accountId,
-          branchId
-        },
-        select: orderDetailSelect
-      })
-
-      await this.orderDetailGatewayHandler.handleCreateOrderDetails(
-        newOrderDetail,
-        branchId,
-        deviceId
-      )
-
-      return newOrderDetail
-    }
-
-    const newOrderDetail = await this.prisma.orderDetail.upsert({
-      create: {
+    const newOrderDetail = await this.prisma.orderDetail.create({
+      data: {
         amount: 1,
-        compositeKey,
         tableId: tableId,
         productOriginId: data.productId,
         product,
         productOptions,
+        note: data.note,
         status: OrderDetailStatus.APPROVED,
         createdBy: accountId,
         branchId
-      },
-      update: {
-        amount: 1,
-        note: data.note,
-        tableId,
-        createdBy: accountId
-      },
-      where: {
-        compositeKey_tableId_status: {
-          status: OrderDetailStatus.APPROVED,
-          tableId: tableId,
-          compositeKey
-        }
       },
       select: orderDetailSelect
     })

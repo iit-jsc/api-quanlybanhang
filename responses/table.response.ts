@@ -14,6 +14,9 @@ export const tableSelect: Prisma.TableSelect = {
     }
   },
   orderDetails: {
-    select: orderDetailSelect
+    select: orderDetailSelect,
+    orderBy: {
+      createdAt: 'asc'
+    }
   }
 }

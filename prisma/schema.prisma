@@ -469,7 +469,6 @@ model OrderDetail {
   id                   String                @id @default(uuid())
   branchId             String
   amount               Float
-  compositeKey         String?
   orderId              String?
   note                 String?
   status               OrderDetailStatus?    @default(APPROVED)
@@ -488,8 +487,6 @@ model OrderDetail {
   creator              Account?              @relation("creator", fields: [createdBy], references: [id])
   updater              Account?              @relation("updater", fields: [updatedBy], references: [id])
   canceledOrderDetails CanceledOrderDetail[]
-
-  @@unique([compositeKey, tableId, status])
 }
 
 model CanceledOrderDetail {

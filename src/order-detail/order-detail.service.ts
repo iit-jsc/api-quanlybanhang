@@ -7,7 +7,7 @@ import {
   UpdateStatusOrderDetailsDto
 } from './dto/order-detail.dto'
 import { Prisma, PrismaClient } from '@prisma/client'
-import { customPaginate, generateCompositeKey, getNotifyInfo } from 'utils/Helps'
+import { customPaginate, getNotifyInfo } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -44,8 +44,9 @@ export class OrderDetailService {
         modelName: 'OrderDetail'
       }
 
-      await this.trashService.createMany(dataTrash, prisma),
-        await prisma.orderDetail.deleteMany({
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        prisma.orderDetail.deleteMany({
           where: {
             id: {
               in: data.ids
@@ -53,6 +54,7 @@ export class OrderDetailService {
             branchId
           }
         })
+      ])
 
       return entities
     })
@@ -148,24 +150,6 @@ export class OrderDetailService {
     branchId: string,
     deviceId: string
   ) {
-    const existing = await this.prisma.orderDetail.findUniqueOrThrow({
-      where: { id },
-      select: {
-        tableId: true,
-        productOriginId: true,
-        productOptions: true
-      }
-    })
-
-    const optionIds = (existing.productOptions as { id: string }[] | null)?.map(opt => opt.id) || []
-
-    const compositeKey = generateCompositeKey(
-      existing.tableId,
-      existing.productOriginId,
-      data.note,
-      optionIds
-    )
-
     const orderDetail = await this.prisma.orderDetail.update({
       where: {
         id,
@@ -174,8 +158,7 @@ export class OrderDetailService {
       data: {
         amount: data.amount,
         note: data.note,
-        updatedBy: accountId,
-        compositeKey
+        updatedBy: accountId
       },
       select: orderDetailSelect
     })
@@ -287,8 +270,6 @@ export class OrderDetailService {
         const updatePromises = data.orderDetails.map(async (detail: IOrderDetail) => {
           const currentDetail = detailsMap.get(detail.id)
 
-          const compositeKey = null
-
           if (!currentDetail)
             throw new HttpException('Không tìm thấy chi tiết món!', HttpStatus.NOT_FOUND)
 
@@ -306,7 +287,6 @@ export class OrderDetailService {
                   ...currentDetail,
                   id: undefined,
                   amount: detail.amount,
-                  compositeKey,
                   status: data.status,
                   updatedBy: accountId,
                   createdAt: new Date(),
@@ -319,7 +299,6 @@ export class OrderDetailService {
                 data: {
                   amount: { decrement: detail.amount },
                   updatedBy: accountId,
-                  compositeKey,
                   updatedAt: new Date()
                 },
                 select: orderDetailSelect
@@ -335,7 +314,6 @@ export class OrderDetailService {
             where: { id: detail.id, branchId },
             data: {
               status: data.status,
-              compositeKey,
               updatedBy: accountId,
               amount: detail.amount
             },
