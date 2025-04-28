@@ -1,52 +1,26 @@
-import { Controller } from '@nestjs/common'
+import { Controller, Get, HttpCode, HttpStatus, Query, Req, UseGuards } from '@nestjs/common'
 import { ReportService } from './report.service'
+import { RequestJWT } from 'interfaces/common.interface'
+import { ReportProductDto, ReportRevenueDto } from './dto/report.dto'
+import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 
 @Controller('report')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  // @Get('/customer')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // reportCustomer(
-  //   @Req() req: any,
-  //   @Query() reportCustomerDto: ReportCustomerDto
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
+  @Get('/product')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  reportCustomer(@Req() req: RequestJWT, @Query() data: ReportProductDto) {
+    const { branchId } = req
+    return this.reportService.reportProduct(data, branchId)
+  }
 
-  //   return this.reportService.reportCustomer(reportCustomerDto, tokenPayload)
-  // }
-
-  // @Get('/product')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // reportProduct(@Req() req: any, @Query() reportProductDto: ReportProductDto) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-
-  //   return this.reportService.reportProduct(reportProductDto, tokenPayload)
-  // }
-
-  // @Get('/warehouse')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // reportWarehouse(
-  //   @Req() req: any,
-  //   @Query() reportWareHouseDto: ReportWareHouseDto
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-
-  //   return this.reportService.reportWarehouse(reportWareHouseDto, tokenPayload)
-  // }
-
-  // @Get('/employee')
-  // @HttpCode(HttpStatus.OK)
-  // @UseGuards(JwtAuthGuard)
-  // reportEmployee(
-  //   @Req() req: any,
-  //   @Query() reportEmployeeDto: ReportEmployeeDto
-  // ) {
-  //   const tokenPayload = req.tokenPayload as TokenPayload
-
-  //   return this.reportService.reportEmployee(reportEmployeeDto, tokenPayload)
-  // }
+  @Get('/revenue')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  reportRevenue(@Req() req: RequestJWT, @Query() data: ReportRevenueDto) {
+    const { branchId } = req
+    return this.reportService.reportRevenue(data, branchId)
+  }
 }
