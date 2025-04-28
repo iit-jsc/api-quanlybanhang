@@ -6,7 +6,7 @@ import {
   UpdateOrderDetailDto,
   UpdateStatusOrderDetailsDto
 } from './dto/order-detail.dto'
-import { Prisma, PrismaClient } from '@prisma/client'
+import { OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
 import { customPaginate, getNotifyInfo } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -15,6 +15,13 @@ import { TrashService } from 'src/trash/trash.service'
 import { NotifyService } from 'src/notify/notify.service'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
+
+const statusLevel: Record<OrderDetailStatus, number> = {
+  [OrderDetailStatus.APPROVED]: 1,
+  [OrderDetailStatus.INFORMED]: 2,
+  [OrderDetailStatus.PROCESSING]: 3,
+  [OrderDetailStatus.SUCCESS]: 4
+}
 
 @Injectable()
 export class OrderDetailService {
@@ -280,6 +287,13 @@ export class OrderDetailService {
             )
           }
 
+          if (detail.status && statusLevel[detail.status] < statusLevel[currentDetail.status]) {
+            throw new HttpException(
+              `Không được cập nhật trạng thái từ ${currentDetail.status} về ${detail.status}`,
+              HttpStatus.CONFLICT
+            )
+          }
+
           if (detail.amount !== currentDetail.amount) {
             const [newOrderDetail, updatedOldDetail] = await Promise.all([
               prisma.orderDetail.create({
@@ -288,6 +302,12 @@ export class OrderDetailService {
                   id: undefined,
                   amount: detail.amount,
                   status: data.status,
+                  ...(data.status === OrderDetailStatus.INFORMED && {
+                    informAt: new Date()
+                  }),
+                  ...(data.status === OrderDetailStatus.SUCCESS && {
+                    successAt: new Date()
+                  }),
                   updatedBy: accountId,
                   createdAt: new Date(),
                   updatedAt: new Date()
