@@ -157,20 +157,29 @@ export class OrderDetailService {
     branchId: string,
     deviceId: string
   ) {
-    const orderDetail = await this.prisma.orderDetail.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        amount: data.amount,
-        note: data.note,
-        updatedBy: accountId
-      },
-      select: orderDetailSelect
-    })
+    let orderDetail = null
 
-    await this.orderDetailGatewayHandler.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
+    if (data.amount === 0) {
+      orderDetail = await this.prisma.orderDetail.delete({ where: { id, branchId } })
+      await this.orderDetailGatewayHandler.handleDeleteOrderDetails(orderDetail, branchId, deviceId)
+    }
+
+    if (data.amount !== 0) {
+      orderDetail = await this.prisma.orderDetail.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          amount: data.amount,
+          note: data.note,
+          updatedBy: accountId
+        },
+        select: orderDetailSelect
+      })
+
+      await this.orderDetailGatewayHandler.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
+    }
 
     return orderDetail
   }
