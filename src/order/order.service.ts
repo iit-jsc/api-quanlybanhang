@@ -109,22 +109,28 @@ export class OrderService {
         if (order.isPaid)
           throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
 
-        const orderTotal = getOrderTotal(order.orderDetails)
+        const orderTotalNotDiscount = getOrderTotal(order.orderDetails)
 
         const voucherParams = {
           voucherId: data.voucherId,
           branchId,
           orderDetails: order.orderDetails,
           voucherCheckRequest: {
-            orderTotal
+            orderTotal: orderTotalNotDiscount
           }
         }
 
         const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
           getVoucher(voucherParams, prisma),
-          getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
-          getCustomerDiscount(data.customerId, orderTotal, prisma)
+          getDiscountCode(data.discountCode, orderTotalNotDiscount, branchId, prisma),
+          getCustomerDiscount(data.customerId, orderTotalNotDiscount, prisma)
         ])
+
+        const orderTotal =
+          orderTotalNotDiscount -
+          (voucher.voucherValue || 0) -
+          discountCodeValue -
+          customerDiscountValue
 
         const newOrder = await prisma.order.update({
           where: { id },
@@ -132,6 +138,7 @@ export class OrderService {
             isPaid: true,
             note: data.note,
             type: data.type,
+            orderTotal,
             voucherProducts: voucher.voucherProducts,
             voucherValue: voucher.voucherValue,
             discountCodeValue,

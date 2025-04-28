@@ -253,14 +253,14 @@ export class TableService {
     const result = await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
         const orderDetailsInTable = await this.getOrderDetailsInTable(tableId, prisma)
-        const orderTotal = getOrderTotal(orderDetailsInTable)
+        const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
 
         const voucherParams = {
           voucherId: data.voucherId,
           branchId,
           orderDetails: orderDetailsInTable,
           voucherCheckRequest: {
-            orderTotal,
+            orderTotal: orderTotalNotDiscount,
             totalPeople: data.totalPeople
           }
         }
@@ -268,15 +268,22 @@ export class TableService {
         // Lấy thông tin giảm giá
         const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
           getVoucher(voucherParams, prisma),
-          getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
-          getCustomerDiscount(data.customerId, orderTotal, prisma)
+          getDiscountCode(data.discountCode, orderTotalNotDiscount, branchId, prisma),
+          getCustomerDiscount(data.customerId, orderTotalNotDiscount, prisma)
         ])
+
+        const orderTotal =
+          orderTotalNotDiscount -
+          (voucher.voucherValue || 0) -
+          discountCodeValue -
+          customerDiscountValue
 
         // Tạo order
         const createOrderPromise = prisma.order.create({
           data: {
             isPaid: true,
             tableId,
+            orderTotal,
             code: data.code || generateCode('DH'),
             note: data.note,
             type: OrderType.OFFLINE,

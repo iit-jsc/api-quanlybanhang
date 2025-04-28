@@ -446,6 +446,7 @@ model Order {
   customerDiscountValue Float?         @default(0)
   moneyReceived         Float?
   paymentMethodId       String?
+  orderTotal            Float          @default(0)
   bankingImages         Json?
   voucherProducts       Json?
   paymentMethod         PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
@@ -474,6 +475,8 @@ model OrderDetail {
   status               OrderDetailStatus?    @default(APPROVED)
   productOptions       Json?
   product              Json?
+  successAt            DateTime?
+  informAt             DateTime?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   productOrigin        Product?              @relation(fields: [productOriginId], references: [id])
