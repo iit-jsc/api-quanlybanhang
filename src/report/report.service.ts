@@ -3,7 +3,6 @@ import { PrismaService } from 'nestjs-prisma'
 import { ReportProductDto, ReportRevenueDto } from './dto/report.dto'
 import { endOfDay, startOfDay } from 'utils/Helps'
 import { Prisma } from '@prisma/client'
-import { productShortSelect } from 'responses/product.response'
 @Injectable()
 export class ReportService {
   constructor(private readonly prisma: PrismaService) {}
@@ -120,7 +119,13 @@ export class ReportService {
 
     const productInfos = await this.prisma.product.findMany({
       where: { id: { in: productIds } },
-      select: productShortSelect
+      select: {
+        id: true,
+        name: true,
+        code: true,
+        price: true,
+        thumbnail: true
+      }
     })
 
     const productInfoMap = new Map(productInfos.map(({ id, ...rest }) => [id, rest]))
