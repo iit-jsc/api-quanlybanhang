@@ -51,6 +51,8 @@ export class OrderService {
       branchId
     )
 
+    const orderTotalNotDiscount = getOrderTotal(orderDetails)
+
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const order = await prisma.order.create({
         data: {
@@ -58,6 +60,7 @@ export class OrderService {
           type: data.type || OrderType.OFFLINE,
           status: data.status || OrderStatus.APPROVED,
           code: generateCode('DH'),
+          orderTotal: orderTotalNotDiscount,
           ...(data.customerId && {
             customerId: data.customerId
           }),
