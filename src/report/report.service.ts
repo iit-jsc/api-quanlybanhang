@@ -43,33 +43,31 @@ export class ReportService {
       }
     })
 
-    // Post-process to group by day, month, or year
-    const groupedRevenue = revenue.reduce(
-      (acc, item) => {
-        const date = new Date(item.createdAt)
-        let key: string
+    const formatKey = (date: Date) => {
+      const iso = date.toISOString().split('T')[0] // yyyy-MM-dd
+      const [year, month, day] = iso.split('-')
+      if (type === 'month') return `${month}-${year}`
+      if (type === 'year') return year
+      return `${day}-${month}-${year}` // dd-MM-yyyy
+    }
 
-        if (type === 'month') {
-          key = `${date.getFullYear()}-${date.getMonth() + 1}` // e.g., "2025-4"
-        } else if (type === 'year') {
-          key = `${date.getFullYear()}` // e.g., "2025"
-        } else {
-          // Default to day
-          key = date.toISOString().split('T')[0] // e.g., "2025-04-28"
+    const grouped = new Map<string, number>()
+
+    for (const { createdAt, _sum } of revenue) {
+      const key = formatKey(new Date(createdAt))
+      grouped.set(key, (grouped.get(key) || 0) + (_sum.orderTotal || 0))
+    }
+
+    return Array.from(grouped.entries())
+      .map(([time, totalRevenue]) => ({ time, totalRevenue }))
+      .sort((a, b) => {
+        if (type === 'day') {
+          const [d1, m1, y1] = a.time.split('-').map(Number)
+          const [d2, m2, y2] = b.time.split('-').map(Number)
+          return new Date(y1, m1 - 1, d1).getTime() - new Date(y2, m2 - 1, d2).getTime()
         }
-
-        if (!acc[key]) {
-          acc[key] = { time: key, totalRevenue: 0 }
-        }
-        acc[key].totalRevenue += item._sum.orderTotal || 0
-
-        return acc
-      },
-      {} as Record<string, { time: string; totalRevenue: number }>
-    )
-
-    // Convert to array and sort by time
-    return Object.values(groupedRevenue).sort((a, b) => a.time.localeCompare(b.time))
+        return a.time.localeCompare(b.time)
+      })
   }
 
   async reportProduct(params: ReportProductDto, branchId: string) {
