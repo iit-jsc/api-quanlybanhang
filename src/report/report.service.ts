@@ -69,9 +69,7 @@ export class ReportService {
     )
 
     // Convert to array and sort by time
-    return {
-      data: Object.values(groupedRevenue).sort((a, b) => a.time.localeCompare(b.time))
-    }
+    return Object.values(groupedRevenue).sort((a, b) => a.time.localeCompare(b.time))
   }
 
   async reportProduct(params: ReportProductDto, branchId: string) {
