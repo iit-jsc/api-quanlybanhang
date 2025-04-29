@@ -481,7 +481,9 @@ export class TableService {
     return this.notifyService.create(
       {
         type: NotifyType.PAYMENT_REQUEST,
-        content: `${table.name} - ${table.area.name} yêu cầu thanh toán`
+        content: `${table.name} - ${table.area.name} yêu cầu thanh toán`,
+        modelName: 'Table',
+        targetId: table.id
       },
       branchId,
       deviceId

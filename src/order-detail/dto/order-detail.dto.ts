@@ -41,8 +41,9 @@ export class FindManyOrderDetailDto extends FindManyDto {
 }
 
 export class UpdateOrderDetailDto {
+  @IsOptional()
   @Min(0)
-  amount?: number
+  amount: number
 
   note?: string
 }

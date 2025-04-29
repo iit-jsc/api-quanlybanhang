@@ -327,6 +327,12 @@ export class OrderDetailService {
                 where: { id: detail.id, branchId },
                 data: {
                   amount: { decrement: detail.amount },
+                  ...(data.status === OrderDetailStatus.INFORMED && {
+                    informAt: new Date()
+                  }),
+                  ...(data.status === OrderDetailStatus.SUCCESS && {
+                    successAt: new Date()
+                  }),
                   updatedBy: accountId,
                   updatedAt: new Date()
                 },
@@ -344,7 +350,13 @@ export class OrderDetailService {
             data: {
               status: data.status,
               updatedBy: accountId,
-              amount: detail.amount
+              amount: detail.amount,
+              ...(data.status === OrderDetailStatus.INFORMED && {
+                informAt: new Date()
+              }),
+              ...(data.status === OrderDetailStatus.SUCCESS && {
+                successAt: new Date()
+              })
             },
             select: orderDetailSelect
           })
