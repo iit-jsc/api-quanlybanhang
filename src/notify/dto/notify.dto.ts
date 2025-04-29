@@ -7,6 +7,8 @@ export class CreateNotifyDto {
 
   targetId?: string
 
+  createdAt?: Date
+
   modelName?: Prisma.ModelName
 
   @IsNotEmpty()

@@ -483,7 +483,8 @@ export class TableService {
         type: NotifyType.PAYMENT_REQUEST,
         content: `${table.name} - ${table.area.name} yêu cầu thanh toán`,
         modelName: 'Table',
-        targetId: table.id
+        targetId: table.id,
+        createdAt: new Date()
       },
       branchId,
       deviceId
