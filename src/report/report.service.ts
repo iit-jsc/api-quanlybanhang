@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { ReportProductDto, ReportRevenueDto } from './dto/report.dto'
+import { ReportAmountDto, ReportBestSellerDto, ReportRevenueDto } from './dto/report.dto'
 import { endOfDay, startOfDay } from 'utils/Helps'
 import { Prisma } from '@prisma/client'
 @Injectable()
@@ -10,31 +10,16 @@ export class ReportService {
   async reportRevenue(params: ReportRevenueDto, branchId: string) {
     const { from, to, type } = params
 
-    // Build where clause
-    const where: Prisma.OrderWhereInput = {
-      branchId,
-      isPaid: true // Only include paid orders
-    }
-
-    if (from && to) {
-      where.createdAt = {
-        gte: startOfDay(new Date(from)),
-        lte: endOfDay(new Date(to))
-      }
-    } else if (from) {
-      where.createdAt = {
-        gte: startOfDay(new Date(from))
-      }
-    } else if (to) {
-      where.createdAt = {
-        lte: endOfDay(new Date(to))
-      }
-    }
+    const where = this.buildCreatedAtFilter(from, to)
 
     // Perform groupBy query
     const revenue = await this.prisma.order.groupBy({
       by: ['createdAt'],
-      where,
+      where: {
+        branchId,
+        isPaid: true,
+        ...where
+      },
       _sum: {
         orderTotal: true
       },
@@ -70,25 +55,10 @@ export class ReportService {
       })
   }
 
-  async reportProduct(params: ReportProductDto, branchId: string) {
+  async reportBestSeller(params: ReportBestSellerDto, branchId: string) {
     const { from, to } = params
 
-    const where: Prisma.OrderDetailWhereInput = {}
-
-    if (from && to) {
-      where.createdAt = {
-        gte: startOfDay(new Date(from)),
-        lte: endOfDay(new Date(to))
-      }
-    } else if (from && !to) {
-      where.createdAt = {
-        gte: startOfDay(new Date(from))
-      }
-    } else if (!from && to) {
-      where.createdAt = {
-        lte: endOfDay(new Date(to))
-      }
-    }
+    const where = this.buildCreatedAtFilter(from, to)
 
     const products = await this.prisma.orderDetail.groupBy({
       by: ['productOriginId'],
@@ -134,5 +104,44 @@ export class ReportService {
       }
     })
     return result
+  }
+
+  async reportAmount(params: ReportAmountDto, branchId: string) {
+    const { from, to, type } = params
+
+    const where = this.buildCreatedAtFilter(from, to)
+
+    if (type === Prisma.ModelName.Product) {
+      return this.prisma.product.count({ where: { branchId, ...where } })
+    }
+
+    if (type === Prisma.ModelName.CanceledOrderDetail) {
+      return this.prisma.canceledOrderDetail.count({
+        where: { orderDetail: { branchId }, ...where }
+      })
+    }
+
+    return
+  }
+
+  buildCreatedAtFilter(from?: Date, to?: Date): any {
+    const where: any = {}
+
+    if (from && to) {
+      where.createdAt = {
+        gte: startOfDay(new Date(from)),
+        lte: endOfDay(new Date(to))
+      }
+    } else if (from && !to) {
+      where.createdAt = {
+        gte: startOfDay(new Date(from))
+      }
+    } else if (!from && to) {
+      where.createdAt = {
+        lte: endOfDay(new Date(to))
+      }
+    }
+
+    return where
   }
 }

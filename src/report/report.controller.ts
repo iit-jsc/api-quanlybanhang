@@ -1,19 +1,19 @@
 import { Controller, Get, HttpCode, HttpStatus, Query, Req, UseGuards } from '@nestjs/common'
 import { ReportService } from './report.service'
 import { RequestJWT } from 'interfaces/common.interface'
-import { ReportProductDto, ReportRevenueDto } from './dto/report.dto'
+import { ReportAmountDto, ReportBestSellerDto, ReportRevenueDto } from './dto/report.dto'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 
 @Controller('report')
 export class ReportController {
   constructor(private readonly reportService: ReportService) {}
 
-  @Get('/product')
+  @Get('/best-seller')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  reportCustomer(@Req() req: RequestJWT, @Query() data: ReportProductDto) {
+  reportCustomer(@Req() req: RequestJWT, @Query() data: ReportBestSellerDto) {
     const { branchId } = req
-    return this.reportService.reportProduct(data, branchId)
+    return this.reportService.reportBestSeller(data, branchId)
   }
 
   @Get('/revenue')
@@ -22,5 +22,13 @@ export class ReportController {
   reportRevenue(@Req() req: RequestJWT, @Query() data: ReportRevenueDto) {
     const { branchId } = req
     return this.reportService.reportRevenue(data, branchId)
+  }
+
+  @Get('/amount')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  reportAmount(@Req() req: RequestJWT, @Query() data: ReportAmountDto) {
+    const { branchId } = req
+    return this.reportService.reportAmount(data, branchId)
   }
 }

@@ -1,7 +1,8 @@
+import { Prisma } from '@prisma/client'
 import { Type } from 'class-transformer'
 import { IsDate, IsEnum, IsOptional } from 'class-validator'
 
-export class ReportProductDto {
+export class ReportDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
@@ -13,18 +14,15 @@ export class ReportProductDto {
   to: Date
 }
 
-export class ReportRevenueDto {
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  from: Date
+export class ReportBestSellerDto extends ReportDto {}
 
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  to: Date
-
+export class ReportRevenueDto extends ReportDto {
   @IsOptional()
   @IsEnum(['day', 'month', 'year'])
   type: string = 'day'
+}
+
+export class ReportAmountDto extends ReportDto {
+  @IsEnum(Prisma.ModelName)
+  type: Prisma.ModelName
 }
