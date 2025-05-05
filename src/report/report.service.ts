@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { ReportAmountDto, ReportBestSellerDto, ReportRevenueDto } from './dto/report.dto'
 import { endOfDay, startOfDay } from 'utils/Helps'
-import { Prisma } from '@prisma/client'
+import { OrderStatus, Prisma } from '@prisma/client'
 @Injectable()
 export class ReportService {
   constructor(private readonly prisma: PrismaService) {}
@@ -18,6 +18,7 @@ export class ReportService {
       where: {
         branchId,
         isPaid: true,
+        status: { not: OrderStatus.CANCELLED },
         ...where
       },
       _sum: {
@@ -64,7 +65,7 @@ export class ReportService {
       by: ['productOriginId'],
       where: {
         branchId,
-        order: { isPaid: true },
+        order: { isPaid: true, not: OrderStatus.CANCELLED },
         ...where
       },
       _sum: {
