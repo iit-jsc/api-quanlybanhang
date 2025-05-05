@@ -64,6 +64,7 @@ export class ReportService {
       by: ['productOriginId'],
       where: {
         branchId,
+        order: { isPaid: true },
         ...where
       },
       _sum: {
