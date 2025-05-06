@@ -18,8 +18,8 @@ export class ReportBestSellerDto extends ReportDto {}
 
 export class ReportRevenueDto extends ReportDto {
   @IsOptional()
-  @IsEnum(['day', 'month', 'year'])
-  type: string = 'day'
+  @IsEnum(['hour', 'day', 'month', 'year'])
+  type: string = 'hour'
 }
 
 export class ReportAmountDto extends ReportDto {

@@ -32,6 +32,10 @@ export class ReportService {
     const formatKey = (date: Date) => {
       const iso = date.toISOString().split('T')[0] // yyyy-MM-dd
       const [year, month, day] = iso.split('-')
+      if (type === 'hour') {
+        const hours = date.getHours().toString().padStart(2, '0')
+        return `${day}-${month}-${year} ${hours}:00`
+      }
       if (type === 'month') return `${month}-${year}`
       if (type === 'year') return year
       return `${day}-${month}-${year}` // dd-MM-yyyy
@@ -47,10 +51,10 @@ export class ReportService {
     return Array.from(grouped.entries())
       .map(([time, totalRevenue]) => ({ time, totalRevenue }))
       .sort((a, b) => {
-        if (type === 'day') {
-          const [d1, m1, y1] = a.time.split('-').map(Number)
-          const [d2, m2, y2] = b.time.split('-').map(Number)
-          return new Date(y1, m1 - 1, d1).getTime() - new Date(y2, m2 - 1, d2).getTime()
+        if (type === 'day' || type === 'hour') {
+          const dateA = new Date(a.time)
+          const dateB = new Date(b.time)
+          return dateA.getTime() - dateB.getTime()
         }
         return a.time.localeCompare(b.time)
       })
@@ -65,7 +69,10 @@ export class ReportService {
       by: ['productOriginId'],
       where: {
         branchId,
-        order: { isPaid: true, not: OrderStatus.CANCELLED },
+        order: {
+          isPaid: true,
+          status: { not: OrderStatus.CANCELLED }
+        },
         ...where
       },
       _sum: {
