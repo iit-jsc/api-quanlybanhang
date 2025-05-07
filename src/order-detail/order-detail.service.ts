@@ -317,9 +317,10 @@ export class OrderDetailService {
                   ...(data.status === OrderDetailStatus.SUCCESS && {
                     successAt: new Date()
                   }),
-                  updatedBy: accountId,
-                  createdAt: new Date(),
-                  updatedAt: new Date()
+                  ...(data.status === OrderDetailStatus.PROCESSING && {
+                    processingAt: new Date()
+                  }),
+                  updatedBy: accountId
                 },
                 select: orderDetailSelect
               }),
@@ -333,8 +334,10 @@ export class OrderDetailService {
                   ...(data.status === OrderDetailStatus.SUCCESS && {
                     successAt: new Date()
                   }),
-                  updatedBy: accountId,
-                  updatedAt: new Date()
+                  ...(data.status === OrderDetailStatus.PROCESSING && {
+                    processingAt: new Date()
+                  }),
+                  updatedBy: accountId
                 },
                 select: orderDetailSelect
               })
@@ -356,6 +359,9 @@ export class OrderDetailService {
               }),
               ...(data.status === OrderDetailStatus.SUCCESS && {
                 successAt: new Date()
+              }),
+              ...(data.status === OrderDetailStatus.PROCESSING && {
+                processingAt: new Date()
               })
             },
             select: orderDetailSelect

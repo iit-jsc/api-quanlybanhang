@@ -130,6 +130,18 @@ export class ReportService {
       })
     }
 
+    if (type === Prisma.ModelName.OrderDetail) {
+      return this.prisma.orderDetail.count({
+        where: {
+          order: {
+            isPaid: true,
+            status: { not: OrderStatus.CANCELLED }
+          },
+          ...where
+        }
+      })
+    }
+
     return
   }
 

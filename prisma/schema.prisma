@@ -477,6 +477,7 @@ model OrderDetail {
   product              Json?
   successAt            DateTime?
   informAt             DateTime?
+  processingAt         DateTime?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   productOrigin        Product?              @relation(fields: [productOriginId], references: [id])
