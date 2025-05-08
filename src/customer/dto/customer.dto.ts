@@ -1,8 +1,7 @@
 import { PartialType } from '@nestjs/swagger'
 import { DiscountFor, DiscountType, SexType } from '@prisma/client'
-import { Transform, TransformFnParams, Type } from 'class-transformer'
+import { Transform, TransformFnParams } from 'class-transformer'
 import {
-  IsDate,
   IsEmail,
   IsEnum,
   IsNotEmpty,
@@ -69,16 +68,6 @@ export class FindManyCustomerDto extends FindManyDto {
     return value?.split(',').map((id: string) => id.trim())
   })
   customerTypeIds: string[]
-
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  from?: Date
-
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  to?: Date
 }
 
 export class CheckEmailDto {

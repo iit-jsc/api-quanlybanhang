@@ -1,5 +1,5 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import { ArrayNotEmpty, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator'
+import { ArrayNotEmpty, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator'
 import { FIND_UNIQ_TYPE } from 'enums/common.enum'
 import { AnyObject } from 'interfaces/common.interface'
 
@@ -65,4 +65,22 @@ export class FindManyDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @Type(() => String)
   keyword?: string
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  @Transform(({ value }) => {
+    const date = new Date(value)
+    return new Date(date.setHours(0, 0, 0, 0))
+  })
+  from?: Date
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  @Transform(({ value }) => {
+    const date = new Date(value)
+    return new Date(date.setHours(23, 59, 59, 999))
+  })
+  to?: Date
 }
