@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { ReportAmountDto, ReportBestSellerDto, ReportDto, ReportRevenueDto } from './dto/report.dto'
-import { endOfDay, startOfDay } from 'utils/Helps'
 import { OrderStatus, Prisma } from '@prisma/client'
 import { accountShortSelect } from 'responses/account.response'
 @Injectable()
@@ -198,18 +197,20 @@ export class ReportService {
   buildCreatedAtFilter(from?: Date, to?: Date): any {
     const where: any = {}
 
+    console.log(from, to)
+
     if (from && to) {
       where.createdAt = {
-        gte: startOfDay(new Date(from)),
-        lte: endOfDay(new Date(to))
+        gte: from,
+        lte: to
       }
     } else if (from && !to) {
       where.createdAt = {
-        gte: startOfDay(new Date(from))
+        gte: from
       }
     } else if (!from && to) {
       where.createdAt = {
-        lte: endOfDay(new Date(to))
+        lte: to
       }
     }
 

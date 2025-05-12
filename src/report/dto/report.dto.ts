@@ -1,17 +1,25 @@
 import { Prisma } from '@prisma/client'
-import { Type } from 'class-transformer'
+import { Transform, Type } from 'class-transformer'
 import { IsDate, IsEnum, IsOptional } from 'class-validator'
 
 export class ReportDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  from: Date
+  @Transform(({ value }) => {
+    const date = new Date(value)
+    return new Date(date.setHours(0, 0, 0, 0))
+  })
+  from?: Date
 
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  to: Date
+  @Transform(({ value }) => {
+    const date = new Date(value)
+    return new Date(date.setHours(23, 59, 59, 999))
+  })
+  to?: Date
 }
 
 export class ReportBestSellerDto extends ReportDto {}

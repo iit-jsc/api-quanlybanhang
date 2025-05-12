@@ -4,8 +4,8 @@ import { PrismaService } from 'nestjs-prisma'
 import { CheckUniqDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { removeDiacritics, customPaginate } from 'utils/Helps'
-import { userDetailSelect, userSelect } from 'responses/user.response'
+import { removeDiacritics, customPaginate, generateCode } from 'utils/Helps'
+import { userDetailSelect } from 'responses/user.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
@@ -24,7 +24,7 @@ export class UserService {
       const user = await prisma.user.create({
         data: {
           name: data.name,
-          code: data.code,
+          code: data.code ?? generateCode('NV'),
           phone: data.phone,
           email: data.email,
           sex: data.sex,
@@ -53,7 +53,7 @@ export class UserService {
             }
           }
         },
-        select: userSelect
+        select: userDetailSelect
       })
 
       await this.activityLogService.create(
@@ -101,7 +101,7 @@ export class UserService {
       {
         orderBy: orderBy || { createdAt: 'desc' },
         where,
-        select: userSelect
+        select: userDetailSelect
       },
       {
         page,
@@ -168,7 +168,7 @@ export class UserService {
             }
           }
         },
-        select: userSelect
+        select: userDetailSelect
       })
 
       await this.activityLogService.create(
