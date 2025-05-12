@@ -31,7 +31,7 @@ import {
 import { tableSelect } from 'responses/table.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
-import { orderShortSelect } from 'responses/order.response'
+import { orderSelect } from 'responses/order.response'
 import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { orderDetailSelect, orderDetailShortSelect } from 'responses/order-detail.response'
@@ -300,7 +300,7 @@ export class TableService {
             branchId,
             ...(data.customerId && { customerId: data.customerId })
           },
-          select: orderShortSelect
+          select: orderSelect
         })
 
         // Gán chi tiết đơn hàng

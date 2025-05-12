@@ -447,7 +447,7 @@ model Order {
   moneyReceived         Float?
   paymentMethodId       String?
   orderTotal            Float
-  bankingImages         Json?
+  bankingImages         Json?          @default("[]")
   voucherProducts       Json?
   paymentMethod         PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   isPaid                Boolean?       @default(false)
