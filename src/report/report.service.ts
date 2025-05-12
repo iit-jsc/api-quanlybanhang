@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { ReportAmountDto, ReportBestSellerDto, ReportRevenueDto } from './dto/report.dto'
+import { ReportAmountDto, ReportBestSellerDto, ReportDto, ReportRevenueDto } from './dto/report.dto'
 import { endOfDay, startOfDay } from 'utils/Helps'
 import { OrderStatus, Prisma } from '@prisma/client'
+import { accountShortSelect } from 'responses/account.response'
 @Injectable()
 export class ReportService {
   constructor(private readonly prisma: PrismaService) {}
@@ -109,6 +110,55 @@ export class ReportService {
       const product = productInfoMap.get(productOriginId) ?? {}
       return {
         product,
+        amountSold: _sum.amount ?? 0
+      }
+    })
+    return result
+  }
+
+  async reportBestStaff(params: ReportDto, branchId: string) {
+    const { from, to } = params
+
+    const where = this.buildCreatedAtFilter(from, to)
+
+    const orderDetails = await this.prisma.orderDetail.groupBy({
+      by: ['createdBy'],
+      where: {
+        branchId,
+        order: {
+          isPaid: true,
+          status: { not: OrderStatus.CANCELLED }
+        },
+        ...where
+      },
+      _sum: {
+        amount: true
+      },
+      orderBy: {
+        _sum: {
+          amount: 'desc'
+        }
+      },
+      take: 10
+    })
+
+    const createdByIds = orderDetails.map(p => p.createdBy)
+
+    if (createdByIds.length === 0) {
+      return []
+    }
+
+    const accountInfos = await this.prisma.account.findMany({
+      where: { id: { in: createdByIds } },
+      select: accountShortSelect
+    })
+
+    const accountInfoMap = new Map(accountInfos.map(({ id, ...rest }) => [id, rest]))
+
+    const result = orderDetails.map(({ createdBy, _sum }) => {
+      const account = accountInfoMap.get(createdBy) ?? {}
+      return {
+        account,
         amountSold: _sum.amount ?? 0
       }
     })
