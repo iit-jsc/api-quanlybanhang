@@ -68,12 +68,12 @@ export class ReportService {
     const products = await this.prisma.orderDetail.groupBy({
       by: ['productOriginId'],
       where: {
-        branchId,
         order: {
           isPaid: true,
-          status: { not: OrderStatus.CANCELLED }
-        },
-        ...where
+          branchId,
+          status: { not: OrderStatus.CANCELLED },
+          ...where
+        }
       },
       _sum: {
         amount: true
@@ -123,12 +123,12 @@ export class ReportService {
     const orderDetails = await this.prisma.orderDetail.groupBy({
       by: ['createdBy'],
       where: {
-        branchId,
         order: {
           isPaid: true,
-          status: { not: OrderStatus.CANCELLED }
-        },
-        ...where
+          branchId,
+          status: { not: OrderStatus.CANCELLED },
+          ...where
+        }
       },
       _sum: {
         amount: true
@@ -137,8 +137,7 @@ export class ReportService {
         _sum: {
           amount: 'desc'
         }
-      },
-      take: 10
+      }
     })
 
     const createdByIds = orderDetails.map(p => p.createdBy)
@@ -174,14 +173,12 @@ export class ReportService {
     }
 
     if (type === Prisma.ModelName.CanceledOrderDetail) {
-      return this.prisma.canceledOrderDetail.count({
-        where: { orderDetail: { branchId }, ...where }
-      })
-    }
-
-    if (type === Prisma.ModelName.OrderDetail) {
-      return this.prisma.orderDetail.count({
+      const result = await this.prisma.canceledOrderDetail.aggregate({
+        _sum: {
+          amount: true
+        },
         where: {
+          branchId,
           order: {
             isPaid: true,
             status: { not: OrderStatus.CANCELLED }
@@ -189,6 +186,26 @@ export class ReportService {
           ...where
         }
       })
+
+      return result._sum.amount || 0
+    }
+
+    if (type === Prisma.ModelName.OrderDetail) {
+      const result = await this.prisma.orderDetail.aggregate({
+        _sum: {
+          amount: true
+        },
+        where: {
+          branchId,
+          order: {
+            isPaid: true,
+            status: { not: OrderStatus.CANCELLED }
+          },
+          ...where
+        }
+      })
+
+      return result._sum.amount || 0
     }
 
     return
@@ -196,8 +213,6 @@ export class ReportService {
 
   buildCreatedAtFilter(from?: Date, to?: Date): any {
     const where: any = {}
-
-    console.log(from, to)
 
     if (from && to) {
       where.createdAt = {
