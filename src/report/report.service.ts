@@ -178,10 +178,12 @@ export class ReportService {
           amount: true
         },
         where: {
-          branchId,
-          order: {
-            isPaid: true,
-            status: { not: OrderStatus.CANCELLED }
+          orderDetail: {
+            order: {
+              isPaid: true,
+              branchId,
+              status: { not: OrderStatus.CANCELLED }
+            }
           },
           ...where
         }
