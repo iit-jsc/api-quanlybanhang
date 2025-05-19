@@ -1,6 +1,6 @@
 import { Prisma } from '@prisma/client'
 import { AnyObject } from 'interfaces/common.interface'
-import { DeleteManyDto, FindManyDto } from 'utils/common.dto'
+import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
 
 export class FindManyTrashDto extends FindManyDto {
   categoryIds?: string[]
