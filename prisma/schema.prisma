@@ -446,7 +446,8 @@ model Order {
   customerDiscountValue Float?         @default(0)
   moneyReceived         Float?
   paymentMethodId       String?
-  bankingImages         Json?
+  orderTotal            Float
+  bankingImages         Json?          @default("[]")
   voucherProducts       Json?
   paymentMethod         PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
   isPaid                Boolean?       @default(false)
@@ -469,12 +470,14 @@ model OrderDetail {
   id                   String                @id @default(uuid())
   branchId             String
   amount               Float
-  compositeKey         String?
   orderId              String?
   note                 String?
   status               OrderDetailStatus?    @default(APPROVED)
   productOptions       Json?
   product              Json?
+  successAt            DateTime?
+  informAt             DateTime?
+  processingAt         DateTime?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
   productOrigin        Product?              @relation(fields: [productOriginId], references: [id])
@@ -488,8 +491,6 @@ model OrderDetail {
   creator              Account?              @relation("creator", fields: [createdBy], references: [id])
   updater              Account?              @relation("updater", fields: [updatedBy], references: [id])
   canceledOrderDetails CanceledOrderDetail[]
-
-  @@unique([compositeKey, tableId, status])
 }
 
 model CanceledOrderDetail {

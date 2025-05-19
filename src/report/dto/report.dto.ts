@@ -1,56 +1,36 @@
-import { Type } from 'class-transformer'
-import { IsDate, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator'
-import { REPORT_REVENUE_TYPE, TIME_TYPE } from 'enums/common.enum'
+import { Prisma } from '@prisma/client'
+import { Transform, Type } from 'class-transformer'
+import { IsDate, IsEnum, IsOptional } from 'class-validator'
 
-export class reportRevenueDto {
+export class ReportDto {
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  from: Date
+  @Transform(({ value }) => {
+    const date = new Date(value)
+    return new Date(date.setHours(0, 0, 0, 0))
+  })
+  from?: Date
 
   @IsOptional()
   @Type(() => Date)
   @IsDate()
-  to: Date
-
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
-  @IsNumber()
-  type: number
-
-  @ValidateIf(o => o.type === REPORT_REVENUE_TYPE.TOTAL_REVENUE)
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
-  @IsNumber()
-  timeType: number
-
-  @ValidateIf(o => o.timeType === TIME_TYPE.HOUR)
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
-  @IsNumber()
-  hourStart: number
-
-  @ValidateIf(o => o.timeType === TIME_TYPE.HOUR)
-  @IsNotEmpty({ message: 'Không được để trống!' })
-  @Type(() => Number)
-  @IsNumber()
-  hourEnd: number
+  @Transform(({ value }) => {
+    const date = new Date(value)
+    return new Date(date.setHours(23, 59, 59, 999))
+  })
+  to?: Date
 }
 
-export class ReportCustomerDto {
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  from: Date
+export class ReportBestSellerDto extends ReportDto {}
 
+export class ReportRevenueDto extends ReportDto {
   @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  to: Date
+  @IsEnum(['hour', 'day', 'month', 'year'])
+  type: string = 'hour'
 }
 
-export class ReportProductDto {}
-
-export class ReportWareHouseDto {}
-
-export class ReportEmployeeDto {}
+export class ReportAmountDto extends ReportDto {
+  @IsEnum(Prisma.ModelName)
+  type: Prisma.ModelName
+}

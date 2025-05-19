@@ -6,21 +6,27 @@ services:
     container_name: mysql-container
     restart: unless-stopped
     environment:
-      MYSQL_ROOT_PASSWORD: anhemiit123    # Mật khẩu root
-      MYSQL_DATABASE: safes_software               # DB mặc định
-      MYSQL_USER: root                   # User mặc định
-      MYSQL_PASSWORD: anhemiit123           # Mật khẩu user
+      MYSQL_ROOT_PASSWORD: anhemiit123
+      MYSQL_DATABASE: safes_software
     ports:
       - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     networks:
       - backend
-    healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: pma
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: anhemiit123
+    networks:
+      - backend
 
 volumes:
   mysql_data:

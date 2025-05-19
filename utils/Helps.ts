@@ -26,6 +26,8 @@ import { IVoucherCheckRequest, IVoucher, IVoucherCondition } from 'interfaces/vo
 import { voucherDetailSelect } from 'responses/voucher.response'
 import { discountCodeSelect } from 'responses/discountCode.response'
 import { customerSelect } from 'responses/customer.response'
+import { IProduct } from 'interfaces/product.interface'
+import { IProductOption } from 'interfaces/productOption.interface'
 
 const prisma = new PrismaClient()
 
@@ -207,7 +209,13 @@ export async function getOrderDetails(
   )
 }
 
-export function getOrderTotal(orderDetails: IOrderDetail[]) {
+export interface OrderDetailInput {
+  amount: number
+  product: IProduct | any
+  productOptions?: IProductOption[] | any
+}
+
+export function getOrderTotal(orderDetails: OrderDetailInput[]) {
   return orderDetails.reduce((total, order) => {
     const optionsTotal = (order.productOptions || []).reduce((sum, option) => sum + option.price, 0)
 
@@ -548,7 +556,19 @@ export function generateCompositeKey(
   const sortedOptions =
     productOptionIds && productOptionIds.length > 0 ? productOptionIds.sort().join('_') : 'empty'
 
-  const notePart = note?.trim() ? note.trim() : 'empty'
+  const notePart = note ? note.trim() : 'empty'
 
   return `${tableId || 'empty'}_${productId || 'empty'}_${sortedOptions}_${notePart}`
+}
+
+export function startOfDay(date: Date): Date {
+  const d = new Date(date)
+  d.setHours(0, 0, 0, 0)
+  return d
+}
+
+export function endOfDay(date: Date): Date {
+  const d = new Date(date)
+  d.setHours(23, 59, 59, 999)
+  return d
 }

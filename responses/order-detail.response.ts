@@ -10,6 +10,9 @@ export const orderDetailShortSelect: Prisma.OrderDetailSelect = {
   productOptions: true,
   updatedAt: true,
   createdAt: true,
+  informAt: true,
+  successAt: true,
+  processingAt: true,
   canceledOrderDetails: {
     select: {
       id: true,
@@ -30,7 +33,9 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
   note: true,
   amount: true,
   productOptions: true,
-  compositeKey: true,
+  informAt: true,
+  successAt: true,
+  processingAt: true,
   canceledOrderDetails: {
     select: {
       id: true,

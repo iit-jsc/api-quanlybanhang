@@ -3,7 +3,6 @@ import {
   ArrayNotEmpty,
   IsArray,
   IsBoolean,
-  IsDate,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -79,16 +78,6 @@ export class CancelOrderDto {
 }
 
 export class FindManyOrderDto extends FindManyDto {
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  from?: Date
-
-  @IsOptional()
-  @Type(() => Date)
-  @IsDate()
-  to?: Date
-
   @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     if (typeof value === 'string') {

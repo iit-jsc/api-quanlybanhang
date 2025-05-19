@@ -21,7 +21,7 @@ import {
   AddDishesDto,
   CreateTableDto,
   FindManyTableDto,
-  UpdateDishDto,
+  addDishDto,
   UpdateTableDto
 } from './dto/table.dto'
 import { Roles } from 'guards/roles.decorator'
@@ -59,14 +59,14 @@ export class TableController {
     return this.tableService.addDishes(id, data, accountId, branchId, deviceId)
   }
 
-  @Post(':id/update-dish')
+  @Post(':id/add-dish')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(permissions.table.addDish)
-  updateDish(@Param('id') id: string, @Body() data: UpdateDishDto, @Req() req: RequestJWT) {
+  addDish(@Param('id') id: string, @Body() data: addDishDto, @Req() req: RequestJWT) {
     const { accountId, branchId, deviceId } = req
 
-    return this.tableService.updateDish(id, data, accountId, branchId, deviceId)
+    return this.tableService.addDish(id, data, accountId, branchId, deviceId)
   }
 
   @Post(':id/add-dishes-by-customer')

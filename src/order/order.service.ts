@@ -26,7 +26,7 @@ import {
   handleOrderDetailsBeforePayment,
   removeDiacritics
 } from 'utils/Helps'
-import { orderSelect, orderShortSelect } from 'responses/order.response'
+import { orderSelect } from 'responses/order.response'
 import { PaymentOrderDto } from './dto/payment.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -51,6 +51,8 @@ export class OrderService {
       branchId
     )
 
+    const orderTotalNotDiscount = getOrderTotal(orderDetails)
+
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const order = await prisma.order.create({
         data: {
@@ -58,6 +60,7 @@ export class OrderService {
           type: data.type || OrderType.OFFLINE,
           status: data.status || OrderStatus.APPROVED,
           code: generateCode('DH'),
+          orderTotal: orderTotalNotDiscount,
           ...(data.customerId && {
             customerId: data.customerId
           }),
@@ -69,7 +72,7 @@ export class OrderService {
           branchId,
           createdBy: accountId
         },
-        select: orderShortSelect
+        select: orderSelect
       })
 
       await Promise.all([
@@ -103,28 +106,34 @@ export class OrderService {
 
         const order = await prisma.order.findFirstOrThrow({
           where: { id },
-          select: orderShortSelect
+          select: orderSelect
         })
 
         if (order.isPaid)
           throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
 
-        const orderTotal = getOrderTotal(order.orderDetails)
+        const orderTotalNotDiscount = getOrderTotal(order.orderDetails)
 
         const voucherParams = {
           voucherId: data.voucherId,
           branchId,
           orderDetails: order.orderDetails,
           voucherCheckRequest: {
-            orderTotal
+            orderTotal: orderTotalNotDiscount
           }
         }
 
         const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
           getVoucher(voucherParams, prisma),
-          getDiscountCode(data.discountCode, orderTotal, branchId, prisma),
-          getCustomerDiscount(data.customerId, orderTotal, prisma)
+          getDiscountCode(data.discountCode, orderTotalNotDiscount, branchId, prisma),
+          getCustomerDiscount(data.customerId, orderTotalNotDiscount, prisma)
         ])
+
+        const orderTotal =
+          orderTotalNotDiscount -
+          (voucher.voucherValue || 0) -
+          discountCodeValue -
+          customerDiscountValue
 
         const newOrder = await prisma.order.update({
           where: { id },
@@ -132,6 +141,7 @@ export class OrderService {
             isPaid: true,
             note: data.note,
             type: data.type,
+            orderTotal,
             voucherProducts: voucher.voucherProducts,
             voucherValue: voucher.voucherValue,
             discountCodeValue,
@@ -144,7 +154,7 @@ export class OrderService {
             paymentAt: new Date(),
             updatedBy: accountId
           },
-          select: orderShortSelect
+          select: orderSelect
         })
 
         return newOrder
@@ -191,7 +201,7 @@ export class OrderService {
           bankingImages: data.bankingImages,
           updatedBy: accountId
         },
-        select: orderShortSelect
+        select: orderSelect
       })
 
       await this.activityLogService.create(
@@ -272,7 +282,7 @@ export class OrderService {
       {
         orderBy: orderBy || { createdAt: 'desc' },
         where,
-        select: orderShortSelect
+        select: orderSelect
       },
       {
         page,
@@ -302,7 +312,7 @@ export class OrderService {
           isSave: data.isSave,
           note: data.note
         },
-        select: orderShortSelect
+        select: orderSelect
       })
 
       await this.orderGatewayHandler.handleUpdateOrder(order, branchId, deviceId)
@@ -330,7 +340,7 @@ export class OrderService {
           status: OrderStatus.CANCELLED,
           updatedBy: accountId
         },
-        select: orderShortSelect
+        select: orderSelect
       })
 
       if (order.isPaid) throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)

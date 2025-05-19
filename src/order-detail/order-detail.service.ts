@@ -6,8 +6,8 @@ import {
   UpdateOrderDetailDto,
   UpdateStatusOrderDetailsDto
 } from './dto/order-detail.dto'
-import { Prisma, PrismaClient } from '@prisma/client'
-import { customPaginate, generateCompositeKey, getNotifyInfo } from 'utils/Helps'
+import { OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
+import { customPaginate, getNotifyInfo } from 'utils/Helps'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -15,6 +15,13 @@ import { TrashService } from 'src/trash/trash.service'
 import { NotifyService } from 'src/notify/notify.service'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
+
+const statusLevel: Record<OrderDetailStatus, number> = {
+  [OrderDetailStatus.APPROVED]: 1,
+  [OrderDetailStatus.INFORMED]: 2,
+  [OrderDetailStatus.PROCESSING]: 3,
+  [OrderDetailStatus.SUCCESS]: 4
+}
 
 @Injectable()
 export class OrderDetailService {
@@ -44,8 +51,9 @@ export class OrderDetailService {
         modelName: 'OrderDetail'
       }
 
-      await this.trashService.createMany(dataTrash, prisma),
-        await prisma.orderDetail.deleteMany({
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        prisma.orderDetail.deleteMany({
           where: {
             id: {
               in: data.ids
@@ -53,6 +61,7 @@ export class OrderDetailService {
             branchId
           }
         })
+      ])
 
       return entities
     })
@@ -148,39 +157,29 @@ export class OrderDetailService {
     branchId: string,
     deviceId: string
   ) {
-    const existing = await this.prisma.orderDetail.findUniqueOrThrow({
-      where: { id },
-      select: {
-        tableId: true,
-        productOriginId: true,
-        productOptions: true
-      }
-    })
+    let orderDetail = null
 
-    const optionIds = (existing.productOptions as { id: string }[] | null)?.map(opt => opt.id) || []
+    if (data.amount === 0) {
+      orderDetail = await this.prisma.orderDetail.delete({ where: { id, branchId } })
+      await this.orderDetailGatewayHandler.handleDeleteOrderDetails(orderDetail, branchId, deviceId)
+    }
 
-    const compositeKey = generateCompositeKey(
-      existing.tableId,
-      existing.productOriginId,
-      data.note,
-      optionIds
-    )
+    if (data.amount !== 0) {
+      orderDetail = await this.prisma.orderDetail.update({
+        where: {
+          id,
+          branchId
+        },
+        data: {
+          amount: data.amount,
+          note: data.note,
+          updatedBy: accountId
+        },
+        select: orderDetailSelect
+      })
 
-    const orderDetail = await this.prisma.orderDetail.update({
-      where: {
-        id,
-        branchId
-      },
-      data: {
-        amount: data.amount,
-        note: data.note,
-        updatedBy: accountId,
-        compositeKey
-      },
-      select: orderDetailSelect
-    })
-
-    await this.orderDetailGatewayHandler.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
+      await this.orderDetailGatewayHandler.handleUpdateOrderDetails(orderDetail, branchId, deviceId)
+    }
 
     return orderDetail
   }
@@ -287,14 +286,19 @@ export class OrderDetailService {
         const updatePromises = data.orderDetails.map(async (detail: IOrderDetail) => {
           const currentDetail = detailsMap.get(detail.id)
 
-          const compositeKey = null
-
           if (!currentDetail)
             throw new HttpException('Không tìm thấy chi tiết món!', HttpStatus.NOT_FOUND)
 
           if (detail.amount > currentDetail.amount) {
             throw new HttpException(
               `Số lượng vượt quá: còn lại ${currentDetail.amount}, yêu cầu ${detail.amount}`,
+              HttpStatus.CONFLICT
+            )
+          }
+
+          if (detail.status && statusLevel[detail.status] < statusLevel[currentDetail.status]) {
+            throw new HttpException(
+              `Không được cập nhật trạng thái từ ${currentDetail.status} về ${detail.status}`,
               HttpStatus.CONFLICT
             )
           }
@@ -306,11 +310,17 @@ export class OrderDetailService {
                   ...currentDetail,
                   id: undefined,
                   amount: detail.amount,
-                  compositeKey,
                   status: data.status,
-                  updatedBy: accountId,
-                  createdAt: new Date(),
-                  updatedAt: new Date()
+                  ...(data.status === OrderDetailStatus.INFORMED && {
+                    informAt: new Date()
+                  }),
+                  ...(data.status === OrderDetailStatus.SUCCESS && {
+                    successAt: new Date()
+                  }),
+                  ...(data.status === OrderDetailStatus.PROCESSING && {
+                    processingAt: new Date()
+                  }),
+                  updatedBy: accountId
                 },
                 select: orderDetailSelect
               }),
@@ -318,9 +328,16 @@ export class OrderDetailService {
                 where: { id: detail.id, branchId },
                 data: {
                   amount: { decrement: detail.amount },
-                  updatedBy: accountId,
-                  compositeKey,
-                  updatedAt: new Date()
+                  ...(data.status === OrderDetailStatus.INFORMED && {
+                    informAt: new Date()
+                  }),
+                  ...(data.status === OrderDetailStatus.SUCCESS && {
+                    successAt: new Date()
+                  }),
+                  ...(data.status === OrderDetailStatus.PROCESSING && {
+                    processingAt: new Date()
+                  }),
+                  updatedBy: accountId
                 },
                 select: orderDetailSelect
               })
@@ -335,9 +352,17 @@ export class OrderDetailService {
             where: { id: detail.id, branchId },
             data: {
               status: data.status,
-              compositeKey,
               updatedBy: accountId,
-              amount: detail.amount
+              amount: detail.amount,
+              ...(data.status === OrderDetailStatus.INFORMED && {
+                informAt: new Date()
+              }),
+              ...(data.status === OrderDetailStatus.SUCCESS && {
+                successAt: new Date()
+              }),
+              ...(data.status === OrderDetailStatus.PROCESSING && {
+                processingAt: new Date()
+              })
             },
             select: orderDetailSelect
           })
