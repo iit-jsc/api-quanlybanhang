@@ -403,6 +403,7 @@ export class TableService {
         discountCodeValue -
         customerDiscountValue
 
+      // Tạo đơn hàng và chuyển các món từ bàn vào đơn
       const order = await prisma.order.create({
         data: {
           isPaid: false,
@@ -434,6 +435,7 @@ export class TableService {
         }
       })
 
+      // Tạo link sandbox vnpay
       return await this.vnpayService.createPaymentUrl(
         {
           amount: orderTotal,
