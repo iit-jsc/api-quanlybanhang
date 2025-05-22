@@ -217,11 +217,15 @@ export interface OrderDetailInput {
 }
 
 export function getOrderTotal(orderDetails: OrderDetailInput[]) {
-  return orderDetails.reduce((total, order) => {
-    const optionsTotal = (order.productOptions || []).reduce((sum, option) => sum + option.price, 0)
-
-    return total + order.amount * (order.product.price + optionsTotal)
-  }, 0)
+  return Math.floor(
+    orderDetails.reduce((total, order) => {
+      const optionsTotal = (order.productOptions || []).reduce(
+        (sum, option) => sum + option.price,
+        0
+      )
+      return total + order.amount * (order.product.price + optionsTotal)
+    }, 0)
+  )
 }
 
 export async function getOrderDetailsInTable(

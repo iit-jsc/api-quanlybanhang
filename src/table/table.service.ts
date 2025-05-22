@@ -364,11 +364,21 @@ export class TableService {
     tableId: string,
     data: PaymentWithVNPayDto,
     ipAddr: string,
+    accountId: string,
     branchId: string
   ) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const orderDetailsInTable = await getOrderDetailsInTable(tableId, prisma)
       const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
+
+      const paymentMethod = await prisma.paymentMethod.findUniqueOrThrow({
+        where: {
+          type_branchId: {
+            branchId,
+            type: 'VNPAY'
+          }
+        }
+      })
 
       const voucherParams = {
         voucherId: data.voucherId,
@@ -393,7 +403,47 @@ export class TableService {
         discountCodeValue -
         customerDiscountValue
 
-      return await this.vnpayService.createPaymentUrl({ amount: orderTotal }, ipAddr)
+      const order = await prisma.order.create({
+        data: {
+          isPaid: false,
+          tableId,
+          orderTotal,
+          code: generateCode('DH'),
+          note: data.note,
+          type: OrderType.OFFLINE,
+          status: data.status || OrderStatus.SUCCESS,
+          discountCodeValue,
+          voucherValue: voucher.voucherValue,
+          voucherProducts: voucher.voucherProducts,
+          customerDiscountValue,
+          paymentMethodId: paymentMethod.id,
+          createdBy: accountId,
+          branchId,
+          ...(data.customerId && { customerId: data.customerId })
+        },
+        select: orderSelect
+      })
+
+      await prisma.orderDetail.updateMany({
+        data: {
+          updatedBy: accountId,
+          orderId: order.id
+        },
+        where: {
+          tableId
+        }
+      })
+
+      return await this.vnpayService.createPaymentUrl(
+        {
+          amount: orderTotal,
+          returnUrl: data.returnUrl,
+          orderId: order.id,
+          orderCode: order.code
+        },
+        ipAddr,
+        prisma
+      )
     })
   }
 

@@ -45,4 +45,12 @@ export class PaymentWithVNPayDto {
   discountCode?: string
   customerId?: string
   totalPeople?: number
+  note?: string
+
+  @IsOptional()
+  @IsEnum(OrderStatus)
+  status: OrderStatus
+
+  @IsNotEmpty()
+  returnUrl: string
 }

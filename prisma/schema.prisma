@@ -430,38 +430,39 @@ model VoucherProduct {
 }
 
 model Order {
-  id                    String         @id @default(uuid())
+  id                    String             @id @default(uuid())
   branchId              String
   code                  String
   type                  OrderType
   status                OrderStatus
   tableId               String?
-  table                 Table?         @relation(fields: [tableId], references: [id])
+  table                 Table?             @relation(fields: [tableId], references: [id])
   customerId            String?
-  cancelReason          String?        @db.Text
+  cancelReason          String?            @db.Text
   cancelDate            DateTime?
-  note                  String?        @db.Text
-  voucherValue          Float?         @default(0)
-  discountCodeValue     Float?         @default(0)
-  customerDiscountValue Float?         @default(0)
+  note                  String?            @db.Text
+  voucherValue          Float?             @default(0)
+  discountCodeValue     Float?             @default(0)
+  customerDiscountValue Float?             @default(0)
   moneyReceived         Float?
   paymentMethodId       String?
   orderTotal            Float
-  bankingImages         Json?          @default("[]")
+  bankingImages         Json?              @default("[]")
   voucherProducts       Json?
-  paymentMethod         PaymentMethod? @relation(fields: [paymentMethodId], references: [id])
-  isPaid                Boolean?       @default(false)
-  isSave                Boolean?       @default(false)
+  paymentMethod         PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
+  isPaid                Boolean?           @default(false)
+  isSave                Boolean?           @default(false)
   createdBy             String?
   updatedBy             String?
-  createdAt             DateTime       @default(now())
-  updatedAt             DateTime       @updatedAt
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @updatedAt
   paymentAt             DateTime?
-  branch                Branch?        @relation(fields: [branchId], references: [id])
-  customer              Customer?      @relation(fields: [customerId], references: [id])
+  branch                Branch?            @relation(fields: [branchId], references: [id])
+  customer              Customer?          @relation(fields: [customerId], references: [id])
   orderDetails          OrderDetail[]
-  creator               Account?       @relation("creator", fields: [createdBy], references: [id])
-  updater               Account?       @relation("updater", fields: [updatedBy], references: [id])
+  creator               Account?           @relation("creator", fields: [createdBy], references: [id])
+  updater               Account?           @relation("updater", fields: [updatedBy], references: [id])
+  vnpayTransactions     VnpayTransaction[]
 
   @@unique([branchId, code])
 }
@@ -820,4 +821,13 @@ enum ProductOptionType {
   APPLY_ALL
   EXCLUDE
   INCLUDE
+}
+
+model VnpayTransaction {
+  id        String   @id @default(uuid())
+  orderId   String
+  orderCode String
+  vnpTxnRef String   @unique
+  createdAt DateTime @default(now())
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
 }
