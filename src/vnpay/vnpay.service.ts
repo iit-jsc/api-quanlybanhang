@@ -7,6 +7,10 @@ import { vnpayConfig } from '../../config/vnpay.config'
 import { PrismaService } from 'nestjs-prisma'
 import { CreatePaymentDto } from './dto/createPaymentUrl.dto'
 import { PrismaClient } from '@prisma/client'
+import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
+import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
+import { accountShortSelect } from 'responses/account.response'
+import { tableSelect } from 'responses/table.response'
 
 export interface VnpayParams {
   [key: string]: any
@@ -14,7 +18,11 @@ export interface VnpayParams {
 
 @Injectable()
 export class VnpayService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly tableGatewayHandler: TableGatewayHandler,
+    private readonly orderGatewayHandler: OrderGatewayHandler
+  ) {}
 
   private sortObject(obj: any) {
     const sorted = {}
@@ -119,10 +127,12 @@ export class VnpayService {
     }
 
     try {
-      await this.prisma.$transaction(async tx => {
+      await this.prisma.$transaction(async (tx: PrismaClient) => {
         const vnpayTransaction = await tx.vnpayTransaction.findUnique({
           where: { vnpTxnRef },
-          include: { order: true }
+          include: {
+            order: true
+          }
         })
         if (!vnpayTransaction) {
           return res.status(200).json({ RspCode: '01', Message: 'Order not found' })
@@ -155,26 +165,45 @@ export class VnpayService {
     }
   }
 
-  private async handlePaymentSuccess(prisma: any, orderId: string) {
+  private async handlePaymentSuccess(prisma: PrismaClient, orderId: string) {
+    await prisma.orderDetail.updateMany({
+      where: { orderId },
+      data: { tableId: null, orderId }
+    })
+
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { isPaid: true, paymentAt: new Date() },
+      include: {
+        table: {
+          select: tableSelect
+        },
+        paymentMethod: true,
+        creator: {
+          select: accountShortSelect
+        },
+        updater: {
+          select: accountShortSelect
+        }
+      }
+    })
+
     await Promise.all([
-      prisma.orderDetail.updateMany({
-        where: { orderId },
-        data: { tableId: null, orderId }
-      }),
-      prisma.order.update({
-        where: { id: orderId },
-        data: { isPaid: true, paymentAt: new Date() }
-      })
+      this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
+      this.orderGatewayHandler.handleUpdateOrder(updatedOrder, updatedOrder.branchId)
     ])
   }
 
-  private async handlePaymentCancel(prisma: any, orderId: string) {
+  private async handlePaymentCancel(prisma: PrismaClient, orderId: string) {
     await prisma.orderDetail.updateMany({
       where: { orderId },
       data: { orderId: null }
     })
-    await prisma.order.delete({
+
+    const deletedOrder = await prisma.order.delete({
       where: { id: orderId }
     })
+
+    await this.orderGatewayHandler.handleDeleteOrder(deletedOrder, deletedOrder.branchId)
   }
 }

@@ -1,11 +1,11 @@
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import {
   CreatePaymentMethodDto,
   FindManyPaymentMethodDto,
   UpdatePaymentMethodDto
 } from './dto/payment-method.dto'
-import { ActivityAction, Prisma } from '@prisma/client'
+import { ActivityAction, PaymentMethodType, Prisma } from '@prisma/client'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { paymentMethodSelect } from 'responses/payment-method.response'
@@ -51,6 +51,12 @@ export class PaymentMethodService {
         },
         select: paymentMethodSelect
       })
+
+      if (
+        paymentMethod.type === PaymentMethodType.VNPAY ||
+        paymentMethod.type === PaymentMethodType.CASH
+      )
+        throw new HttpException('Không thể cập nhật phương thức này!', HttpStatus.CONFLICT)
 
       await this.activityLogService.create(
         {
