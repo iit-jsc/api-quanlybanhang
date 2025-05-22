@@ -28,6 +28,7 @@ import { discountCodeSelect } from 'responses/discountCode.response'
 import { customerSelect } from 'responses/customer.response'
 import { IProduct } from 'interfaces/product.interface'
 import { IProductOption } from 'interfaces/productOption.interface'
+import { orderDetailShortSelect } from 'responses/order-detail.response'
 
 const prisma = new PrismaClient()
 
@@ -221,6 +222,20 @@ export function getOrderTotal(orderDetails: OrderDetailInput[]) {
 
     return total + order.amount * (order.product.price + optionsTotal)
   }, 0)
+}
+
+export async function getOrderDetailsInTable(
+  tableId: string,
+  prisma: PrismaClient
+): Promise<any[]> {
+  const orderDetails = await prisma.orderDetail.findMany({
+    where: { tableId },
+    select: orderDetailShortSelect
+  })
+
+  if (!orderDetails.length) throw new HttpException('Không tìm thấy món!', HttpStatus.NOT_FOUND)
+
+  return orderDetails
 }
 
 export async function getVoucher(

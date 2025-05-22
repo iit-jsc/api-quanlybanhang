@@ -39,3 +39,10 @@ export class RequestPaymentDto {
   @IsNotEmpty()
   branchId: string
 }
+
+export class PaymentWithVNPayDto {
+  voucherId?: string
+  discountCode?: string
+  customerId?: string
+  totalPeople?: number
+}

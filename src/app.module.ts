@@ -38,7 +38,8 @@ import { PermissionGroupModule } from './permission-group/permission-group.modul
 import { NotifyModule } from './notify/notify.module'
 import { CommonModule } from './common/common.module'
 import { ActivityLogModule } from './activity-log/activity-log.module'
-import { PermissionModule } from './permission/permission.module';
+import { PermissionModule } from './permission/permission.module'
+import { VnpayModule } from './vnpay/vnpay.module'
 
 @Module({
   imports: [
@@ -50,6 +51,9 @@ import { PermissionModule } from './permission/permission.module';
       cache: true
     }),
     TrashModule.forRoot({
+      isGlobal: true
+    }),
+    VnpayModule.forRoot({
       isGlobal: true
     }),
     JwtModule.register({

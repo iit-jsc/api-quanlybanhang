@@ -764,6 +764,7 @@ enum RequestStatus {
 enum PaymentMethodType {
   BANKING
   CASH
+  VNPAY
 }
 
 enum VoucherType {
