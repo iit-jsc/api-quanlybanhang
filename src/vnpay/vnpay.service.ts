@@ -167,6 +167,7 @@ export class VnpayService {
           return res.status(200).json({ RspCode: '24', Message: 'Order cancelled' })
         }
         // Thanh toán thất bại
+        await this.handlePaymentCancel(tx, orderId)
         return res.status(200).json({ RspCode: '97', Message: 'Fail merchant' })
       })
     } catch (error: any) {
@@ -202,7 +203,8 @@ export class VnpayService {
 
     await Promise.all([
       this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
-      this.orderGatewayHandler.handleUpdateOrder(updatedOrder, updatedOrder.branchId)
+      this.orderGatewayHandler.handleUpdateOrder(updatedOrder, updatedOrder.branchId),
+      this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
     ])
   }
 

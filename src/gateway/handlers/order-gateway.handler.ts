@@ -44,4 +44,8 @@ export class OrderGatewayHandler {
   async handleCancelOrder(payload: any, branchId: string, deviceId?: string) {
     await this.emitToBranch('cancel-order', payload, branchId, deviceId)
   }
+
+  async handlePaymentSuccessfully(payload: any, branchId: string, deviceId?: string) {
+    await this.emitToBranch('payment-successfully', payload, branchId, deviceId)
+  }
 }
