@@ -433,7 +433,7 @@ model VoucherProduct {
 model Order {
   id                    String             @id @default(uuid())
   branchId              String
-  code                  String
+  code                  String             @unique
   type                  OrderType
   status                OrderStatus
   tableId               String?

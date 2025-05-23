@@ -59,7 +59,7 @@ export class OrderService {
           note: data.note,
           type: data.type || OrderType.OFFLINE,
           status: data.status || OrderStatus.APPROVED,
-          code: generateCode('DH'),
+          code: generateCode('DH', 15),
           orderTotal: orderTotalNotDiscount,
           ...(data.customerId && {
             customerId: data.customerId
