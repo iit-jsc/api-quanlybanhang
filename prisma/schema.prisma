@@ -106,6 +106,7 @@ model Account {
   notifies                  Notify[]
   activityLogs              ActivityLog[]
   canceledOrderDetails      CanceledOrderDetail[] @relation("creator")
+  accountSockets            AccountSocket[]
 }
 
 model User {
@@ -640,6 +641,7 @@ model AccountSocket {
   deviceId  String   @unique
   branchId  String
   branch    Branch?  @relation(fields: [branchId], references: [id])
+  account   Account? @relation(fields: [accountId], references: [id])
   accountId String
   createdAt DateTime @default(now())
 }
