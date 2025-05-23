@@ -632,6 +632,7 @@ model Branch {
   productOptionGroups ProductOptionGroup[]
   activityLogs        ActivityLog[]
   accountSockets      AccountSocket[]
+  vnpayConfigs        VnpayConfig[]
 }
 
 model AccountSocket {
@@ -830,4 +831,13 @@ model VnpayTransaction {
   vnpTxnRef String   @unique
   createdAt DateTime @default(now())
   order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+}
+
+model VnpayConfig {
+  id            String   @id @default(uuid())
+  branchId      String   @unique
+  createdAt     DateTime @default(now())
+  vnpTmnCode    String
+  vnpHashSecret String
+  branch        Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
 }

@@ -3,9 +3,8 @@ import * as crypto from 'crypto'
 import * as qs from 'qs'
 import { Request, Response } from 'express'
 import { Injectable } from '@nestjs/common'
-import { vnpayConfig } from '../../config/vnpay.config'
 import { PrismaService } from 'nestjs-prisma'
-import { CreatePaymentDto } from './dto/createPaymentUrl.dto'
+import { CreateConfigDto, CreatePaymentDto } from './dto/createPaymentUrl.dto'
 import { PrismaClient } from '@prisma/client'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -43,6 +42,7 @@ export class VnpayService {
   async createPaymentUrl(
     data: CreatePaymentDto,
     ipAddr: string,
+    branchId: string,
     prisma: PrismaClient
   ): Promise<string> {
     process.env.TZ = 'Asia/Ho_Chi_Minh'
@@ -51,9 +51,16 @@ export class VnpayService {
     const createDate = moment(date).format('YYYYMMDDHHmmss')
     const expireDate = moment(date).add(15, 'minutes').format('YYYYMMDDHHmmss')
 
-    const tmnCode = vnpayConfig.VNP_TMN_CODE
-    const secretKey = vnpayConfig.VNP_HASH_SECRET
-    const vnpUrl = vnpayConfig.VNP_URL
+    // Lấy config vnpay của cửa hàng / chi nhánh
+    const vnpayBranchConfig = await this.prisma.vnpayConfig.findUniqueOrThrow({
+      where: {
+        branchId
+      }
+    })
+
+    const tmnCode = vnpayBranchConfig.vnpTmnCode
+    const secretKey = vnpayBranchConfig.vnpHashSecret
+    const vnpUrl = process.env.VNP_SANDBOX_URL
 
     let ipAddrV4 = ipAddr
     if (ipAddrV4 === '::1') ipAddrV4 = '127.0.0.1'
@@ -98,13 +105,18 @@ export class VnpayService {
     return finalUrl
   }
 
-  verifyReturn(vnp_Params: any, secureHash: string): boolean {
+  async verifyReturn(vnp_Params: any, secureHash: string): Promise<boolean> {
+    const vnpayConfig = await this.prisma.vnpayConfig.findFirst({
+      where: { vnpTmnCode: vnp_Params.vnp_TmnCode }
+    })
+
     const sortedParams = this.sortObject(vnp_Params)
     const signData = qs.stringify(sortedParams, { encode: false })
     // Lấy thuật toán hash từ vnp_SecureHashType nếu có
     const hashType = vnp_Params['vnp_SecureHashType'] === 'HMACSHA256' ? 'sha256' : 'sha512'
-    const hmac = crypto.createHmac(hashType, vnpayConfig.VNP_HASH_SECRET)
+    const hmac = crypto.createHmac(hashType, vnpayConfig.vnpHashSecret)
     const signed = hmac.update(Buffer.from(signData, 'utf-8')).digest('hex')
+
     return secureHash === signed
   }
 
@@ -205,5 +217,15 @@ export class VnpayService {
     })
 
     await this.orderGatewayHandler.handleDeleteOrder(deletedOrder, deletedOrder.branchId)
+  }
+
+  async createConfig(data: CreateConfigDto) {
+    return this.prisma.vnpayConfig.create({
+      data: {
+        vnpHashSecret: data.vnpHashSecret,
+        vnpTmnCode: data.vnpTmnCode,
+        branchId: data.branchId
+      }
+    })
   }
 }

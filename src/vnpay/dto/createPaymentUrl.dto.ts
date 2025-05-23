@@ -13,3 +13,14 @@ export class CreatePaymentDto {
   @IsNotEmpty()
   returnUrl: string
 }
+
+export class CreateConfigDto {
+  @IsNotEmpty()
+  vnpTmnCode: string
+
+  @IsNotEmpty()
+  vnpHashSecret: string
+
+  @IsNotEmpty()
+  branchId: string
+}

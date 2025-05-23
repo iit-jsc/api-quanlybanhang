@@ -1,6 +1,7 @@
-import { Controller, Req, Res, Get } from '@nestjs/common'
+import { Controller, Req, Res, Get, Post, Body } from '@nestjs/common'
 import { VnpayService } from './vnpay.service'
 import { Request, Response } from 'express'
+import { CreateConfigDto } from './dto/createPaymentUrl.dto'
 
 @Controller('vnpay')
 export class VnpayController {
@@ -27,5 +28,10 @@ export class VnpayController {
   @Get('vnpay-ipn')
   async vnpayIpn(@Req() req: Request, @Res() res: Response) {
     return this.vnpayService.vnpayIpn(req, res)
+  }
+
+  @Post('config')
+  async createConfig(@Body() data: CreateConfigDto) {
+    return this.vnpayService.createConfig(data)
   }
 }

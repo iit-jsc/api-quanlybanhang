@@ -444,6 +444,7 @@ export class TableService {
           orderCode: order.code
         },
         ipAddr,
+        branchId,
         prisma
       )
     })
