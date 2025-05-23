@@ -105,7 +105,7 @@ export class TableController {
     @Body() data: PaymentWithVNPayDto,
     @Req() reqJWT: RequestJWT
   ) {
-    const { branchId, accountId } = reqJWT
+    const { branchId, accountId, deviceId } = reqJWT
 
     const ipAddr =
       (req.headers['x-forwarded-for'] as string) ||
@@ -113,7 +113,7 @@ export class TableController {
       req.connection?.remoteAddress ||
       ''
 
-    return this.tableService.paymentWithVNPay(id, data, ipAddr, accountId, branchId)
+    return this.tableService.paymentWithVNPay(id, data, ipAddr, accountId, branchId, deviceId)
   }
 
   @Post('/:id/request-payment')

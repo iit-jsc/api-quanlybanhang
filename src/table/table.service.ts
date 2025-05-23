@@ -365,7 +365,8 @@ export class TableService {
     data: PaymentWithVNPayDto,
     ipAddr: string,
     accountId: string,
-    branchId: string
+    branchId: string,
+    deviceId: string
   ) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const orderDetailsInTable = await getOrderDetailsInTable(tableId, prisma)
@@ -436,17 +437,24 @@ export class TableService {
       })
 
       // Tạo link sandbox vnpay
-      return await this.vnpayService.createPaymentUrl(
-        {
-          amount: orderTotal,
-          returnUrl: data.returnUrl,
-          orderId: order.id,
-          orderCode: order.code
-        },
-        ipAddr,
-        branchId,
-        prisma
-      )
+      const [newOrder, paymentURL] = await Promise.all([
+        prisma.order.findUniqueOrThrow({ where: { id: order.id }, select: orderSelect }),
+        this.vnpayService.createPaymentUrl(
+          {
+            amount: orderTotal,
+            returnUrl: data.returnUrl,
+            orderId: order.id,
+            orderCode: order.code
+          },
+          ipAddr,
+          branchId,
+          prisma
+        )
+      ])
+
+      await this.orderGatewayHandler.handleCreateOrder(newOrder, branchId, deviceId)
+
+      return { newOrder, paymentURL }
     })
   }
 

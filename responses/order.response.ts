@@ -2,6 +2,7 @@ import { Prisma } from '@prisma/client'
 import { accountShortSelect } from './account.response'
 import { orderDetailShortSelect } from './order-detail.response'
 import { paymentMethodSelect } from './payment-method.response'
+import { tableSelect } from './table.response'
 
 export const orderSelect: Prisma.OrderSelect = {
   id: true,
@@ -19,19 +20,7 @@ export const orderSelect: Prisma.OrderSelect = {
   note: true,
   bankingImages: true,
   table: {
-    select: {
-      id: true,
-      name: true,
-      seat: true,
-      updatedAt: true,
-      area: {
-        select: {
-          id: true,
-          name: true,
-          photoURL: true
-        }
-      }
-    }
+    select: tableSelect
   },
   paymentMethod: {
     select: paymentMethodSelect
