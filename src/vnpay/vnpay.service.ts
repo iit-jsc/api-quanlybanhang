@@ -8,8 +8,7 @@ import { CreateConfigDto, CreatePaymentDto } from './dto/createPaymentUrl.dto'
 import { PrismaClient } from '@prisma/client'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
-import { accountShortSelect } from 'responses/account.response'
-import { tableSelect } from 'responses/table.response'
+import { orderSelect } from 'responses/order.response'
 
 export interface VnpayParams {
   [key: string]: any
@@ -187,18 +186,7 @@ export class VnpayService {
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
       data: { isPaid: true, paymentAt: new Date() },
-      include: {
-        table: {
-          select: tableSelect
-        },
-        paymentMethod: true,
-        creator: {
-          select: accountShortSelect
-        },
-        updater: {
-          select: accountShortSelect
-        }
-      }
+      select: orderSelect
     })
 
     await Promise.all([
