@@ -13,6 +13,7 @@ export const orderDetailShortSelect: Prisma.OrderDetailSelect = {
   informAt: true,
   successAt: true,
   processingAt: true,
+  branchId: true,
   canceledOrderDetails: {
     select: {
       id: true,

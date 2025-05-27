@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid'
 import {
   ActivityAction,
   NotifyType,
@@ -421,19 +422,21 @@ export class TableService {
           paymentMethodId: paymentMethod.id,
           createdBy: accountId,
           branchId,
-          ...(data.customerId && { customerId: data.customerId })
+          ...(data.customerId && { customerId: data.customerId }),
+          orderDetails: {
+            create: orderDetailsInTable.map(orderDetail => ({
+              ...orderDetail,
+              id: uuidv4(),
+              canceledOrderDetails: {
+                create: orderDetail.canceledOrderDetails?.map(canceledOrderDetail => ({
+                  ...canceledOrderDetail,
+                  id: uuidv4()
+                }))
+              }
+            }))
+          }
         },
         select: orderSelect
-      })
-
-      await prisma.orderDetail.updateMany({
-        data: {
-          updatedBy: accountId,
-          orderId: order.id
-        },
-        where: {
-          tableId
-        }
       })
 
       // Tạo link sandbox vnpay

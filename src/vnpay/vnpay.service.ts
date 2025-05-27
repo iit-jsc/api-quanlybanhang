@@ -178,9 +178,8 @@ export class VnpayService {
   }
 
   private async handlePaymentSuccess(prisma: PrismaClient, orderId: string) {
-    await prisma.orderDetail.updateMany({
-      where: { orderId },
-      data: { tableId: null, orderId }
+    await prisma.orderDetail.deleteMany({
+      where: { table: { orders: { some: { id: orderId } } } }
     })
 
     const updatedOrder = await prisma.order.update({
@@ -197,11 +196,6 @@ export class VnpayService {
   }
 
   private async handlePaymentCancel(prisma: PrismaClient, orderId: string) {
-    await prisma.orderDetail.updateMany({
-      where: { orderId },
-      data: { orderId: null }
-    })
-
     const deletedOrder = await prisma.order.delete({
       where: { id: orderId }
     })

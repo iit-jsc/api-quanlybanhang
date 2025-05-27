@@ -46,8 +46,6 @@ export class OrderGatewayHandler {
   }
 
   async handlePaymentSuccessfully(payload: any, branchId: string, deviceId?: string) {
-    console.log(123, deviceId, branchId)
-
     await this.emitToBranch('payment-successfully', payload, branchId, deviceId)
   }
 }
