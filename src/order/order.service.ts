@@ -349,7 +349,10 @@ export class OrderService {
 
       // Check if any orderDetails have a non-null tableId
       if (order.orderDetails && order.orderDetails.some(od => od.tableId)) {
-        throw new HttpException('Có món đang được xử lý không thể hủy!', HttpStatus.BAD_REQUEST)
+        throw new HttpException(
+          'Đơn này có món đang được xử lý không thể hủy!',
+          HttpStatus.BAD_REQUEST
+        )
       }
 
       await this.activityLogService.create(
