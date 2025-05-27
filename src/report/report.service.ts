@@ -19,6 +19,7 @@ export class ReportService {
         branchId,
         isPaid: true,
         status: { not: OrderStatus.CANCELLED },
+        isDraft: false,
         ...where
       },
       _sum: {
@@ -72,6 +73,7 @@ export class ReportService {
           isPaid: true,
           branchId,
           status: { not: OrderStatus.CANCELLED },
+          isDraft: false,
           ...where
         }
       },
@@ -127,6 +129,7 @@ export class ReportService {
           isPaid: true,
           branchId,
           status: { not: OrderStatus.CANCELLED },
+          isDraft: false,
           ...where
         }
       },
@@ -142,12 +145,12 @@ export class ReportService {
 
     const createdByIds = orderDetails.map(p => p.createdBy)
 
-    if (createdByIds.length === 0) {
+    if (!createdByIds || !createdByIds.length) {
       return []
     }
 
     const accountInfos = await this.prisma.account.findMany({
-      where: { id: { in: createdByIds } },
+      where: { id: { in: createdByIds || [] } },
       select: accountShortSelect
     })
 
@@ -201,7 +204,8 @@ export class ReportService {
           branchId,
           order: {
             isPaid: true,
-            status: { not: OrderStatus.CANCELLED }
+            status: { not: OrderStatus.CANCELLED },
+            isDraft: false
           },
           ...where
         }

@@ -453,6 +453,7 @@ model Order {
   paymentMethod         PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
   isPaid                Boolean?           @default(false)
   isSave                Boolean?           @default(false)
+  isDraft               Boolean?           @default(false)
   createdBy             String?
   updatedBy             String?
   createdAt             DateTime           @default(now())

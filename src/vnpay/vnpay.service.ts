@@ -162,11 +162,11 @@ export class VnpayService {
         }
         // Hủy thanh toán từ merchant
         if (rspCode === '24') {
-          await this.handlePaymentCancel(tx, orderId)
+          await this.handlePaymentCancel()
           return res.status(200).json({ RspCode: '24', Message: 'Order cancelled' })
         }
         // Thanh toán thất bại
-        await this.handlePaymentCancel(tx, orderId)
+        await this.handlePaymentCancel()
         return res.status(200).json({ RspCode: '97', Message: 'Fail merchant' })
       })
     } catch (error: any) {
@@ -178,30 +178,24 @@ export class VnpayService {
   }
 
   private async handlePaymentSuccess(prisma: PrismaClient, orderId: string) {
-    await prisma.orderDetail.deleteMany({
-      where: { table: { orders: { some: { id: orderId } } } }
+    await prisma.orderDetail.updateMany({
+      where: { orderId },
+      data: { tableId: null, orderId }
     })
 
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
-      data: { isPaid: true, paymentAt: new Date() },
+      data: { isPaid: true, isDraft: false, paymentAt: new Date() },
       select: orderSelect
     })
 
     await Promise.all([
       this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
-      this.orderGatewayHandler.handleUpdateOrder(updatedOrder, updatedOrder.branchId),
       this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
     ])
   }
 
-  private async handlePaymentCancel(prisma: PrismaClient, orderId: string) {
-    const deletedOrder = await prisma.order.delete({
-      where: { id: orderId }
-    })
-
-    await this.orderGatewayHandler.handleDeleteOrder(deletedOrder, deletedOrder.branchId)
-  }
+  private async handlePaymentCancel() {}
 
   async createConfig(data: CreateConfigDto) {
     return this.prisma.vnpayConfig.create({

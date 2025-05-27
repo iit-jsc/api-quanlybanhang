@@ -100,6 +100,7 @@ export class OrderDetailService {
 
     const where: Prisma.OrderDetailWhereInput = {
       branchId,
+      OR: [{ order: null }, { order: { isDraft: false } }],
       ...(from &&
         to && {
           createdAt: {

@@ -240,6 +240,7 @@ export class OrderService {
 
     const where: Prisma.OrderWhereInput = {
       branchId,
+      isDraft: false,
       ...(keyword && {
         OR: keySearch.map(key => ({
           [key]: { contains: removeDiacritics(keyword) }
@@ -345,6 +346,14 @@ export class OrderService {
 
       if (order.isPaid) throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
 
+      // Check if any orderDetails have a non-null tableId
+      if (order.orderDetails && order.orderDetails.some(od => od.tableId)) {
+        throw new HttpException(
+          'Không thể hủy đơn hàng khi còn món trong bàn!',
+          HttpStatus.CONFLICT
+        )
+      }
+
       await this.activityLogService.create(
         {
           action: ActivityAction.CANCEL_ORDER,
@@ -397,6 +406,14 @@ export class OrderService {
           accountId
         )
       ])
+
+      await prisma.orderDetail.deleteMany({
+        where: {
+          orderId: {
+            in: data.ids
+          }
+        }
+      })
 
       const order = await prisma.order.deleteMany({
         where: {

@@ -1,4 +1,3 @@
-import { v4 as uuidv4 } from 'uuid'
 import {
   ActivityAction,
   NotifyType,
@@ -366,8 +365,7 @@ export class TableService {
     data: PaymentWithVNPayDto,
     ipAddr: string,
     accountId: string,
-    branchId: string,
-    deviceId: string
+    branchId: string
   ) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       const orderDetailsInTable = await getOrderDetailsInTable(tableId, prisma)
@@ -405,10 +403,11 @@ export class TableService {
         discountCodeValue -
         customerDiscountValue
 
-      // Tạo đơn hàng và chuyển các món từ bàn vào đơn
+      // Tạo đơn hàng NHÁP và chuyển các món từ bàn vào đơn
       const order = await prisma.order.create({
         data: {
           isPaid: false,
+          isDraft: true,
           tableId,
           orderTotal,
           code: generateCode('DH', 15),
@@ -422,21 +421,19 @@ export class TableService {
           paymentMethodId: paymentMethod.id,
           createdBy: accountId,
           branchId,
-          ...(data.customerId && { customerId: data.customerId }),
-          orderDetails: {
-            create: orderDetailsInTable.map(orderDetail => ({
-              ...orderDetail,
-              id: uuidv4(),
-              canceledOrderDetails: {
-                create: orderDetail.canceledOrderDetails?.map(canceledOrderDetail => ({
-                  ...canceledOrderDetail,
-                  id: uuidv4()
-                }))
-              }
-            }))
-          }
+          ...(data.customerId && { customerId: data.customerId })
         },
         select: orderSelect
+      })
+
+      await prisma.orderDetail.updateMany({
+        data: {
+          updatedBy: accountId,
+          orderId: order.id
+        },
+        where: {
+          tableId
+        }
       })
 
       // Tạo link sandbox vnpay
@@ -454,8 +451,6 @@ export class TableService {
           prisma
         )
       ])
-
-      await this.orderGatewayHandler.handleCreateOrder(newOrder, branchId, deviceId)
 
       return { newOrder, paymentURL }
     })
