@@ -344,14 +344,12 @@ export class OrderService {
         select: orderSelect
       })
 
-      if (order.isPaid) throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
+      if (order.isPaid)
+        throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.BAD_REQUEST)
 
       // Check if any orderDetails have a non-null tableId
       if (order.orderDetails && order.orderDetails.some(od => od.tableId)) {
-        throw new HttpException(
-          'Không thể hủy đơn hàng khi còn món trong bàn!',
-          HttpStatus.CONFLICT
-        )
+        throw new HttpException('Có món đang được xử lý không thể hủy!', HttpStatus.BAD_REQUEST)
       }
 
       await this.activityLogService.create(
