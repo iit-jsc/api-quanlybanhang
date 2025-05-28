@@ -100,7 +100,6 @@ export class OrderDetailService {
 
     const where: Prisma.OrderDetailWhereInput = {
       branchId,
-      OR: [{ order: null }, { order: { isDraft: false } }],
       ...(from &&
         to && {
           createdAt: {
@@ -201,6 +200,12 @@ export class OrderDetailService {
             select: {
               name: true
             }
+          },
+          order: {
+            select: {
+              isPaid: true,
+              code: true
+            }
           }
         }
       })
@@ -209,7 +214,15 @@ export class OrderDetailService {
       if (data.amount > orderDetail.amount) {
         throw new HttpException(
           `Số lượng hủy (${data.amount}) không được lớn hơn số lượng hiện tại (${orderDetail.amount})`,
-          HttpStatus.CONFLICT
+          HttpStatus.BAD_REQUEST
+        )
+      }
+
+      // Kiểm tra đơn đã thanh toán chưa
+      if (orderDetail.order && orderDetail.order.isPaid) {
+        throw new HttpException(
+          `Món này thuộc đơn #${orderDetail.order.code} đã thanh toán không thể hủy!`,
+          HttpStatus.BAD_REQUEST
         )
       }
 
