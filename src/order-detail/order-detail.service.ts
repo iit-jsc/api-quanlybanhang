@@ -96,26 +96,26 @@ export class OrderDetailService {
   }
 
   async findAll(params: FindManyOrderDetailDto, branchId: string) {
-    const { page, perPage, orderBy, statuses, orderTypes, from, to, hasTable } = params
+    const { page, perPage, orderBy, statuses, orderTypes, from, to, hasTable, filterBy } = params
 
     const where: Prisma.OrderDetailWhereInput = {
       branchId,
       ...(from &&
         to && {
-          createdAt: {
+          [filterBy]: {
             gte: new Date(from),
             lte: new Date(to)
           }
         }),
       ...(from &&
         !to && {
-          createdAt: {
+          [filterBy]: {
             gte: new Date(from)
           }
         }),
       ...(!from &&
         to && {
-          createdAt: {
+          [filterBy]: {
             lte: new Date(to)
           }
         }),

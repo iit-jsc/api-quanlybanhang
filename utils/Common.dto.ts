@@ -83,4 +83,9 @@ export class FindManyDto {
     return new Date(date.setHours(23, 59, 59, 999))
   })
   to?: Date
+
+  @Transform(({ value }) => {
+    return value ? value : 'createdAt'
+  })
+  filterBy?: string
 }
