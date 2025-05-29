@@ -157,6 +157,27 @@ export class OrderDetailService {
     branchId: string,
     deviceId: string
   ) {
+    // Kiểm tra đơn hàng đã thanh toán chưa
+    const orderDetailRecord = await this.prisma.orderDetail.findUnique({
+      where: { id, branchId },
+      select: {
+        id: true,
+        order: {
+          select: {
+            isPaid: true,
+            code: true
+          }
+        }
+      }
+    })
+
+    if (orderDetailRecord?.order?.isPaid) {
+      throw new HttpException(
+        `Đơn hàng này đã thanh toán, không thể cập nhật!`,
+        HttpStatus.CONFLICT
+      )
+    }
+
     let orderDetail = null
 
     if (data.amount === 0) {
