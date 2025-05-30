@@ -256,7 +256,17 @@ export class TableService {
   ) {
     return await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
-        const orderDetailsInTable = await getOrderDetailsInTable(tableId, prisma)
+        // Cập nhật món amount = 0 to SUCCESS và lấy orderDetails cùng lúc
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [_, orderDetailsInTable] = await Promise.all([
+          prisma.orderDetail.updateMany({
+            where: { tableId, amount: 0 },
+            data: {
+              status: OrderDetailStatus.SUCCESS
+            }
+          }),
+          getOrderDetailsInTable(tableId, prisma)
+        ])
         const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
         const paymentMethod = await prisma.paymentMethod.findUniqueOrThrow({
           where: {
@@ -331,8 +341,15 @@ export class TableService {
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const [newOrder, _] = await Promise.all([createOrderPromise, passOrderDetailPromise])
 
+          // Clear table
+          const newTable = { ...newOrder.table, orderDetails: [] }
+
           // Đơn hàng chi tiết (món mới chuyển từ bàn)
-          const fullOrder = { ...newOrder, orderDetails: orderDetailsInTable }
+          const fullOrder = {
+            ...newOrder,
+            orderDetails: orderDetailsInTable,
+            table: newTable
+          }
 
           // Gửi socket, lưu log
           await Promise.all([
@@ -347,7 +364,7 @@ export class TableService {
               accountId
             ),
             this.orderGatewayHandler.handleCreateOrder(fullOrder, branchId, deviceId),
-            this.tableGatewayHandler.handleUpdateTable(fullOrder.table, branchId, deviceId)
+            this.tableGatewayHandler.handleUpdateTable(newTable, branchId, deviceId)
           ])
 
           return fullOrder
@@ -368,7 +385,17 @@ export class TableService {
     branchId: string
   ) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const orderDetailsInTable = await getOrderDetailsInTable(tableId, prisma)
+      // Cập nhật món amount = 0 to SUCCESS
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const [_, orderDetailsInTable] = await Promise.all([
+        prisma.orderDetail.updateMany({
+          where: { tableId, amount: 0 },
+          data: {
+            status: OrderDetailStatus.SUCCESS
+          }
+        }),
+        getOrderDetailsInTable(tableId, prisma)
+      ])
       const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
 
       const paymentMethod = await prisma.paymentMethod.findUniqueOrThrow({
