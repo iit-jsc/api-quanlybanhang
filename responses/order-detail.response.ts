@@ -97,6 +97,9 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
           }
         }
       }
+    },
+    where: {
+      isDraft: false
     }
   },
   updatedAt: true,
