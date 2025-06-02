@@ -655,7 +655,7 @@ export class TableService {
       select: orderDetailSelect
     })
 
-    await this.orderDetailGatewayHandler.handleUpdateOrderDetails(
+    await this.orderDetailGatewayHandler.handleCreateOrderDetails(
       newOrderDetail,
       branchId,
       deviceId
