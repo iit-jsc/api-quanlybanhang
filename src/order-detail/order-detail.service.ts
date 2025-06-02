@@ -415,6 +415,7 @@ export class OrderDetailService {
       }
     )
 
+    // Chỉ bắn notify khi INFORMED
     const notify = getNotifyInfo(data.status)
     const allowedStatuses = ['INFORMED']
     const status = data.status ?? result?.[0]?.status
