@@ -8,8 +8,8 @@ export type IOrderDetail = {
   amount: number
   note?: string | null
   product?: IProduct | any
-  createdAt: Date
-  updatedAt: Date
+  createdAt?: Date
+  updatedAt?: Date
   productOriginId: string
   tableId: string | null
   productOptions?: IProductOption[] | any

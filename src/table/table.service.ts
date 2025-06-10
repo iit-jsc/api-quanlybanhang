@@ -34,7 +34,7 @@ import { tableSelect } from 'responses/table.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { orderSelect } from 'responses/order.response'
-import { PaymentFromTableDto, PaymentWithVNPayDto } from 'src/order/dto/payment.dto'
+import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
@@ -45,7 +45,6 @@ import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
 import { productShortSelect } from 'responses/product.response'
 import { productOptionSelect } from 'responses/product-option-group.response'
-import { VnpayService } from 'src/vnpay/vnpay.service'
 
 @Injectable()
 export class TableService {
@@ -56,8 +55,7 @@ export class TableService {
     private readonly notifyService: NotifyService,
     private readonly tableGatewayHandler: TableGatewayHandler,
     private readonly orderGatewayHandler: OrderGatewayHandler,
-    private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler,
-    private readonly vnpayService: VnpayService
+    private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler
   ) {}
 
   async create(data: CreateTableDto, accountId: string, branchId: string) {
@@ -375,112 +373,6 @@ export class TableService {
         maxWait: 15_000
       }
     )
-  }
-
-  async paymentWithVNPay(
-    tableId: string,
-    data: PaymentWithVNPayDto,
-    ipAddr: string,
-    accountId: string,
-    branchId: string
-  ) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      // Cập nhật món amount = 0 to SUCCESS
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const [_, orderDetailsInTable] = await Promise.all([
-        prisma.orderDetail.updateMany({
-          where: { tableId, amount: 0 },
-          data: {
-            status: OrderDetailStatus.SUCCESS
-          }
-        }),
-        getOrderDetailsInTable(tableId, prisma)
-      ])
-      const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
-
-      const paymentMethod = await prisma.paymentMethod.findUniqueOrThrow({
-        where: {
-          type_branchId: {
-            branchId,
-            type: 'VNPAY'
-          }
-        }
-      })
-
-      const voucherParams = {
-        voucherId: data.voucherId,
-        branchId,
-        orderDetails: orderDetailsInTable,
-        voucherCheckRequest: {
-          orderTotal: orderTotalNotDiscount,
-          totalPeople: data.totalPeople
-        }
-      }
-
-      // Lấy thông tin giảm giá
-      const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
-        getVoucher(voucherParams, prisma),
-        getDiscountCode(data.discountCode, orderTotalNotDiscount, branchId, prisma),
-        getCustomerDiscount(data.customerId, orderTotalNotDiscount, prisma)
-      ])
-
-      const orderTotal =
-        orderTotalNotDiscount -
-        (voucher.voucherValue || 0) -
-        discountCodeValue -
-        customerDiscountValue
-
-      // Tạo đơn hàng NHÁP và chuyển các món từ bàn vào đơn
-      const order = await prisma.order.create({
-        data: {
-          isPaid: false,
-          isDraft: true,
-          tableId,
-          orderTotal,
-          code: generateCode('DH', 15),
-          note: data.note,
-          type: OrderType.OFFLINE,
-          status: data.status || OrderStatus.SUCCESS,
-          discountCodeValue,
-          voucherValue: voucher.voucherValue,
-          voucherProducts: voucher.voucherProducts,
-          customerDiscountValue,
-          paymentMethodId: paymentMethod.id,
-          createdBy: accountId,
-          branchId,
-          ...(data.customerId && { customerId: data.customerId })
-        },
-        select: orderSelect
-      })
-
-      await prisma.orderDetail.updateMany({
-        data: {
-          updatedBy: accountId,
-          orderId: order.id
-        },
-        where: {
-          tableId
-        }
-      })
-
-      // Tạo link sandbox vnpay
-      const [newOrder, paymentURL] = await Promise.all([
-        prisma.order.findUniqueOrThrow({ where: { id: order.id }, select: orderSelect }),
-        this.vnpayService.createPaymentUrl(
-          {
-            amount: orderTotal,
-            returnUrl: data.returnUrl,
-            orderId: order.id,
-            orderCode: order.code
-          },
-          ipAddr,
-          branchId,
-          prisma
-        )
-      ])
-
-      return { newOrder, paymentURL }
-    })
   }
 
   async passOrderDetailToOrder(
