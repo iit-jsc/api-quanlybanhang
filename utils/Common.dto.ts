@@ -84,8 +84,6 @@ export class FindManyDto {
   })
   to?: Date
 
-  @Transform(({ value }) => {
-    return value ? value : 'createdAt'
-  })
-  filterBy?: string
+  @Transform(({ value }) => value ?? 'createdAt')
+  filterBy: string = 'createdAt'
 }
