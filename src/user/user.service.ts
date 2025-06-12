@@ -2,7 +2,7 @@ import * as bcrypt from 'bcrypt'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CheckUniqDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
-import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
+import { AccountStatus, ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { removeDiacritics, customPaginate, generateCode } from 'utils/Helps'
 import { userDetailSelect } from 'responses/user.response'
@@ -261,6 +261,17 @@ export class UserService {
       data: { photoURL: data.photoURL },
       where: {
         id: user.id
+      }
+    })
+  }
+
+  async deleteMyAccount(accountId: string) {
+    await this.prisma.account.update({
+      where: {
+        id: accountId
+      },
+      data: {
+        status: AccountStatus.DELETED
       }
     })
   }

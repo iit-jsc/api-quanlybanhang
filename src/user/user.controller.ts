@@ -60,6 +60,14 @@ export class UserController {
     return this.userService.checkExists(checkExistsDto)
   }
 
+  @Delete('my-account')
+  @HttpCode(HttpStatus.OK)
+  deleteMyAccount(@Req() req: RequestJWT) {
+    const { accountId } = req
+
+    return this.userService.deleteMyAccount(accountId)
+  }
+
   @Delete('')
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.user.delete)

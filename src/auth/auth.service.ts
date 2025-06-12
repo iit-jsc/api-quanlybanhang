@@ -46,8 +46,8 @@ export class AuthService {
     if (!account || !(await bcrypt.compare(data.password, account.password)))
       throw new HttpException('Tài khoản hoặc mật khẩu không chính xác!', HttpStatus.UNAUTHORIZED)
 
-    if (account.status == AccountStatus.INACTIVE)
-      throw new HttpException('Tài khoản đã bị khóa!', HttpStatus.FORBIDDEN)
+    if (account.status == AccountStatus.INACTIVE || account.status == AccountStatus.DELETED)
+      throw new HttpException('Tài khoản đã bị khóa hoặc đã bị xóa!', HttpStatus.FORBIDDEN)
 
     const shops = await this.getShopsByAccountId(account.id)
 
@@ -113,6 +113,9 @@ export class AuthService {
 
       const account = await this.getAccountAccess(payload.accountId, payload.branchId)
 
+      if (account.status == AccountStatus.INACTIVE || account.status == AccountStatus.DELETED)
+        throw new HttpException('Tài khoản đã bị khóa hoặc đã bị xóa!', HttpStatus.FORBIDDEN)
+
       if (!account) throw new HttpException('Không tìm thấy tài nguyên!', HttpStatus.NOT_FOUND)
 
       return { ...mapResponseLogin({ account, shops, currentShop }) }
@@ -143,6 +146,7 @@ export class AuthService {
       },
       select: {
         id: true,
+        status: true,
         user: {
           select: userShortSelect
         },
