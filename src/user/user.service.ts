@@ -266,12 +266,18 @@ export class UserService {
   }
 
   async deleteMyAccount(accountId: string) {
-    await this.prisma.account.update({
+    return await this.prisma.account.update({
       where: {
         id: accountId
       },
       data: {
         status: AccountStatus.DELETED
+      },
+      select: {
+        id: true,
+        user: {
+          select: userDetailSelect
+        }
       }
     })
   }

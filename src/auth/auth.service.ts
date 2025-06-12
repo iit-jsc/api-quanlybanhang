@@ -16,7 +16,6 @@ import { shopLoginSelect } from 'responses/shop.response'
 import { ChangeMyPasswordDto } from './dto/change-password.dto'
 import { RegisterDto } from './dto/register.dto'
 import { ShopService } from 'src/shop/shop.service'
-import axios from 'axios'
 
 @Injectable()
 export class AuthService {
@@ -74,6 +73,9 @@ export class AuthService {
     ])
 
     const currentShop = this.getCurrentShopFromShops(shops, data.branchId)
+
+    if (!currentShop.branches[0].expiryAt && currentShop.branches[0].expiryAt < new Date())
+      throw new HttpException('Đã hết thời gian sử dụng!', HttpStatus.BAD_REQUEST)
 
     // set cookie
     res.cookie('refreshToken', refreshToken, {
@@ -253,13 +255,6 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    const captchaSecret = process.env.RECAPTCHA_SECRET_KEY
-    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${captchaSecret}&response=${data.captchaToken}`
-    const captchaRes = await axios.post(verifyUrl)
-    if (!captchaRes.data.success) {
-      throw new HttpException('Captcha không hợp lệ!', HttpStatus.BAD_REQUEST)
-    }
-
     return this.prisma.$transaction(
       async (prisma: PrismaClient) => {
         const shopCode = data.shopName.replace(/\s+/g, '-') + '-' + Date.now()

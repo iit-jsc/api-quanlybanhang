@@ -22,11 +22,12 @@ import { VNPayIPNDto } from './dto/vnpay-ipn.dto'
 export class VNPayController {
   constructor(private readonly vnPayService: VNPayService) {}
 
-  @Post('generate')
+  @Post('generate-qr')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async generateQrCode(@Body() data: CreateQrCodeDto, @Req() reqJWT: RequestJWT) {
     const { accountId, branchId } = reqJWT
+
     return await this.vnPayService.generateQrCode(data, branchId, accountId)
   }
 
@@ -44,11 +45,14 @@ export class VNPayController {
     return this.vnPayService.checkTransaction(dto, branchId)
   }
 
-  @Delete(':tableId')
+  @Delete('transaction/:tableId')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async deleteTransactionByTableId(@Param('tableId') tableId: string) {
-    return await this.vnPayService.deleteTransactionByTableId(tableId)
+  async deleteTransactionByTableId(@Param('tableId') tableId: string, @Req() reqJWT: RequestJWT) {
+    const { branchId } = reqJWT
+    console.log(branchId, tableId)
+
+    return await this.vnPayService.deleteTransactionByTableId(tableId, branchId)
   }
 
   @Get('ipn')

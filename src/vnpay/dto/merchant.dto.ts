@@ -2,10 +2,10 @@ import { IsNotEmpty } from 'class-validator'
 
 export class SetupMerchantDto {
   @IsNotEmpty()
-  merchantName: string
+  branchId: string
 
   @IsNotEmpty()
-  secretKey: string
+  merchantName: string
 
   @IsNotEmpty()
   terminalId: string
@@ -15,4 +15,8 @@ export class SetupMerchantDto {
 
   @IsNotEmpty()
   merchantCode: string
+
+  genQRSecretKey: string
+  checkTransSecretKey: string
+  refundSecretKey: string
 }

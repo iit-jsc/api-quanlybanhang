@@ -486,7 +486,7 @@ model OrderDetail {
   productOrigin        Product?              @relation(fields: [productOriginId], references: [id])
   productOriginId      String?
   branch               Branch?               @relation(fields: [branchId], references: [id])
-  order                Order?                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order                Order?                @relation(fields: [orderId], references: [id])
   table                Table?                @relation(fields: [tableId], references: [id])
   tableId              String?
   createdBy            String?
@@ -611,7 +611,7 @@ model Branch {
   bannerURL           String?              @db.Text
   address             String?              @db.Text
   phone               String?
-  expiryAt            DateTime? 
+  expiryAt            DateTime?
   createdBy           String?
   updatedBy           String?
   creator             Account?             @relation("creator", fields: [createdBy], references: [id])
@@ -637,6 +637,7 @@ model Branch {
   activityLogs        ActivityLog[]
   accountSockets      AccountSocket[]
   vnPayMerchants      VNPayMerchant[]
+  VNPayTransaction    VNPayTransaction[]
 }
 
 model AccountSocket {
@@ -839,6 +840,8 @@ enum TransactionStatus {
 model VNPayTransaction {
   id        String            @id @default(uuid())
   orderId   String
+  branchId  String?
+  branch    Branch?           @relation(fields: [branchId], references: [id], onDelete: Cascade)
   tableId   String
   vnpTxnRef String            @unique
   createdAt DateTime          @default(now())
@@ -848,13 +851,15 @@ model VNPayTransaction {
 }
 
 model VNPayMerchant {
-  id            String   @id @default(uuid())
-  branchId      String   @unique
-  createdAt     DateTime @default(now())
-  merchantName  String
-  merchantType  String
-  merchantCode String
-  terminalId    String
-  secretKey     String
-  branch        Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  id                  String   @id @default(uuid())
+  branchId            String   @unique
+  createdAt           DateTime @default(now())
+  merchantName        String
+  merchantType        String
+  merchantCode        String
+  genQRSecretKey      String?
+  checkTransSecretKey String?
+  refundSecretKey     String?
+  terminalId          String
+  branch              Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
 }

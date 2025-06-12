@@ -22,6 +22,11 @@ export class JwtAuthGuard implements CanActivate {
     const request = this.getRequest(context)
 
     const authHeader = this.getAuthHeader(context)
+    // const apiKeyHeader = request.headers?.['x-api-key'] || request.auth?.['x-api-key']
+
+    // if (!apiKeyHeader || apiKeyHeader !== apiKeyEnv) {
+    //   throw new HttpException('API key không hợp lệ!', HttpStatus.UNAUTHORIZED)
+    // }
 
     if (!authHeader) return false
 
@@ -43,6 +48,9 @@ export class JwtAuthGuard implements CanActivate {
         },
         select: accountJWTAuthSelect(payload.branchId)
       })
+
+      if (account.status == AccountStatus.INACTIVE || account.status == AccountStatus.DELETED)
+        throw new HttpException('Tài khoản đã bị khóa hoặc đã bị xóa!', HttpStatus.FORBIDDEN)
 
       if (!account || !payload.branchId)
         throw new HttpException('Phiên bản đăng nhập đã hết hạn!', HttpStatus.UNAUTHORIZED)

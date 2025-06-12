@@ -1,5 +1,5 @@
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsNotEmpty, MinLength, IsString } from 'class-validator'
+import { IsNotEmpty, MinLength } from 'class-validator'
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class RegisterDto {
@@ -13,9 +13,7 @@ export class RegisterDto {
 
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
-  @MinLength(6, {
-    message: 'Mật khẩu phải có ít nhất 6 ký tự'
-  })
+  @MinLength(6)
   password: string
 
   @IsNotEmpty()
@@ -24,10 +22,5 @@ export class RegisterDto {
   @IsNotEmpty()
   branchName: string
 
-  @IsNotEmpty()
-  address: string
-
-  @IsNotEmpty()
-  @IsString()
-  captchaToken: string
+  address?: string
 }

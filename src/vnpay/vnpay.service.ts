@@ -25,9 +25,22 @@ import {
 import { orderSelect } from 'responses/order.response'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
+import { decrypt, encrypt } from 'utils/encrypt'
 
 export interface VnpayParams {
   [key: string]: any
+}
+
+export type MerchantInfo = {
+  branchId: string
+  createdAt: Date
+  merchantName: string
+  merchantType: string
+  merchantCode: string
+  genQRSecretKey?: string
+  checkTransSecretKey?: string
+  refundSecretKey?: string
+  terminalId: string
 }
 
 @Injectable()
@@ -42,11 +55,14 @@ export class VNPayService {
   async setupMerchant(data: SetupMerchantDto) {
     return this.prisma.vNPayMerchant.create({
       data: {
+        branchId: data.branchId,
         merchantCode: data.merchantCode,
+        terminalId: data.terminalId,
         merchantName: data.merchantName,
         merchantType: data.merchantType,
-        secretKey: data.secretKey,
-        terminalId: data.terminalId
+        genQRSecretKey: encrypt(data.genQRSecretKey),
+        checkTransSecretKey: encrypt(data.checkTransSecretKey),
+        refundSecretKey: encrypt(data.refundSecretKey)
       }
     })
   }
@@ -77,7 +93,6 @@ export class VNPayService {
 
     const orderDraft = await this.createOrderByTableId(data, accountId, branchId)
 
-    const vnPayApiUrl = process.env.VNPAY_API_URL
     const payload = this.buildVNPayPayload(
       merchantInfo,
       orderDraft.orderTotal.toString(),
@@ -85,14 +100,29 @@ export class VNPayService {
     )
 
     try {
-      const response = await this.httpService.post(vnPayApiUrl, payload).toPromise()
-      const qrData = response.data.data
+      const response = await this.httpService.post(process.env.VNP_CREATE_QR, payload).toPromise()
+      const qrData = response.data?.data
       if (!qrData) {
         throw new HttpException(`Không nhận được dữ liệu từ VNP!`, HttpStatus.NOT_FOUND)
       }
+
+      // Tạo vNPayTransaction
+      await this.prisma.vNPayTransaction.create({
+        data: {
+          branchId,
+          orderId: orderDraft.id,
+          tableId: data.tableId,
+          vnpTxnRef: orderDraft.code,
+          status: TransactionStatus.PENDING
+        }
+      })
+
       return await this.generateQrCodeImage(qrData)
     } catch (error) {
-      throw new Error(`Không thể tạo mã QR: ${error.message}`)
+      throw new HttpException(
+        `Không thể tạo mã QR: ${error?.response?.data?.message || error.message}`,
+        HttpStatus.BAD_REQUEST
+      )
     }
   }
 
@@ -183,13 +213,13 @@ export class VNPayService {
     })
   }
 
-  private buildVNPayPayload(merchantInfo: any, amount: string, txnId: string) {
+  private buildVNPayPayload(merchantInfo: MerchantInfo, amount: string, txnId: string) {
     const appId = 'MERCHANT'
     const merchantName = merchantInfo.merchantName
     const merchantCode = merchantInfo.merchantCode
     const merchantType = merchantInfo.merchantType
     const terminalId = merchantInfo.terminalId
-    const secretKey = merchantInfo.secretKey
+    const secretKey = merchantInfo.genQRSecretKey
     const serviceCode = '03'
     const countryCode = 'VN'
     const masterMerCode = 'A000000775'
@@ -197,7 +227,8 @@ export class VNPayService {
     const productId = ''
     const tipAndFee = ''
     const ccy = '704'
-    const expDate = moment().add(10, 'minutes').format('YYYYMMDDHHmmss')
+    const expDate = moment().add(10, 'minutes').format('YYMMDDHHmm')
+
     const dataString = [
       appId,
       merchantName,
@@ -235,7 +266,7 @@ export class VNPayService {
       tipAndFee,
       ccy,
       expDate,
-      desc: 'Mô tả nè',
+      desc: '',
       checksum,
       billNumber: txnId,
       purpose: ''
@@ -265,15 +296,20 @@ export class VNPayService {
         HttpStatus.NOT_FOUND
       )
     }
-    return merchantInfo
+    return {
+      ...merchantInfo,
+      genQRSecretKey: decrypt(merchantInfo.genQRSecretKey),
+      checkTransSecretKey: decrypt(merchantInfo.checkTransSecretKey),
+      refundSecretKey: decrypt(merchantInfo.refundSecretKey)
+    }
   }
 
-  async deleteTransactionByTableId(tableId: string) {
+  async deleteTransactionByTableId(tableId: string, branchId: string) {
     // Xóa hết đơn nháp
-    await this.prisma.order.deleteMany({ where: { tableId, isDraft: true } })
+    await this.prisma.order.deleteMany({ where: { tableId, isDraft: true, branchId } })
 
     return this.prisma.vNPayTransaction.deleteMany({
-      where: { tableId, status: TransactionStatus.PENDING }
+      where: { tableId, status: TransactionStatus.PENDING, branchId }
     })
   }
 
@@ -294,7 +330,7 @@ export class VNPayService {
       checkSum: checksum,
       terminalID: merchant.terminalId,
       txnId: dto.txnId,
-      payDate: dto.payDate // Đảm bảo đúng định dạng dd/MM/yyyy
+      payDate: dto.payDate
     }
 
     try {
