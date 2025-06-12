@@ -271,6 +271,7 @@ export class AuthService {
                   create: {
                     name: data.branchName,
                     address: data.address,
+                    expiryAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
                     shop: {
                       create: {
                         code: shopCode,

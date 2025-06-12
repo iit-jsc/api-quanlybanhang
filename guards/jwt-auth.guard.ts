@@ -47,6 +47,9 @@ export class JwtAuthGuard implements CanActivate {
       if (!account || !payload.branchId)
         throw new HttpException('Phiên bản đăng nhập đã hết hạn!', HttpStatus.UNAUTHORIZED)
 
+      if (!account.branches?.[0]?.expiryAt && account.branches?.[0]?.expiryAt < new Date())
+        throw new HttpException('Đã hết thời gian sử dụng!', HttpStatus.BAD_REQUEST)
+
       request.branchId = payload.branchId
       request.deviceId = payload.deviceId
       request.accountId = account.id
@@ -55,7 +58,7 @@ export class JwtAuthGuard implements CanActivate {
 
       return true
     } catch (error) {
-      throw new HttpException('Phiên bản đăng nhập đã hết hạn!', HttpStatus.UNAUTHORIZED)
+      throw new HttpException(error.message, error.status || HttpStatus.BAD_REQUEST)
     }
   }
 

@@ -611,6 +611,7 @@ model Branch {
   bannerURL           String?              @db.Text
   address             String?              @db.Text
   phone               String?
+  expiryAt            DateTime? 
   createdBy           String?
   updatedBy           String?
   creator             Account?             @relation("creator", fields: [createdBy], references: [id])
@@ -728,6 +729,7 @@ enum NotifyType {
 enum AccountStatus {
   ACTIVE
   INACTIVE
+  DELETED
 }
 
 enum ShopStatus {
