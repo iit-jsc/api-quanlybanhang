@@ -1,11 +1,22 @@
-import { IsNotEmpty } from 'class-validator'
-import { PaymentDto } from 'src/order/dto/payment.dto'
+import { OrderStatus } from '@prisma/client'
+import { IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
 
-export class CreateQrCodeDto extends PaymentDto {
+export class CreateQrCodeDto {
   @IsNotEmpty()
   tableId: string
 
-  totalPeople?: number
+  @IsOptional()
+  @Min(1)
+  moneyReceived: number
 
+  @IsOptional()
+  @IsEnum(OrderStatus)
+  status: OrderStatus
+
+  voucherId?: string
+  discountCode?: string
+  customerId?: string
+  note?: string
+  totalPeople?: number
   code?: string
 }

@@ -5,7 +5,13 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { HttpService } from '@nestjs/axios'
 import { PrismaService } from 'nestjs-prisma'
 import { SetupMerchantDto } from './dto/merchant.dto'
-import { OrderStatus, OrderType, PrismaClient, TransactionStatus } from '@prisma/client'
+import {
+  OrderStatus,
+  OrderType,
+  PaymentMethodType,
+  PrismaClient,
+  TransactionStatus
+} from '@prisma/client'
 import { CreateQrCodeDto } from './dto/qrCode.dto'
 import { CheckTransactionDto } from './dto/check-transaction.dto'
 import { VNPayIPNDto } from './dto/vnpay-ipn.dto'
@@ -92,6 +98,12 @@ export class VNPayService {
 
   async createOrderByTableId(data: CreateQrCodeDto, accountId: string, branchId: string) {
     return await this.prisma.$transaction(async prisma => {
+      const paymentMethod = await this.prisma.paymentMethod.findUnique({
+        where: {
+          type_branchId: { type: PaymentMethodType.VNPAY, branchId }
+        }
+      })
+
       // Lấy danh sách món từ bàn
       const orderDetailsInTable = await prisma.orderDetail.findMany({
         where: {
@@ -159,6 +171,7 @@ export class VNPayService {
           voucherValue: voucher.voucherValue,
           voucherProducts: voucher.voucherProducts,
           customerDiscountValue: customerDiscountValue,
+          paymentMethodId: paymentMethod?.id,
           ...(data.customerId && { customerId: data.customerId }),
           orderDetails: {
             connect: orderDetailsInTable.map(od => ({ id: od.id }))

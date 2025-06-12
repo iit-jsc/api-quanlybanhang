@@ -7,7 +7,8 @@ import {
   Req,
   Body,
   Delete,
-  Param
+  Param,
+  Get
 } from '@nestjs/common'
 import { VNPayService } from './vnpay.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
@@ -50,7 +51,7 @@ export class VNPayController {
     return await this.vnPayService.deleteTransactionByTableId(tableId)
   }
 
-  @Post('ipn')
+  @Get('ipn')
   @HttpCode(HttpStatus.OK)
   async vnPayIPN(@Body() ipnDto: VNPayIPNDto) {
     return this.vnPayService.vnPayIPNCallback(ipnDto)
