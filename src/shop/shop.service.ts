@@ -6,6 +6,8 @@ import { PrismaService } from 'nestjs-prisma'
 import { CreateShopDto, CreateUserDto } from './dto/shop.dto'
 import { DiscountType, PaymentMethodType, PrismaClient, ProductOptionType } from '@prisma/client'
 import { generateCode } from 'utils/Helps'
+import { PRODUCT_LIST_EXAMPLE } from 'data/example'
+
 @Injectable()
 export class ShopService {
   constructor(private readonly prisma: PrismaService) {}
@@ -414,6 +416,8 @@ export class ShopService {
       return []
     }
 
+    // Đọc product.json một lần ở đây
+
     const createdProductTypes = await Promise.all(
       productTypes.map(async type => {
         const createdType = await prisma.productType.create({
@@ -434,6 +438,10 @@ export class ShopService {
         const createdProducts = await Promise.all(
           type.products.map(productName => {
             const unitId = measurementUnitIds[Math.floor(Math.random() * measurementUnitIds.length)]
+            // Random thumbnail & description từ product.json
+            const randomOption =
+              PRODUCT_LIST_EXAMPLE[Math.floor(Math.random() * PRODUCT_LIST_EXAMPLE.length)]
+
             return prisma.product.create({
               data: {
                 name: productName,
@@ -441,12 +449,12 @@ export class ShopService {
                 branchId: branchId,
                 unitId: unitId,
                 productTypeId: createdType.id,
-                price: faker.number.float({ min: 10000, max: 500000, precision: 1000 }),
+                price: faker.number.float({ min: 10000, max: 50000, precision: 1000 }),
                 code: generateCode('SP'),
-                oldPrice: faker.number.float({ min: 10000, max: 500000, precision: 1000 }),
-                description: faker.commerce.productDescription(),
-                thumbnail: faker.image.urlPicsumPhotos(),
-                photoURLs: [faker.image.url(), faker.image.url()]
+                oldPrice: faker.number.float({ min: 10000, max: 50000, precision: 1000 }),
+                description: randomOption.description,
+                thumbnail: randomOption.url,
+                photoURLs: [randomOption.url]
               }
             })
           })
@@ -474,8 +482,8 @@ export class ShopService {
       {
         name: 'Khu vực B',
         tables: [
-          { name: 'Bàn 1', seat: 6 },
-          { name: 'Bàn 2', seat: 2 }
+          { name: 'Bàn 4', seat: 6 },
+          { name: 'Bàn 5', seat: 2 }
         ]
       }
     ]
@@ -551,6 +559,10 @@ export class ShopService {
         representative: null,
         type: PaymentMethodType.CASH,
         active: true
+      },
+      {
+        type: PaymentMethodType.VNPAY,
+        active: false
       }
     ]
 

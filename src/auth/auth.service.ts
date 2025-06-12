@@ -8,18 +8,22 @@ import { LoginDto } from './dto/login.dto'
 import { mapResponseLogin } from 'map-responses/account.map-response'
 import { AnyObject, TokenPayload } from 'interfaces/common.interface'
 import { AccessBranchDto } from './dto/access-branch.dto'
-import { AccountStatus } from '@prisma/client'
+import { AccountStatus, PrismaClient } from '@prisma/client'
 import { userShortSelect } from 'responses/user.response'
 import { roleSelect } from 'responses/role.response'
 import { accountLoginSelect, accountShortSelect } from 'responses/account.response'
 import { shopLoginSelect } from 'responses/shop.response'
 import { ChangeMyPasswordDto } from './dto/change-password.dto'
+import { RegisterDto } from './dto/register.dto'
+import { ShopService } from 'src/shop/shop.service'
+import axios from 'axios'
 
 @Injectable()
 export class AuthService {
   constructor(
     private readonly prisma: PrismaService,
-    private jwtService: JwtService
+    private jwtService: JwtService,
+    private readonly shopService: ShopService
   ) {}
 
   async login(data: LoginDto) {
@@ -242,5 +246,106 @@ export class AuthService {
       }
     })
     return
+  }
+
+  async register(data: RegisterDto) {
+    const captchaSecret = process.env.RECAPTCHA_SECRET_KEY
+    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${captchaSecret}&response=${data.captchaToken}`
+    const captchaRes = await axios.post(verifyUrl)
+    if (!captchaRes.data.success) {
+      throw new HttpException('Captcha không hợp lệ!', HttpStatus.BAD_REQUEST)
+    }
+
+    return this.prisma.$transaction(
+      async (prisma: PrismaClient) => {
+        const shopCode = data.shopName.replace(/\s+/g, '-') + '-' + Date.now()
+
+        const user = await prisma.user.create({
+          data: {
+            name: data.fullName,
+            phone: data.phone,
+            account: {
+              create: {
+                password: bcrypt.hashSync(data.password, 10),
+                branches: {
+                  create: {
+                    name: data.branchName,
+                    address: data.address,
+                    shop: {
+                      create: {
+                        code: shopCode,
+                        name: data.shopName,
+                        address: data.address,
+                        businessTypeCode: 'FOOD_BEVERAGE'
+                      }
+                    }
+                  }
+                },
+                status: AccountStatus.ACTIVE
+              }
+            }
+          },
+          select: {
+            account: {
+              select: {
+                id: true,
+                branches: {
+                  select: {
+                    id: true,
+                    shopId: true
+                  }
+                }
+              }
+            }
+          }
+        })
+
+        const branchId = user.account.branches[0].id
+        const shopId = user.account.branches[0].shopId
+
+        // Tạo nhóm người dùng
+        const newRoles = await this.shopService.createRoles(shopId, prisma)
+        const adminRole = newRoles.find(role => role.name === 'Quản trị viên')
+
+        // Gán role admin cho account vừa tạo, tạo Nhóm nhân viên / nhóm khách hàng
+        await Promise.all([
+          prisma.account.update({
+            where: { id: user.account.id },
+            data: {
+              roles: {
+                connect: { id: adminRole.id }
+              }
+            }
+          }),
+          this.shopService.createEmployeeGroups(shopId, prisma),
+          this.shopService.createCustomerTypes(shopId, prisma)
+        ])
+
+        // Tạo các đơn vị đo, loại sản phẩm và khu vực cho chi nhánh vừa tạo
+        const measurementUnits = await this.shopService.createMeasurementUnit(
+          'FOOD_BEVERAGE',
+          branchId,
+          prisma
+        )
+
+        // Tạo các đơn vị đo, loại sản phẩm và khu vực cho từng chi nhánh trong phạm vi giao dịch
+        await Promise.all([
+          this.shopService.createProductTypes(
+            'FOOD_BEVERAGE',
+            branchId,
+            measurementUnits.map(item => item.id),
+            prisma
+          ),
+          this.shopService.createAreas(branchId, prisma),
+          this.shopService.createPaymentMethods(branchId, prisma)
+        ])
+
+        return
+      },
+      {
+        maxWait: 5000,
+        timeout: 10000
+      }
+    )
   }
 }
