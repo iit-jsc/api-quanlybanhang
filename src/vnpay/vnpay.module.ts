@@ -1,11 +1,13 @@
 import { DynamicModule, Global, Module } from '@nestjs/common'
-import { VnpayService } from './vnpay.service'
-import { VnpayController } from './vnpay.controller'
+import { HttpModule } from '@nestjs/axios'
+import { VNPayService } from './vnpay.service'
+import { VNPayController } from './vnpay.controller'
 import { TrashController } from 'src/trash/trash.controller'
 import { TrashService } from 'src/trash/trash.service'
 
 @Global()
 @Module({
+  imports: [HttpModule],
   controllers: [TrashController],
   providers: [TrashService]
 })
@@ -14,9 +16,10 @@ export class VnpayModule {
     return {
       module: VnpayModule,
       global: options?.isGlobal ?? false,
-      providers: [VnpayService],
-      exports: [VnpayService],
-      controllers: [VnpayController]
+      imports: [HttpModule],
+      providers: [VNPayService],
+      exports: [VNPayService],
+      controllers: [VNPayController]
     }
   }
 }

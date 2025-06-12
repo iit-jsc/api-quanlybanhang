@@ -28,11 +28,7 @@ import { Roles } from 'guards/roles.decorator'
 import { RolesGuard } from 'guards/roles.guard'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
-import {
-  PaymentFromTableDto,
-  PaymentWithVNPayDto,
-  RequestPaymentDto
-} from 'src/order/dto/payment.dto'
+import { PaymentFromTableDto, RequestPaymentDto } from 'src/order/dto/payment.dto'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 
 @Controller('table')
@@ -93,27 +89,6 @@ export class TableController {
     ;('')
 
     return this.tableService.payment(id, data, accountId, branchId, deviceId)
-  }
-
-  @Post('/:id/payment-with-vnpay')
-  @HttpCode(HttpStatus.OK)
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(permissions.order.payment)
-  async paymentWithVNPay(
-    @Param('id') id: string,
-    @Req() req,
-    @Body() data: PaymentWithVNPayDto,
-    @Req() reqJWT: RequestJWT
-  ) {
-    const { branchId, accountId } = reqJWT
-
-    const ipAddr =
-      (req.headers['x-forwarded-for'] as string) ||
-      req.socket?.remoteAddress ||
-      req.connection?.remoteAddress ||
-      ''
-
-    return this.tableService.paymentWithVNPay(id, data, ipAddr, accountId, branchId)
   }
 
   @Post('/:id/request-payment')

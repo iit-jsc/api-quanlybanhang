@@ -464,7 +464,7 @@ model Order {
   orderDetails          OrderDetail[]
   creator               Account?           @relation("creator", fields: [createdBy], references: [id])
   updater               Account?           @relation("updater", fields: [updatedBy], references: [id])
-  vnpayTransactions     VnpayTransaction[]
+  vnPayTransactions     VNPayTransaction[]
 
   @@unique([branchId, code])
 }
@@ -486,7 +486,7 @@ model OrderDetail {
   productOrigin        Product?              @relation(fields: [productOriginId], references: [id])
   productOriginId      String?
   branch               Branch?               @relation(fields: [branchId], references: [id])
-  order                Order?                @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order                Order?                @relation(fields: [orderId], references: [id])
   table                Table?                @relation(fields: [tableId], references: [id])
   tableId              String?
   createdBy            String?
@@ -523,22 +523,23 @@ model Area {
 }
 
 model Table {
-  id               String            @id @default(uuid())
-  branchId         String
-  areaId           String
-  name             String
-  seat             Int?
-  orderDetails     OrderDetail[]
-  createdAt        DateTime          @default(now())
-  updatedAt        DateTime          @updatedAt
-  branch           Branch?           @relation(fields: [branchId], references: [id])
-  area             Area?             @relation(fields: [areaId], references: [id], onDelete: Cascade)
-  createdBy        String?
-  updatedBy        String?
-  creator          Account?          @relation("creator", fields: [createdBy], references: [id])
-  updater          Account?          @relation("updater", fields: [updatedBy], references: [id])
-  customerRequests CustomerRequest[]
-  orders           Order[]
+  id                String             @id @default(uuid())
+  branchId          String
+  areaId            String
+  name              String
+  seat              Int?
+  orderDetails      OrderDetail[]
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  branch            Branch?            @relation(fields: [branchId], references: [id])
+  area              Area?              @relation(fields: [areaId], references: [id], onDelete: Cascade)
+  createdBy         String?
+  updatedBy         String?
+  creator           Account?           @relation("creator", fields: [createdBy], references: [id])
+  updater           Account?           @relation("updater", fields: [updatedBy], references: [id])
+  customerRequests  CustomerRequest[]
+  orders            Order[]
+  vnPayTransactions VNPayTransaction[]
 }
 
 model DiscountIssue {
@@ -610,6 +611,7 @@ model Branch {
   bannerURL           String?              @db.Text
   address             String?              @db.Text
   phone               String?
+  expiryAt            DateTime?
   createdBy           String?
   updatedBy           String?
   creator             Account?             @relation("creator", fields: [createdBy], references: [id])
@@ -634,7 +636,8 @@ model Branch {
   productOptionGroups ProductOptionGroup[]
   activityLogs        ActivityLog[]
   accountSockets      AccountSocket[]
-  vnpayConfigs        VnpayConfig[]
+  vnPayMerchants      VNPayMerchant[]
+  VNPayTransaction    VNPayTransaction[]
 }
 
 model AccountSocket {
@@ -727,6 +730,7 @@ enum NotifyType {
 enum AccountStatus {
   ACTIVE
   INACTIVE
+  DELETED
 }
 
 enum ShopStatus {
@@ -827,20 +831,35 @@ enum ProductOptionType {
   INCLUDE
 }
 
-model VnpayTransaction {
-  id        String   @id @default(uuid())
-  orderId   String
-  orderCode String
-  vnpTxnRef String   @unique
-  createdAt DateTime @default(now())
-  order     Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+enum TransactionStatus {
+  SUCCESS
+  PENDING
+  FAILED
 }
 
-model VnpayConfig {
-  id            String   @id @default(uuid())
-  branchId      String   @unique
-  createdAt     DateTime @default(now())
-  vnpTmnCode    String
-  vnpHashSecret String
-  branch        Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+model VNPayTransaction {
+  id        String            @id @default(uuid())
+  orderId   String
+  branchId  String?
+  branch    Branch?           @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  tableId   String
+  vnpTxnRef String            @unique
+  createdAt DateTime          @default(now())
+  status    TransactionStatus @default(PENDING)
+  order     Order?            @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  table     Table?            @relation(fields: [tableId], references: [id], onDelete: Cascade)
+}
+
+model VNPayMerchant {
+  id                  String   @id @default(uuid())
+  branchId            String   @unique
+  createdAt           DateTime @default(now())
+  merchantName        String
+  merchantType        String
+  merchantCode        String
+  genQRSecretKey      String?
+  checkTransSecretKey String?
+  refundSecretKey     String?
+  terminalId          String
+  branch              Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
 }

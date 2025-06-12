@@ -13,6 +13,7 @@ export const accountLoginSelect: Prisma.AccountSelect = {
   id: true,
   updatedAt: true,
   password: true,
+  status: true,
   user: {
     select: userShortSelect
   }
@@ -20,8 +21,9 @@ export const accountLoginSelect: Prisma.AccountSelect = {
 
 export const accountJWTAuthSelect = (branchId: string): Prisma.AccountSelect => ({
   id: true,
+  status: true,
   branches: {
-    select: { id: true, shopId: true },
+    select: { id: true, shopId: true, expiryAt: true },
     where: { id: branchId }
   },
   roles: {
