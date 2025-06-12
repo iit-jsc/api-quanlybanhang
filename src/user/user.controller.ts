@@ -60,7 +60,7 @@ export class UserController {
     return this.userService.checkExists(checkExistsDto)
   }
 
-  @Delete('my-account')
+  @Delete('me')
   @HttpCode(HttpStatus.OK)
   deleteMyAccount(@Req() req: RequestJWT) {
     const { accountId } = req
