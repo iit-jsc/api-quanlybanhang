@@ -86,8 +86,6 @@ export class TableController {
   ) {
     const { accountId, branchId, deviceId } = reqJWT
 
-    ;('')
-
     return this.tableService.payment(id, data, accountId, branchId, deviceId)
   }
 

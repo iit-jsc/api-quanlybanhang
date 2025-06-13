@@ -1,5 +1,16 @@
 [
   {
+    "name": "Quản lý chi nhánh",
+    "code": "BRANCH",
+    "type": "FOOD_BEVERAGE",
+    "permissions": [
+      {
+        "code": "UPDATE_BRANCH",
+        "name": "Cập nhật chi nhánh"
+      }
+    ]
+  },
+  {
     "name": "Quản lý khu vực",
     "code": "AREA",
     "type": "FOOD_BEVERAGE",

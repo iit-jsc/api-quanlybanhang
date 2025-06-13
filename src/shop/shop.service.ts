@@ -287,7 +287,8 @@ export class ShopService {
           'CASHIER_VIEW',
           'STAFF_VIEW',
           'CHEF_VIEW',
-          'MANAGE_VIEW'
+          'MANAGE_VIEW',
+          'UPDATE_BRANCH'
         ]
       }
     ]

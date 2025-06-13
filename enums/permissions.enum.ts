@@ -105,5 +105,8 @@ export const permissions = {
     STAFF: 'STAFF_VIEW',
     kitchen: 'CHEF_VIEW',
     manage: 'MANAGE_VIEW'
+  },
+  branch: {
+    update: 'UPDATE_BRANCH'
   }
 }

@@ -255,6 +255,16 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
+    const existingUser = await this.prisma.user.findUnique({
+      where: {
+        phone: data.phone
+      }
+    })
+
+    if (existingUser) {
+      throw new HttpException('Số điện thoại đã được sử dụng!', HttpStatus.CONFLICT)
+    }
+
     return this.prisma.$transaction(
       async (prisma: PrismaClient) => {
         const shopCode = data.shopName.replace(/\s+/g, '-') + '-' + Date.now()

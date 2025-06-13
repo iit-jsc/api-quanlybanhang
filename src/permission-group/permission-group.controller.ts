@@ -1,6 +1,6 @@
-import { Controller, Get, HttpCode, HttpStatus, Query } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, Query } from '@nestjs/common'
 import { PermissionGroupService } from './permission-group.service'
-import { FindManyPermissionGroupDto } from './dto/permission-group.dto'
+import { CreatePermissionGroupDto, FindManyPermissionGroupDto } from './dto/permission-group.dto'
 
 @Controller('permission-group')
 export class PermissionGroupController {
@@ -10,5 +10,11 @@ export class PermissionGroupController {
   @HttpCode(HttpStatus.OK)
   findAll(@Query() data: FindManyPermissionGroupDto) {
     return this.permissionGroupService.findAll(data)
+  }
+
+  @Post('')
+  @HttpCode(HttpStatus.OK)
+  create(@Body() data: CreatePermissionGroupDto) {
+    return this.permissionGroupService.create(data)
   }
 }

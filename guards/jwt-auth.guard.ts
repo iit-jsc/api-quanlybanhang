@@ -22,11 +22,11 @@ export class JwtAuthGuard implements CanActivate {
     const request = this.getRequest(context)
 
     const authHeader = this.getAuthHeader(context)
-    // const apiKeyHeader = request.headers?.['x-api-key'] || request.auth?.['x-api-key']
+    const apiKeyHeader = request.headers?.['x-api-key'] || request.auth?.['x-api-key']
 
-    // if (!apiKeyHeader || apiKeyHeader !== apiKeyEnv) {
-    //   throw new HttpException('API key không hợp lệ!', HttpStatus.UNAUTHORIZED)
-    // }
+    if (!apiKeyHeader || apiKeyHeader !== process.env.X_API_KEY) {
+      throw new HttpException('API key không hợp lệ!', HttpStatus.UNAUTHORIZED)
+    }
 
     if (!authHeader) return false
 
