@@ -356,11 +356,15 @@ export class VNPayService {
 
   async vnPayIPNCallback(ipnDto: VNPayIPNDto) {
     const { txnId, payDate, responseCode, checksum } = ipnDto
+    console.log(111)
+
     // 1. Lấy transaction theo txnId
     const transaction = await this.prisma.vNPayTransaction.findUnique({
       where: { vnpTxnRef: txnId },
       include: { order: true }
     })
+
+    console.log(111, transaction)
 
     if (!transaction) {
       return {
@@ -369,6 +373,8 @@ export class VNPayService {
         data: { txnId }
       }
     }
+
+    console.log(222, transaction)
 
     // 2. Lấy thông tin merchant qua order -> branchId -> getMerchantInfo
     const merchant = await this.getMerchantInfo(transaction.order.branchId)
@@ -380,10 +386,15 @@ export class VNPayService {
       }
     }
 
+    console.log(333, merchant)
+
     // 3. Xác thực checksum (dùng secret key từ .env)
     const secretKey = process.env.VNP_IPN_SECRET_KEY
     const dataString = `${payDate}|${txnId}|${merchant.merchantCode}|${merchant.terminalId}|${secretKey}`
     const validChecksum = crypto.createHash('md5').update(dataString).digest('hex').toLowerCase()
+
+    console.log(444, validChecksum)
+
     if (checksum !== validChecksum) {
       return {
         code: '06',
@@ -401,6 +412,8 @@ export class VNPayService {
         data: { amount: orderAmount }
       }
     }
+
+    console.log(444, orderAmount)
 
     // 5. Đơn đã thanh toán rồi
     if (transaction.order.isPaid) {
