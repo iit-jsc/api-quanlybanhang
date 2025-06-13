@@ -322,7 +322,7 @@ export class VNPayService {
     }
 
     // Tính checksum
-    const dataString = `${dto.payDate}|${dto.txnId}|${merchant.merchantCode}|${merchant.terminalId}|${process.env.VNP_CHECK_TRANS_SECRET_KEY}`
+    const dataString = `${dto.payDate}|${dto.txnId}|${merchant.merchantCode}|${merchant.terminalId}|${merchant.checkTransSecretKey}`
     const checksum = crypto.createHash('md5').update(dataString).digest('hex').toLowerCase()
 
     const apiBody = {
@@ -334,18 +334,13 @@ export class VNPayService {
     }
 
     try {
-      const apiUrl = process.env.VNP_CHECK_TRANS_URL
-      const response = await this.httpService.post(apiUrl, apiBody).toPromise()
+      const response = await this.httpService
+        .post(process.env.VNP_CHECK_TRANS_URL, apiBody)
+        .toPromise()
+
       const result = response.data
-      return {
-        valid: true,
-        merchant: {
-          merchantCode: merchant.merchantCode,
-          terminalId: merchant.terminalId,
-          merchantName: merchant.merchantName
-        },
-        vnpayResult: result
-      }
+
+      return result
     } catch (error) {
       throw new HttpException(
         error?.response?.data || error.message || 'Lỗi khi gọi đối tác VNPay',
@@ -356,15 +351,12 @@ export class VNPayService {
 
   async vnPayIPNCallback(ipnDto: VNPayIPNDto) {
     const { txnId, payDate, responseCode, checksum } = ipnDto
-    console.log(111)
 
     // 1. Lấy transaction theo txnId
     const transaction = await this.prisma.vNPayTransaction.findUnique({
       where: { vnpTxnRef: txnId },
       include: { order: true }
     })
-
-    console.log(111, transaction)
 
     if (!transaction) {
       return {
@@ -373,8 +365,6 @@ export class VNPayService {
         data: { txnId }
       }
     }
-
-    console.log(222, transaction)
 
     // 2. Lấy thông tin merchant qua order -> branchId -> getMerchantInfo
     const merchant = await this.getMerchantInfo(transaction.order.branchId)
@@ -386,14 +376,10 @@ export class VNPayService {
       }
     }
 
-    console.log(333, merchant)
-
     // 3. Xác thực checksum (dùng secret key từ .env)
     const secretKey = process.env.VNP_IPN_SECRET_KEY
     const dataString = `${payDate}|${txnId}|${merchant.merchantCode}|${merchant.terminalId}|${secretKey}`
     const validChecksum = crypto.createHash('md5').update(dataString).digest('hex').toLowerCase()
-
-    console.log(444, validChecksum)
 
     if (checksum !== validChecksum) {
       return {
@@ -412,8 +398,6 @@ export class VNPayService {
         data: { amount: orderAmount }
       }
     }
-
-    console.log(444, orderAmount)
 
     // 5. Đơn đã thanh toán rồi
     if (transaction.order.isPaid) {

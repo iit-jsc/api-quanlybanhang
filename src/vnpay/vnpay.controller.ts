@@ -39,6 +39,7 @@ export class VNPayController {
 
   @Post('check-transaction')
   @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
   async checkTransaction(@Body() dto: CheckTransactionDto, @Req() reqJWT: RequestJWT) {
     const { branchId } = reqJWT
 
