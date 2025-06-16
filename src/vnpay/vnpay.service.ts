@@ -360,6 +360,8 @@ export class VNPayService {
       include: { order: true }
     })
 
+    console.log('******transaction******', transaction)
+
     if (!transaction) {
       return {
         code: '03',
@@ -378,6 +380,8 @@ export class VNPayService {
       }
     }
 
+    console.log('******merchant******', merchant)
+
     // 3. Xác thực checksum (dùng secret key từ .env)
     const secretKey = process.env.VNP_IPN_SECRET_KEY
     const dataString = `${payDate}|${txnId}|${merchant.merchantCode}|${merchant.terminalId}|${secretKey}`
@@ -391,6 +395,8 @@ export class VNPayService {
       }
     }
 
+    console.log('******checksum******', checksum)
+
     // 4. Kiểm tra số tiền thanh toán có đúng không
     const orderAmount = transaction.order.orderTotal
     if (Number(ipnDto['amount']) !== Number(orderAmount)) {
@@ -401,6 +407,8 @@ export class VNPayService {
       }
     }
 
+    console.log('******orderAmount******', orderAmount)
+
     // 5. Đơn đã thanh toán rồi
     if (transaction.order.isPaid) {
       return {
@@ -410,6 +418,8 @@ export class VNPayService {
       }
     }
 
+    console.log('******run******', 1)
+
     // 6. Cập nhật trạng thái giao dịch (Merchant Payment)
     await this.prisma.vNPayTransaction.update({
       where: { vnpTxnRef: txnId },
@@ -417,6 +427,8 @@ export class VNPayService {
         status: code === '00' ? TransactionStatus.SUCCESS : TransactionStatus.FAILED
       }
     })
+
+    console.log('******run******', 2)
 
     // 7. Cập nhật trạng thái đơn hàng nếu thành công
     if (transaction.orderId && code === '00') {
@@ -427,6 +439,8 @@ export class VNPayService {
         data: { txnId }
       }
     }
+
+    console.log('******run******', 3)
 
     // 8. Trường hợp khác (timeout, lỗi tạo đơn...)
     return {
