@@ -74,7 +74,7 @@ export class AuthService {
 
     const currentShop = this.getCurrentShopFromShops(shops, data.branchId)
 
-    if (!currentShop.branches[0].expiryAt && currentShop.branches[0].expiryAt < new Date())
+    if (!currentShop.branches[0].expiryAt || currentShop.branches[0].expiryAt < new Date())
       throw new HttpException('Đã hết thời gian sử dụng!', HttpStatus.BAD_REQUEST)
 
     // set cookie
