@@ -406,6 +406,9 @@ export class VNPayService {
 
     // 4. Kiểm tra số tiền thanh toán có đúng không
     const orderAmount = transaction.order.orderTotal
+
+    console.log('*****START CHECK AMOUNT*****')
+
     // if (Number(ipnDto['amount']) !== Number(orderAmount)) {
     if (true) {
       return {
