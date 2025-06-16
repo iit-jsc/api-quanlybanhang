@@ -387,6 +387,8 @@ export class VNPayService {
     const dataString = `${payDate}|${txnId}|${merchant.merchantCode}|${merchant.terminalId}|${secretKey}`
     const validChecksum = crypto.createHash('md5').update(dataString).digest('hex').toLowerCase()
 
+    console.log('******checksum******', secretKey, validChecksum)
+
     if (checksum !== validChecksum) {
       return {
         code: '06',
@@ -395,7 +397,7 @@ export class VNPayService {
       }
     }
 
-    console.log('******checksum******', checksum)
+    console.log('******checksum ok******')
 
     // 4. Kiểm tra số tiền thanh toán có đúng không
     const orderAmount = transaction.order.orderTotal
