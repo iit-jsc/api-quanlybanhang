@@ -379,6 +379,7 @@ export class VNPayService {
 
     // 2. Lấy thông tin merchant qua order -> branchId -> getMerchantInfo
     const merchant = await this.getMerchantInfo(transaction.order.branchId)
+
     if (!merchant) {
       return {
         code: '06',
@@ -406,11 +407,13 @@ export class VNPayService {
 
     // 4. Kiểm tra số tiền thanh toán có đúng không
     const orderAmount = transaction.order.orderTotal
+    const orderDetails = await this.prisma.orderDetail.findMany({
+      where: { tableId: transaction.order.tableId }
+    })
 
-    console.log('*****START CHECK AMOUNT*****')
+    const totalAmount = getOrderTotal(orderDetails)
 
-    // if (Number(ipnDto['amount']) !== Number(orderAmount)) {
-    if (true) {
+    if (Number(ipnDto['amount']) !== orderAmount || orderAmount !== totalAmount) {
       return {
         code: '07',
         message: 'Số tiền không chính xác',
