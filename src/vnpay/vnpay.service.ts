@@ -352,7 +352,7 @@ export class VNPayService {
   async vnPayIPNCallback(ipnDto: VNPayIPNDto) {
     const { txnId, payDate, responseCode, checksum } = ipnDto
 
-    console.log('run IPN Callback with data:', ipnDto)
+    console.log(new Date(), 'run IPN Callback with data:', ipnDto)
 
     // 1. Lấy transaction theo txnId
     const transaction = await this.prisma.vNPayTransaction.findUnique({
