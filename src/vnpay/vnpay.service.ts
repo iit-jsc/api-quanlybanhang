@@ -350,7 +350,18 @@ export class VNPayService {
   }
 
   async vnPayIPNCallback(ipnDto: VNPayIPNDto) {
-    const { txnId, payDate, code, checksum } = ipnDto
+    const {
+      txnId,
+      payDate,
+      code,
+      checksum,
+      msgType,
+      qrTrace,
+      bankCode,
+      mobile,
+      accountNo,
+      amount
+    } = ipnDto
 
     console.log(new Date(), 'run IPN Callback with data:', ipnDto)
 
@@ -382,18 +393,22 @@ export class VNPayService {
 
     console.log('******merchant******', merchant)
 
-    // 3. Xác thực checksum (dùng secret key từ .env)
+    // 3. Xác thực checksum theo định dạng VNPay QR
     const secretKey = process.env.VNP_IPN_SECRET_KEY
-    const dataString = `${payDate}|${txnId}|${merchant.merchantCode}|${merchant.terminalId}|${secretKey}`
-    const validChecksum = crypto.createHash('md5').update(dataString).digest('hex').toLowerCase()
+    const dataString = `${code}|${msgType}|${txnId}|${qrTrace}|${bankCode}|${mobile}|${accountNo || ''}|${amount}|${payDate}|${merchant.merchantCode}|${secretKey}`
+    const validChecksum = crypto.createHash('md5').update(dataString).digest('hex').toUpperCase()
 
-    console.log('******checksum******', secretKey, validChecksum)
+    console.log('******checksum data******', dataString)
 
     if (checksum !== validChecksum) {
       return {
         code: '06',
         message: 'Sai thông tin xác thực',
-        data: { txnId }
+        data: {
+          txnId,
+          expected: validChecksum,
+          received: checksum
+        }
       }
     }
 
