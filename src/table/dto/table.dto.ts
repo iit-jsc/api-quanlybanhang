@@ -54,10 +54,4 @@ export class addDishDto {
   productOptionIds?: string[]
 }
 
-export class AddDishesByCustomerDto extends AddDishesDto {
-  @IsNotEmpty()
-  @IsString()
-  branchId: string
-}
-
 export class UpdateTableDto extends PartialType(CreateTableDto) {}

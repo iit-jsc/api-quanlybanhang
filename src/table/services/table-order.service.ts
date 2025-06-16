@@ -1,7 +1,7 @@
 import { OrderDetailStatus, PrismaClient } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { AddDishesByCustomerDto, AddDishesDto, addDishDto } from '../dto/table.dto'
+import { AddDishesDto, addDishDto } from '../dto/table.dto'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
 import { productShortSelect } from 'responses/product.response'
@@ -57,10 +57,6 @@ export class TableOrderService {
     await this.orderDetailGatewayHandler.handleCreateOrderDetails(result, branchId, deviceId)
 
     return result
-  }
-
-  async addDishesByCustomer(id: string, data: AddDishesByCustomerDto) {
-    console.log(id, data)
   }
 
   async addDish(

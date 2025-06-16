@@ -1,6 +1,4 @@
-import { Injectable } from '@nestjs/common'
 import {
-  AddDishesByCustomerDto,
   AddDishesDto,
   addDishDto,
   CreateTableDto,
@@ -15,6 +13,7 @@ import { TableCrudService } from './services/table-crud.service'
 import { TableOrderService } from './services/table-order.service'
 import { TablePaymentService } from './services/table-payment.service'
 import { TableOperationsService } from './services/table-operations.service'
+import { Injectable } from '@nestjs/common'
 
 @Injectable()
 export class TableService {
@@ -57,10 +56,6 @@ export class TableService {
     return this.tableOrderService.addDishes(tableId, data, accountId, branchId, deviceId)
   }
 
-  async addDishesByCustomer(id: string, data: AddDishesByCustomerDto) {
-    return this.tableOrderService.addDishesByCustomer(id, data)
-  }
-
   async addDish(
     tableId: string,
     data: addDishDto,
@@ -90,4 +85,19 @@ export class TableService {
   async requestPayment(id: string, branchId: string, deviceId: string) {
     return this.tableOperationsService.requestPayment(id, branchId, deviceId)
   }
+
+  // async checkTablePaying(tableId: string) {
+  //   const vnPayTransaction = await this.prisma.vNPayTransaction.findFirst({
+  //     where: { tableId: tableId, status: 'PENDING' },
+  //     select: { table: { select: { id: true, name: true } } }
+  //   })
+
+  //   if (vnPayTransaction)
+  //     throw new HttpException(
+  //       `${vnPayTransaction.table?.name} đang trong quá trình thanh toán!`,
+  //       HttpStatus.BAD_REQUEST
+  //     )
+
+  //   return vnPayTransaction !== null
+  // }
 }
