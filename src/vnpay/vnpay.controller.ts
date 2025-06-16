@@ -7,7 +7,8 @@ import {
   Req,
   Body,
   Delete,
-  Param
+  Param,
+  UseInterceptors
 } from '@nestjs/common'
 import { VNPayService } from './vnpay.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
@@ -53,10 +54,13 @@ export class VNPayController {
 
     return await this.vnPayService.deleteTransactionByTableId(tableId, branchId)
   }
-
   @Post('ipn')
   @HttpCode(HttpStatus.OK)
+  @UseInterceptors() // Override global interceptor với empty array
   async vnPayIPN(@Body() ipnDto: VNPayIPNDto) {
-    return this.vnPayService.vnPayIPNCallback(ipnDto)
+    const resVNP = this.vnPayService.vnPayIPNCallback(ipnDto)
+    console.log('******vnPayIPN******', resVNP)
+
+    return resVNP
   }
 }
