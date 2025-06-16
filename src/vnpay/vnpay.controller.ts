@@ -58,7 +58,7 @@ export class VNPayController {
   @HttpCode(HttpStatus.OK)
   @UseInterceptors() // Override global interceptor với empty array
   async vnPayIPN(@Body() ipnDto: VNPayIPNDto) {
-    const resVNP = this.vnPayService.vnPayIPNCallback(ipnDto)
+    const resVNP = await this.vnPayService.vnPayIPNCallback(ipnDto)
     console.log('******vnPayIPN******', resVNP)
 
     return resVNP
