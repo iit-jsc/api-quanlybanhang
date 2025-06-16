@@ -413,6 +413,10 @@ export class VNPayService {
 
     const totalAmount = getOrderTotal(orderDetails)
 
+    console.log('******* totalAmount *********', totalAmount)
+    console.log('******* orderAmount *********', orderAmount)
+    console.log('******* ipnDto *********', ipnDto['amount'])
+
     if (Number(ipnDto['amount']) !== orderAmount || orderAmount !== totalAmount) {
       return {
         code: '07',
