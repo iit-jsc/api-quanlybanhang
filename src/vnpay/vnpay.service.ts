@@ -363,8 +363,6 @@ export class VNPayService {
       amount
     } = ipnDto
 
-    console.log(new Date(), 'run IPN Callback with data:', ipnDto)
-
     // 1. Lấy transaction theo txnId
     const transaction = await this.prisma.vNPayTransaction.findUnique({
       where: { vnpTxnRef: txnId },
@@ -408,7 +406,8 @@ export class VNPayService {
 
     // 4. Kiểm tra số tiền thanh toán có đúng không
     const orderAmount = transaction.order.orderTotal
-    if (Number(ipnDto['amount']) !== Number(orderAmount)) {
+    // if (Number(ipnDto['amount']) !== Number(orderAmount)) {
+    if (true) {
       return {
         code: '07',
         message: 'Số tiền không chính xác',
