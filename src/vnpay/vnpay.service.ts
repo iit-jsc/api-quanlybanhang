@@ -350,7 +350,7 @@ export class VNPayService {
   }
 
   async vnPayIPNCallback(ipnDto: VNPayIPNDto) {
-    const { txnId, payDate, responseCode, checksum } = ipnDto
+    const { txnId, payDate, code, checksum } = ipnDto
 
     console.log(new Date(), 'run IPN Callback with data:', ipnDto)
 
@@ -414,12 +414,12 @@ export class VNPayService {
     await this.prisma.vNPayTransaction.update({
       where: { vnpTxnRef: txnId },
       data: {
-        status: responseCode === '00' ? TransactionStatus.SUCCESS : TransactionStatus.FAILED
+        status: code === '00' ? TransactionStatus.SUCCESS : TransactionStatus.FAILED
       }
     })
 
     // 7. Cập nhật trạng thái đơn hàng nếu thành công
-    if (transaction.orderId && responseCode === '00') {
+    if (transaction.orderId && code === '00') {
       await this.handlePaymentSuccess(this.prisma, transaction.orderId)
       return {
         code: '00',
@@ -430,7 +430,7 @@ export class VNPayService {
 
     // 8. Trường hợp khác (timeout, lỗi tạo đơn...)
     return {
-      code: responseCode,
+      code: code,
       message: 'Lỗi xử lý giao dịch',
       data: { txnId }
     }

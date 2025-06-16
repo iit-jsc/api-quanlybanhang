@@ -3,7 +3,7 @@ export class VNPayIPNDto {
 
   payDate: string
 
-  responseCode: string
+  code: string
 
   checksum: string
 }
