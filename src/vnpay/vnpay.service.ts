@@ -308,9 +308,11 @@ export class VNPayService {
     // Xóa hết đơn nháp
     await this.prisma.order.deleteMany({ where: { tableId, isDraft: true, branchId } })
 
-    return this.prisma.vNPayTransaction.deleteMany({
+    await this.prisma.vNPayTransaction.deleteMany({
       where: { tableId, status: TransactionStatus.PENDING, branchId }
     })
+
+    return
   }
 
   async checkTransaction(dto: CheckTransactionDto, branchId: string) {
@@ -411,13 +413,9 @@ export class VNPayService {
       where: { tableId: transaction.order.tableId }
     })
 
-    const totalAmount = getOrderTotal(orderDetails)
+    const totalCurrentAmount = getOrderTotal(orderDetails)
 
-    console.log('******* totalAmount *********', totalAmount)
-    console.log('******* orderAmount *********', orderAmount)
-    console.log('******* ipnDto *********', ipnDto['amount'])
-
-    if (Number(ipnDto['amount']) !== orderAmount || orderAmount !== totalAmount) {
+    if (Number(ipnDto['amount']) !== orderAmount || orderAmount !== totalCurrentAmount) {
       return {
         code: '07',
         message: 'Số tiền không chính xác',
