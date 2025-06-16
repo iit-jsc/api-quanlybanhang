@@ -60,7 +60,6 @@ export class VNPayController {
   @HttpCode(HttpStatus.OK)
   async vnPayIPN(@Body() ipnDto: VNPayIPNDto, @Res({ passthrough: false }) res: Response) {
     const resVNP = await this.vnPayService.vnPayIPNCallback(ipnDto)
-    console.log(resVNP)
 
     return res.status(200).json(resVNP)
   }
