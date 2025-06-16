@@ -450,6 +450,9 @@ export class VNPayService {
     // 7. Cập nhật trạng thái đơn hàng nếu thành công
     if (transaction.orderId && code === '00') {
       await this.handlePaymentSuccess(this.prisma, transaction.orderId)
+
+      console.log('******handle payment success ok******', 3)
+
       return {
         code: '00',
         message: 'Đặt hàng thành công',
@@ -457,7 +460,7 @@ export class VNPayService {
       }
     }
 
-    console.log('******run******', 3)
+    console.log('******run******', 4)
 
     // 8. Trường hợp khác (timeout, lỗi tạo đơn...)
     return {
