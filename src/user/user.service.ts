@@ -247,8 +247,6 @@ export class UserService {
   }
 
   async uploadMyInformation(data: ChangeMyInformation, accountId: string) {
-    console.log(accountId)
-
     const user = await this.prisma.user.findFirst({
       where: {
         account: {

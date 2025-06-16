@@ -50,7 +50,6 @@ export class VNPayController {
   @UseGuards(JwtAuthGuard)
   async deleteTransactionByTableId(@Param('tableId') tableId: string, @Req() reqJWT: RequestJWT) {
     const { branchId } = reqJWT
-    console.log(branchId, tableId)
 
     return await this.vnPayService.deleteTransactionByTableId(tableId, branchId)
   }
