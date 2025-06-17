@@ -6,6 +6,7 @@ import { HttpService } from '@nestjs/axios'
 import { PrismaService } from 'nestjs-prisma'
 import { SetupMerchantDto } from './dto/merchant.dto'
 import {
+  ActivityAction,
   OrderStatus,
   OrderType,
   PaymentMethodType,
@@ -27,10 +28,8 @@ import { orderSelect } from 'responses/order.response'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { decrypt, encrypt } from 'utils/encrypt'
-
-export interface VnpayParams {
-  [key: string]: any
-}
+import { ActivityLogService } from 'src/activity-log/activity-log.service'
+import { PaymentReviewingOrderDto } from 'src/order/dto/payment.dto'
 
 export type MerchantInfo = {
   branchId: string
@@ -50,7 +49,8 @@ export class VNPayService {
     private readonly prisma: PrismaService,
     private readonly httpService: HttpService,
     private readonly tableGatewayHandler: TableGatewayHandler,
-    private readonly orderGatewayHandler: OrderGatewayHandler
+    private readonly orderGatewayHandler: OrderGatewayHandler,
+    private readonly activityLogService: ActivityLogService
   ) {}
 
   async setupMerchant(data: SetupMerchantDto) {
@@ -431,7 +431,7 @@ export class VNPayService {
     if (transaction.order.paymentStatus === PaymentStatus.SUCCESS) {
       return {
         code: '05',
-        message: 'Đơn hàng đang được xử lý',
+        message: 'Đơn hàng đã thanh toán rồi',
         data: { txnId }
       }
     }
@@ -479,5 +479,97 @@ export class VNPayService {
       this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
       this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
     ])
+  }
+  async paymentReviewing(data: PaymentReviewingOrderDto, accountId: string, branchId: string) {
+    const result = await this.prisma.$transaction(
+      async (prisma: PrismaClient) => {
+        const order = await prisma.order.findUniqueOrThrow({
+          where: {
+            id: data.orderId
+          },
+          select: orderSelect
+        })
+
+        if (order.paymentStatus === PaymentStatus.SUCCESS)
+          throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
+
+        if (order.paymentStatus === PaymentStatus.REVIEWING)
+          throw new HttpException('Đơn hàng này đang được xem xét!', HttpStatus.CONFLICT)
+
+        // Kiểm tra và cập nhật orderDetail nếu tồn tại
+        const orderDetailsCount = await prisma.orderDetail.count({
+          where: { orderId: data.orderId }
+        })
+
+        // Kiểm tra và cập nhật vNPayTransaction nếu tồn tại
+        const vnpayTransaction = await prisma.vNPayTransaction.findUnique({
+          where: { vnpTxnRef: data.orderId }
+        })
+
+        // Thực hiện các update một cách an toàn
+        const updatePromises = []
+
+        if (orderDetailsCount > 0) {
+          updatePromises.push(
+            prisma.orderDetail.updateMany({
+              where: { orderId: data.orderId },
+              data: {
+                tableId: null
+              }
+            })
+          )
+        }
+
+        if (vnpayTransaction) {
+          updatePromises.push(
+            prisma.vNPayTransaction.update({
+              where: { vnpTxnRef: data.orderId },
+              data: {
+                status: TransactionStatus.PENDING
+              }
+            })
+          )
+        }
+
+        if (updatePromises.length > 0) {
+          await Promise.all(updatePromises)
+        }
+
+        const updatedOrder = await prisma.order.update({
+          where: { id: data.orderId },
+          data: {
+            paymentStatus: PaymentStatus.REVIEWING,
+            note: data.note,
+            updatedBy: accountId
+          },
+          select: orderSelect
+        })
+
+        return updatedOrder
+      },
+      {
+        timeout: 10_000,
+        maxWait: 15_000
+      }
+    )
+
+    await Promise.all([
+      this.activityLogService.create(
+        {
+          action: ActivityAction.PAYMENT,
+          modelName: 'Order',
+          targetName: result.code,
+          targetId: result.id
+        },
+        { branchId },
+        accountId
+      ),
+      result.table
+        ? this.tableGatewayHandler.handleUpdateTable(result.table, result.branchId)
+        : Promise.resolve(),
+      this.orderGatewayHandler.handlePaymentSuccessfully(result, result.branchId)
+    ])
+
+    return result
   }
 }

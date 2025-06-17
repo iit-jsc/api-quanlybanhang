@@ -29,6 +29,13 @@ export class PaymentOrderDto extends PaymentDto {
   type: OrderType
 }
 
+export class PaymentReviewingOrderDto {
+  note?: string
+
+  @IsNotEmpty()
+  orderId: string
+}
+
 export class PaymentFromTableDto extends PaymentDto {
   totalPeople?: number
 
@@ -38,19 +45,4 @@ export class PaymentFromTableDto extends PaymentDto {
 export class RequestPaymentDto {
   @IsNotEmpty()
   branchId: string
-}
-
-export class PaymentWithVNPayDto {
-  voucherId?: string
-  discountCode?: string
-  customerId?: string
-  totalPeople?: number
-  note?: string
-
-  @IsOptional()
-  @IsEnum(OrderStatus)
-  status: OrderStatus
-
-  @IsNotEmpty()
-  returnUrl: string
 }

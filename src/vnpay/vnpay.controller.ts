@@ -19,10 +19,20 @@ import { SetupMerchantDto } from './dto/merchant.dto'
 import { CheckTransactionDto } from './dto/check-transaction.dto'
 import { VNPayIPNDto } from './dto/vnpay-ipn.dto'
 import { IpWhitelistGuard } from 'security'
+import { PaymentReviewingOrderDto } from 'src/order/dto/payment.dto'
 
 @Controller('vnpay')
 export class VNPayController {
   constructor(private readonly vnPayService: VNPayService) {}
+
+  @Post('/payment-reviewing')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async paymentReviewing(@Body() data: PaymentReviewingOrderDto, @Req() reqJWT: RequestJWT) {
+    const { branchId, accountId } = reqJWT
+
+    return await this.vnPayService.paymentReviewing(data, accountId, branchId)
+  }
 
   @Post('generate-qr')
   @HttpCode(HttpStatus.OK)
