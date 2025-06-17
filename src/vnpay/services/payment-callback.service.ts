@@ -4,7 +4,7 @@ import { TransactionStatus } from '@prisma/client'
 import { VNPayIPNDto } from '../dto/vnpay-ipn.dto'
 import { MerchantService } from './merchant.service'
 import { ChecksumService } from './checksum.service'
-import { TransactionService } from './transaction.service'
+import { VNPayTransactionService } from './transaction.service'
 import { VNPayOrderService } from './vnpay-order.service'
 import { getOrderTotal } from 'utils/Helps'
 
@@ -14,7 +14,7 @@ export class PaymentCallbackService {
     private readonly prisma: PrismaService,
     private readonly merchantService: MerchantService,
     private readonly checksumService: ChecksumService,
-    private readonly transactionService: TransactionService,
+    private readonly transactionService: VNPayTransactionService,
     private readonly vnPayOrderService: VNPayOrderService
   ) {}
 

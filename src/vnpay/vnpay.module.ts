@@ -8,10 +8,10 @@ import {
   MerchantService,
   ChecksumService,
   QrCodeService,
-  TransactionService,
+  VNPayTransactionService,
   VNPayOrderService,
   PaymentCallbackService,
-  CheckTransactionService
+  CheckVNPayTransactionService
 } from './services'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -25,10 +25,10 @@ import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
     MerchantService,
     ChecksumService,
     QrCodeService,
-    TransactionService,
+    VNPayTransactionService,
     VNPayOrderService,
     PaymentCallbackService,
-    CheckTransactionService,
+    CheckVNPayTransactionService,
     TableGatewayHandler,
     OrderGatewayHandler
   ]
@@ -44,10 +44,10 @@ export class VnpayModule {
         MerchantService,
         ChecksumService,
         QrCodeService,
-        TransactionService,
+        VNPayTransactionService,
         VNPayOrderService,
         PaymentCallbackService,
-        CheckTransactionService,
+        CheckVNPayTransactionService,
         TableGatewayHandler,
         OrderGatewayHandler
       ],

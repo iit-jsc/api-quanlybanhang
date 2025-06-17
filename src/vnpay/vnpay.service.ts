@@ -7,10 +7,10 @@ import {
   MerchantService,
   ChecksumService,
   QrCodeService,
-  TransactionService,
+  VNPayTransactionService,
   VNPayOrderService,
   PaymentCallbackService,
-  CheckTransactionService
+  CheckVNPayTransactionService
 } from './services'
 
 export interface VnpayParams {
@@ -26,10 +26,10 @@ export class VNPayService {
     private readonly merchantService: MerchantService,
     private readonly checksumService: ChecksumService,
     private readonly qrCodeService: QrCodeService,
-    private readonly transactionService: TransactionService,
+    private readonly transactionService: VNPayTransactionService,
     private readonly vnPayOrderService: VNPayOrderService,
     private readonly paymentCallbackService: PaymentCallbackService,
-    private readonly checkTransactionService: CheckTransactionService
+    private readonly checkVNPayTransactionService: CheckVNPayTransactionService
   ) {}
 
   async setupMerchant(data: SetupMerchantDto) {
@@ -75,7 +75,7 @@ export class VNPayService {
   }
 
   async checkTransaction(dto: CheckTransactionDto, branchId: string) {
-    return this.checkTransactionService.checkTransaction(dto, branchId)
+    return this.checkVNPayTransactionService.checkTransaction(dto, branchId)
   }
 
   async vnPayIPNCallback(ipnDto: VNPayIPNDto) {

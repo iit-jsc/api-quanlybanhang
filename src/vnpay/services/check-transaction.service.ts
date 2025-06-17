@@ -5,7 +5,7 @@ import { MerchantService } from './merchant.service'
 import { ChecksumService } from './checksum.service'
 
 @Injectable()
-export class CheckTransactionService {
+export class CheckVNPayTransactionService {
   constructor(
     private readonly httpService: HttpService,
     private readonly merchantService: MerchantService,

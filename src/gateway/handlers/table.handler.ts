@@ -17,11 +17,15 @@ export class TableGatewayHandler {
     branchId: string,
     deviceId?: string
   ) {
+    console.log('*****run emitTableDishEvent*****')
+
     // Check if server is initialized
     if (!this.server) {
       console.warn('WebSocket server not initialized, skipping event:', event)
       return
     }
+
+    console.log('*****this.server*****', this.server)
 
     const emitData = Array.isArray(payload) ? payload : [payload]
     const target = this.server.to(branchId)

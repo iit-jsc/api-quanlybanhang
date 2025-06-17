@@ -109,22 +109,17 @@ export class VNPayOrderService {
   }
   async handlePaymentSuccess(prisma: PrismaClient, orderId: string) {
     // Update order details and order status
-    await Promise.all([
+    const [, updatedOrder] = await Promise.all([
       prisma.orderDetail.updateMany({
         where: { orderId },
         data: { tableId: null, orderId }
       }),
       prisma.order.update({
         where: { id: orderId },
-        data: { isPaid: true, isDraft: false, paymentAt: new Date() }
+        data: { isPaid: true, isDraft: false, paymentAt: new Date() },
+        select: orderSelect
       })
     ])
-
-    // Get updated order for gateway notifications
-    const updatedOrder = await prisma.order.findUnique({
-      where: { id: orderId },
-      select: orderSelect
-    })
 
     // Send gateway notifications (non-blocking)
     this.sendGatewayNotifications(updatedOrder)
@@ -133,18 +128,14 @@ export class VNPayOrderService {
   private sendGatewayNotifications(order: any) {
     if (!order) return
 
-    const notifications = []
+    const notifications = [
+      this.tableGatewayHandler.handleUpdateTable(order.table, order.branchId),
+      this.orderGatewayHandler.handlePaymentSuccessfully(order, order.branchId)
+    ].filter(Boolean)
 
-    if (order.table && this.tableGatewayHandler) {
-      notifications.push(this.tableGatewayHandler.handleUpdateTable(order.table, order.branchId))
+    if (notifications.length > 0) {
+      Promise.all(notifications).catch(err => console.error('Gateway notification error:', err))
     }
-
-    if (this.orderGatewayHandler) {
-      notifications.push(this.orderGatewayHandler.handlePaymentSuccessfully(order, order.branchId))
-    }
-
-    // Send notifications without blocking main flow
-    Promise.all(notifications).catch(err => console.error('Gateway notification error:', err))
   }
 
   async validateOrderAmount(orderId: string, expectedAmount: number): Promise<boolean> {

@@ -3,7 +3,7 @@ import { PrismaService } from 'nestjs-prisma'
 import { TransactionStatus } from '@prisma/client'
 
 @Injectable()
-export class TransactionService {
+export class VNPayTransactionService {
   constructor(private readonly prisma: PrismaService) {}
 
   async createTransaction(branchId: string, orderId: string, tableId: string, vnpTxnRef: string) {
