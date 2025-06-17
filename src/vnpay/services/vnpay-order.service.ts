@@ -121,6 +121,8 @@ export class VNPayOrderService {
         select: orderSelect
       })
 
+      console.log(updatedOrder, '*****updatedOrder******')
+
       await Promise.all([
         this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
         this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
