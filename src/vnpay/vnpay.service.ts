@@ -497,44 +497,20 @@ export class VNPayService {
         if (order.paymentStatus === PaymentStatus.REVIEWING)
           throw new HttpException('Đơn hàng này đang được xem xét!', HttpStatus.CONFLICT)
 
-        // Kiểm tra và cập nhật orderDetail nếu tồn tại
-        const orderDetailsCount = await prisma.orderDetail.count({
-          where: { orderId: data.orderId }
-        })
-
-        // Kiểm tra và cập nhật vNPayTransaction nếu tồn tại
-        const vnPayTransaction = await prisma.vNPayTransaction.findUnique({
-          where: { vnpTxnRef: data.orderId }
-        })
-
         // Thực hiện các update một cách an toàn
-        const updatePromises = []
+        await prisma.orderDetail.updateMany({
+          where: { orderId: data.orderId, branchId },
+          data: {
+            tableId: null
+          }
+        })
 
-        if (orderDetailsCount > 0) {
-          updatePromises.push(
-            prisma.orderDetail.updateMany({
-              where: { orderId: data.orderId },
-              data: {
-                tableId: null
-              }
-            })
-          )
-        }
-
-        if (vnPayTransaction) {
-          updatePromises.push(
-            prisma.vNPayTransaction.update({
-              where: { vnpTxnRef: data.orderId },
-              data: {
-                status: TransactionStatus.SUCCESS
-              }
-            })
-          )
-        }
-
-        if (updatePromises.length > 0) {
-          await Promise.all(updatePromises)
-        }
+        await prisma.vNPayTransaction.update({
+          where: { orderId: data.orderId },
+          data: {
+            status: TransactionStatus.PENDING
+          }
+        })
 
         const updatedOrder = await prisma.order.update({
           where: { id: data.orderId },
