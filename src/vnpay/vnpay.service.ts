@@ -9,6 +9,7 @@ import {
   OrderStatus,
   OrderType,
   PaymentMethodType,
+  PaymentStatus,
   PrismaClient,
   TransactionStatus
 } from '@prisma/client'
@@ -191,7 +192,7 @@ export class VNPayService {
       // Tạo đơn hàng nháp
       const order = await prisma.order.create({
         data: {
-          isPaid: false,
+          paymentStatus: PaymentStatus.UNPAID,
           isDraft: true,
           tableId: data.tableId,
           orderTotal,
@@ -269,7 +270,7 @@ export class VNPayService {
       tipAndFee,
       ccy,
       expDate,
-      desc: '',
+      desc: `Thanh toan don hang: #${txnId}`,
       checksum,
       billNumber: txnId,
       purpose: ''
@@ -427,7 +428,7 @@ export class VNPayService {
     }
 
     // 5. Đơn đã thanh toán rồi
-    if (transaction.order.isPaid) {
+    if (transaction.order.paymentStatus === PaymentStatus.SUCCESS) {
       return {
         code: '05',
         message: 'Đơn hàng đang được xử lý',
@@ -470,7 +471,7 @@ export class VNPayService {
 
     const updatedOrder = await prisma.order.update({
       where: { id: orderId },
-      data: { isPaid: true, isDraft: false, paymentAt: new Date() },
+      data: { paymentStatus: PaymentStatus.SUCCESS, isDraft: false, paymentAt: new Date() },
       select: orderSelect
     })
 

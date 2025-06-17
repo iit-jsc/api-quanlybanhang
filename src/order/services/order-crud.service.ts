@@ -6,6 +6,7 @@ import {
   OrderDetailStatus,
   OrderStatus,
   OrderType,
+  PaymentStatus,
   Prisma,
   PrismaClient
 } from '@prisma/client'
@@ -131,7 +132,7 @@ export class OrderCrudService {
       from,
       to,
       types,
-      isPaid,
+      paymentStatus,
       orderBy,
       isSave,
       statuses
@@ -175,7 +176,7 @@ export class OrderCrudService {
       ...(statuses?.length && {
         status: { in: statuses }
       }),
-      ...(typeof isPaid !== 'undefined' && { isPaid: isPaid }),
+      ...(paymentStatus && { paymentStatus: paymentStatus }),
       ...(typeof isSave !== 'undefined' && { isSave: isSave })
     }
 
@@ -212,7 +213,7 @@ export class OrderCrudService {
         }
       })
 
-      const paidOrders = entities.filter(order => order.isPaid)
+      const paidOrders = entities.filter(order => order.paymentStatus === PaymentStatus.SUCCESS)
 
       if (paidOrders.length > 0)
         throw new HttpException(
@@ -251,7 +252,7 @@ export class OrderCrudService {
         where: {
           id: { in: data.ids },
           branchId,
-          isPaid: false
+          paymentStatus: PaymentStatus.UNPAID
         }
       })
 

@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { PaymentOrderDto } from '../dto/payment.dto'
-import { ActivityAction, OrderStatus, PrismaClient } from '@prisma/client'
+import { ActivityAction, OrderStatus, PaymentStatus, PrismaClient } from '@prisma/client'
 import {
   getCustomerDiscount,
   getDiscountCode,
@@ -37,7 +37,7 @@ export class OrderPaymentService {
           select: orderSelect
         })
 
-        if (order.isPaid)
+        if (order.paymentStatus === PaymentStatus.SUCCESS)
           throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
 
         const orderTotalNotDiscount = getOrderTotal(order.orderDetails)
@@ -66,7 +66,7 @@ export class OrderPaymentService {
         const newOrder = await prisma.order.update({
           where: { id },
           data: {
-            isPaid: true,
+            paymentStatus: PaymentStatus.SUCCESS,
             note: data.note,
             type: data.type,
             orderTotal,

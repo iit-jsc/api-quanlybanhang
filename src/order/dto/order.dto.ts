@@ -13,7 +13,7 @@ import {
   ValidatorConstraint,
   ValidatorConstraintInterface
 } from 'class-validator'
-import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
+import { OrderDetailStatus, OrderStatus, OrderType, PaymentStatus } from '@prisma/client'
 import { FindManyDto } from 'utils/Common.dto'
 
 @ValidatorConstraint({ name: 'isNotCancel', async: false })
@@ -100,10 +100,9 @@ export class FindManyOrderDto extends FindManyDto {
   @IsEnum(OrderStatus, { each: true })
   statuses: OrderStatus[]
 
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value)
-  })
-  isPaid?: boolean
+  @IsOptional()
+  @IsEnum(PaymentStatus)
+  paymentStatus?: PaymentStatus
 
   @Transform(({ value }: TransformFnParams) => {
     return Boolean(+value)

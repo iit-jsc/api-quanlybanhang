@@ -4,6 +4,7 @@ import {
   OrderStatus,
   OrderType,
   PaymentMethodType,
+  PaymentStatus,
   PrismaClient
 } from '@prisma/client'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
@@ -97,7 +98,7 @@ export class TablePaymentService {
 
           const createOrderPromise = prisma.order.create({
             data: {
-              isPaid: true,
+              paymentStatus: PaymentStatus.SUCCESS,
               tableId,
               orderTotal,
               code: data.code || generateCode('DH', 15),
