@@ -35,8 +35,6 @@ export class PaymentCallbackService {
     // 1. Lấy transaction theo txnId
     const transaction = await this.transactionService.getTransactionByTxnId(txnId)
 
-    console.log('******IPN Callback transaction:******', transaction)
-
     if (!transaction) {
       return {
         code: '03',
@@ -44,12 +42,9 @@ export class PaymentCallbackService {
         data: { txnId }
       }
     }
-    console.log('******1******', transaction)
 
     // 2. Lấy thông tin merchant qua order -> branchId -> getMerchantInfo
     const merchant = await this.merchantService.getMerchantInfo(transaction.order.branchId)
-
-    console.log('******2******')
 
     if (!merchant) {
       return {
@@ -58,8 +53,6 @@ export class PaymentCallbackService {
         data: { txnId }
       }
     }
-
-    console.log('******3******', merchant)
 
     // 3. Xác thực checksum theo định dạng VNPay QR
     const secretKey = process.env.VNP_IPN_SECRET_KEY
@@ -76,8 +69,6 @@ export class PaymentCallbackService {
       merchant.merchantCode,
       secretKey
     )
-
-    console.log('******validChecksum******', validChecksum)
 
     if (checksum !== validChecksum) {
       return {
@@ -97,8 +88,6 @@ export class PaymentCallbackService {
       where: { tableId: transaction.order.tableId }
     })
 
-    console.log('******orderAmount******', orderAmount)
-
     const totalCurrentAmount = getOrderTotal(orderDetails)
 
     if (Number(ipnDto['amount']) !== orderAmount || orderAmount !== totalCurrentAmount) {
@@ -109,12 +98,8 @@ export class PaymentCallbackService {
       }
     }
 
-    console.log('******4******', orderAmount)
-
     // 5. Đơn đã thanh toán rồi
     if (transaction.order.isPaid) {
-      console.log('******5******', orderAmount)
-
       return {
         code: '05',
         message: 'Đơn hàng đang được xử lý',
@@ -122,23 +107,15 @@ export class PaymentCallbackService {
       }
     }
 
-    console.log('******6******', orderAmount)
-
     // 6. Cập nhật trạng thái giao dịch (Merchant Payment)
     await this.transactionService.updateTransactionStatus(
       txnId,
       code === '00' ? TransactionStatus.SUCCESS : TransactionStatus.FAILED
     )
 
-    console.log('******7******', orderAmount)
-
     // 7. Cập nhật trạng thái
-    //  đơn hàng nếu thành công
     if (transaction.orderId && code === '00') {
-      console.log('******8******', orderAmount)
-
       await this.vnPayOrderService.handlePaymentSuccess(this.prisma, transaction.orderId)
-      console.log('******9******', orderAmount)
 
       return {
         code: '00',

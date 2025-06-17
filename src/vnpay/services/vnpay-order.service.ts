@@ -109,44 +109,38 @@ export class VNPayOrderService {
   }
 
   async handlePaymentSuccess(prisma: PrismaClient, orderId: string) {
-    try {
-      await prisma.orderDetail.updateMany({
-        where: { orderId },
-        data: { tableId: null, orderId }
-      })
+    await prisma.orderDetail.updateMany({
+      where: { orderId },
+      data: { tableId: null, orderId }
+    })
 
-      const updatedOrder = await prisma.order.update({
-        where: { id: orderId },
-        data: { isPaid: true, isDraft: false, paymentAt: new Date() },
-        select: orderSelect
-      })
+    const updatedOrder = await prisma.order.update({
+      where: { id: orderId },
+      data: { isPaid: true, isDraft: false, paymentAt: new Date() },
+      select: orderSelect
+    })
 
-      console.log(updatedOrder, '*****updatedOrder******')
+    // Handle gateway updates with null checks
+    const gatewayPromises = []
 
-      // Handle gateway updates with null checks
-      const gatewayPromises = []
+    if (updatedOrder.table && this.tableGatewayHandler) {
+      gatewayPromises.push(
+        this.tableGatewayHandler
+          .handleUpdateTable(updatedOrder.table, updatedOrder.branchId)
+          .catch(err => console.error('Table gateway error:', err))
+      )
+    }
 
-      if (updatedOrder.table && this.tableGatewayHandler) {
-        gatewayPromises.push(
-          this.tableGatewayHandler
-            .handleUpdateTable(updatedOrder.table, updatedOrder.branchId)
-            .catch(err => console.error('Table gateway error:', err))
-        )
-      }
+    if (this.orderGatewayHandler) {
+      gatewayPromises.push(
+        this.orderGatewayHandler
+          .handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
+          .catch(err => console.error('Order gateway error:', err))
+      )
+    }
 
-      if (this.orderGatewayHandler) {
-        gatewayPromises.push(
-          this.orderGatewayHandler
-            .handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
-            .catch(err => console.error('Order gateway error:', err))
-        )
-      }
-
-      if (gatewayPromises.length > 0) {
-        await Promise.all(gatewayPromises)
-      }
-    } catch (error) {
-      console.log(error)
+    if (gatewayPromises.length > 0) {
+      await Promise.all(gatewayPromises)
     }
   }
 
