@@ -1,5 +1,6 @@
 import {
   Controller,
+  Get,
   HttpCode,
   HttpStatus,
   Post,
@@ -12,6 +13,12 @@ import { CommonService } from './common.service'
 @Controller('common')
 export class CommonController {
   constructor(private readonly commonService: CommonService) {}
+
+  @Get('/current-date')
+  @HttpCode(HttpStatus.OK)
+  getCurrentDate() {
+    return this.commonService.getCurrentDate()
+  }
 
   @Post('/upload-photos')
   @HttpCode(HttpStatus.OK)
