@@ -1,5 +1,5 @@
 import * as cookieParser from 'cookie-parser'
-import helmet from 'helmet'
+// import helmet from 'helmet' // Disabled for CORS
 import { HttpAdapterHost, NestFactory } from '@nestjs/core'
 import { ConfigService } from '@nestjs/config'
 import { AppModule } from './app.module'
@@ -19,59 +19,14 @@ async function bootstrap() {
     const cfgService = app.get(ConfigService)
     const { httpAdapter } = app.get(HttpAdapterHost)
 
-    // Security middleware
-    app.use(
-      helmet({
-        contentSecurityPolicy: {
-          directives: {
-            defaultSrc: ["'self'"],
-            styleSrc: ["'self'", "'unsafe-inline'"],
-            scriptSrc: ["'self'", "'unsafe-inline'"],
-            imgSrc: ["'self'", 'data:', 'https:', 'http:'],
-            connectSrc: ["'self'", 'https:', 'http:', 'ws:', 'wss:']
-          }
-        },
-        crossOriginEmbedderPolicy: false,
-        crossOriginResourcePolicy: { policy: 'cross-origin' },
-        crossOriginOpenerPolicy: { policy: 'same-origin-allow-popups' }
-      })
-    )
-
-    app.enableCors({
-      origin: true,
-      credentials: true,
-      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-      allowedHeaders: [
-        'Content-Type',
-        'Authorization',
-        'X-Requested-With',
-        'X-Forwarded-For',
-        'X-Real-IP',
-        'Accept',
-        'Origin',
-        'User-Agent',
-        'Cache-Control'
-      ],
-      exposedHeaders: ['Set-Cookie'],
-      preflightContinue: false,
-      optionsSuccessStatus: 204
-    })
-
-    // Additional CORS middleware for complex requests
+    // app.use(helmet(...))    // CORS - Allow everything
+    app.enableCors()
     app.use((req, res, next) => {
-      res.header('Access-Control-Allow-Origin', req.headers.origin || '*')
+      res.header('Access-Control-Allow-Origin', '*')
+      res.header('Access-Control-Allow-Methods', '*')
+      res.header('Access-Control-Allow-Headers', '*')
       res.header('Access-Control-Allow-Credentials', 'true')
-      res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
-      res.header(
-        'Access-Control-Allow-Headers',
-        'Content-Type, Authorization, X-Requested-With, X-Forwarded-For, X-Real-IP, Accept, Origin, User-Agent, Cache-Control'
-      )
-
-      if (req.method === 'OPTIONS') {
-        res.status(204).send()
-        return
-      }
-      next()
+      req.method === 'OPTIONS' ? res.status(200).end() : next()
     })
 
     app.use('/uploads', static_('uploads'))
@@ -102,6 +57,13 @@ async function bootstrap() {
 
     const port = cfgService.get<number>('PORT') || 3000
     await app.listen(port)
+
+    console.log('\n🚀 ========================================')
+    console.log(`🌟 Server is running on http://localhost:${port}`)
+    console.log(`🌍 CORS: COMPLETELY DISABLED - ALL ORIGINS ALLOWED`)
+    console.log(`🔓 Security: HELMET DISABLED FOR DEVELOPMENT`)
+    console.log(`📡 API Base URL: http://localhost:${port}`)
+    console.log('🚀 ========================================\n')
   } catch (error) {
     console.error('❌ Failed to start server:', error)
   }
