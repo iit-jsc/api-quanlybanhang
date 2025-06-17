@@ -85,19 +85,4 @@ export class TableService {
   async requestPayment(id: string, branchId: string, deviceId: string) {
     return this.tableOperationsService.requestPayment(id, branchId, deviceId)
   }
-
-  // async checkTablePaying(tableId: string) {
-  //   const vnPayTransaction = await this.prisma.vNPayTransaction.findFirst({
-  //     where: { tableId: tableId, status: 'PENDING' },
-  //     select: { table: { select: { id: true, name: true } } }
-  //   })
-
-  //   if (vnPayTransaction)
-  //     throw new HttpException(
-  //       `${vnPayTransaction.table?.name} đang trong quá trình thanh toán!`,
-  //       HttpStatus.BAD_REQUEST
-  //     )
-
-  //   return vnPayTransaction !== null
-  // }
 }
