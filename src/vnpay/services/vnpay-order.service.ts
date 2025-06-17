@@ -109,21 +109,25 @@ export class VNPayOrderService {
   }
 
   async handlePaymentSuccess(prisma: PrismaClient, orderId: string) {
-    await prisma.orderDetail.updateMany({
-      where: { orderId },
-      data: { tableId: null, orderId }
-    })
+    try {
+      await prisma.orderDetail.updateMany({
+        where: { orderId },
+        data: { tableId: null, orderId }
+      })
 
-    const updatedOrder = await prisma.order.update({
-      where: { id: orderId },
-      data: { isPaid: true, isDraft: false, paymentAt: new Date() },
-      select: orderSelect
-    })
+      const updatedOrder = await prisma.order.update({
+        where: { id: orderId },
+        data: { isPaid: true, isDraft: false, paymentAt: new Date() },
+        select: orderSelect
+      })
 
-    await Promise.all([
-      this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
-      this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
-    ])
+      await Promise.all([
+        this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
+        this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
+      ])
+    } catch (error) {
+      console.log(error)
+    }
   }
 
   async validateOrderAmount(orderId: string, expectedAmount: number): Promise<boolean> {
