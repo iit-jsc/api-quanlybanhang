@@ -43,8 +43,6 @@ async function bootstrap() {
         skipMissingProperties: false,
         disableErrorMessages: false,
         skipNullProperties: false,
-        whitelist: true,
-        forbidNonWhitelisted: true,
         exceptionFactory: (errors: ValidationError[]) => {
           return new BadRequestException({
             statusCode: HttpStatus.BAD_REQUEST,
