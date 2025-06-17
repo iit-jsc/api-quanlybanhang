@@ -1,6 +1,7 @@
 import {
   Controller,
   Post,
+  Get,
   HttpStatus,
   UseGuards,
   HttpCode,
@@ -57,6 +58,18 @@ export class VNPayController {
     const { branchId } = reqJWT
 
     return this.vnPayService.checkTransaction(dto, branchId)
+  }
+
+  @Get('pending-transaction/:tableId')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async getLatestPendingTransactionByTableId(
+    @Param('tableId') tableId: string,
+    @Req() reqJWT: RequestJWT
+  ) {
+    const { branchId } = reqJWT
+
+    return await this.vnPayService.getLatestPendingTransactionByTableId(tableId, branchId)
   }
 
   @Delete('transaction/:tableId')

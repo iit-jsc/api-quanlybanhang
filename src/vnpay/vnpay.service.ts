@@ -480,6 +480,7 @@ export class VNPayService {
       this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
     ])
   }
+
   async paymentReviewing(data: PaymentReviewingOrderDto, accountId: string, branchId: string) {
     const result = await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
@@ -502,7 +503,7 @@ export class VNPayService {
         })
 
         // Kiểm tra và cập nhật vNPayTransaction nếu tồn tại
-        const vnpayTransaction = await prisma.vNPayTransaction.findUnique({
+        const vnPayTransaction = await prisma.vNPayTransaction.findUnique({
           where: { vnpTxnRef: data.orderId }
         })
 
@@ -520,12 +521,12 @@ export class VNPayService {
           )
         }
 
-        if (vnpayTransaction) {
+        if (vnPayTransaction) {
           updatePromises.push(
             prisma.vNPayTransaction.update({
               where: { vnpTxnRef: data.orderId },
               data: {
-                status: TransactionStatus.PENDING
+                status: TransactionStatus.SUCCESS
               }
             })
           )
@@ -571,5 +572,31 @@ export class VNPayService {
     ])
 
     return result
+  }
+
+  async getLatestPendingTransactionByTableId(tableId: string, branchId: string) {
+    const transaction = await this.prisma.vNPayTransaction.findFirst({
+      where: {
+        tableId,
+        branchId,
+        status: TransactionStatus.PENDING
+      },
+      orderBy: {
+        createdAt: 'desc'
+      },
+      include: {
+        order: true,
+        table: true
+      }
+    })
+
+    if (!transaction) {
+      throw new HttpException(
+        'Không tìm thấy giao dịch VNPay đang chờ xử lý cho bàn này',
+        HttpStatus.NOT_FOUND
+      )
+    }
+
+    return transaction
   }
 }
