@@ -22,13 +22,16 @@ import { AccessBranchGuard } from 'guards/access-branch.guard'
 import { ChangeMyPasswordDto } from './dto/change-password.dto'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RegisterDto } from './dto/register.dto'
+import { AntiSpamGuard, RateLimit } from '../../security'
 
 @Controller('auth')
+@UseGuards(AntiSpamGuard) // Sử dụng AntiSpamGuard đã cải thiện
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/login')
   @HttpCode(HttpStatus.OK)
+  @RateLimit({ limit: 5, ttl: 60000 }) // 5 attempts per minute for login
   login(@Body() data: LoginDto) {
     return this.authService.login(data)
   }
@@ -90,5 +93,27 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async register(@Body() data: RegisterDto) {
     return this.authService.register(data)
+  }
+
+  @Get('/test-rate-limit')
+  @RateLimit({ limit: 3, ttl: 10000 }) // 3 requests per 10 seconds for testing
+  testRateLimit() {
+    return {
+      message: 'Rate limit test endpoint',
+      timestamp: new Date().toISOString(),
+      count: Math.floor(Math.random() * 1000)
+    }
+  }
+  @Get('/debug-ip')
+  debugIp(@Req() req: Request) {
+    return {
+      'x-forwarded-for': req.headers['x-forwarded-for'],
+      'x-real-ip': req.headers['x-real-ip'],
+      'connection.remoteAddress': (req as any).connection?.remoteAddress,
+      'socket.remoteAddress': (req as any).socket?.remoteAddress,
+      ip: (req as any).ip,
+      'user-agent': req.headers['user-agent'],
+      headers: req.headers
+    }
   }
 }

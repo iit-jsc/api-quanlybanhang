@@ -41,6 +41,7 @@ import { ActivityLogModule } from './activity-log/activity-log.module'
 import { PermissionModule } from './permission/permission.module'
 import { VnpayModule } from './vnpay/vnpay.module'
 import { HttpModule } from '@nestjs/axios'
+import { SecurityModule } from '../security'
 
 @Module({
   imports: [
@@ -82,6 +83,7 @@ import { HttpModule } from '@nestjs/axios'
     ActivityLogModule.forRoot({
       isGlobal: true
     }),
+    SecurityModule,
     HttpModule,
     UserModule,
     AccountModule,

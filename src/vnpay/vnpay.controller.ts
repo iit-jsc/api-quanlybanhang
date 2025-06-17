@@ -18,6 +18,7 @@ import { CreateQrCodeDto } from './dto/qrCode.dto'
 import { SetupMerchantDto } from './dto/merchant.dto'
 import { CheckTransactionDto } from './dto/check-transaction.dto'
 import { VNPayIPNDto } from './dto/vnpay-ipn.dto'
+import { IpWhitelistGuard } from 'security'
 
 @Controller('vnpay')
 export class VNPayController {
@@ -32,6 +33,7 @@ export class VNPayController {
     return await this.vnPayService.generateQrCode(data, branchId, accountId)
   }
 
+  @UseGuards(IpWhitelistGuard)
   @Post('setup-merchant')
   @HttpCode(HttpStatus.OK)
   async setupMerchant(@Body() data: SetupMerchantDto) {
