@@ -107,41 +107,44 @@ export class VNPayOrderService {
       return order
     })
   }
-
   async handlePaymentSuccess(prisma: PrismaClient, orderId: string) {
-    await prisma.orderDetail.updateMany({
-      where: { orderId },
-      data: { tableId: null, orderId }
-    })
+    // Update order details and order status
+    await Promise.all([
+      prisma.orderDetail.updateMany({
+        where: { orderId },
+        data: { tableId: null, orderId }
+      }),
+      prisma.order.update({
+        where: { id: orderId },
+        data: { isPaid: true, isDraft: false, paymentAt: new Date() }
+      })
+    ])
 
-    const updatedOrder = await prisma.order.update({
+    // Get updated order for gateway notifications
+    const updatedOrder = await prisma.order.findUnique({
       where: { id: orderId },
-      data: { isPaid: true, isDraft: false, paymentAt: new Date() },
       select: orderSelect
     })
 
-    // Handle gateway updates with null checks
-    const gatewayPromises = []
+    // Send gateway notifications (non-blocking)
+    this.sendGatewayNotifications(updatedOrder)
+  }
 
-    if (updatedOrder.table && this.tableGatewayHandler) {
-      gatewayPromises.push(
-        this.tableGatewayHandler
-          .handleUpdateTable(updatedOrder.table, updatedOrder.branchId)
-          .catch(err => console.error('Table gateway error:', err))
-      )
+  private sendGatewayNotifications(order: any) {
+    if (!order) return
+
+    const notifications = []
+
+    if (order.table && this.tableGatewayHandler) {
+      notifications.push(this.tableGatewayHandler.handleUpdateTable(order.table, order.branchId))
     }
 
     if (this.orderGatewayHandler) {
-      gatewayPromises.push(
-        this.orderGatewayHandler
-          .handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
-          .catch(err => console.error('Order gateway error:', err))
-      )
+      notifications.push(this.orderGatewayHandler.handlePaymentSuccessfully(order, order.branchId))
     }
 
-    if (gatewayPromises.length > 0) {
-      await Promise.all(gatewayPromises)
-    }
+    // Send notifications without blocking main flow
+    Promise.all(notifications).catch(err => console.error('Gateway notification error:', err))
   }
 
   async validateOrderAmount(orderId: string, expectedAmount: number): Promise<boolean> {
