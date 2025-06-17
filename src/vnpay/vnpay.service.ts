@@ -117,7 +117,10 @@ export class VNPayService {
         }
       })
 
-      return await this.generateQrCodeImage(qrData)
+      return {
+        qrCode: await this.generateQrCodeImage(qrData),
+        order: orderDraft
+      }
     } catch (error) {
       throw new HttpException(
         `Không thể tạo mã QR: ${error?.response?.data?.message || error.message}`,
