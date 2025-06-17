@@ -11,24 +11,33 @@ export class TableGatewayHandler {
   setServer(server: Server) {
     this.server = server
   }
-
   private async emitTableDishEvent(
     event: string,
     payload: any,
     branchId: string,
     deviceId?: string
   ) {
+    // Check if server is initialized
+    if (!this.server) {
+      console.warn('WebSocket server not initialized, skipping event:', event)
+      return
+    }
+
     const emitData = Array.isArray(payload) ? payload : [payload]
     const target = this.server.to(branchId)
 
     if (deviceId) {
-      const accountSocket = await prisma.accountSocket.findUnique({
-        where: { deviceId }
-      })
+      try {
+        const accountSocket = await prisma.accountSocket.findUnique({
+          where: { deviceId }
+        })
 
-      if (accountSocket?.socketId) {
-        target.except(accountSocket.socketId).emit(event, emitData)
-        return
+        if (accountSocket?.socketId) {
+          target.except(accountSocket.socketId).emit(event, emitData)
+          return
+        }
+      } catch (error) {
+        console.error('Error finding account socket:', error)
       }
     }
 

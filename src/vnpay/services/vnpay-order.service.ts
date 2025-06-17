@@ -123,10 +123,28 @@ export class VNPayOrderService {
 
       console.log(updatedOrder, '*****updatedOrder******')
 
-      await Promise.all([
-        this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
-        this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
-      ])
+      // Handle gateway updates with null checks
+      const gatewayPromises = []
+
+      if (updatedOrder.table && this.tableGatewayHandler) {
+        gatewayPromises.push(
+          this.tableGatewayHandler
+            .handleUpdateTable(updatedOrder.table, updatedOrder.branchId)
+            .catch(err => console.error('Table gateway error:', err))
+        )
+      }
+
+      if (this.orderGatewayHandler) {
+        gatewayPromises.push(
+          this.orderGatewayHandler
+            .handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
+            .catch(err => console.error('Order gateway error:', err))
+        )
+      }
+
+      if (gatewayPromises.length > 0) {
+        await Promise.all(gatewayPromises)
+      }
     } catch (error) {
       console.log(error)
     }
