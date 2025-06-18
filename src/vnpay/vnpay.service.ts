@@ -517,7 +517,7 @@ export class VNPayService {
           data: {
             paymentStatus: PaymentStatus.REVIEWING,
             paymentAt: new Date(),
-            isDraft: true,
+            isDraft: false,
             note: data.note,
             updatedBy: accountId
           },
