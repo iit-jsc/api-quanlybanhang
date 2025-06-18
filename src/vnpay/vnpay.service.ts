@@ -508,7 +508,7 @@ export class VNPayService {
         await prisma.vNPayTransaction.update({
           where: { orderId: data.orderId },
           data: {
-            status: TransactionStatus.PENDING
+            status: TransactionStatus.SUCCESS
           }
         })
 
