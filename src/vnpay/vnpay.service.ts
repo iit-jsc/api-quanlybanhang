@@ -522,6 +522,21 @@ export class VNPayService {
           select: orderSelect
         })
 
+        await Promise.all([
+          this.activityLogService.create(
+            {
+              action: ActivityAction.PAYMENT,
+              modelName: 'Order',
+              targetName: updatedOrder.code,
+              targetId: updatedOrder.id
+            },
+            { branchId },
+            accountId
+          ),
+          this.orderGatewayHandler.handleCreateOrder(updatedOrder, branchId),
+          this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, branchId)
+        ])
+
         return updatedOrder
       },
       {
