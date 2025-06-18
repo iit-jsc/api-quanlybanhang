@@ -30,6 +30,7 @@ import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { decrypt, encrypt } from 'utils/encrypt'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { PaymentReviewingOrderDto } from 'src/order/dto/payment.dto'
+import { orderDetailSelect } from 'responses/order-detail.response'
 
 export type MerchantInfo = {
   branchId: string
@@ -501,7 +502,18 @@ export class VNPayService {
         if (order.paymentStatus === PaymentStatus.REVIEWING)
           throw new HttpException('Đơn hàng này đang được xem xét!', HttpStatus.CONFLICT)
 
-        // Thực hiện các update một cách an toàn
+        // Kiểm tra số tiền trong đơn và bàn
+        const orderDetailInTables = await this.prisma.orderDetail.findMany({
+          where: { tableId: order.tableId },
+          select: orderDetailSelect
+        })
+
+        const totalCurrentAmount = getOrderTotal(orderDetailInTables)
+
+        if (order.orderTotal !== totalCurrentAmount)
+          throw new HttpException('Số tiền không khớp. Hãy thử lại!', HttpStatus.CONFLICT)
+
+        // Thực hiện bỏ món ra khỏi bàn
         await prisma.orderDetail.updateMany({
           where: { orderId: data.orderId, branchId },
           data: {
