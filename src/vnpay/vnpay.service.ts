@@ -492,8 +492,7 @@ export class VNPayService {
         const order = await prisma.order.findUniqueOrThrow({
           where: {
             id: data.orderId
-          },
-          select: orderSelect
+          }
         })
 
         if (order.paymentStatus === PaymentStatus.SUCCESS)
