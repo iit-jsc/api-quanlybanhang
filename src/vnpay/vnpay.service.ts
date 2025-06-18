@@ -516,6 +516,8 @@ export class VNPayService {
           where: { id: data.orderId },
           data: {
             paymentStatus: PaymentStatus.REVIEWING,
+            paymentAt: new Date(),
+            isDraft: true,
             note: data.note,
             updatedBy: accountId
           },
