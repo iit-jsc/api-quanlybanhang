@@ -30,9 +30,9 @@ export class VNPayController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async paymentReviewing(@Body() data: PaymentReviewingOrderDto, @Req() reqJWT: RequestJWT) {
-    const { branchId, accountId } = reqJWT
+    const { branchId, accountId, deviceId } = reqJWT
 
-    return await this.vnPayService.paymentReviewing(data, accountId, branchId)
+    return await this.vnPayService.paymentReviewing(data, accountId, branchId, deviceId)
   }
 
   @Post('generate-qr')

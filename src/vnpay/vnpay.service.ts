@@ -481,8 +481,13 @@ export class VNPayService {
     ])
   }
 
-  async paymentReviewing(data: PaymentReviewingOrderDto, accountId: string, branchId: string) {
-    const result = await this.prisma.$transaction(
+  async paymentReviewing(
+    data: PaymentReviewingOrderDto,
+    accountId: string,
+    branchId: string,
+    deviceId: string
+  ) {
+    return this.prisma.$transaction(
       async (prisma: PrismaClient) => {
         const order = await prisma.order.findUniqueOrThrow({
           where: {
@@ -535,8 +540,8 @@ export class VNPayService {
             { branchId },
             accountId
           ),
-          this.orderGatewayHandler.handleCreateOrder(updatedOrder, branchId),
-          this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, branchId)
+          this.orderGatewayHandler.handleCreateOrder(updatedOrder, branchId, deviceId),
+          this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, branchId, deviceId)
         ])
 
         return updatedOrder
@@ -546,25 +551,6 @@ export class VNPayService {
         maxWait: 15_000
       }
     )
-
-    await Promise.all([
-      this.activityLogService.create(
-        {
-          action: ActivityAction.PAYMENT,
-          modelName: 'Order',
-          targetName: result.code,
-          targetId: result.id
-        },
-        { branchId },
-        accountId
-      ),
-      result.table
-        ? this.tableGatewayHandler.handleUpdateTable(result.table, result.branchId)
-        : Promise.resolve(),
-      this.orderGatewayHandler.handlePaymentSuccessfully(result, result.branchId)
-    ])
-
-    return result
   }
 
   async getLatestPendingTransactionByTableId(tableId: string, branchId: string) {
