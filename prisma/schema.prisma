@@ -849,7 +849,7 @@ model VNPayTransaction {
   orderId   String            @unique
   branchId  String?
   branch    Branch?           @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  tableId   String
+  tableId   String?
   vnpTxnRef String            @unique
   createdAt DateTime          @default(now())
   status    TransactionStatus @default(PENDING)

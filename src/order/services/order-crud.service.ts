@@ -24,6 +24,7 @@ import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { HttpException, HttpStatus } from '@nestjs/common'
+import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
 
 @Injectable()
 export class OrderCrudService {
@@ -31,13 +32,14 @@ export class OrderCrudService {
     private readonly prisma: PrismaService,
     private readonly orderGatewayHandler: OrderGatewayHandler,
     private readonly trashService: TrashService,
+    private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler,
     private readonly activityLogService: ActivityLogService
   ) {}
 
   async create(data: CreateOrderDto, accountId: string, branchId: string, deviceId: string) {
     const orderDetails = await getOrderDetails(
       data.orderProducts,
-      OrderDetailStatus.APPROVED,
+      OrderDetailStatus.INFORMED,
       accountId,
       branchId
     )
@@ -77,7 +79,12 @@ export class OrderCrudService {
           { branchId },
           accountId
         ),
-        this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId)
+        this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId),
+        this.orderDetailGatewayHandler.handleCreateOrderDetails(
+          order.orderDetails,
+          branchId,
+          deviceId
+        )
       ])
 
       return order
@@ -206,7 +213,7 @@ export class OrderCrudService {
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string, deviceId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const entities = await prisma.order.findMany({
+      const entities: any = await prisma.order.findMany({
         where: { id: { in: data.ids } },
         include: {
           orderDetails: true
@@ -227,19 +234,6 @@ export class OrderCrudService {
         entities
       }
 
-      await Promise.all([
-        this.trashService.createMany(dataTrash, prisma),
-        this.activityLogService.create(
-          {
-            action: ActivityAction.DELETE,
-            modelName: 'Order',
-            targetName: entities.map(item => item.code).join(', ')
-          },
-          { branchId },
-          accountId
-        )
-      ])
-
       await prisma.orderDetail.deleteMany({
         where: {
           orderId: {
@@ -256,7 +250,24 @@ export class OrderCrudService {
         }
       })
 
-      await this.orderGatewayHandler.handleDeleteOrder(order, branchId, deviceId)
+      await Promise.all([
+        this.trashService.createMany(dataTrash, prisma),
+        this.activityLogService.create(
+          {
+            action: ActivityAction.DELETE,
+            modelName: 'Order',
+            targetName: entities.map(item => item.code).join(', ')
+          },
+          { branchId },
+          accountId
+        ),
+        this.orderGatewayHandler.handleDeleteOrder(order, branchId, deviceId),
+        this.orderDetailGatewayHandler.handleDeleteOrderDetails(
+          entities.orderDetails,
+          branchId,
+          deviceId
+        )
+      ])
 
       return order
     })

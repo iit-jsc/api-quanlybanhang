@@ -93,12 +93,22 @@ export class VNPayService {
         HttpStatus.BAD_REQUEST
       )
 
-    const orderDraft = await this.createOrderByTableId(data, accountId, branchId)
+    let targetOrder = null
+
+    if (!data.tableId && data.orderId) {
+      // Nếu có đơn thì lấy thông tin đơn
+      targetOrder = await this.prisma.order.findUniqueOrThrow({
+        where: { id: data.orderId, branchId }
+      })
+    } else {
+      // Nếu không đơn thì tạo mới
+      targetOrder = await this.createOrderByTableId(data, accountId, branchId)
+    }
 
     const payload = this.buildVNPayPayload(
       merchantInfo,
-      orderDraft.orderTotal.toString(),
-      orderDraft.code
+      targetOrder.orderTotal.toString(),
+      targetOrder.code
     )
 
     try {
@@ -112,16 +122,16 @@ export class VNPayService {
       await this.prisma.vNPayTransaction.create({
         data: {
           branchId,
-          orderId: orderDraft.id,
+          orderId: targetOrder.id,
           tableId: data.tableId,
-          vnpTxnRef: orderDraft.code,
+          vnpTxnRef: targetOrder.code,
           status: TransactionStatus.PENDING
         }
       })
 
       return {
         qrCode: await this.generateQrCodeImage(qrData),
-        order: orderDraft
+        order: targetOrder
       }
     } catch (error) {
       throw new HttpException(
@@ -412,7 +422,7 @@ export class VNPayService {
       }
     }
 
-    // 4. Kiểm tra số tiền thanh toán có đúng không
+    // 4. Kiểm tra số tiền thanh toán có đúng không (amount từ VNPay IPN & orderTotal từ Order & orderDetails từ Table)
     const orderAmount = transaction.order.orderTotal
     const orderDetails = await this.prisma.orderDetail.findMany({
       where: { tableId: transaction.order.tableId }
@@ -420,7 +430,10 @@ export class VNPayService {
 
     const totalCurrentAmount = getOrderTotal(orderDetails)
 
-    if (Number(ipnDto['amount']) !== orderAmount || orderAmount !== totalCurrentAmount) {
+    if (
+      Number(ipnDto['amount']) !== orderAmount ||
+      (transaction.order.tableId && totalCurrentAmount !== orderAmount)
+    ) {
       return {
         code: '07',
         message: 'Số tiền không chính xác',
@@ -476,10 +489,18 @@ export class VNPayService {
       select: orderSelect
     })
 
-    await Promise.all([
-      this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId),
+    const promises = [
       this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
-    ])
+    ]
+
+    // Chỉ bắn handleUpdateTable khi có table
+    if (updatedOrder.table) {
+      promises.push(
+        this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, updatedOrder.branchId)
+      )
+    }
+
+    await Promise.all(promises)
   }
 
   async paymentReviewing(
@@ -543,7 +564,7 @@ export class VNPayService {
           select: orderSelect
         })
 
-        await Promise.all([
+        const promises = [
           this.activityLogService.create(
             {
               action: ActivityAction.PAYMENT,
@@ -554,9 +575,17 @@ export class VNPayService {
             { branchId },
             accountId
           ),
-          this.orderGatewayHandler.handleCreateOrder(updatedOrder, branchId, deviceId),
-          this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, branchId, deviceId)
-        ])
+          this.orderGatewayHandler.handleCreateOrder(updatedOrder, branchId, deviceId)
+        ]
+
+        // Chỉ bắn handleUpdateTable khi có table
+        if (updatedOrder.table) {
+          promises.push(
+            this.tableGatewayHandler.handleUpdateTable(updatedOrder.table, branchId, deviceId)
+          )
+        }
+
+        await Promise.all(promises)
 
         return updatedOrder
       },
