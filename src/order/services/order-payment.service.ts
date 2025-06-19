@@ -1,7 +1,14 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { PaymentOrderDto } from '../dto/payment.dto'
-import { ActivityAction, OrderStatus, PaymentStatus, PrismaClient } from '@prisma/client'
+import {
+  ActivityAction,
+  OrderDetailStatus,
+  OrderStatus,
+  PaymentMethodType,
+  PaymentStatus,
+  PrismaClient
+} from '@prisma/client'
 import {
   getCustomerDiscount,
   getDiscountCode,
@@ -39,6 +46,33 @@ export class OrderPaymentService {
 
         if (order.paymentStatus === PaymentStatus.SUCCESS)
           throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
+
+        const [paymentMethod, branchSetting] = await Promise.all([
+          prisma.paymentMethod.findUniqueOrThrow({
+            where: {
+              id: data.paymentMethodId
+            }
+          }),
+          prisma.branchSetting.findUniqueOrThrow({
+            where: {
+              branchId
+            }
+          })
+        ])
+
+        // Kiểm tra xem có setting sử dụng bếp hay không
+        if (!branchSetting.useKitchen)
+          await prisma.orderDetail.updateMany({
+            where: { orderId: id, branchId },
+            data: {
+              status: OrderDetailStatus.SUCCESS
+            }
+          })
+
+        // Kiểm tra phương thức thanh toán
+        if (paymentMethod.type === PaymentMethodType.VNPAY) {
+          throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
+        }
 
         const orderTotalNotDiscount = getOrderTotal(order.orderDetails)
 

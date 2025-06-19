@@ -7,6 +7,7 @@ import { PrismaService } from 'nestjs-prisma'
 import { SetupMerchantDto } from './dto/merchant.dto'
 import {
   ActivityAction,
+  OrderDetailStatus,
   OrderStatus,
   OrderType,
   PaymentMethodType,
@@ -460,7 +461,7 @@ export class VNPayService {
 
     // 7. Cập nhật trạng thái đơn hàng nếu thành công
     if (transaction.orderId && code === '00') {
-      await this.handlePaymentSuccess(this.prisma, transaction.orderId)
+      await this.handlePaymentSuccess(this.prisma, transaction.orderId, transaction.branchId)
 
       return {
         code: '00',
@@ -477,10 +478,21 @@ export class VNPayService {
     }
   }
 
-  private async handlePaymentSuccess(prisma: PrismaClient, orderId: string) {
+  private async handlePaymentSuccess(prisma: PrismaClient, orderId: string, branchId: string) {
+    // Kiểm tra xem có setting sử dụng bếp hay không
+    const branchSetting = await prisma.branchSetting.findUnique({
+      where: {
+        branchId
+      }
+    })
+
     await prisma.orderDetail.updateMany({
       where: { orderId },
-      data: { tableId: null, orderId }
+      data: {
+        tableId: null,
+        orderId,
+        ...(!branchSetting?.useKitchen && { status: OrderDetailStatus.SUCCESS })
+      }
     })
 
     const updatedOrder = await prisma.order.update({
@@ -511,6 +523,20 @@ export class VNPayService {
   ) {
     return this.prisma.$transaction(
       async (prisma: PrismaClient) => {
+        const branchSetting = await prisma.branchSetting.findUniqueOrThrow({
+          where: {
+            branchId
+          }
+        })
+
+        if (!branchSetting.useKitchen)
+          await prisma.orderDetail.updateMany({
+            where: { orderId: data.orderId, branchId },
+            data: {
+              status: OrderDetailStatus.SUCCESS
+            }
+          })
+
         const order = await prisma.order.findUniqueOrThrow({
           where: {
             id: data.orderId

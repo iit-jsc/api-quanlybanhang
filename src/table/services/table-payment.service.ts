@@ -54,12 +54,30 @@ export class TablePaymentService {
           }),
           getOrderDetailsInTable(tableId, prisma)
         ])
+
         const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
-        const paymentMethod = await prisma.paymentMethod.findUniqueOrThrow({
-          where: {
-            id: data.paymentMethodId
-          }
-        })
+
+        const [paymentMethod, branchSetting] = await Promise.all([
+          prisma.paymentMethod.findUniqueOrThrow({
+            where: {
+              id: data.paymentMethodId
+            }
+          }),
+          prisma.branchSetting.findUniqueOrThrow({
+            where: {
+              branchId
+            }
+          })
+        ])
+
+        // Kiểm tra xem có setting sử dụng bếp hay không
+        if (!branchSetting.useKitchen)
+          await prisma.orderDetail.updateMany({
+            where: { tableId, branchId },
+            data: {
+              status: OrderDetailStatus.SUCCESS
+            }
+          })
 
         if (paymentMethod.type === PaymentMethodType.VNPAY) {
           throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
