@@ -88,7 +88,7 @@ export class AntiSpamGuard implements CanActivate {
       throw new HttpException(
         {
           statusCode: HttpStatus.TOO_MANY_REQUESTS,
-          message: `Quá nhiều yêu cầu cho endpoint này. Giới hạn: ${limit} requests trong ${windowMs / 1000} giây. Vui lòng thử lại sau ${retryAfter} giây.`,
+          message: `Quá nhiều yêu cầu. Giới hạn: ${limit} requests trong ${windowMs / 1000} giây. Vui lòng thử lại sau ${retryAfter} giây.`,
           error: 'Too Many Requests',
           endpoint: endpointKey,
           limit: limit,
