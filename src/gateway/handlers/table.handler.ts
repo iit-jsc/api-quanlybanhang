@@ -13,7 +13,6 @@ export class TableGatewayHandler {
   setServer(server: Server) {
     this.server = server
     this.isServerReady = true
-    console.log('TableGatewayHandler: WebSocket server initialized')
   }
 
   private async emitTableDishEvent(
@@ -22,15 +21,7 @@ export class TableGatewayHandler {
     branchId: string,
     deviceId?: string
   ) {
-    console.log('*****run emitTableDishEvent*****')
-
     // Check if server is initialized
-    if (!this.server || !this.isServerReady) {
-      console.warn('WebSocket server not ready, skipping event:', event)
-      return
-    }
-
-    console.log('*****this.server*****', !!this.server)
 
     const emitData = Array.isArray(payload) ? payload : [payload]
     const target = this.server.to(branchId)
