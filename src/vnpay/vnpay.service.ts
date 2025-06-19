@@ -89,7 +89,7 @@ export class VNPayService {
 
     if (existingTransaction)
       throw new HttpException(
-        `Bàn ${existingTransaction.table.name} đang có giao dịch đang xử lý!`,
+        `${existingTransaction.table.name} đang có giao dịch đang xử lý!`,
         HttpStatus.BAD_REQUEST
       )
 
@@ -511,7 +511,10 @@ export class VNPayService {
         const totalCurrentAmount = getOrderTotal(orderDetailInTables)
 
         if (order.orderTotal !== totalCurrentAmount)
-          throw new HttpException('Số tiền không khớp. Hãy thử lại!', HttpStatus.CONFLICT)
+          throw new HttpException(
+            'Giao dịch thất bại. Vui lòng tạo lại giao dịch!',
+            HttpStatus.CONFLICT
+          )
 
         // Thực hiện bỏ món ra khỏi bàn
         await prisma.orderDetail.updateMany({
