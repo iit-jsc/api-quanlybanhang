@@ -46,6 +46,7 @@ export class AuthService {
       shops
     }
   }
+
   async accessBranch(accountId: string, data: AccessBranchDto, res: Response) {
     const account = await this.accountAccessService.getAccountAccess(accountId, data.branchId)
     this.accountAccessService.validateAccountExists(account)
@@ -67,6 +68,7 @@ export class AuthService {
       ...mapResponseLogin({ account, shops, currentShop })
     }
   }
+
   async getMe(token: string) {
     try {
       const payload: TokenPayload = await this.tokenService.verifyToken(token)

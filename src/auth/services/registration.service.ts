@@ -51,7 +51,7 @@ export class RegistrationService {
         // Setup branch data (products, areas, payment methods)
         await this.setupBranchData(branchId, prisma)
 
-        return { success: true, userId: user.id }
+        return { success: true, userId: user.id, branchId, shopId }
       },
       {
         timeout: TRANSACTION_TIMEOUT,
@@ -158,8 +158,21 @@ export class RegistrationService {
         prisma
       ),
       this.areaService.createAreas(branchId, prisma),
-      this.paymentMethodService.createPaymentMethods(branchId, prisma)
+      this.paymentMethodService.createPaymentMethods(branchId, prisma),
+      this.setupBranchSetting(branchId, prisma)
     ])
+  }
+
+  private async setupBranchSetting(branchId: string, prisma: PrismaClient) {
+    // Create measurement units first
+    await prisma.branchSetting.create({
+      data: {
+        branchId,
+        useKitchen: true,
+        createdAt: new Date(),
+        updatedAt: new Date()
+      }
+    })
   }
 
   private generateShopCode(shopName: string): string {

@@ -31,7 +31,7 @@ export class AuthController {
 
   @Post('/login')
   @HttpCode(HttpStatus.OK)
-  @RateLimit({ limit: 5, ttl: 60000 }) // 5 attempts per minute for login
+  @RateLimit({ limit: 5, ttl: 60000 })
   login(@Body() data: LoginDto) {
     return this.authService.login(data)
   }
@@ -93,27 +93,5 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async register(@Body() data: RegisterDto) {
     return this.authService.register(data)
-  }
-
-  @Get('/test-rate-limit')
-  @RateLimit({ limit: 3, ttl: 10000 }) // 3 requests per 10 seconds for testing
-  testRateLimit() {
-    return {
-      message: 'Rate limit test endpoint',
-      timestamp: new Date().toISOString(),
-      count: Math.floor(Math.random() * 1000)
-    }
-  }
-  @Get('/debug-ip')
-  debugIp(@Req() req: Request) {
-    return {
-      'x-forwarded-for': req.headers['x-forwarded-for'],
-      'x-real-ip': req.headers['x-real-ip'],
-      'connection.remoteAddress': (req as any).connection?.remoteAddress,
-      'socket.remoteAddress': (req as any).socket?.remoteAddress,
-      ip: (req as any).ip,
-      'user-agent': req.headers['user-agent'],
-      headers: req.headers
-    }
   }
 }
