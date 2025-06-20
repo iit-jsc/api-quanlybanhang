@@ -44,15 +44,6 @@ export class TablePaymentService {
   ) {
     return await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
-        // Cập nhật món amount = 0 to SUCCESS và lấy orderDetails cùng lúc
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const [_, orderDetailsInTable] = await Promise.all([
-          handleOrderDetailsBeforePayment(prisma, { tableId, branchId }),
-          getOrderDetailsInTable(tableId, prisma)
-        ])
-
-        const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
-
         const [paymentMethod, branchSetting] = await Promise.all([
           prisma.paymentMethod.findUniqueOrThrow({
             where: {
@@ -79,6 +70,15 @@ export class TablePaymentService {
         if (paymentMethod.type === PaymentMethodType.VNPAY) {
           throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
         }
+
+        // Cập nhật món amount = 0 to SUCCESS và lấy orderDetails cùng lúc
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [_, orderDetailsInTable] = await Promise.all([
+          handleOrderDetailsBeforePayment(prisma, { tableId, branchId }),
+          getOrderDetailsInTable(tableId, prisma)
+        ])
+
+        const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
 
         const voucherParams = {
           voucherId: data.voucherId,
