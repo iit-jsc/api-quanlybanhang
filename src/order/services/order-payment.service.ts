@@ -35,7 +35,7 @@ export class OrderPaymentService {
     branchId: string,
     deviceId: string
   ) {
-    const result = await this.prisma.$transaction(
+    return this.prisma.$transaction(
       async (prisma: PrismaClient) => {
         await handleOrderDetailsBeforePayment(prisma, { orderId: id })
 
@@ -119,6 +119,20 @@ export class OrderPaymentService {
           select: orderSelect
         })
 
+        await Promise.all([
+          this.activityLogService.create(
+            {
+              action: ActivityAction.PAYMENT,
+              modelName: 'Order',
+              targetName: newOrder.code,
+              targetId: newOrder.id
+            },
+            { branchId },
+            accountId
+          ),
+          this.orderGatewayHandler.handleCreateOrder(newOrder, branchId, deviceId)
+        ])
+
         return newOrder
       },
       {
@@ -126,21 +140,5 @@ export class OrderPaymentService {
         maxWait: 15_000
       }
     )
-
-    await Promise.all([
-      this.activityLogService.create(
-        {
-          action: ActivityAction.PAYMENT,
-          modelName: 'Order',
-          targetName: result.code,
-          targetId: result.id
-        },
-        { branchId },
-        accountId
-      ),
-      this.orderGatewayHandler.handleCreateOrder(result, branchId, deviceId)
-    ])
-
-    return result
   }
 }
