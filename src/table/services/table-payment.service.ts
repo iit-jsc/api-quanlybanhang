@@ -16,7 +16,8 @@ import {
   getDiscountCode,
   getOrderDetailsInTable,
   getOrderTotal,
-  getVoucher
+  getVoucher,
+  handleOrderDetailsBeforePayment
 } from 'utils/Helps'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
@@ -46,12 +47,7 @@ export class TablePaymentService {
         // Cập nhật món amount = 0 to SUCCESS và lấy orderDetails cùng lúc
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const [_, orderDetailsInTable] = await Promise.all([
-          prisma.orderDetail.updateMany({
-            where: { tableId, amount: 0 },
-            data: {
-              status: OrderDetailStatus.SUCCESS
-            }
-          }),
+          handleOrderDetailsBeforePayment(prisma, { tableId, branchId }),
           getOrderDetailsInTable(tableId, prisma)
         ])
 

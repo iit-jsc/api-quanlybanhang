@@ -37,7 +37,7 @@ export class OrderPaymentService {
   ) {
     return this.prisma.$transaction(
       async (prisma: PrismaClient) => {
-        await handleOrderDetailsBeforePayment(prisma, { orderId: id })
+        await handleOrderDetailsBeforePayment(prisma, { orderId: id, branchId })
 
         const order = await prisma.order.findUniqueOrThrow({
           where: { id },
