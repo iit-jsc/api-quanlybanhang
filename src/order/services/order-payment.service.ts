@@ -39,7 +39,7 @@ export class OrderPaymentService {
       async (prisma: PrismaClient) => {
         await handleOrderDetailsBeforePayment(prisma, { orderId: id })
 
-        const order = await prisma.order.findFirstOrThrow({
+        const order = await prisma.order.findUniqueOrThrow({
           where: { id },
           select: orderSelect
         })
@@ -65,7 +65,8 @@ export class OrderPaymentService {
           await prisma.orderDetail.updateMany({
             where: { orderId: id, branchId },
             data: {
-              status: OrderDetailStatus.SUCCESS
+              status: OrderDetailStatus.SUCCESS,
+              successAt: new Date()
             }
           })
 

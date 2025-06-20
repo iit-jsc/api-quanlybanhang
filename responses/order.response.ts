@@ -21,6 +21,7 @@ export const orderSelect: Prisma.OrderSelect = {
   bankingImages: true,
   branchId: true,
   tableId: true,
+  paymentMethodId: true,
   table: {
     select: tableSelect
   },

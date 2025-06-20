@@ -75,7 +75,8 @@ export class TablePaymentService {
           await prisma.orderDetail.updateMany({
             where: { tableId, branchId },
             data: {
-              status: OrderDetailStatus.SUCCESS
+              status: OrderDetailStatus.SUCCESS,
+              successAt: new Date()
             }
           })
 

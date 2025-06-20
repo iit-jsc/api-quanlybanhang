@@ -533,7 +533,8 @@ export class VNPayService {
           await prisma.orderDetail.updateMany({
             where: { orderId: data.orderId, branchId },
             data: {
-              status: OrderDetailStatus.SUCCESS
+              status: OrderDetailStatus.SUCCESS,
+              successAt: new Date()
             }
           })
 

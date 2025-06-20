@@ -480,7 +480,7 @@ model OrderDetail {
   productOptions       Json?
   product              Json?
   successAt            DateTime?
-  informAt             DateTime?
+  informAt             DateTime?             @default(now())
   processingAt         DateTime?
   createdAt            DateTime              @default(now())
   updatedAt            DateTime              @updatedAt
