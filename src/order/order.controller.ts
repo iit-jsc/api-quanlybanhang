@@ -15,13 +15,7 @@ import {
 import { OrderService } from './order.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RequestJWT } from 'interfaces/common.interface'
-import {
-  CancelOrderDto,
-  CreateOrderDto,
-  FindManyOrderDto,
-  SaveOrderDto,
-  UpdateOrderDto
-} from './dto/order.dto'
+import { CreateOrderDto, FindManyOrderDto, SaveOrderDto, UpdateOrderDto } from './dto/order.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { RolesGuard } from 'guards/roles.guard'
 import { PaymentOrderDto, UpdatePaymentDto } from './dto/payment.dto'
@@ -66,14 +60,6 @@ export class OrderController {
   saveOrder(@Param('id') id: string, @Body() data: SaveOrderDto, @Req() req: RequestJWT) {
     const { deviceId, branchId } = req
     return this.orderService.save(id, data, branchId, deviceId)
-  }
-
-  @Patch('/:id/cancel')
-  @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.cancel)
-  cancel(@Param('id') id: string, @Body() data: CancelOrderDto, @Req() req: RequestJWT) {
-    const { accountId, branchId, deviceId } = req
-    return this.orderService.cancel(id, data, accountId, branchId, deviceId)
   }
 
   @Patch('/:id')

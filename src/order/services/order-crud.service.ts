@@ -214,9 +214,15 @@ export class OrderCrudService {
       const entities: any = await prisma.order.findMany({
         where: { id: { in: data.ids } },
         include: {
-          orderDetails: true
+          orderDetails: {
+            include: {
+              canceledOrderDetails: true
+            }
+          }
         }
       })
+
+      const orderDetails = entities.flatMap(item => item.orderDetails || [])
 
       const dataTrash: CreateManyTrashDto = {
         accountId,
@@ -251,11 +257,7 @@ export class OrderCrudService {
           accountId
         ),
         this.orderGatewayHandler.handleDeleteOrder(entities, branchId, deviceId),
-        this.orderDetailGatewayHandler.handleDeleteOrderDetails(
-          entities.orderDetails,
-          branchId,
-          deviceId
-        )
+        this.orderDetailGatewayHandler.handleDeleteOrderDetails(orderDetails, branchId, deviceId)
       ])
 
       return order

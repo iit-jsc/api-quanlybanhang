@@ -6,13 +6,15 @@ import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { UpdatePaymentDto } from '../dto/payment.dto'
+import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
 
 @Injectable()
 export class OrderOperationsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activityLogService: ActivityLogService,
-    private readonly orderGatewayHandler: OrderGatewayHandler
+    private readonly orderGatewayHandler: OrderGatewayHandler,
+    private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler
   ) {}
 
   async save(id: string, data: SaveOrderDto, branchId: string, deviceId: string) {
@@ -43,6 +45,7 @@ export class OrderOperationsService {
     deviceId: string
   ) {
     return this.prisma.$transaction(async prisma => {
+      const newOrderDetails = []
       const order = await prisma.order.update({
         where: {
           id,
@@ -56,6 +59,25 @@ export class OrderOperationsService {
         },
         select: orderSelect
       })
+
+      for (const orderDetail of order.orderDetails || []) {
+        // Update each order detail to cancelled status
+        const odd = await prisma.orderDetail.update({
+          where: { id: orderDetail.id },
+          data: {
+            amount: 0,
+            canceledOrderDetails: {
+              create: {
+                amount: orderDetail.amount,
+                cancelReason: 'Hủy đơn',
+                createdBy: accountId
+              }
+            }
+          }
+        })
+
+        newOrderDetails.push(odd)
+      }
 
       // Check if any orderDetails have a non-null tableId
       if (order.orderDetails && order.orderDetails.some(od => od.tableId)) {
@@ -76,7 +98,10 @@ export class OrderOperationsService {
         accountId
       )
 
-      await this.orderGatewayHandler.handleCancelOrder(order, branchId, deviceId)
+      await Promise.all([
+        this.orderGatewayHandler.handleCancelOrder(order, branchId, deviceId),
+        this.orderDetailGatewayHandler.handleCancelOrderDetails(newOrderDetails, branchId, deviceId)
+      ])
 
       return order
     })
