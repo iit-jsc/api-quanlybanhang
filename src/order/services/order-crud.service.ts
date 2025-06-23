@@ -6,7 +6,6 @@ import {
   OrderDetailStatus,
   OrderStatus,
   OrderType,
-  PaymentStatus,
   Prisma,
   PrismaClient
 } from '@prisma/client'
@@ -236,8 +235,7 @@ export class OrderCrudService {
       const order = await prisma.order.deleteMany({
         where: {
           id: { in: data.ids },
-          branchId,
-          paymentStatus: PaymentStatus.UNPAID
+          branchId
         }
       })
 
@@ -252,7 +250,7 @@ export class OrderCrudService {
           { branchId },
           accountId
         ),
-        this.orderGatewayHandler.handleDeleteOrder(order, branchId, deviceId),
+        this.orderGatewayHandler.handleDeleteOrder(entities, branchId, deviceId),
         this.orderDetailGatewayHandler.handleDeleteOrderDetails(
           entities.orderDetails,
           branchId,

@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CancelOrderDto, SaveOrderDto } from '../dto/order.dto'
-import { ActivityAction, OrderStatus, PaymentStatus } from '@prisma/client'
+import { ActivityAction, OrderStatus } from '@prisma/client'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -56,9 +56,6 @@ export class OrderOperationsService {
         },
         select: orderSelect
       })
-
-      if (order.paymentStatus === PaymentStatus.SUCCESS)
-        throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.BAD_REQUEST)
 
       // Check if any orderDetails have a non-null tableId
       if (order.orderDetails && order.orderDetails.some(od => od.tableId)) {
