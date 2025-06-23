@@ -4,7 +4,6 @@ import { CancelOrderDetailsDto } from '../dto/order-detail.dto'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { NotifyService } from 'src/notify/notify.service'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
-import { OrderStatus, PaymentStatus } from '@prisma/client'
 
 @Injectable()
 export class OrderDetailOperationsService {
@@ -49,13 +48,10 @@ export class OrderDetailOperationsService {
         )
       }
 
-      // Kiểm tra đơn đã thanh toán chưa
-      if (
-        (orderDetail.order && orderDetail.order.paymentStatus === PaymentStatus.SUCCESS) ||
-        orderDetail.order.status === OrderStatus.SUCCESS
-      ) {
+      // Kiểm tra đơn đã tạo đơn chưa
+      if (orderDetail.order) {
         throw new HttpException(
-          `Món này thuộc đơn #${orderDetail.order.code} đã thanh toán hoặc đã hoàn thành không thể hủy!`,
+          `Món này thuộc đơn #${orderDetail.order.code}  không thể hủy!`,
           HttpStatus.BAD_REQUEST
         )
       }

@@ -1,4 +1,4 @@
-import { OrderStatus, PaymentStatus, Prisma, PrismaClient } from '@prisma/client'
+import { Prisma, PrismaClient } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
 import { FindManyOrderDetailDto, UpdateOrderDetailDto } from '../dto/order-detail.dto'
@@ -79,7 +79,6 @@ export class OrderDetailCrudService {
     branchId: string,
     deviceId: string
   ) {
-    // Kiểm tra đơn hàng đã thanh toán chưa
     const orderDetailRecord = await this.prisma.orderDetail.findUnique({
       where: { id, branchId },
       select: {
@@ -94,12 +93,10 @@ export class OrderDetailCrudService {
       }
     })
 
-    if (
-      orderDetailRecord?.order?.paymentStatus === PaymentStatus.SUCCESS ||
-      orderDetailRecord?.order?.status === OrderStatus.SUCCESS
-    ) {
+    // Kiểm tra đã tạo đơn chưa
+    if (orderDetailRecord.order) {
       throw new HttpException(
-        `Đơn hàng này đã thanh toán hoặc đã hoàn thành không thể cập nhật!`,
+        `Món thuộc đơn ${orderDetailRecord.order.code} không thể cập nhật!`,
         HttpStatus.CONFLICT
       )
     }
@@ -179,17 +176,17 @@ export class OrderDetailCrudService {
               in: orderDetailIds
             }
           }
-        },
-        OR: [{ paymentStatus: PaymentStatus.SUCCESS }, { status: OrderStatus.SUCCESS }]
+        }
       },
       select: {
-        id: true
+        id: true,
+        code: true
       }
     })
 
     if (order)
       throw new HttpException(
-        'Đơn hàng này không thể cập nhật vì đã thanh toán hoặc đã hoàn thành!',
+        'Không thể cập nhật vì thuộc đơn #' + order.code + '!',
         HttpStatus.CONFLICT
       )
   }
