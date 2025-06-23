@@ -61,7 +61,6 @@ export class RoleService {
           'DELETE_CUSTOMER_REQUEST',
           'UPDATE_CUSTOMER_REQUEST',
           'CREATE_ORDER',
-          'UPDATE_ORDER',
           'VIEW_ORDER',
           'SAVE_ORDER',
           'PAYMENT_ORDER',
