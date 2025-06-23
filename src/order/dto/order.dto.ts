@@ -8,6 +8,7 @@ import {
   IsNumber,
   IsOptional,
   Min,
+  ArrayMaxSize,
   Validate,
   ValidateNested,
   ValidatorConstraint,
@@ -63,7 +64,11 @@ export class CreateOrderProductsDto {
 }
 
 export class UpdateOrderDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(1)
   bankingImages?: string[]
+
   note?: string
   cancelReason?: string
 

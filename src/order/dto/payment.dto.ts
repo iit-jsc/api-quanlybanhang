@@ -1,5 +1,5 @@
 import { OrderStatus, OrderType, PaymentStatus } from '@prisma/client'
-import { IsArray, IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
+import { ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
 
 export class PaymentDto {
   @IsNotEmpty()
@@ -7,6 +7,7 @@ export class PaymentDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(1)
   bankingImages: string[]
 
   @IsOptional()
