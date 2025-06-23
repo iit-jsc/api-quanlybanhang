@@ -68,6 +68,10 @@ export class UpdateOrderDto {
   cancelReason?: string
 
   @IsOptional()
+  @IsEnum(PaymentStatus)
+  paymentStatus: PaymentStatus
+
+  @IsOptional()
   @IsEnum(OrderStatus)
   @Validate(IsNotCancelConstraint)
   status: OrderStatus
