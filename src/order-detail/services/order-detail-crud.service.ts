@@ -1,4 +1,4 @@
-import { PaymentStatus, Prisma, PrismaClient } from '@prisma/client'
+import { OrderStatus, PaymentStatus, Prisma, PrismaClient } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
 import { FindManyOrderDetailDto, UpdateOrderDetailDto } from '../dto/order-detail.dto'
@@ -87,15 +87,19 @@ export class OrderDetailCrudService {
         order: {
           select: {
             paymentStatus: true,
-            code: true
+            code: true,
+            status: true
           }
         }
       }
     })
 
-    if (orderDetailRecord?.order?.paymentStatus === PaymentStatus.SUCCESS) {
+    if (
+      orderDetailRecord?.order?.paymentStatus === PaymentStatus.SUCCESS ||
+      orderDetailRecord?.order?.status === OrderStatus.SUCCESS
+    ) {
       throw new HttpException(
-        `Đơn hàng này đã thanh toán, không thể cập nhật!`,
+        `Đơn hàng này đã thanh toán hoặc đã hoàn thành không thể cập nhật!`,
         HttpStatus.CONFLICT
       )
     }
@@ -176,7 +180,7 @@ export class OrderDetailCrudService {
             }
           }
         },
-        paymentStatus: PaymentStatus.SUCCESS
+        OR: [{ paymentStatus: PaymentStatus.SUCCESS }, { status: OrderStatus.SUCCESS }]
       },
       select: {
         id: true
@@ -185,7 +189,7 @@ export class OrderDetailCrudService {
 
     if (order)
       throw new HttpException(
-        'Đơn hàng này không thể cập nhật vì đã thanh toán!',
+        'Đơn hàng này không thể cập nhật vì đã thanh toán hoặc đã hoàn thành!',
         HttpStatus.CONFLICT
       )
   }
