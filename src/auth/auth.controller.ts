@@ -22,16 +22,13 @@ import { AccessBranchGuard } from 'guards/access-branch.guard'
 import { ChangeMyPasswordDto } from './dto/change-password.dto'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RegisterDto } from './dto/register.dto'
-import { AntiSpamGuard, RateLimit } from '../../security'
 
 @Controller('auth')
-@UseGuards(AntiSpamGuard) // Sử dụng AntiSpamGuard đã cải thiện
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post('/login')
   @HttpCode(HttpStatus.OK)
-  @RateLimit({ limit: 5, ttl: 60000 })
   login(@Body() data: LoginDto) {
     return this.authService.login(data)
   }
