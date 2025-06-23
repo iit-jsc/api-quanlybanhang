@@ -8,15 +8,7 @@ export class RoleService {
       {
         name: 'Bếp',
         description: 'Vai trò dành cho bếp trong cửa hàng',
-        permissions: [
-          'VIEW_AREA',
-          'VIEW_TABLE',
-          'UPDATE_ORDER',
-          'DELETE_ORDER',
-          'VIEW_ORDER',
-          'CANCEL_ORDER',
-          'CHEF_VIEW'
-        ]
+        permissions: ['VIEW_AREA', 'VIEW_TABLE', 'VIEW_ORDER', 'CHEF_VIEW']
       },
       {
         name: 'Thu ngân',
@@ -41,11 +33,9 @@ export class RoleService {
           'UPDATE_CUSTOMER_REQUEST',
           'CREATE_ORDER',
           'UPDATE_ORDER',
-          'DELETE_ORDER',
           'VIEW_ORDER',
           'PAYMENT_ORDER',
           'SAVE_ORDER',
-          'CANCEL_ORDER',
           'CASHIER_VIEW'
         ]
       },
@@ -72,10 +62,9 @@ export class RoleService {
           'UPDATE_CUSTOMER_REQUEST',
           'CREATE_ORDER',
           'UPDATE_ORDER',
-          'DELETE_ORDER',
           'VIEW_ORDER',
           'SAVE_ORDER',
-          'CANCEL_ORDER',
+          'PAYMENT_ORDER',
           'STAFF_VIEW'
         ]
       },

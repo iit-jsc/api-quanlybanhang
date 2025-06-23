@@ -21,12 +21,11 @@ import {
 } from './dto/order-detail.dto'
 import { RequestJWT } from 'interfaces/common.interface'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
-import { RolesGuard } from 'guards/roles.guard'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('order-detail')
 export class OrderDetailController {
   constructor(private readonly orderDetailService: OrderDetailService) {}
