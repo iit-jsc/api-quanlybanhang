@@ -15,4 +15,10 @@ export class BranchSettingService {
       }
     })
   }
+
+  async getBranchSetting(branchId: string) {
+    return this.prisma.branchSetting.findUnique({
+      where: { branchId }
+    })
+  }
 }
