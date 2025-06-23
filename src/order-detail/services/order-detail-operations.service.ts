@@ -51,7 +51,7 @@ export class OrderDetailOperationsService {
       // Kiểm tra đơn đã tạo đơn chưa
       if (orderDetail.order) {
         throw new HttpException(
-          `Món này thuộc đơn #${orderDetail.order.code}  không thể hủy!`,
+          `Món này thuộc đơn #${orderDetail.order.code} không thể hủy!`,
           HttpStatus.BAD_REQUEST
         )
       }

@@ -186,7 +186,7 @@ export class OrderDetailCrudService {
 
     if (order)
       throw new HttpException(
-        'Không thể cập nhật vì thuộc đơn #' + order.code + '!',
+        'Không thể cập nhật/xóa vì món thuộc đơn #' + order.code + '!',
         HttpStatus.CONFLICT
       )
   }
