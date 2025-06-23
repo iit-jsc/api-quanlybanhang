@@ -23,7 +23,6 @@ import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
-import { HttpException, HttpStatus } from '@nestjs/common'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
 
 @Injectable()
@@ -219,14 +218,6 @@ export class OrderCrudService {
           orderDetails: true
         }
       })
-
-      const paidOrders = entities.filter(order => order.paymentStatus === PaymentStatus.SUCCESS)
-
-      if (paidOrders.length > 0)
-        throw new HttpException(
-          `Không thể xóa các đơn hàng đã thanh toán: ${paidOrders.map(o => o.code).join(', ')}`,
-          HttpStatus.CONFLICT
-        )
 
       const dataTrash: CreateManyTrashDto = {
         accountId,

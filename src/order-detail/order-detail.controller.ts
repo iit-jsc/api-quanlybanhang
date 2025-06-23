@@ -33,7 +33,6 @@ export class OrderDetailController {
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.delete)
   deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
     const { accountId, branchId, deviceId } = req
 
@@ -51,7 +50,6 @@ export class OrderDetailController {
 
   @Patch('/change-status')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.update)
   updateStatusOrderDetails(@Body() data: UpdateStatusOrderDetailsDto, @Req() req: RequestJWT) {
     const { accountId, branchId, deviceId } = req
 
@@ -60,7 +58,6 @@ export class OrderDetailController {
 
   @Patch('/:id/cancel')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.cancel)
   cancel(@Body() data: CancelOrderDetailsDto, @Req() req: RequestJWT, @Param('id') id: string) {
     const { accountId, branchId, deviceId } = req
 
@@ -69,7 +66,6 @@ export class OrderDetailController {
 
   @Patch('/:id')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.update)
   update(@Body() data: UpdateOrderDetailDto, @Req() req: RequestJWT, @Param('id') id: string) {
     const { accountId, branchId, deviceId } = req
 
