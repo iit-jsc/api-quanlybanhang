@@ -9,7 +9,7 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 export class BranchSettingController {
   constructor(private readonly branchSettingService: BranchSettingService) {}
 
-  @Patch('/')
+  @Patch('/current')
   @HttpCode(HttpStatus.OK)
   login(@Body() data: UpdateBranchSetting, @Req() req: RequestJWT) {
     const { branchId, accountId } = req
