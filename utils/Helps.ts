@@ -538,7 +538,7 @@ export async function handleOrderDetailsBeforePayment(
   prisma: PrismaClient,
   conditions: { tableId?: string; orderId?: string; branchId: string }
 ) {
-  prisma.orderDetail.updateMany({
+  await prisma.orderDetail.updateMany({
     where: { ...conditions, amount: 0 },
     data: {
       status: OrderDetailStatus.SUCCESS,

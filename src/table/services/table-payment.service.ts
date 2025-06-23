@@ -54,7 +54,8 @@ export class TablePaymentService {
             where: {
               branchId
             }
-          })
+          }),
+          handleOrderDetailsBeforePayment(prisma, { tableId: tableId, branchId })
         ])
 
         // Kiểm tra xem có setting sử dụng bếp hay không
