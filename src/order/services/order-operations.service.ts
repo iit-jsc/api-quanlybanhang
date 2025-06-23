@@ -5,6 +5,7 @@ import { ActivityAction, OrderStatus, PaymentStatus } from '@prisma/client'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
+import { UpdatePaymentDto } from '../dto/payment.dto'
 
 @Injectable()
 export class OrderOperationsService {
@@ -81,6 +82,14 @@ export class OrderOperationsService {
       await this.orderGatewayHandler.handleCancelOrder(order, branchId, deviceId)
 
       return order
+    })
+  }
+
+  async updatePayment(id: string, data: UpdatePaymentDto, accountId: string, branchId: string) {
+    return this.prisma.order.update({
+      where: { id, branchId },
+      data: { paymentStatus: data.paymentStatus, updatedBy: accountId },
+      select: orderSelect
     })
   }
 }

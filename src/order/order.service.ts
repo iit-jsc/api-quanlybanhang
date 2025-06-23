@@ -6,7 +6,7 @@ import {
   SaveOrderDto,
   UpdateOrderDto
 } from './dto/order.dto'
-import { PaymentOrderDto } from './dto/payment.dto'
+import { PaymentOrderDto, UpdatePaymentDto } from './dto/payment.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { OrderCrudService } from './services/order-crud.service'
 import { OrderPaymentService } from './services/order-payment.service'
@@ -71,5 +71,9 @@ export class OrderService {
     deviceId: string
   ) {
     return this.orderOperationsService.cancel(id, data, accountId, branchId, deviceId)
+  }
+
+  async updatePayment(id: string, data: UpdatePaymentDto, accountId: string, branchId: string) {
+    return this.orderOperationsService.updatePayment(id, data, accountId, branchId)
   }
 }

@@ -1,4 +1,4 @@
-import { OrderStatus, OrderType } from '@prisma/client'
+import { OrderStatus, OrderType, PaymentStatus } from '@prisma/client'
 import { IsArray, IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
 
 export class PaymentDto {
@@ -45,4 +45,8 @@ export class PaymentFromTableDto extends PaymentDto {
 export class RequestPaymentDto {
   @IsNotEmpty()
   branchId: string
+}
+
+export class UpdatePaymentDto {
+  paymentStatus?: PaymentStatus
 }
