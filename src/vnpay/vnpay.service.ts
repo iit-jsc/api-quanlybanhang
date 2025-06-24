@@ -143,41 +143,44 @@ export class VNPayService {
   }
 
   async createOrderByTableId(data: CreateQrCodeDto, accountId: string, branchId: string) {
-    return await this.prisma.$transaction(async prisma => {
-      const paymentMethod = await this.prisma.paymentMethod.findUnique({
-        where: {
-          type_branchId: { type: PaymentMethodType.VNPAY, branchId }
-        }
-      })
+    if (!data.tableId && !data.orderId)
+      throw new HttpException('Không thể truyền cả 2 tableId và orderId!', HttpStatus.BAD_REQUEST)
 
-      // Lấy danh sách món từ bàn
-      const orderDetailsInTable = await prisma.orderDetail.findMany({
-        where: {
-          tableId: data.tableId,
-          branchId
-        },
-        select: {
-          id: true,
-          amount: true,
-          note: true,
-          status: true,
-          product: true,
-          productOriginId: true,
-          productOptions: true,
-          createdBy: true,
-          updatedBy: true,
-          branchId: true,
-          tableId: true
-        }
-      })
-
-      if (!orderDetailsInTable.length) {
-        throw new HttpException('Không tìm thấy món!', HttpStatus.BAD_REQUEST)
+    const paymentMethod = await this.prisma.paymentMethod.findUnique({
+      where: {
+        type_branchId: { type: PaymentMethodType.VNPAY, branchId }
       }
+    })
 
-      // Tính tổng tiền chưa giảm giá
-      const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
+    // Lấy danh sách món từ bàn
+    const orderDetailsInTable = await this.prisma.orderDetail.findMany({
+      where: {
+        tableId: data.tableId,
+        branchId
+      },
+      select: {
+        id: true,
+        amount: true,
+        note: true,
+        status: true,
+        product: true,
+        productOriginId: true,
+        productOptions: true,
+        createdBy: true,
+        updatedBy: true,
+        branchId: true,
+        tableId: true
+      }
+    })
 
+    if (!orderDetailsInTable.length) {
+      throw new HttpException('Không tìm thấy món!', HttpStatus.BAD_REQUEST)
+    }
+
+    // Tính tổng tiền chưa giảm giá
+    const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
+
+    return await this.prisma.$transaction(async prisma => {
       // Lấy thông tin giảm giá (nếu có truyền vào mã giảm giá/voucher/customerId thì lấy từ data)
       const voucherParams = {
         voucherId: data.voucherId,
