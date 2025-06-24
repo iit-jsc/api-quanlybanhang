@@ -9,6 +9,7 @@ export class RegisterDto {
   phone: string
 
   @IsNotEmpty()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   fullName: string
 
   @IsNotEmpty()
@@ -17,9 +18,11 @@ export class RegisterDto {
   password: string
 
   @IsNotEmpty()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   shopName: string
 
   @IsNotEmpty()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   branchName: string
 
   address?: string
