@@ -715,8 +715,10 @@ model VNPayTransaction {
   branchId  String?
   branch    Branch?           @relation(fields: [branchId], references: [id], onDelete: Cascade)
   tableId   String?
+  qrCode    String            @db.Text
   vnpTxnRef String            @unique
   createdAt DateTime          @default(now())
+  expiresAt DateTime?
   status    TransactionStatus @default(PENDING)
   order     Order?            @relation(fields: [orderId], references: [id], onDelete: Cascade)
   table     Table?            @relation(fields: [tableId], references: [id], onDelete: Cascade)

@@ -85,14 +85,40 @@ export class VNPayService {
         status: TransactionStatus.PENDING,
         OR: [{ tableId: data.tableId }, { orderId: data.orderId }]
       },
-      select: { table: true }
+      select: {
+        table: true,
+        expiresAt: true,
+        qrCode: true,
+        order: true
+      }
     })
 
-    if (existingTransaction)
-      throw new HttpException(
-        `${existingTransaction.table.name} đang có giao dịch đang xử lý!`,
-        HttpStatus.BAD_REQUEST
-      )
+    if (existingTransaction) {
+      // Kiểm tra nếu giao dịch chưa hết hạn thì trả về QR code cũ
+      if (existingTransaction.expiresAt > new Date()) {
+        const remainingTime = Math.max(
+          0,
+          existingTransaction.expiresAt.getTime() - new Date().getTime()
+        )
+        const totalRemainingSeconds = Math.floor(remainingTime / 1000)
+
+        return {
+          qrCode: existingTransaction.qrCode,
+          order: existingTransaction.order,
+          expiresAt: existingTransaction.expiresAt,
+          totalRemainingSeconds: totalRemainingSeconds
+        }
+      } else {
+        // Nếu đã hết hạn thì xóa giao dịch cũ và tạo mới
+        await this.prisma.vNPayTransaction.deleteMany({
+          where: {
+            status: TransactionStatus.PENDING,
+            OR: [{ tableId: data.tableId }, { orderId: data.orderId }],
+            expiresAt: { lte: new Date() }
+          }
+        })
+      }
+    }
 
     let targetOrder = null
 
@@ -128,20 +154,29 @@ export class VNPayService {
         throw new HttpException(`Không nhận được dữ liệu từ VNP!`, HttpStatus.NOT_FOUND)
       }
 
-      // Tạo vNPayTransaction
+      // Tạo QR code image
+      const qrCodeImage = await this.generateQrCodeImage(qrData)
+
+      // Tạo vNPayTransaction với qrCode
       await this.prisma.vNPayTransaction.create({
         data: {
           branchId,
           orderId: targetOrder.id,
           tableId: data.tableId,
           vnpTxnRef: targetOrder.code,
-          status: TransactionStatus.PENDING
+          status: TransactionStatus.PENDING,
+          expiresAt: new Date(Date.now() + 10 * 60 * 1000),
+          qrCode: qrCodeImage
         }
       })
 
+      // Tính totalRemainingSeconds cho QR code mới (10 phút = 600 giây)
+      const totalRemainingSeconds = 10 * 60
+
       return {
-        qrCode: await this.generateQrCodeImage(qrData),
-        order: targetOrder
+        qrCode: qrCodeImage,
+        order: targetOrder,
+        totalRemainingSeconds: totalRemainingSeconds
       }
     } catch (error) {
       throw new HttpException(
