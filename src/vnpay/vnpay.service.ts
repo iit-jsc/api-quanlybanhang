@@ -97,9 +97,18 @@ export class VNPayService {
     let targetOrder = null
 
     if (!data.tableId && data.orderId) {
+      const paymentMethod = await this.prisma.paymentMethod.findUnique({
+        where: {
+          type_branchId: { type: PaymentMethodType.VNPAY, branchId }
+        }
+      })
+
       // Nếu có đơn thì lấy thông tin đơn
-      targetOrder = await this.prisma.order.findUniqueOrThrow({
-        where: { id: data.orderId, branchId }
+      targetOrder = await this.prisma.order.update({
+        where: { id: data.orderId, branchId },
+        data: {
+          paymentMethodId: paymentMethod.id
+        }
       })
     } else {
       // Nếu không đơn thì tạo mới
@@ -548,7 +557,8 @@ export class VNPayService {
         const order = await prisma.order.findUniqueOrThrow({
           where: {
             id: data.orderId
-          }
+          },
+          include: { paymentMethod: true }
         })
 
         if (order.paymentStatus === PaymentStatus.SUCCESS)
@@ -557,28 +567,31 @@ export class VNPayService {
         if (order.paymentStatus === PaymentStatus.REVIEWING)
           throw new HttpException('Đơn hàng này đang được xem xét!', HttpStatus.CONFLICT)
 
+        // Xử lý đặt món từ bàn
+        if (order.type === OrderType.OFFLINE) {
+          const orderDetailInTables = await this.prisma.orderDetail.findMany({
+            where: { tableId: order.tableId },
+            select: orderDetailSelect
+          })
+
+          const totalCurrentAmount = getOrderTotal(orderDetailInTables)
+
+          if (order.orderTotal !== totalCurrentAmount)
+            throw new HttpException(
+              'Giao dịch thất bại. Vui lòng tạo lại giao dịch!',
+              HttpStatus.CONFLICT
+            )
+
+          // Thực hiện bỏ món ra khỏi bàn
+          await prisma.orderDetail.updateMany({
+            where: { orderId: data.orderId, branchId },
+            data: {
+              tableId: null
+            }
+          })
+        }
+
         // Kiểm tra số tiền trong đơn và bàn
-        const orderDetailInTables = await this.prisma.orderDetail.findMany({
-          where: { tableId: order.tableId },
-          select: orderDetailSelect
-        })
-
-        const totalCurrentAmount = getOrderTotal(orderDetailInTables)
-
-        if (order.orderTotal !== totalCurrentAmount)
-          throw new HttpException(
-            'Giao dịch thất bại. Vui lòng tạo lại giao dịch!',
-            HttpStatus.CONFLICT
-          )
-
-        // Thực hiện bỏ món ra khỏi bàn
-        await prisma.orderDetail.updateMany({
-          where: { orderId: data.orderId, branchId },
-          data: {
-            tableId: null
-          }
-        })
-
         await prisma.vNPayTransaction.update({
           where: { orderId: data.orderId },
           data: {
