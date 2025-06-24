@@ -72,13 +72,13 @@ export class VNPayController {
     return await this.vnPayService.getLatestPendingTransactionByTableId(tableId, branchId)
   }
 
-  @Delete('transaction/:tableId')
+  @Delete('transaction/:targetId')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async deleteTransactionByTableId(@Param('tableId') tableId: string, @Req() reqJWT: RequestJWT) {
+  async deleteTransaction(@Param('targetId') targetId: string, @Req() reqJWT: RequestJWT) {
     const { branchId } = reqJWT
 
-    return await this.vnPayService.deleteTransactionByTableId(tableId, branchId)
+    return await this.vnPayService.deleteTransaction(targetId, branchId)
   }
 
   @Post('ipn')
