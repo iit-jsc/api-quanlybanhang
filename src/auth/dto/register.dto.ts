@@ -9,6 +9,7 @@ export class RegisterDto {
   phone: string
 
   @IsNotEmpty()
+  @IsNotEmpty()
   fullName: string
 
   @IsNotEmpty()
@@ -17,8 +18,10 @@ export class RegisterDto {
   password: string
 
   @IsNotEmpty()
+  @IsNotEmpty()
   shopName: string
 
+  @IsNotEmpty()
   @IsNotEmpty()
   branchName: string
 
