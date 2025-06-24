@@ -79,11 +79,11 @@ export class VNPayService {
         HttpStatus.NOT_FOUND
       )
 
-    // check bàn có đang thanh toán hay không?
+    // check bàn / đơn có đang thanh toán hay không?
     const existingTransaction = await this.prisma.vNPayTransaction.findFirst({
       where: {
-        tableId: data.tableId,
-        status: TransactionStatus.PENDING
+        status: TransactionStatus.PENDING,
+        OR: [{ tableId: data.tableId }, { orderId: data.orderId }]
       },
       select: { table: true }
     })
