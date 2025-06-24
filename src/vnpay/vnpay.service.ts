@@ -334,7 +334,9 @@ export class VNPayService {
 
   async deleteTransaction(targetId: string, branchId: string) {
     // Xóa hết đơn nháp nếu thanh toán từ bàn
-    await this.prisma.order.deleteMany({ where: { tableId: targetId, isDraft: true, branchId } })
+    await this.prisma.order.deleteMany({
+      where: { OR: [{ tableId: targetId, isDraft: true }, { id: targetId }], branchId }
+    })
 
     await this.prisma.vNPayTransaction.deleteMany({
       where: {
