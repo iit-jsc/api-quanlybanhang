@@ -8,7 +8,8 @@ import {
   OrderStatus,
   PaymentMethodType,
   PaymentStatus,
-  PrismaClient
+  PrismaClient,
+  EInvoiceStatus
 } from '@prisma/client'
 import {
   getCustomerDiscount,
@@ -21,6 +22,7 @@ import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { NotifyService } from 'src/notify/notify.service'
+import { EInvoiceService } from 'src/einvoice/einvoice.service'
 
 @Injectable()
 export class OrderPaymentService {
@@ -28,7 +30,8 @@ export class OrderPaymentService {
     private readonly prisma: PrismaService,
     private readonly activityLogService: ActivityLogService,
     private readonly orderGatewayHandler: OrderGatewayHandler,
-    private readonly notifyService: NotifyService
+    private readonly notifyService: NotifyService,
+    private readonly eInvoiceService: EInvoiceService
   ) {}
 
   async payment(
@@ -104,7 +107,7 @@ export class OrderPaymentService {
         const newOrder = await prisma.order.update({
           where: { id },
           data: {
-            paymentStatus: PaymentStatus.SUCCESS,
+            // paymentStatus: PaymentStatus.SUCCESS,
             note: data.note,
             type: data.type,
             orderTotal,
@@ -142,7 +145,9 @@ export class OrderPaymentService {
             },
             branchId,
             deviceId
-          )
+          ),
+          // Tạo hóa đơn điện tử
+          this.createEInvoice(newOrder, data.customerId, prisma)
         ])
 
         return newOrder
@@ -152,5 +157,105 @@ export class OrderPaymentService {
         maxWait: 15_000
       }
     )
+  }
+  /**
+   * Tạo hóa đơn điện tử theo quy trình đúng chuẩn POS
+   */
+  private async createEInvoice(order: any, customerId?: string, prisma?: PrismaClient) {
+    try {
+      // Lấy thông tin khách hàng nếu có
+      let customer = null
+      if (customerId) {
+        customer = await prisma.customer.findUnique({
+          where: { id: customerId }
+        })
+      }
+
+      console.log('🏗️ Bắt đầu tạo hóa đơn điện tử cho đơn hàng:', order.id)
+
+      // Bước 1: Tạo bản ghi hóa đơn với trạng thái PENDING
+      const invoiceRecord = await prisma.eInvoice.create({
+        data: {
+          orderId: order.id,
+          pattern: '',
+          serial: '',
+          invoiceNumber: order.code,
+          status: EInvoiceStatus.PENDING,
+          xmlData: '',
+          responseData: '',
+          publishedAt: null
+        }
+      })
+
+      console.log('📝 Đã tạo bản ghi hóa đơn PENDING:', invoiceRecord.id)
+
+      // // Bước 2: Tạo dữ liệu hóa đơn
+      const invoiceData = this.eInvoiceService.createInvoiceFromOrder(order, customer)
+
+      console.log('📋 Dữ liệu hóa đơn đã chuẩn bị:', {
+        customer: invoiceData.customer.cusName,
+        total: invoiceData.total,
+        products: invoiceData.products.length
+      })
+
+      // Bước 3: Gọi API gửi hóa đơn đến CQT (sử dụng API mới cho máy tính tiền)
+      const result = await this.eInvoiceService.publishInvoice(invoiceData)
+
+      console.log('📤 Kết quả gửi hóa đơn:', result)
+
+      // // Bước 4: Cập nhật trạng thái hóa đơn
+      // if (result.success) {
+      //   await prisma.eInvoice.update({
+      //     where: { id: invoiceRecord.id },
+      //     data: {
+      //       pattern: result.pattern || '',
+      //       serial: result.serial || '',
+      //       invoiceNumber: result.invoiceNumber || '',
+      //       status: EInvoiceStatus.SENT,
+      //       publishedAt: new Date()
+      //     }
+      //   })
+
+      //   console.log(`✅ Hóa đơn điện tử đã gửi thành công`)
+      //   console.log(`📋 Số hóa đơn: ${result.invoiceNumber}`)
+      //   console.log(`📋 Mẫu số: ${result.pattern}, Ký hiệu: ${result.serial}`)
+      // } else {
+      //   await prisma.eInvoice.update({
+      //     where: { id: invoiceRecord.id },
+      //     data: {
+      //       status: EInvoiceStatus.ERROR,
+      //       responseData: result.error || 'Lỗi không xác định'
+      //     }
+      //   })
+
+      //   console.error(`❌ 1111 Lỗi gửi hóa đơn điện tử: ${result.error}`)
+      // }
+
+      // return result
+    } catch (error) {
+      console.error('❌ Exception khi tạo hóa đơn điện tử:', error)
+
+      // // Cập nhật trạng thái ERROR nếu có exception
+      // try {
+      //   await prisma.eInvoice.updateMany({
+      //     where: {
+      //       orderId: order.id,
+      //       status: 'PENDING'
+      //     },
+      //     data: {
+      //       status: 'ERROR',
+      //       responseData: error.message || 'Lỗi không xác định'
+      //     }
+      //   })
+      // } catch (updateError) {
+      //   console.error('❌ Lỗi cập nhật trạng thái hóa đơn:', updateError)
+      // }
+
+      // // Không throw error để không ảnh hưởng đến quy trình thanh toán chính
+      // return {
+      //   success: false,
+      //   error: error.message || 'Lỗi không xác định'
+      // }
+    }
   }
 }

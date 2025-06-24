@@ -1,20 +1,37 @@
-version: '3.8'
-
 services:
-  mysql:
+  # Database cho môi trường phát triển (dev)
+  mysql_dev:
     image: mysql:8.0.42
-    container_name: mysql-container
+    container_name: smanager-mysql-dev
     restart: unless-stopped
     environment:
       MYSQL_ROOT_PASSWORD: anhemiit123
-      MYSQL_DATABASE: safes_software
+      MYSQL_DATABASE: smanager_dev
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data_dev:/var/lib/mysql
+    networks:
+      - backend
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+  
+  # Database cho môi trường production 
+  mysql_prod:
+    image: mysql:8.0.42
+    container_name: smanager-mysql-prod
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: anhemiit123
+      MYSQL_DATABASE: smanager_prod
     ports:
       - "3306:3306"
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql_data_prod:/var/lib/mysql
     networks:
       - backend
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
 
+  # phpMyAdmin để quản lý cả hai database
   phpmyadmin:
     image: phpmyadmin/phpmyadmin
     container_name: pma
@@ -22,14 +39,18 @@ services:
     ports:
       - "8080:80"
     environment:
-      PMA_HOST: mysql
+      PMA_HOSTS: mysql_dev,mysql_prod
       PMA_USER: root
       PMA_PASSWORD: anhemiit123
     networks:
       - backend
+    depends_on:
+      - mysql_dev
+      - mysql_prod
 
 volumes:
-  mysql_data:
+  mysql_data_dev:
+  mysql_data_prod:
 
 networks:
   backend:

@@ -466,6 +466,7 @@ model Order {
   creator               Account?           @relation("creator", fields: [createdBy], references: [id])
   updater               Account?           @relation("updater", fields: [updatedBy], references: [id])
   vnPayTransactions     VNPayTransaction[]
+  eInvoice              EInvoice?
 
   @@unique([branchId, code])
 }
@@ -882,4 +883,28 @@ enum PaymentStatus {
   REVIEWING
   SUCCESS
   FAILED
+}
+
+model EInvoice {
+  id            String         @id @default(uuid())
+  orderId       String         @unique
+  order         Order?         @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  pattern       String?        @db.Text
+  serial        String?        @db.Text
+  invoiceNumber String?        @unique
+  status        EInvoiceStatus @default(PENDING)
+  xmlData       String?        @db.Text
+  responseData  String?        @db.Text
+  errorMessage  String?        @db.Text
+  publishedAt   DateTime?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+}
+
+enum EInvoiceStatus {
+  PENDING // Chờ xử lý
+  SENT // Đã gửi đến CQT thành công
+  REJECTED // Bị từ chối
+  ERROR // Lỗi kỹ thuật
+  CANCELLED // Đã hủy
 }
