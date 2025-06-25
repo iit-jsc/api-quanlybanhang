@@ -15,4 +15,9 @@ export class CreateBranchDto {
   bannerURL?: string
 }
 
+export class CreateDataSampleDto {
+  @IsNotEmpty()
+  isAgreed: boolean
+}
+
 export class UpdateBranchDto extends PartialType(CreateBranchDto) {}

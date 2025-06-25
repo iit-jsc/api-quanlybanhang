@@ -638,8 +638,8 @@ model Branch {
   activityLogs        ActivityLog[]
   accountSockets      AccountSocket[]
   vnPayMerchants      VNPayMerchant[]
-  VNPayTransaction    VNPayTransaction[]
-  BranchSetting       BranchSetting?
+  vNPayTransaction    VNPayTransaction[]
+  branchSetting       BranchSetting?
 }
 
 model AccountSocket {
@@ -739,14 +739,15 @@ model VNPayMerchant {
 }
 
 model BranchSetting {
-  id         String   @id @default(uuid())
-  useKitchen Boolean  @default(true)
-  branchId   String   @unique
-  branch     Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  updatedBy  String?
-  updater    Account? @relation("updater", fields: [updatedBy], references: [id])
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id                  String   @id @default(uuid())
+  useKitchen          Boolean  @default(true)
+  isSampleDataEnabled Boolean  @default(false)
+  branchId            String   @unique
+  branch              Branch?  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  updatedBy           String?
+  updater             Account? @relation("updater", fields: [updatedBy], references: [id])
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 enum ActivityAction {

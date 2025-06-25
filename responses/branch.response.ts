@@ -6,5 +6,6 @@ export const branchShortSelect: Prisma.BranchSelect = {
   address: true,
   photoURL: true,
   expiryAt: true,
-  phone: true
+  phone: true,
+  branchSetting: true
 }
