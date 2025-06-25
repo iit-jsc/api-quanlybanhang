@@ -9,7 +9,7 @@ async function main() {
     // Lấy danh sách chi nhánh chưa có cài đặt
     const branchesWithoutSettings = await prisma.branch.findMany({
       where: {
-        BranchSetting: null
+        branchSetting: null
       },
       select: {
         id: true,

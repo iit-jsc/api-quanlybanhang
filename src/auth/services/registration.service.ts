@@ -6,8 +6,6 @@ import { RegisterDto } from '../dto/register.dto'
 import { RoleService } from 'src/shop/services/role.service'
 import { UserService } from 'src/shop/services/user.service'
 import { CustomerService } from 'src/shop/services/customer.service'
-import { ProductService } from 'src/shop/services/product.service'
-import { AreaService } from 'src/shop/services/area.service'
 import { PaymentMethodService } from 'src/shop/services/payment-method.service'
 import { PasswordService } from './password.service'
 
@@ -24,8 +22,6 @@ export class RegistrationService {
     private readonly roleService: RoleService,
     private readonly userService: UserService,
     private readonly customerService: CustomerService,
-    private readonly productService: ProductService,
-    private readonly areaService: AreaService,
     private readonly paymentMethodService: PaymentMethodService,
     private readonly passwordService: PasswordService
   ) {}
@@ -53,9 +49,6 @@ export class RegistrationService {
           this.paymentMethodService.createPaymentMethods(branchId, prisma),
           this.setupBranchSetting(branchId, prisma)
         ])
-
-        // Setup branch data (products, areas)
-        if (data.generateSampleData) await this.setupBranchData(branchId, prisma)
 
         return { success: true, userId: user.id, branchId, shopId }
       },
@@ -144,26 +137,6 @@ export class RegistrationService {
     await Promise.all([
       this.userService.createEmployeeGroups(shopId, prisma),
       this.customerService.createCustomerTypes(shopId, prisma)
-    ])
-  }
-
-  private async setupBranchData(branchId: string, prisma: PrismaClient) {
-    // Create measurement units first
-    const measurementUnits = await this.productService.createMeasurementUnit(
-      DEFAULT_BUSINESS_TYPE,
-      branchId,
-      prisma
-    )
-
-    // Create product types and other branch data in parallel
-    await Promise.all([
-      this.productService.createProductTypes(
-        DEFAULT_BUSINESS_TYPE,
-        branchId,
-        measurementUnits.map(unit => unit.id),
-        prisma
-      ),
-      this.areaService.createAreas(branchId, prisma)
     ])
   }
 
