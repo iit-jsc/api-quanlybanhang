@@ -73,9 +73,9 @@ export class ReportService {
           paymentStatus: PaymentStatus.SUCCESS,
           branchId,
           status: { not: OrderStatus.CANCELLED },
-          isDraft: false,
-          ...where
-        }
+          isDraft: false
+        },
+        ...where
       },
       _sum: {
         amount: true
