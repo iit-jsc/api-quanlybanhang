@@ -1,5 +1,5 @@
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsNotEmpty, MinLength } from 'class-validator'
+import { IsBoolean, IsNotEmpty, IsOptional, MinLength } from 'class-validator'
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class RegisterDto {
@@ -26,4 +26,8 @@ export class RegisterDto {
   branchName: string
 
   address?: string
+
+  @IsOptional()
+  @IsBoolean()
+  generateSampleData: boolean = true
 }

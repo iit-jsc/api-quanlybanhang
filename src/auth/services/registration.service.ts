@@ -48,8 +48,14 @@ export class RegistrationService {
         // Setup employee groups and customer types
         await this.setupGroupsAndTypes(shopId, prisma)
 
-        // Setup branch data (products, areas, payment methods)
-        await this.setupBranchData(branchId, prisma)
+        // Setup required payment methods and branch settings
+        await Promise.all([
+          this.paymentMethodService.createPaymentMethods(branchId, prisma),
+          this.setupBranchSetting(branchId, prisma)
+        ])
+
+        // Setup branch data (products, areas)
+        if (data.generateSampleData) await this.setupBranchData(branchId, prisma)
 
         return { success: true, userId: user.id, branchId, shopId }
       },
@@ -157,9 +163,7 @@ export class RegistrationService {
         measurementUnits.map(unit => unit.id),
         prisma
       ),
-      this.areaService.createAreas(branchId, prisma),
-      this.paymentMethodService.createPaymentMethods(branchId, prisma),
-      this.setupBranchSetting(branchId, prisma)
+      this.areaService.createAreas(branchId, prisma)
     ])
   }
 
