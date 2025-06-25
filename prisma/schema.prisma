@@ -453,7 +453,6 @@ model Order {
   voucherProducts       Json?
   paymentMethod         PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
   paymentStatus         PaymentStatus?     @default(UNPAID)
-  isPaid                Boolean?           @default(false)
   isSave                Boolean?           @default(false)
   isDraft               Boolean?           @default(false)
   createdBy             String?
