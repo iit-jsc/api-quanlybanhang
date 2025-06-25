@@ -9,7 +9,7 @@ export const orderSelect: Prisma.OrderSelect = {
   code: true,
   status: true,
   type: true,
-  isPaid: true,
+  paymentStatus: true,
   voucherValue: true,
   voucherProducts: true,
   discountCodeValue: true,
@@ -21,6 +21,7 @@ export const orderSelect: Prisma.OrderSelect = {
   bankingImages: true,
   branchId: true,
   tableId: true,
+  paymentMethodId: true,
   table: {
     select: tableSelect
   },

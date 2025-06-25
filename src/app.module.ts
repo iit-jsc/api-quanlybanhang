@@ -41,6 +41,8 @@ import { ActivityLogModule } from './activity-log/activity-log.module'
 import { PermissionModule } from './permission/permission.module'
 import { VnpayModule } from './vnpay/vnpay.module'
 import { HttpModule } from '@nestjs/axios'
+import { SecurityModule } from '../security'
+import { BranchSettingModule } from './branch-setting/branch-setting.module';
 
 @Module({
   imports: [
@@ -82,6 +84,7 @@ import { HttpModule } from '@nestjs/axios'
     ActivityLogModule.forRoot({
       isGlobal: true
     }),
+    SecurityModule,
     HttpModule,
     UserModule,
     AccountModule,
@@ -111,7 +114,8 @@ import { HttpModule } from '@nestjs/axios'
     ProductOptionGroupModule,
     CustomerRequestModule,
     CommonModule,
-    PermissionModule
+    PermissionModule,
+    BranchSettingModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]

@@ -1,7 +1,7 @@
-import { Injectable } from '@nestjs/common'
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
+import { Injectable } from '@nestjs/common'
 import { ReportAmountDto, ReportBestSellerDto, ReportDto, ReportRevenueDto } from './dto/report.dto'
-import { OrderStatus, Prisma } from '@prisma/client'
 import { accountShortSelect } from 'responses/account.response'
 @Injectable()
 export class ReportService {
@@ -17,7 +17,7 @@ export class ReportService {
       by: ['createdAt'],
       where: {
         branchId,
-        isPaid: true,
+        paymentStatus: PaymentStatus.SUCCESS,
         status: { not: OrderStatus.CANCELLED },
         isDraft: false,
         ...where
@@ -70,7 +70,7 @@ export class ReportService {
       by: ['productOriginId'],
       where: {
         order: {
-          isPaid: true,
+          paymentStatus: PaymentStatus.SUCCESS,
           branchId,
           status: { not: OrderStatus.CANCELLED },
           isDraft: false,
@@ -126,7 +126,7 @@ export class ReportService {
       by: ['createdBy'],
       where: {
         order: {
-          isPaid: true,
+          paymentStatus: PaymentStatus.SUCCESS,
           branchId,
           status: { not: OrderStatus.CANCELLED },
           isDraft: false,
@@ -183,7 +183,7 @@ export class ReportService {
         where: {
           orderDetail: {
             order: {
-              isPaid: true,
+              paymentStatus: PaymentStatus.SUCCESS,
               branchId,
               status: { not: OrderStatus.CANCELLED }
             }
@@ -203,7 +203,7 @@ export class ReportService {
         where: {
           branchId,
           order: {
-            isPaid: true,
+            paymentStatus: PaymentStatus.SUCCESS,
             status: { not: OrderStatus.CANCELLED },
             isDraft: false
           },

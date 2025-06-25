@@ -536,17 +536,13 @@ export async function getCustomerDiscount(
 
 export async function handleOrderDetailsBeforePayment(
   prisma: PrismaClient,
-  conditions: { tableId?: string; orderId?: string }
+  conditions: { tableId?: string; orderId?: string; branchId: string }
 ) {
   await prisma.orderDetail.updateMany({
-    where: {
-      ...conditions,
-      status: {
-        not: OrderDetailStatus.SUCCESS
-      }
-    },
+    where: { ...conditions, amount: 0 },
     data: {
-      status: OrderDetailStatus.SUCCESS
+      status: OrderDetailStatus.SUCCESS,
+      successAt: new Date()
     }
   })
 }

@@ -21,19 +21,17 @@ import {
 } from './dto/order-detail.dto'
 import { RequestJWT } from 'interfaces/common.interface'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
-import { RolesGuard } from 'guards/roles.guard'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
 
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard)
 @Controller('order-detail')
 export class OrderDetailController {
   constructor(private readonly orderDetailService: OrderDetailService) {}
 
   @Delete('')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.delete)
   deleteMany(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
     const { accountId, branchId, deviceId } = req
 
@@ -51,7 +49,6 @@ export class OrderDetailController {
 
   @Patch('/change-status')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.update)
   updateStatusOrderDetails(@Body() data: UpdateStatusOrderDetailsDto, @Req() req: RequestJWT) {
     const { accountId, branchId, deviceId } = req
 
@@ -60,7 +57,6 @@ export class OrderDetailController {
 
   @Patch('/:id/cancel')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.cancel)
   cancel(@Body() data: CancelOrderDetailsDto, @Req() req: RequestJWT, @Param('id') id: string) {
     const { accountId, branchId, deviceId } = req
 
@@ -69,7 +65,6 @@ export class OrderDetailController {
 
   @Patch('/:id')
   @HttpCode(HttpStatus.OK)
-  @Roles(permissions.order.update)
   update(@Body() data: UpdateOrderDetailDto, @Req() req: RequestJWT, @Param('id') id: string) {
     const { accountId, branchId, deviceId } = req
 

@@ -24,7 +24,36 @@
 
 ## Description
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+API Quản lý bán hàng - Hệ thống backend cho ứng dụng quản lý bán hàng đa nền tảng.
+
+## Cấu trúc Project
+
+```
+├── security/              # 🔒 Security components (Guards, Interceptors)
+├── src/                   # 📁 Source code chính
+│   ├── auth/             # 🔐 Authentication & Authorization  
+│   ├── vnpay/            # 💳 VNPay payment integration
+│   ├── shop/             # 🏪 Shop management
+│   ├── order/            # 📋 Order management
+│   ├── product/          # 📦 Product management
+│   ├── customer/         # 👥 Customer management
+│   ├── common/           # 🛠️ Common utilities
+│   └── ...               # Other modules
+├── prisma/               # 🗄️ Database schema & migrations
+├── utils/                # 🔧 Utility functions
+├── SECURITY.md           # 📋 Security documentation
+└── README.md             # 📖 This file
+```
+
+## Tính năng bảo mật
+
+- ✅ Rate Limiting & Anti-Spam
+- ✅ Security Headers (Helmet)
+- ✅ CORS Protection  
+- ✅ Input Validation & Sanitization
+- ✅ IP Whitelist cho Admin
+- ✅ Security Monitoring & Logging
+- ✅ Request Threat Detection
 
 ## Installation
 

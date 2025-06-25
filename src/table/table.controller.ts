@@ -17,7 +17,6 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RequestJWT } from 'interfaces/common.interface'
 import { DeleteManyDto } from 'utils/Common.dto'
 import {
-  AddDishesByCustomerDto,
   AddDishesDto,
   CreateTableDto,
   FindManyTableDto,
@@ -67,12 +66,6 @@ export class TableController {
     const { accountId, branchId, deviceId } = req
 
     return this.tableService.addDish(id, data, accountId, branchId, deviceId)
-  }
-
-  @Post(':id/add-dishes-by-customer')
-  @HttpCode(HttpStatus.OK)
-  addDishesByCustomer(@Param('id') id: string, @Body() data: AddDishesByCustomerDto) {
-    return this.tableService.addDishesByCustomer(id, data)
   }
 
   @Post('/:id/payment')

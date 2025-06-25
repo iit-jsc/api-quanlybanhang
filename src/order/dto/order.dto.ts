@@ -8,12 +8,13 @@ import {
   IsNumber,
   IsOptional,
   Min,
+  ArrayMaxSize,
   Validate,
   ValidateNested,
   ValidatorConstraint,
   ValidatorConstraintInterface
 } from 'class-validator'
-import { OrderDetailStatus, OrderStatus, OrderType } from '@prisma/client'
+import { OrderDetailStatus, OrderStatus, OrderType, PaymentStatus } from '@prisma/client'
 import { FindManyDto } from 'utils/Common.dto'
 
 @ValidatorConstraint({ name: 'isNotCancel', async: false })
@@ -63,9 +64,17 @@ export class CreateOrderProductsDto {
 }
 
 export class UpdateOrderDto {
+  @IsOptional()
+  @IsArray()
+  @ArrayMaxSize(1)
   bankingImages?: string[]
+
   note?: string
   cancelReason?: string
+
+  @IsOptional()
+  @IsEnum(PaymentStatus)
+  paymentStatus: PaymentStatus
 
   @IsOptional()
   @IsEnum(OrderStatus)
@@ -100,10 +109,9 @@ export class FindManyOrderDto extends FindManyDto {
   @IsEnum(OrderStatus, { each: true })
   statuses: OrderStatus[]
 
-  @Transform(({ value }: TransformFnParams) => {
-    return Boolean(+value)
-  })
-  isPaid?: boolean
+  @IsOptional()
+  @IsEnum(PaymentStatus)
+  paymentStatus?: PaymentStatus
 
   @Transform(({ value }: TransformFnParams) => {
     return Boolean(+value)

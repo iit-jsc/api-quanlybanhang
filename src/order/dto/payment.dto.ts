@@ -1,5 +1,5 @@
-import { OrderStatus, OrderType } from '@prisma/client'
-import { IsArray, IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
+import { OrderStatus, OrderType, PaymentStatus } from '@prisma/client'
+import { ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
 
 export class PaymentDto {
   @IsNotEmpty()
@@ -7,6 +7,7 @@ export class PaymentDto {
 
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(1)
   bankingImages: string[]
 
   @IsOptional()
@@ -29,6 +30,13 @@ export class PaymentOrderDto extends PaymentDto {
   type: OrderType
 }
 
+export class PaymentReviewingOrderDto {
+  note?: string
+
+  @IsNotEmpty()
+  orderId: string
+}
+
 export class PaymentFromTableDto extends PaymentDto {
   totalPeople?: number
 
@@ -40,17 +48,6 @@ export class RequestPaymentDto {
   branchId: string
 }
 
-export class PaymentWithVNPayDto {
-  voucherId?: string
-  discountCode?: string
-  customerId?: string
-  totalPeople?: number
-  note?: string
-
-  @IsOptional()
-  @IsEnum(OrderStatus)
-  status: OrderStatus
-
-  @IsNotEmpty()
-  returnUrl: string
+export class UpdatePaymentDto {
+  paymentStatus?: PaymentStatus
 }
