@@ -47,7 +47,7 @@ export class BranchService {
         where: { branchId }
       })
 
-      if (branchSetting.isSampleDataEnabled)
+      if (branchSetting.isSampleDataRequested)
         throw new HttpException('Không thể thực hiện tại thao tác này!', HttpStatus.BAD_REQUEST)
 
       if (data.isAgreed) {
@@ -70,7 +70,7 @@ export class BranchService {
 
       await prisma.branchSetting.update({
         where: { branchId },
-        data: { isSampleDataEnabled: true }
+        data: { isSampleDataRequested: true }
       })
     })
   }
