@@ -65,29 +65,19 @@ export class EInvoiceController {
    * API: Lấy hash cho số hóa đơn cụ thể
    * GET /einvoice/get-hash/:invoiceNo
    */
-  @Get('get-hash/:invoiceNo')
+  @Get('get-hash/')
   @HttpCode(HttpStatus.OK)
-  async getInvoiceHash(@Param('invoiceNo') invoiceNo: string) {
+  async getInvoiceHash() {
     try {
-      const invoiceNumber = parseInt(invoiceNo)
-      if (isNaN(invoiceNumber)) {
-        return {
-          success: false,
-          message: 'Số hóa đơn không hợp lệ',
-          error: 'Invoice number must be a valid number'
-        }
-      }
+      console.log(`[API] Yêu cầu lấy hash cho số hóa đơn: `)
 
-      console.log(`[API] Yêu cầu lấy hash cho số hóa đơn: ${invoiceNumber}`)
-
-      const result = await this.eInvoiceService.getInvoiceHash(invoiceNumber)
+      const result = await this.eInvoiceService.getInvoiceHash()
 
       if (result.success) {
         return {
           success: true,
-          message: `Lấy hash thành công cho số hóa đơn ${invoiceNumber}`,
+          message: `Lấy hash thành công cho số hóa đơn `,
           data: {
-            invoiceNumber: invoiceNumber,
             base64Hash: result.base64Hash.substring(0, 100) + '...',
             hashLength: result.base64Hash.length,
             canProceedToSend: true
@@ -96,7 +86,7 @@ export class EInvoiceController {
       } else {
         return {
           success: false,
-          message: `Lấy hash thất bại cho số hóa đơn ${invoiceNumber}`,
+          message: `Lấy hash thất bại cho số hóa đơn `,
           error: result.error
         }
       }

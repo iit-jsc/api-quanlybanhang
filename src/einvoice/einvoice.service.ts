@@ -71,13 +71,13 @@ export class EInvoiceService {
    * BƯỚC 1: Lấy Base64Hash cho số hóa đơn cụ thể (GetHashInvMTTNoRangeByToken)
    * Theo tài liệu VNPT - API dành cho máy tính tiền
    */
-  async getInvoiceHash(invoiceNo: number): Promise<{
+  async getInvoiceHash(): Promise<{
     success: boolean
     base64Hash?: string
     error?: string
   }> {
     try {
-      this.logger.log(`[STEP 1] Lấy hash cho số hóa đơn: ${invoiceNo}`)
+      this.logger.log(`[STEP 1] Lấy hash cho số hóa đơn:`)
 
       console.log('****this.config****', this.config)
 
@@ -93,8 +93,6 @@ export class EInvoiceService {
               <password>${this.config.password}</password>
               <pattern>${this.config.pattern}</pattern>
               <serial>${this.config.serial}</serial>
-              <fromNo>${invoiceNo}</fromNo>
-              <toNo>${invoiceNo}</toNo>
               <serialCert>${this.config.serialCert}</serialCert>
             </GetHashInvMTTNoRangeByToken>
           </soap:Body>
@@ -186,7 +184,7 @@ export class EInvoiceService {
       this.logger.log(`[STEP 2] Bắt đầu gửi hóa đơn ${invoiceNo} cho đơn hàng ${orderId}`)
 
       // Bước 2.1: Lấy Base64Hash từ bước 1
-      const hashResult = await this.getInvoiceHash(invoiceNo)
+      const hashResult = await this.getInvoiceHash()
       if (!hashResult.success) {
         return {
           success: false,
@@ -470,9 +468,9 @@ export class EInvoiceService {
     )
 
     for (const number of numbersToTry) {
-      const testResult = await this.getInvoiceHash(number)
+      const testResult = await this.getInvoiceHash()
       if (testResult.success) {
-        this.logger.log(`[FIND] ✅ Tìm thấy số khả dụng: ${number}`)
+        this.logger.log(`[FIND] ✅ Tìm thấy số khả dụng: `)
         return {
           success: true,
           invoiceNumber: number
