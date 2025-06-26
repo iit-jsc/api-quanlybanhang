@@ -13,7 +13,7 @@ import { PasswordService } from './password.service'
 const TRANSACTION_TIMEOUT = 10_000
 const TRANSACTION_MAX_WAIT = 5_000
 const DEFAULT_BUSINESS_TYPE = 'FOOD_BEVERAGE'
-const DEFAULT_TRIAL_DAYS = 7
+const DEFAULT_TRIAL_DAYS = 60
 
 @Injectable()
 export class RegistrationService {
