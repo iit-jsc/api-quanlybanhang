@@ -48,7 +48,7 @@ export class OrderPaymentService {
         })
 
         if (order.paymentStatus === PaymentStatus.SUCCESS)
-          throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
+          throw new HttpException('Đơn hàng này đã thanh toán!', HttpStatus.CONFLICT)
 
         const [paymentMethod, branchSetting] = await Promise.all([
           prisma.paymentMethod.findUniqueOrThrow({

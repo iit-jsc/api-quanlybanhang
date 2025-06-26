@@ -599,7 +599,7 @@ export class VNPayService {
         })
 
         if (order.paymentStatus === PaymentStatus.SUCCESS)
-          throw new HttpException('Đơn hàng này đã thành toán!', HttpStatus.CONFLICT)
+          throw new HttpException('Đơn hàng này đã thanh toán!', HttpStatus.CONFLICT)
 
         if (order.paymentStatus === PaymentStatus.REVIEWING)
           throw new HttpException('Đơn hàng này đang được xem xét!', HttpStatus.CONFLICT)
