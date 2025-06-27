@@ -94,8 +94,8 @@ export class ProductService {
               price: 35000,
               oldPrice: 40000,
               description: 'Cơm gà nướng thơm phức, ăn kèm nước mắm gừng',
-              thumbnail: 'uploads/fried-chicken.png',
-              photoURLs: ['uploads/fried-chicken.png']
+              thumbnail: 'uploads/biryani.png',
+              photoURLs: ['uploads/biryani.png']
             },
             {
               name: 'Phở bò',
