@@ -104,13 +104,7 @@ export class ProductService {
               description: 'Phở bò tái chín, nước dùng niêu cùng nước từ xương',
               thumbnail: 'uploads/Beef-Pho.jpg',
               photoURLs: ['uploads/Beef-Pho.jpg']
-            }
-          ]
-        },
-        {
-          name: 'Combo',
-          description: 'Gói combo tiết kiệm',
-          products: [
+            },
             {
               name: 'Pizza',
               price: 120000,
