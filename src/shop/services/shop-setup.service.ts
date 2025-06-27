@@ -104,12 +104,7 @@ export class ShopSetupService {
         // Create areas, payment methods, and product options in parallel
         await Promise.all([
           this.areaService.createAreas(branch.id, prisma),
-          this.paymentMethodService.createPaymentMethods(branch.id, prisma),
-          this.productService.createProductOptionGroupsAndOptions(
-            branch.id,
-            businessTypeCode,
-            prisma
-          )
+          this.paymentMethodService.createPaymentMethods(branch.id, prisma)
         ])
       })
     )

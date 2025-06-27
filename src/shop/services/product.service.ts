@@ -1,9 +1,7 @@
 import slugify from 'slugify'
 import { Injectable } from '@nestjs/common'
-import { PrismaClient, ProductOptionType } from '@prisma/client'
-import { faker } from '@faker-js/faker'
+import { PrismaClient } from '@prisma/client'
 import { generateCode } from 'utils/Helps'
-import { PRODUCT_LIST_EXAMPLE } from 'data/example'
 
 @Injectable()
 export class ProductService {
@@ -52,35 +50,100 @@ export class ProductService {
         {
           name: 'Đồ uống',
           description: 'Các loại nước uống',
-          products: ['Trà sữa', 'Cà phê', 'Nước cam']
+          products: [
+            {
+              name: 'Trà sữa',
+              price: 25000,
+              oldPrice: 30000,
+              description: 'Trà sữa thơm ngon, pha chế theo công thức độc quyền',
+              thumbnail: 'uploads/boba-tea.png',
+              photoURLs: ['uploads/boba-tea.png']
+            },
+            {
+              name: 'Cà phê',
+              price: 20000,
+              oldPrice: 25000,
+              description: 'Cà phê rang xay nguyên chất, hương vị đậm đà',
+              thumbnail: 'uploads/coffee-cup.png',
+              photoURLs: ['uploads/coffee-cup.png']
+            },
+            {
+              name: 'Nước cam',
+              price: 15000,
+              oldPrice: 18000,
+              description: 'Nước cam tươi 100%, bổ sung vitamin C',
+              thumbnail: 'uploads/orange-juice.png',
+              photoURLs: ['uploads/orange-juice.png']
+            }
+          ]
         },
         {
           name: 'Đồ ăn',
           description: 'Các món ăn',
-          products: ['Bánh mì', 'Cơm gà', 'Phở bò']
+          products: [
+            {
+              name: 'Bánh mì',
+              price: 12000,
+              oldPrice: 15000,
+              description: 'Bánh mì thịt nướng, pate, rau sống tươi ngon',
+              thumbnail: 'uploads/bread.png',
+              photoURLs: ['uploads/bread.png']
+            },
+            {
+              name: 'Cơm gà',
+              price: 35000,
+              oldPrice: 40000,
+              description: 'Cơm gà nướng thơm phức, ăn kèm nước mắm gừng',
+              thumbnail: 'uploads/fried-chicken.png',
+              photoURLs: ['uploads/fried-chicken.png']
+            },
+            {
+              name: 'Phở bò',
+              price: 45000,
+              oldPrice: 50000,
+              description: 'Phở bò tái chín, nước dùng niêu cùng nước từ xương',
+              thumbnail: 'uploads/Beef-Pho.jpg',
+              photoURLs: ['uploads/Beef-Pho.jpg']
+            }
+          ]
         },
         {
           name: 'Combo',
           description: 'Gói combo tiết kiệm',
-          products: ['Combo sáng', 'Combo trưa', 'Combo tối']
-        }
-      ]
-    } else if (businessTypeCode === 'FASHION') {
-      productTypes = [
-        {
-          name: 'Áo',
-          description: 'Các loại áo thun, sơ mi, hoodie',
-          products: ['Áo thun', 'Áo sơ mi', 'Hoodie']
-        },
-        {
-          name: 'Quần',
-          description: 'Quần jeans, quần kaki, quần short',
-          products: ['Jeans', 'Kaki', 'Short']
-        },
-        {
-          name: 'Giày Dép',
-          description: 'Các loại giày sneaker, sandal',
-          products: ['Sneaker', 'Sandal', 'Giày lười']
+          products: [
+            {
+              name: 'Pizza',
+              price: 120000,
+              oldPrice: 150000,
+              description: 'Pizza hải sản phô mai mozzarella, giòn tan hấp dẫn',
+              thumbnail: 'uploads/pizza.png',
+              photoURLs: ['uploads/pizza.png']
+            },
+            {
+              name: 'Hamburger',
+              price: 65000,
+              oldPrice: 80000,
+              description: 'Hamburger bò nướng, rau xanh tươi ngon và sốt đặc biệt',
+              thumbnail: 'uploads/hamburger.png',
+              photoURLs: ['uploads/hamburger.png']
+            },
+            {
+              name: 'Gà rán',
+              price: 85000,
+              oldPrice: 100000,
+              description: 'Gà rán giòn rụm, ướp gia vị bí mật 11 loại thảo mộc',
+              thumbnail: 'uploads/fried-chicken.png',
+              photoURLs: ['uploads/fried-chicken.png']
+            },
+            {
+              name: 'Sushi',
+              price: 180000,
+              oldPrice: 220000,
+              description: 'Sushi cá hồi tươi, cơm sushi được nêm nước giấm đặc biệt',
+              thumbnail: 'uploads/sushi.png',
+              photoURLs: ['uploads/sushi.png']
+            }
+          ]
         }
       ]
     }
@@ -105,24 +168,22 @@ export class ProductService {
         }
 
         const createdProducts = await Promise.all(
-          type.products.map(productName => {
+          type.products.map(productData => {
             const unitId = measurementUnitIds[Math.floor(Math.random() * measurementUnitIds.length)]
-            const randomOption =
-              PRODUCT_LIST_EXAMPLE[Math.floor(Math.random() * PRODUCT_LIST_EXAMPLE.length)]
 
             return prisma.product.create({
               data: {
-                name: productName,
-                slug: `${slugify(productName)}-${generateCode('')}`,
+                name: productData.name,
+                slug: `${slugify(productData.name)}-${generateCode('')}`,
                 branchId: branchId,
                 unitId: unitId,
                 productTypeId: createdType.id,
-                price: faker.number.float({ min: 10000, max: 50000, precision: 1000 }),
+                price: productData.price,
                 code: generateCode('SP'),
-                oldPrice: faker.number.float({ min: 10000, max: 50000, precision: 1000 }),
-                description: randomOption.description,
-                thumbnail: randomOption.url,
-                photoURLs: [randomOption.url]
+                oldPrice: productData.oldPrice,
+                description: productData.description,
+                thumbnail: productData.thumbnail,
+                photoURLs: productData.photoURLs
               }
             })
           })
@@ -136,101 +197,101 @@ export class ProductService {
     return createdProductTypes
   }
 
-  async createProductOptionGroupsAndOptions(
-    branchId: string,
-    businessTypeCode: string,
-    prisma: PrismaClient
-  ) {
-    let productOptionGroups = []
+  // async createProductOptionGroupsAndOptions(
+  //   branchId: string,
+  //   businessTypeCode: string,
+  //   prisma: PrismaClient
+  // ) {
+  //   let productOptionGroups = []
 
-    if (businessTypeCode === 'FOOD_BEVERAGE') {
-      productOptionGroups = [
-        {
-          name: 'Size',
-          isMultiple: false,
-          isRequired: true,
-          productOptions: [
-            { name: 'M', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: true },
-            { name: 'L', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false }
-          ]
-        },
-        {
-          name: 'Topping',
-          isMultiple: true,
-          isRequired: false,
-          productOptions: [
-            { name: 'Trân châu', price: 5000, type: ProductOptionType.APPLY_ALL, isDefault: false },
-            { name: 'Đậu đỏ', price: 4000, type: ProductOptionType.APPLY_ALL, isDefault: false },
-            { name: 'Đậu xanh', price: 2000, type: ProductOptionType.APPLY_ALL, isDefault: false }
-          ]
-        },
-        {
-          name: 'Chân châu',
-          isMultiple: true,
-          isRequired: false,
-          productOptions: [
-            {
-              name: 'Chân châu đen',
-              price: 3000,
-              type: ProductOptionType.APPLY_ALL,
-              isDefault: false
-            },
-            {
-              name: 'Chân châu trắng',
-              price: 5000,
-              type: ProductOptionType.APPLY_ALL,
-              isDefault: false
-            }
-          ]
-        }
-      ]
-    } else if (businessTypeCode === 'FASHION') {
-      productOptionGroups = [
-        {
-          name: 'Size',
-          isMultiple: false,
-          isRequired: true,
-          productOptions: [
-            { name: 'S', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false },
-            { name: 'M', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: true },
-            { name: 'L', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false },
-            { name: 'XL', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false }
-          ]
-        },
-        {
-          name: 'Màu sắc',
-          isMultiple: false,
-          isRequired: true,
-          productOptions: [
-            { name: 'Đen', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false },
-            { name: 'Trắng', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false }
-          ]
-        }
-      ]
-    }
+  //   if (businessTypeCode === 'FOOD_BEVERAGE') {
+  //     productOptionGroups = [
+  //       {
+  //         name: 'Size',
+  //         isMultiple: false,
+  //         isRequired: true,
+  //         productOptions: [
+  //           { name: 'M', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: true },
+  //           { name: 'L', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false }
+  //         ]
+  //       },
+  //       {
+  //         name: 'Topping',
+  //         isMultiple: true,
+  //         isRequired: false,
+  //         productOptions: [
+  //           { name: 'Trân châu', price: 5000, type: ProductOptionType.APPLY_ALL, isDefault: false },
+  //           { name: 'Đậu đỏ', price: 4000, type: ProductOptionType.APPLY_ALL, isDefault: false },
+  //           { name: 'Đậu xanh', price: 2000, type: ProductOptionType.APPLY_ALL, isDefault: false }
+  //         ]
+  //       },
+  //       {
+  //         name: 'Chân châu',
+  //         isMultiple: true,
+  //         isRequired: false,
+  //         productOptions: [
+  //           {
+  //             name: 'Chân châu đen',
+  //             price: 3000,
+  //             type: ProductOptionType.APPLY_ALL,
+  //             isDefault: false
+  //           },
+  //           {
+  //             name: 'Chân châu trắng',
+  //             price: 5000,
+  //             type: ProductOptionType.APPLY_ALL,
+  //             isDefault: false
+  //           }
+  //         ]
+  //       }
+  //     ]
+  //   } else if (businessTypeCode === 'FASHION') {
+  //     productOptionGroups = [
+  //       {
+  //         name: 'Size',
+  //         isMultiple: false,
+  //         isRequired: true,
+  //         productOptions: [
+  //           { name: 'S', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false },
+  //           { name: 'M', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: true },
+  //           { name: 'L', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false },
+  //           { name: 'XL', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false }
+  //         ]
+  //       },
+  //       {
+  //         name: 'Màu sắc',
+  //         isMultiple: false,
+  //         isRequired: true,
+  //         productOptions: [
+  //           { name: 'Đen', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false },
+  //           { name: 'Trắng', price: 0, type: ProductOptionType.APPLY_ALL, isDefault: false }
+  //         ]
+  //       }
+  //     ]
+  //   }
 
-    const createdGroups = await Promise.all(
-      productOptionGroups.map(async group => {
-        return prisma.productOptionGroup.create({
-          data: {
-            name: group.name,
-            isMultiple: group.isMultiple,
-            isRequired: group.isRequired,
-            branchId,
-            productOptions: {
-              create: group.productOptions.map(option => ({
-                name: option.name,
-                price: option.price,
-                type: option.type,
-                isDefault: option.isDefault
-              }))
-            }
-          }
-        })
-      })
-    )
+  //   const createdGroups = await Promise.all(
+  //     productOptionGroups.map(async group => {
+  //       return prisma.productOptionGroup.create({
+  //         data: {
+  //           name: group.name,
+  //           isMultiple: group.isMultiple,
+  //           isRequired: group.isRequired,
+  //           branchId,
+  //           productOptions: {
+  //             create: group.productOptions.map(option => ({
+  //               name: option.name,
+  //               price: option.price,
+  //               type: option.type,
+  //               isDefault: option.isDefault
+  //             }))
+  //           }
+  //         }
+  //       })
+  //     })
+  //   )
 
-    console.log('✅ Created product option groups!')
-    return createdGroups
-  }
+  //   console.log('✅ Created product option groups!')
+  //   return createdGroups
+  // }
 }

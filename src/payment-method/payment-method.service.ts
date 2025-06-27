@@ -1,10 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import {
-  CreatePaymentMethodDto,
-  FindManyPaymentMethodDto,
-  UpdatePaymentMethodDto
-} from './dto/payment-method.dto'
+import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from './dto/payment-method.dto'
 import { ActivityAction, PaymentMethodType, Prisma } from '@prisma/client'
 import { removeDiacritics, customPaginate } from 'utils/Helps'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
@@ -16,22 +12,34 @@ export class PaymentMethodService {
     private readonly prisma: PrismaService,
     private readonly activityLogService: ActivityLogService
   ) {}
+  // async create(data: CreatePaymentMethodDto, accountId: string, branchId: string) {
+  //   // Kiểm tra VNPayMerchant nếu đang tạo phương thức VNPay
+  //   if (data.type === PaymentMethodType.VNPAY) {
+  //     const vnpayMerchant = await this.prisma.vNPayMerchant.findUnique({
+  //       where: { branchId }
+  //     })
+  //     if (!vnpayMerchant) {
+  //       throw new HttpException(
+  //         'Vui lòng liên hệ để thiết lập VNPay Merchant trước khi sử dụng phương thức này',
+  //         HttpStatus.UNPROCESSABLE_ENTITY
+  //       )
+  //     }
+  //   }
 
-  async create(data: CreatePaymentMethodDto, accountId: string, branchId: string) {
-    return this.prisma.paymentMethod.create({
-      data: {
-        active: data.active,
-        bankCode: data.bankCode,
-        bankName: data.bankName,
-        photoURL: data.photoURL,
-        representative: data.representative,
-        type: data.type,
-        createdBy: accountId,
-        branchId
-      },
-      select: paymentMethodSelect
-    })
-  }
+  //   return this.prisma.paymentMethod.create({
+  //     data: {
+  //       active: data.active,
+  //       bankCode: data.bankCode,
+  //       bankName: data.bankName,
+  //       photoURL: data.photoURL,
+  //       representative: data.representative,
+  //       type: data.type,
+  //       createdBy: accountId,
+  //       branchId
+  //     },
+  //     select: paymentMethodSelect
+  //   })
+  // }
 
   async update(id: string, data: UpdatePaymentMethodDto, accountId: string, branchId: string) {
     return this.prisma.$transaction(async prisma => {
@@ -52,11 +60,21 @@ export class PaymentMethodService {
         select: paymentMethodSelect
       })
 
-      if (
-        paymentMethod.type === PaymentMethodType.VNPAY ||
-        paymentMethod.type === PaymentMethodType.CASH
-      )
-        throw new HttpException('Không thể cập nhật phương thức này!', HttpStatus.CONFLICT)
+      if (paymentMethod.type === PaymentMethodType.VNPAY) {
+        const vnpayMerchant = await prisma.vNPayMerchant.findUnique({
+          where: { branchId }
+        })
+
+        if (!vnpayMerchant) {
+          throw new HttpException(
+            'Vui lòng liên hệ hỗ trợ để thiết lập VNPAY Merchant trước khi sử dụng phương thức này',
+            HttpStatus.UNPROCESSABLE_ENTITY
+          )
+        }
+      }
+
+      if (paymentMethod.type === PaymentMethodType.CASH)
+        throw new HttpException('Không thể cập nhật phương thức này!', HttpStatus.BAD_REQUEST)
 
       await this.activityLogService.create(
         {
@@ -72,6 +90,7 @@ export class PaymentMethodService {
       return paymentMethod
     })
   }
+
   async findUniq(id: string, branchId: string) {
     return this.prisma.paymentMethod.findUniqueOrThrow({
       where: {
