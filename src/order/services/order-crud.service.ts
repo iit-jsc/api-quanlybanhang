@@ -9,13 +9,7 @@ import {
   Prisma,
   PrismaClient
 } from '@prisma/client'
-import {
-  customPaginate,
-  generateCode,
-  getOrderDetails,
-  getOrderTotal,
-  removeDiacritics
-} from 'utils/Helps'
+import { customPaginate, generateCode, getOrderDetails, getOrderTotal } from 'utils/Helps'
 import { orderSelect } from 'responses/order.response'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -151,7 +145,7 @@ export class OrderCrudService {
       isDraft: false,
       ...(keyword && {
         OR: keySearch.map(key => ({
-          [key]: { contains: removeDiacritics(keyword) }
+          [key]: { contains: keyword }
         }))
       }),
       ...(customerId && {
