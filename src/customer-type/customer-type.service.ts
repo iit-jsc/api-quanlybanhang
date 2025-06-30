@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
-import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { customPaginate } from 'utils/Helps'
 import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from './dto/customer-type.dto'
 import { customerTypeSelect } from 'responses/customer-type.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -48,7 +48,7 @@ export class CustomerTypeService {
   async findAll(params: FindManyDto, shopId: string) {
     const { page, perPage, keyword, orderBy } = params
     const where: Prisma.CustomerTypeWhereInput = {
-      ...(keyword && { name: { contains: removeDiacritics(keyword) } }),
+      ...(keyword && { name: { contains: keyword } }),
       shopId
     }
 

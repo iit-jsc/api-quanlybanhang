@@ -3,7 +3,7 @@ import { PrismaService } from 'nestjs-prisma'
 import { CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from './dto/customer.dto'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { customPaginate } from 'utils/Helps'
 import { customerSelect } from 'responses/customer.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
@@ -67,7 +67,7 @@ export class CustomerService {
     const where: Prisma.CustomerWhereInput = {
       ...(keyword && {
         OR: keySearch.map(key => ({
-          [key]: { contains: removeDiacritics(keyword) }
+          [key]: { contains: keyword }
         }))
       }),
       ...(customerTypeIds?.length > 0 && {

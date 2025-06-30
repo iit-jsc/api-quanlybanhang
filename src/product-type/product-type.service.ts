@@ -6,7 +6,7 @@ import {
   UpdateProductTypeDto
 } from './dto/product-type.dto'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
-import { removeDiacritics, customPaginate, generateSlug } from 'utils/Helps'
+import { customPaginate, generateSlug } from 'utils/Helps'
 import { productTypeSelect } from 'responses/product-type.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -58,7 +58,7 @@ export class ProductTypeService {
       branchId: branchId,
       ...(keyword && {
         OR: keySearch.map(key => ({
-          [key]: { contains: removeDiacritics(keyword) }
+          [key]: { contains: keyword }
         }))
       })
     }

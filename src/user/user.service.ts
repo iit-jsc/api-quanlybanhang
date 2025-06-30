@@ -4,7 +4,7 @@ import { PrismaService } from 'nestjs-prisma'
 import { CheckUniqDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
 import { AccountStatus, ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { removeDiacritics, customPaginate, generateCode } from 'utils/Helps'
+import { customPaginate, generateCode } from 'utils/Helps'
 import { userDetailSelect } from 'responses/user.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
@@ -79,7 +79,7 @@ export class UserService {
     const where: Prisma.UserWhereInput = {
       ...(keyword && {
         OR: keySearch.map(key => ({
-          [key]: { contains: removeDiacritics(keyword) }
+          [key]: { contains: keyword }
         }))
       }),
       ...(employeeGroupIds?.length && {

@@ -2,7 +2,7 @@ import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateProductDto, FindManyProductDto, UpdateProductDto } from './dto/product.dto'
-import { customPaginate, generateCode, generateSlug, removeDiacritics } from 'utils/Helps'
+import { customPaginate, generateCode, generateSlug } from 'utils/Helps'
 import { productSelect } from 'responses/product.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -71,7 +71,7 @@ export class ProductService {
       branchId,
       ...(keyword && {
         OR: keySearch.map(key => ({
-          [key]: { contains: removeDiacritics(keyword) }
+          [key]: { contains: keyword }
         }))
       }),
       ...(productTypeIds?.length && {
