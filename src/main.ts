@@ -7,6 +7,7 @@ import { json, static as static_ } from 'express'
 import { BadRequestException, HttpStatus, ValidationPipe } from '@nestjs/common'
 import { TransformInterceptor } from 'utils/ApiResponse'
 import { PrismaClientExceptionFilter } from 'nestjs-prisma'
+import { PrismaExceptionFilter } from './common/exceptions/prisma-exception.filter'
 import { ValidationError } from 'class-validator'
 import { errorFormatter } from 'utils/ApiErrors'
 import { SecurityInterceptor } from '../security'
@@ -36,7 +37,7 @@ async function bootstrap() {
     // Security interceptors và global guards
     app.useGlobalInterceptors(new TransformInterceptor(), new SecurityInterceptor())
 
-    app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter))
+    app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter), new PrismaExceptionFilter())
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
