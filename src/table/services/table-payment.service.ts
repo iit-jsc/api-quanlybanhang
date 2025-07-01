@@ -114,6 +114,7 @@ export class TablePaymentService {
 
           const createOrderPromise = prisma.order.create({
             data: {
+              isDraft: false,
               paymentStatus: PaymentStatus.SUCCESS,
               tableId,
               orderTotal,

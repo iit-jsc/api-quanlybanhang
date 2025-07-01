@@ -7,6 +7,7 @@ import { PrismaService } from 'nestjs-prisma'
 import { SetupMerchantDto } from './dto/merchant.dto'
 import {
   ActivityAction,
+  Order,
   OrderDetailStatus,
   OrderStatus,
   OrderType,
@@ -253,7 +254,7 @@ export class VNPayService {
    */
   private async createNewQrCode(
     merchantInfo: MerchantInfo,
-    targetOrder: any,
+    targetOrder: Order,
     data: CreateQrCodeDto,
     branchId: string
   ) {

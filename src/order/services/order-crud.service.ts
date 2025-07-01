@@ -1,14 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateOrderDto, FindManyOrderDto, UpdateOrderDto } from '../dto/order.dto'
-import {
-  ActivityAction,
-  OrderDetailStatus,
-  OrderStatus,
-  OrderType,
-  Prisma,
-  PrismaClient
-} from '@prisma/client'
+import { ActivityAction, OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
 import { customPaginate, generateCode, getOrderDetails, getOrderTotal } from 'utils/Helps'
 import { orderSelect } from 'responses/order.response'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -42,8 +35,9 @@ export class OrderCrudService {
       const order = await prisma.order.create({
         data: {
           note: data.note,
-          type: data.type || OrderType.OFFLINE,
-          status: data.status || OrderStatus.APPROVED,
+          isDraft: data.isDraft,
+          type: data.type,
+          status: data.status,
           code: generateCode('DH', 15),
           orderTotal: orderTotalNotDiscount,
           ...(data.customerId && {
