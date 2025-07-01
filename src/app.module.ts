@@ -42,7 +42,8 @@ import { PermissionModule } from './permission/permission.module'
 import { VnpayModule } from './vnpay/vnpay.module'
 import { HttpModule } from '@nestjs/axios'
 import { SecurityModule } from '../security'
-import { BranchSettingModule } from './branch-setting/branch-setting.module';
+import { BranchSettingModule } from './branch-setting/branch-setting.module'
+import { TestModule } from './test/test.module'
 
 @Module({
   imports: [
@@ -115,7 +116,8 @@ import { BranchSettingModule } from './branch-setting/branch-setting.module';
     CustomerRequestModule,
     CommonModule,
     PermissionModule,
-    BranchSettingModule
+    BranchSettingModule,
+    TestModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]
