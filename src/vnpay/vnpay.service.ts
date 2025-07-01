@@ -69,18 +69,71 @@ export class VNPayService {
       }
     })
   }
-
   async generateQrCode(data: CreateQrCodeDto, branchId: string, accountId: string) {
     const merchantInfo = await this.getMerchantInfo(branchId)
 
-    if (!merchantInfo)
+    if (!merchantInfo) {
       throw new HttpException(
         `Không tìm thấy thông tin merchant cho branchId: ${branchId}`,
         HttpStatus.NOT_FOUND
       )
+    }
 
-    // check bàn / đơn có đang thanh toán hay không?
-    const existingTransaction = await this.prisma.vNPayTransaction.findFirst({
+    // Kiểm tra và xử lý giao dịch đang tồn tại
+    const existingQrResponse = await this.handleExistingTransaction(data, branchId)
+    if (existingQrResponse) {
+      return existingQrResponse
+    }
+
+    // Tạo hoặc lấy đơn hàng
+    const targetOrder = await this.getOrCreateOrder(data, accountId, branchId)
+
+    // Tạo QR code mới
+    return this.createNewQrCode(merchantInfo, targetOrder, data, branchId)
+  }
+
+  /**
+   * Kiểm tra và xử lý giao dịch đang tồn tại
+   */
+  private async handleExistingTransaction(
+    data: CreateQrCodeDto,
+    branchId: string
+  ): Promise<any | null> {
+    const existingTransaction = await this.findExistingTransaction(data)
+
+    if (!existingTransaction) {
+      return null
+    }
+
+    // Nếu đã hết hạn, xóa và tạo mới
+    if (existingTransaction.expiresAt <= new Date()) {
+      await this.cleanupExpiredTransactions(data)
+      return null
+    }
+
+    // Kiểm tra số tiền thay đổi (chỉ cho order tại bàn)
+    if (existingTransaction.table && data.tableId) {
+      const shouldRecreate = await this.shouldRecreateQrForTable(
+        data.tableId,
+        branchId,
+        existingTransaction.order.orderTotal
+      )
+
+      if (shouldRecreate) {
+        await this.cleanupTransactionsByTable(data.tableId, branchId)
+        return null
+      }
+    }
+
+    // Trả về QR code cũ
+    return this.buildQrResponse(existingTransaction)
+  }
+
+  /**
+   * Tìm giao dịch đang tồn tại
+   */
+  private async findExistingTransaction(data: CreateQrCodeDto) {
+    return this.prisma.vNPayTransaction.findFirst({
       where: {
         status: TransactionStatus.PENDING,
         OR: [{ tableId: data.tableId }, { orderId: data.orderId }]
@@ -92,55 +145,118 @@ export class VNPayService {
         order: true
       }
     })
+  }
 
-    if (existingTransaction) {
-      // Kiểm tra nếu giao dịch chưa hết hạn thì trả về QR code cũ
-      if (existingTransaction.expiresAt > new Date()) {
-        const remainingTime = Math.max(
-          0,
-          existingTransaction.expiresAt.getTime() - new Date().getTime()
-        )
-        const totalRemainingSeconds = Math.floor(remainingTime / 1000)
-
-        return {
-          qrCode: existingTransaction.qrCode,
-          order: existingTransaction.order,
-          expiresAt: existingTransaction.expiresAt,
-          totalRemainingSeconds: totalRemainingSeconds
-        }
-      } else {
-        // Nếu đã hết hạn thì xóa giao dịch cũ và tạo mới
-        await this.prisma.vNPayTransaction.deleteMany({
-          where: {
-            status: TransactionStatus.PENDING,
-            OR: [{ tableId: data.tableId }, { orderId: data.orderId }],
-            expiresAt: { lte: new Date() }
-          }
-        })
+  /**
+   * Kiểm tra có nên tạo lại QR cho bàn không
+   */
+  private async shouldRecreateQrForTable(
+    tableId: string,
+    branchId: string,
+    existingOrderTotal: number
+  ): Promise<boolean> {
+    const currentOrderDetails = await this.prisma.orderDetail.findMany({
+      where: { tableId, branchId },
+      select: {
+        id: true,
+        amount: true,
+        note: true,
+        status: true,
+        product: true,
+        productOriginId: true,
+        productOptions: true
       }
+    })
+
+    const currentTableTotal = getOrderTotal(currentOrderDetails)
+    return currentTableTotal !== existingOrderTotal
+  }
+
+  /**
+   * Xóa giao dịch hết hạn
+   */
+  private async cleanupExpiredTransactions(data: CreateQrCodeDto) {
+    await this.prisma.vNPayTransaction.deleteMany({
+      where: {
+        status: TransactionStatus.PENDING,
+        OR: [{ tableId: data.tableId }, { orderId: data.orderId }],
+        expiresAt: { lte: new Date() }
+      }
+    })
+  }
+
+  /**
+   * Xóa giao dịch và đơn nháp theo bàn
+   */
+  private async cleanupTransactionsByTable(tableId: string, branchId: string) {
+    await Promise.all([
+      this.prisma.vNPayTransaction.deleteMany({
+        where: {
+          status: TransactionStatus.PENDING,
+          tableId
+        }
+      }),
+      this.prisma.order.deleteMany({
+        where: {
+          tableId,
+          isDraft: true,
+          branchId
+        }
+      })
+    ])
+  }
+
+  /**
+   * Tạo response cho QR code
+   */
+  private buildQrResponse(existingTransaction: any) {
+    const remainingTime = Math.max(
+      0,
+      existingTransaction.expiresAt.getTime() - new Date().getTime()
+    )
+    const totalRemainingSeconds = Math.floor(remainingTime / 1000)
+
+    return {
+      qrCode: existingTransaction.qrCode,
+      order: existingTransaction.order,
+      expiresAt: existingTransaction.expiresAt,
+      totalRemainingSeconds
     }
+  }
 
-    let targetOrder = null
-
+  /**
+   * Lấy hoặc tạo đơn hàng
+   */
+  private async getOrCreateOrder(data: CreateQrCodeDto, accountId: string, branchId: string) {
     if (!data.tableId && data.orderId) {
+      // Cập nhật đơn hàng có sẵn
       const paymentMethod = await this.prisma.paymentMethod.findUnique({
         where: {
           type_branchId: { type: PaymentMethodType.VNPAY, branchId }
         }
       })
 
-      // Nếu có đơn thì lấy thông tin đơn
-      targetOrder = await this.prisma.order.update({
+      return this.prisma.order.update({
         where: { id: data.orderId, branchId },
         data: {
           paymentMethodId: paymentMethod.id
         }
       })
-    } else {
-      // Nếu không đơn thì tạo mới
-      targetOrder = await this.createOrderByTableId(data, accountId, branchId)
     }
 
+    // Tạo đơn hàng mới từ bàn
+    return this.createOrderByTableId(data, accountId, branchId)
+  }
+
+  /**
+   * Tạo QR code mới
+   */
+  private async createNewQrCode(
+    merchantInfo: MerchantInfo,
+    targetOrder: any,
+    data: CreateQrCodeDto,
+    branchId: string
+  ) {
     const payload = this.buildVNPayPayload(
       merchantInfo,
       targetOrder.orderTotal.toString(),
@@ -150,14 +266,14 @@ export class VNPayService {
     try {
       const response = await this.httpService.post(process.env.VNP_CREATE_QR, payload).toPromise()
       const qrData = response.data?.data
+
       if (!qrData) {
         throw new HttpException(`Không nhận được dữ liệu từ VNP!`, HttpStatus.NOT_FOUND)
       }
 
-      // Tạo QR code image
       const qrCodeImage = await this.generateQrCodeImage(qrData)
 
-      // Tạo vNPayTransaction với qrCode
+      // Lưu giao dịch mới
       await this.prisma.vNPayTransaction.create({
         data: {
           branchId,
@@ -170,13 +286,10 @@ export class VNPayService {
         }
       })
 
-      // Tính totalRemainingSeconds cho QR code mới (10 phút = 600 giây)
-      const totalRemainingSeconds = 10 * 60
-
       return {
         qrCode: qrCodeImage,
         order: targetOrder,
-        totalRemainingSeconds: totalRemainingSeconds
+        totalRemainingSeconds: 10 * 60 // 10 phút
       }
     } catch (error) {
       throw new HttpException(
