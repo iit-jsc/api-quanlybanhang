@@ -71,7 +71,7 @@ export class AccountAccessService {
 
   validateBranchExpiry(currentShop: any): void {
     if (!currentShop.branches[0].expiryAt || currentShop.branches[0].expiryAt < new Date()) {
-      throw new HttpException('Đã hết thời gian sử dụng!', HttpStatus.BAD_REQUEST)
+      throw new HttpException('Đã hết thời gian sử dụng!', 430)
     }
   }
 
