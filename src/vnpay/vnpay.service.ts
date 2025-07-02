@@ -71,6 +71,8 @@ export class VNPayService {
     })
   }
   async generateQrCode(data: CreateQrCodeDto, branchId: string, accountId: string) {
+    console.log('Generating QR Code for branchId:', branchId, 1)
+
     const merchantInfo = await this.getMerchantInfo(branchId)
 
     if (!merchantInfo) {
