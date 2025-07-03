@@ -45,6 +45,11 @@ export class FindManyCustomerDto extends FindManyDto {
     return value?.split(',').map((id: string) => id.trim())
   })
   customerTypeIds: string[]
+
+  @Transform(({ value }: TransformFnParams) => {
+    return Boolean(+value)
+  })
+  isOrganize?: boolean
 }
 
 export class CheckEmailDto {

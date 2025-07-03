@@ -87,7 +87,8 @@ export class CustomerTypeService {
           discountType: data.discountType,
           discount: data.discount,
           updatedBy: accountId
-        }
+        },
+        select: customerTypeSelect
       })
 
       await this.activityLogService.create(

@@ -56,7 +56,7 @@ export class CustomerService {
   }
 
   async findAll(params: FindManyCustomerDto, shopId: string) {
-    const { page, perPage, keyword, customerTypeIds, from, to, orderBy } = params
+    const { page, perPage, keyword, customerTypeIds, from, to, orderBy, isOrganize } = params
 
     const keySearch = ['name', 'email', 'phone']
 
@@ -90,7 +90,8 @@ export class CustomerService {
             lte: new Date(new Date(to).setHours(23, 59, 59, 999))
           }
         }),
-      shopId
+      shopId,
+      isOrganize: isOrganize !== undefined ? isOrganize : undefined
     }
 
     return await customPaginate(
