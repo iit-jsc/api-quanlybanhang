@@ -2,13 +2,12 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from './dto/customer.dto'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
-import { DeleteManyDto } from 'utils/Common.dto'
+import { CheckUniqDto, DeleteManyDto } from 'utils/Common.dto'
 import { customPaginate, generateCode } from 'utils/Helps'
 import { customerSelect } from 'responses/customer.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
-
 @Injectable()
 export class CustomerService {
   constructor(
@@ -191,5 +190,19 @@ export class CustomerService {
         }
       })
     })
+  }
+
+  async checkValidField(data: CheckUniqDto, shopId: string) {
+    const { field, id, value } = data
+
+    const record = await this.prisma.customer.findFirst({
+      where: {
+        [field]: value,
+        shopId,
+        ...(id && { id: { not: id } })
+      }
+    })
+
+    return record === null
   }
 }

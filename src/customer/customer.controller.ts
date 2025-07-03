@@ -17,7 +17,7 @@ import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RolesGuard } from 'guards/roles.guard'
 import { Roles } from 'guards/roles.decorator'
 import { RequestJWT } from 'interfaces/common.interface'
-import { DeleteManyDto } from 'utils/Common.dto'
+import { CheckUniqDto, DeleteManyDto } from 'utils/Common.dto'
 import { CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from './dto/customer.dto'
 import { permissions } from 'enums/permissions.enum'
 import { extractPermissions } from 'utils/Helps'
@@ -34,6 +34,14 @@ export class CustomerController {
     const { accountId, shopId } = req
 
     return this.customerService.create(data, accountId, shopId)
+  }
+
+  @Get('/check-valid-field')
+  @HttpCode(HttpStatus.OK)
+  checkValidField(@Query() data: CheckUniqDto, @Req() req: RequestJWT) {
+    const { shopId } = req
+
+    return this.customerService.checkValidField(data, shopId)
   }
 
   @Get('')

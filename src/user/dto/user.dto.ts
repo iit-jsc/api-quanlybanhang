@@ -97,17 +97,6 @@ export class ChangeMyPassword {
   accountStatus: AccountStatus
 }
 
-export class CheckUniqDto {
-  @IsNotEmpty()
-  field: string
-
-  @IsNotEmpty()
-  value: string
-
-  @IsOptional()
-  id: string
-}
-
 export class FindManyUserDto extends FindManyDto {
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(',')

@@ -16,7 +16,7 @@ import { UserService } from './user.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RolesGuard } from 'guards/roles.guard'
 import { RequestJWT } from 'interfaces/common.interface'
-import { CheckUniqDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
+import { CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
 import { Roles } from 'guards/roles.decorator'
@@ -52,12 +52,6 @@ export class UserController {
     const { accountId, shopId } = req
 
     return this.userService.update(id, data, accountId, shopId)
-  }
-
-  @Post('/check-exists')
-  @HttpCode(HttpStatus.OK)
-  checkExists(@Body() checkExistsDto: CheckUniqDto) {
-    return this.userService.checkExists(checkExistsDto)
   }
 
   @Delete('me')

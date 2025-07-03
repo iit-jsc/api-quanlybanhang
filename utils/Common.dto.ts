@@ -87,3 +87,14 @@ export class FindManyDto {
   @Transform(({ value }) => value ?? 'createdAt')
   filterBy: string = 'createdAt'
 }
+
+export class CheckUniqDto {
+  @IsNotEmpty()
+  field: string
+
+  @IsNotEmpty()
+  value: string
+
+  @IsOptional()
+  id: string
+}
