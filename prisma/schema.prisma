@@ -293,34 +293,31 @@ model CustomerType {
 }
 
 model Customer {
-  id                  String        @id @default(uuid())
-  name                String
-  phone               String
-  isOrganize          Boolean       @default(false)
-  shopId              String
-  customerTypeId      String?
-  email               String?
-  address             String?       @db.Text
-  description         String?       @db.Text
-  representativeName  String?
-  representativePhone String?
-  birthday            DateTime?
-  discountFor         DiscountFor?  @default(CUSTOMER_TYPE)
-  discount            Float         @default(0)
-  discountType        DiscountType  @default(VALUE)
-  sex                 SexType?
-  fax                 String?
-  tax                 String?
-  createdAt           DateTime      @default(now())
-  updatedAt           DateTime      @updatedAt
-  createdBy           String?
-  updatedBy           String?
-  shop                Shop?         @relation(fields: [shopId], references: [id])
-  customerType        CustomerType? @relation(fields: [customerTypeId], references: [id])
-  orders              Order[]
-  creator             Account?      @relation("creator", fields: [createdBy], references: [id])
-  updater             Account?      @relation("updater", fields: [updatedBy], references: [id])
+  id             String        @id @default(uuid())
+  code           String
+  name           String
+  phone          String?
+  organizeName   String?
+  isOrganize     Boolean       @default(false)
+  shopId         String
+  customerTypeId String?
+  email          String?
+  address        String?       @db.Text
+  description    String?       @db.Text
+  birthday       DateTime?
+  sex            SexType?
+  tax            String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+  createdBy      String?
+  updatedBy      String?
+  shop           Shop?         @relation(fields: [shopId], references: [id])
+  customerType   CustomerType? @relation(fields: [customerTypeId], references: [id])
+  orders         Order[]
+  creator        Account?      @relation("creator", fields: [createdBy], references: [id])
+  updater        Account?      @relation("updater", fields: [updatedBy], references: [id])
 
+  @@unique([shopId, code])
   @@unique([shopId, phone])
   @@unique([shopId, email])
 }

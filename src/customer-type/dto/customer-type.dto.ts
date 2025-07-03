@@ -14,6 +14,7 @@ export class CreateCustomerTypeDto {
   @IsEnum(DiscountType)
   discountType: DiscountType
 
+  @IsOptional()
   @Validate(DiscountConstraint)
   discount?: number
 

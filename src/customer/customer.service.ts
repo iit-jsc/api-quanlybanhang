@@ -3,7 +3,7 @@ import { PrismaService } from 'nestjs-prisma'
 import { CreateCustomerDto, FindManyCustomerDto, UpdateCustomerDto } from './dto/customer.dto'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
-import { customPaginate } from 'utils/Helps'
+import { customPaginate, generateCode } from 'utils/Helps'
 import { customerSelect } from 'responses/customer.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
@@ -22,20 +22,16 @@ export class CustomerService {
       const customer = await prisma.customer.create({
         data: {
           name: data.name,
-          discountFor: data.discountFor,
+          code: data.code || generateCode('KH'),
           phone: data.phone,
+          organizeName: data.organizeName,
           isOrganize: data.isOrganize,
           address: data.address,
           birthday: data.birthday,
           description: data.description,
-          discount: data.discount,
-          discountType: data.discountType,
           email: data.email,
-          fax: data.fax,
           tax: data.tax,
           sex: data.sex,
-          representativeName: data.representativeName,
-          representativePhone: data.representativePhone,
           ...(data.customerTypeId && {
             customerTypeId: data.customerTypeId
           }),
@@ -122,46 +118,42 @@ export class CustomerService {
   }
 
   async update(id: string, data: UpdateCustomerDto, accountId: string, shopId: string) {
-    return this.prisma.$transaction(async prisma => {
-      const customer = await prisma.customer.update({
-        where: {
-          id,
-          shopId
-        },
-        data: {
-          name: data.name,
-          discountFor: data.discountFor,
-          isOrganize: data.isOrganize,
-          phone: data.phone,
-          address: data.address,
-          birthday: data.birthday,
-          description: data.description,
-          discount: data.discount,
-          discountType: data.discountType,
-          email: data.email,
-          fax: data.fax,
-          tax: data.tax,
-          sex: data.sex,
-          representativeName: data.representativeName,
-          representativePhone: data.representativePhone,
-          customerTypeId: data.customerTypeId,
-          updatedBy: accountId
-        }
-      })
-
-      await this.activityLogService.create(
-        {
-          action: ActivityAction.UPDATE,
-          modelName: 'Customer',
-          targetId: customer.id,
-          targetName: customer.name
-        },
-        { shopId },
-        accountId
-      )
-
-      return customer
+    const customer = await this.prisma.customer.update({
+      where: {
+        id,
+        shopId
+      },
+      data: {
+        name: data.name,
+        code: data.code,
+        phone: data.phone,
+        organizeName: data.organizeName,
+        isOrganize: data.isOrganize,
+        address: data.address,
+        birthday: data.birthday,
+        description: data.description,
+        email: data.email,
+        tax: data.tax,
+        sex: data.sex,
+        ...(data.customerTypeId && {
+          customerTypeId: data.customerTypeId
+        }),
+        updatedBy: accountId
+      }
     })
+
+    await this.activityLogService.create(
+      {
+        action: ActivityAction.UPDATE,
+        modelName: 'Customer',
+        targetId: customer.id,
+        targetName: customer.name
+      },
+      { shopId },
+      accountId
+    )
+
+    return customer
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {

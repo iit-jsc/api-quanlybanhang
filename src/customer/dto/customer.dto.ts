@@ -1,17 +1,9 @@
 import { PartialType } from '@nestjs/swagger'
-import { DiscountFor, DiscountType, SexType } from '@prisma/client'
+import { SexType } from '@prisma/client'
 import { Transform, TransformFnParams } from 'class-transformer'
-import {
-  IsEmail,
-  IsEnum,
-  IsNotEmpty,
-  IsOptional,
-  MaxDate,
-  Validate,
-  ValidateIf
-} from 'class-validator'
+import { IsEmail, IsEnum, IsNotEmpty, IsOptional, MaxDate } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
-import { DiscountConstraint, IsVietnamesePhoneNumber } from 'utils/CustomValidates'
+import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class CreateCustomerDto {
   @IsNotEmpty()
@@ -20,7 +12,7 @@ export class CreateCustomerDto {
   @IsNotEmpty()
   isOrganize: boolean
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsVietnamesePhoneNumber()
   phone: string
 
@@ -34,30 +26,15 @@ export class CreateCustomerDto {
   birthday: Date
 
   @IsOptional()
-  @IsEnum(DiscountFor)
-  discountFor: DiscountFor
-
-  @ValidateIf(o => o.discountFor === DiscountFor.CUSTOMER)
-  @IsNotEmpty()
-  @Validate(DiscountConstraint)
-  discount: number
-
-  @ValidateIf(o => o.discountFor === DiscountFor.CUSTOMER)
-  @IsEnum(DiscountType)
-  @IsNotEmpty()
-  discountType: DiscountType
-
-  @IsOptional()
   @IsEnum(SexType)
   sex: SexType
 
-  fax?: string
-  tax?: string
-  representativeName?: string
-  representativePhone?: string
-  customerTypeId?: string
-  address?: string
+  organizeName?: string
   description?: string
+  address?: string
+  customerTypeId?: string
+  code?: string
+  tax?: string
 }
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}

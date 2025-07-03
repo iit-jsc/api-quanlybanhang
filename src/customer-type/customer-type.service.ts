@@ -18,31 +18,29 @@ export class CustomerTypeService {
   ) {}
 
   async create(data: CreateCustomerTypeDto, accountId: string, shopId: string) {
-    return this.prisma.$transaction(async prisma => {
-      const customerType = await prisma.customerType.create({
-        data: {
-          name: data.name,
-          description: data.description,
-          discountType: data.discountType,
-          discount: data.discount,
-          shopId: shopId,
-          createdBy: accountId
-        }
-      })
-
-      await this.activityLogService.create(
-        {
-          action: ActivityAction.CREATE,
-          modelName: 'CustomerType',
-          targetName: customerType.name,
-          targetId: customerType.id
-        },
-        { shopId },
-        accountId
-      )
-
-      return customerType
+    const customerType = await this.prisma.customerType.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        discountType: data.discountType,
+        discount: data.discount,
+        shopId: shopId,
+        createdBy: accountId
+      }
     })
+
+    await this.activityLogService.create(
+      {
+        action: ActivityAction.CREATE,
+        modelName: 'CustomerType',
+        targetName: customerType.name,
+        targetId: customerType.id
+      },
+      { shopId },
+      accountId
+    )
+
+    return customerType
   }
 
   async findAll(params: FindManyDto, shopId: string) {

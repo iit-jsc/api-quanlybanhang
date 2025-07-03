@@ -10,7 +10,6 @@ import { productShortSelect } from 'responses/product.response'
 import { productOptionSelect } from 'responses/product-option-group.response'
 import {
   ConditionOperator,
-  DiscountFor,
   DiscountType,
   NotifyType,
   OrderDetailStatus,
@@ -516,22 +515,13 @@ export async function getCustomerDiscount(
     select: customerSelect
   })
 
-  if (customer.discountFor === DiscountFor.CUSTOMER) {
-    if (customer.discountType === DiscountType.PERCENT)
-      return (orderTotal * customer.discount) / 100
+  if (!customer.customerType) return 0
 
-    if (customer.discountType === DiscountType.VALUE) return customer.discount
-  } else {
-    if (!customer.customerType) return 0
+  if (customer.customerType?.discountType === DiscountType.PERCENT)
+    return (orderTotal * customer.customerType?.discount) / 100
 
-    if (customer.customerType?.discountType === DiscountType.PERCENT)
-      return (orderTotal * customer.customerType?.discount) / 100
-
-    if (customer.customerType?.discountType === DiscountType.VALUE)
-      return customer.customerType?.discount
-  }
-
-  return customerValue
+  if (customer.customerType?.discountType === DiscountType.VALUE)
+    return customer.customerType?.discount
 }
 
 export async function handleOrderDetailsBeforePayment(
