@@ -21,8 +21,6 @@ import { OrderModule } from './order/order.module'
 import { ReportModule } from './report/report.module'
 import { BusinessTypeModule } from './business-type/business-type.module'
 import { SupplierTypeModule } from './supplier-type/supplier-type.module'
-import { DiscountIssueModule } from './discount-issue/discount-issue.module'
-import { DiscountCodeModule } from './discount-code/discount-code.module'
 import { GatewayModule } from './gateway/gateway.module'
 import { OrderDetailModule } from './order-detail/order-detail.module'
 import { MailerModule } from '@nestjs-modules/mailer'
@@ -32,7 +30,6 @@ import { PaymentMethodModule } from './payment-method/payment-method.module'
 import { ProductOptionGroupModule } from './product-option-group/product-option-group.module'
 import { CustomerRequestModule } from './customer-request/customer-request.module'
 import { TrashModule } from './trash/trash.module'
-import { VoucherModule } from './voucher/voucher.module'
 import { RoleModule } from './role/role.module'
 import { PermissionGroupModule } from './permission-group/permission-group.module'
 import { NotifyModule } from './notify/notify.module'
@@ -42,7 +39,7 @@ import { PermissionModule } from './permission/permission.module'
 import { VnpayModule } from './vnpay/vnpay.module'
 import { HttpModule } from '@nestjs/axios'
 import { SecurityModule } from '../security'
-import { BranchSettingModule } from './branch-setting/branch-setting.module';
+import { BranchSettingModule } from './branch-setting/branch-setting.module'
 
 @Module({
   imports: [
@@ -104,9 +101,6 @@ import { BranchSettingModule } from './branch-setting/branch-setting.module';
     ReportModule,
     BusinessTypeModule,
     SupplierTypeModule,
-    VoucherModule,
-    DiscountIssueModule,
-    DiscountCodeModule,
     OrderDetailModule,
     PermissionGroupModule,
     QrSettingModule,

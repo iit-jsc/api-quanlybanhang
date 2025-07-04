@@ -13,10 +13,8 @@ import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import {
   generateCode,
   getCustomerDiscount,
-  getDiscountCode,
   getOrderDetailsInTable,
   getOrderTotal,
-  getVoucher,
   handleOrderDetailsBeforePayment
 } from 'utils/Helps'
 import { orderSelect } from 'responses/order.response'
@@ -81,28 +79,12 @@ export class TablePaymentService {
 
         const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
 
-        const voucherParams = {
-          voucherId: data.voucherId,
-          branchId,
-          orderDetails: orderDetailsInTable,
-          voucherCheckRequest: {
-            orderTotal: orderTotalNotDiscount,
-            totalPeople: data.totalPeople
-          }
-        }
-
         // Lấy thông tin giảm giá
-        const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
-          getVoucher(voucherParams, prisma),
-          getDiscountCode(data.discountCode, orderTotalNotDiscount, branchId, prisma),
+        const [customerDiscountValue] = await Promise.all([
           getCustomerDiscount(data.customerId, orderTotalNotDiscount, prisma)
         ])
 
-        const orderTotal =
-          orderTotalNotDiscount -
-          (voucher.voucherValue || 0) -
-          discountCodeValue -
-          customerDiscountValue
+        const orderTotal = orderTotalNotDiscount - customerDiscountValue
 
         // Thanh toán với tiền mặt | chuyển khoản
         if (
@@ -121,9 +103,6 @@ export class TablePaymentService {
               note: data.note,
               type: OrderType.OFFLINE,
               status: data.status || OrderStatus.SUCCESS,
-              discountCodeValue,
-              voucherValue: voucher.voucherValue,
-              voucherProducts: voucher.voucherProducts,
               customerDiscountValue,
               bankingImages: data.bankingImages,
               moneyReceived: data.moneyReceived,

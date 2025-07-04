@@ -10,13 +10,7 @@ import {
   PaymentStatus,
   PrismaClient
 } from '@prisma/client'
-import {
-  getCustomerDiscount,
-  getDiscountCode,
-  getOrderTotal,
-  getVoucher,
-  handleOrderDetailsBeforePayment
-} from 'utils/Helps'
+import { getCustomerDiscount, getOrderTotal, handleOrderDetailsBeforePayment } from 'utils/Helps'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -80,26 +74,11 @@ export class OrderPaymentService {
 
         const orderTotalNotDiscount = getOrderTotal(order.orderDetails)
 
-        const voucherParams = {
-          voucherId: data.voucherId,
-          branchId,
-          orderDetails: order.orderDetails,
-          voucherCheckRequest: {
-            orderTotal: orderTotalNotDiscount
-          }
-        }
-
-        const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
-          getVoucher(voucherParams, prisma),
-          getDiscountCode(data.discountCode, orderTotalNotDiscount, branchId, prisma),
+        const [customerDiscountValue] = await Promise.all([
           getCustomerDiscount(data.customerId, orderTotalNotDiscount, prisma)
         ])
 
-        const orderTotal =
-          orderTotalNotDiscount -
-          (voucher.voucherValue || 0) -
-          discountCodeValue -
-          customerDiscountValue
+        const orderTotal = orderTotalNotDiscount - customerDiscountValue
 
         const newOrder = await prisma.order.update({
           where: { id },
@@ -108,9 +87,6 @@ export class OrderPaymentService {
             note: data.note,
             type: data.type,
             orderTotal,
-            voucherProducts: voucher.voucherProducts,
-            voucherValue: voucher.voucherValue,
-            discountCodeValue,
             customerDiscountValue,
             moneyReceived: data.moneyReceived,
             status: data.status || OrderStatus.SUCCESS,

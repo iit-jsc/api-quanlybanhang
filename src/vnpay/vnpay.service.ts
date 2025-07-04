@@ -18,13 +18,7 @@ import {
 import { CreateQrCodeDto } from './dto/qrCode.dto'
 import { CheckTransactionDto } from './dto/check-transaction.dto'
 import { VNPayIPNDto } from './dto/vnpay-ipn.dto'
-import {
-  generateCode,
-  getCustomerDiscount,
-  getDiscountCode,
-  getOrderTotal,
-  getVoucher
-} from 'utils/Helps'
+import { generateCode, getCustomerDiscount, getOrderTotal } from 'utils/Helps'
 import { orderSelect } from 'responses/order.response'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -338,28 +332,11 @@ export class VNPayService {
     const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
 
     return await this.prisma.$transaction(async prisma => {
-      // Lấy thông tin giảm giá (nếu có truyền vào mã giảm giá/voucher/customerId thì lấy từ data)
-      const voucherParams = {
-        voucherId: data.voucherId,
-        branchId,
-        orderDetails: orderDetailsInTable,
-        voucherCheckRequest: {
-          orderTotal: orderTotalNotDiscount,
-          totalPeople: data.totalPeople
-        }
-      }
-
-      const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
-        getVoucher(voucherParams, this.prisma),
-        getDiscountCode(data.discountCode, orderTotalNotDiscount, branchId, this.prisma),
+      const [customerDiscountValue] = await Promise.all([
         getCustomerDiscount(data.customerId, orderTotalNotDiscount, this.prisma)
       ])
 
-      const orderTotal =
-        orderTotalNotDiscount -
-        (voucher.voucherValue || 0) -
-        (discountCodeValue || 0) -
-        (customerDiscountValue || 0)
+      const orderTotal = orderTotalNotDiscount - (customerDiscountValue || 0)
 
       // Tạo đơn hàng nháp
       const order = await prisma.order.create({
@@ -373,9 +350,6 @@ export class VNPayService {
           status: OrderStatus.SUCCESS,
           createdBy: accountId,
           branchId,
-          discountCodeValue: discountCodeValue,
-          voucherValue: voucher.voucherValue,
-          voucherProducts: voucher.voucherProducts,
           customerDiscountValue: customerDiscountValue,
           paymentMethodId: paymentMethod?.id,
           ...(data.customerId && { customerId: data.customerId }),

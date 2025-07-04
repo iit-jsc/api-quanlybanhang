@@ -18,8 +18,6 @@ export class PaymentDto {
   @IsEnum(OrderStatus)
   status: OrderStatus
 
-  voucherId?: string
-  discountCode?: string
   customerId?: string
   note?: string
 }
