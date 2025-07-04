@@ -87,14 +87,8 @@ model Account {
   updaterSupplierTypes      SupplierType[]        @relation("updater")
   creatorSupplier           Supplier[]            @relation("creator")
   updaterSupplier           Supplier[]            @relation("updater")
-  creatorVoucher            Voucher[]             @relation("creator")
-  updaterVoucher            Voucher[]             @relation("updater")
   creatorOrderDetail        OrderDetail[]         @relation("creator")
   updaterOrderDetail        OrderDetail[]         @relation("updater")
-  creatorDiscountIssue      DiscountIssue[]       @relation("creator")
-  updaterDiscountIssue      DiscountIssue[]       @relation("updater")
-  creatorDiscountCode       DiscountCode[]        @relation("creator")
-  updaterDiscountCode       DiscountCode[]        @relation("updater")
   creatorPaymentMethod      PaymentMethod[]       @relation("creator")
   updaterPaymentMethod      PaymentMethod[]       @relation("updater")
   creatorProductOptionGroup ProductOptionGroup[]  @relation("creator")
@@ -213,32 +207,30 @@ model ProductType {
 }
 
 model Product {
-  id                       String             @id @default(uuid())
-  branchId                 String
-  unitId                   String
-  name                     String
-  slug                     String
-  productTypeId            String
-  price                    Float
-  code                     String?
-  oldPrice                 Float?
-  description              String?            @db.Text
-  thumbnail                String?            @db.Text
-  photoURLs                Json?
-  status                   ProductStatus?     @default(SELL_ALLOW)
-  productType              ProductType?       @relation(fields: [productTypeId], references: [id])
-  createdAt                DateTime           @default(now())
-  updatedAt                DateTime           @updatedAt
-  branch                   Branch?            @relation(fields: [branchId], references: [id])
-  measurementUnit          MeasurementUnit?   @relation(fields: [unitId], references: [id])
-  voucherConditionProducts VoucherCondition[]
-  voucherProducts          VoucherProduct[]
-  createdBy                String?
-  updatedBy                String?
-  creator                  Account?           @relation("creator", fields: [createdBy], references: [id])
-  updater                  Account?           @relation("updater", fields: [updatedBy], references: [id])
-  orderDetails             OrderDetail[]
-  productOptions           ProductOption[]
+  id              String           @id @default(uuid())
+  branchId        String
+  unitId          String
+  name            String
+  slug            String
+  productTypeId   String
+  price           Float
+  code            String?
+  oldPrice        Float?
+  description     String?          @db.Text
+  thumbnail       String?          @db.Text
+  photoURLs       Json?
+  status          ProductStatus?   @default(SELL_ALLOW)
+  productType     ProductType?     @relation(fields: [productTypeId], references: [id])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  branch          Branch?          @relation(fields: [branchId], references: [id])
+  measurementUnit MeasurementUnit? @relation(fields: [unitId], references: [id])
+  createdBy       String?
+  updatedBy       String?
+  creator         Account?         @relation("creator", fields: [createdBy], references: [id])
+  updater         Account?         @relation("updater", fields: [updatedBy], references: [id])
+  orderDetails    OrderDetail[]
+  productOptions  ProductOption[]
 
   @@unique([branchId, slug])
   @@unique([branchId, code])
@@ -361,97 +353,29 @@ model Supplier {
   @@unique([branchId, phone])
 }
 
-model Voucher {
-  id              String                  @id @default(uuid())
-  branchId        String
-  name            String
-  startDate       DateTime
-  amount          Int
-  type            VoucherType
-  code            String
-  endDate         DateTime?
-  amountApplied   Int                     @default(0)
-  maxValue        Float?
-  isActive        Boolean                 @default(true)
-  description     String?                 @db.Text
-  discount        Float                   @default(0)
-  discountType    DiscountType            @default(VALUE)
-  createdAt       DateTime                @default(now())
-  updatedAt       DateTime                @updatedAt
-  branch          Branch?                 @relation(fields: [branchId], references: [id])
-  operator        ConditionOperator       @default(AND)
-  conditionGroups VoucherConditionGroup[]
-  voucherProducts VoucherProduct[]
-  createdBy       String?
-  updatedBy       String?
-  creator         Account?                @relation("creator", fields: [createdBy], references: [id])
-  updater         Account?                @relation("updater", fields: [updatedBy], references: [id])
-
-  @@unique([branchId, code])
-}
-
-model VoucherConditionGroup {
-  id         String             @id @default(uuid())
-  voucherId  String
-  operator   ConditionOperator  @default(AND)
-  conditions VoucherCondition[] @relation("groupCondition")
-  voucher    Voucher?           @relation(fields: [voucherId], references: [id], onDelete: Cascade)
-}
-
-model VoucherCondition {
-  id                      String                 @id @default(uuid())
-  voucherConditionGroupId String
-  productId               String?
-  product                 Product?               @relation(fields: [productId], references: [id])
-  type                    VoucherConditionType
-  minQuantity             Int?
-  minCustomer             Int?
-  minOrderTotal           Float?
-  createdAt               DateTime               @default(now())
-  updatedAt               DateTime               @updatedAt
-  voucherConditionGroup   VoucherConditionGroup? @relation("groupCondition", fields: [voucherConditionGroupId], references: [id], onDelete: Cascade)
-}
-
-model VoucherProduct {
-  id               String             @id @default(uuid())
-  voucherId        String
-  productId        String?
-  type             VoucherProductType @default(OTHER_PRODUCT)
-  amount           Int?
-  limitQuantity    Int?
-  promotionalPrice Float?
-  name             String?            @db.Text
-  photoURL         String?            @db.Text
-  createdAt        DateTime           @default(now())
-  updatedAt        DateTime           @updatedAt
-  voucher          Voucher?           @relation(fields: [voucherId], references: [id], onDelete: Cascade)
-  product          Product?           @relation(fields: [productId], references: [id], onDelete: Cascade)
-}
-
 model Order {
   id                    String             @id @default(uuid())
   branchId              String
   code                  String             @unique
+  orderTotal            Float
   type                  OrderType
   status                OrderStatus
+  isSave                Boolean            @default(false)
+  isDraft               Boolean            @default(false)
   tableId               String?
   table                 Table?             @relation(fields: [tableId], references: [id])
   customerId            String?
   cancelReason          String?            @db.Text
   cancelDate            DateTime?
   note                  String?            @db.Text
-  voucherValue          Float?             @default(0)
-  discountCodeValue     Float?             @default(0)
   customerDiscountValue Float?             @default(0)
+  discountValue         Float?             @default(0)
   moneyReceived         Float?
   paymentMethodId       String?
-  orderTotal            Float
+  taxAmount             Float?             @default(0)
   bankingImages         Json?              @default("[]")
-  voucherProducts       Json?
   paymentMethod         PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
   paymentStatus         PaymentStatus?     @default(UNPAID)
-  isSave                Boolean?           @default(false)
-  isDraft               Boolean?           @default(false)
   createdBy             String?
   updatedBy             String?
   createdAt             DateTime           @default(now())
@@ -540,50 +464,6 @@ model Table {
   vnPayTransactions VNPayTransaction[]
 }
 
-model DiscountIssue {
-  id            String         @id @default(uuid())
-  branchId      String
-  name          String
-  code          String
-  isLimit       Boolean        @default(false)
-  discount      Float          @default(0)
-  discountType  DiscountType   @default(VALUE)
-  startDate     DateTime
-  endDate       DateTime?
-  description   String?        @db.Text
-  amount        Int?
-  minOrderTotal Float?
-  maxValue      Float?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @updatedAt
-  branch        Branch?        @relation(fields: [branchId], references: [id])
-  discountCodes DiscountCode[]
-  createdBy     String?
-  updatedBy     String?
-  creator       Account?       @relation("creator", fields: [createdBy], references: [id])
-  updater       Account?       @relation("updater", fields: [updatedBy], references: [id])
-
-  @@unique([branchId, code])
-}
-
-model DiscountCode {
-  id              String         @id @default(uuid())
-  branchId        String
-  code            String
-  isUsed          Boolean        @default(false)
-  discountIssueId String
-  createdAt       DateTime       @default(now())
-  updatedAt       DateTime       @updatedAt
-  branch          Branch?        @relation(fields: [branchId], references: [id])
-  discountIssue   DiscountIssue? @relation(fields: [discountIssueId], references: [id])
-  createdBy       String?
-  updatedBy       String?
-  creator         Account?       @relation("creator", fields: [createdBy], references: [id])
-  updater         Account?       @relation("updater", fields: [updatedBy], references: [id])
-
-  @@unique([branchId, code])
-}
-
 model CustomerRequest {
   id          String         @id @default(uuid())
   branchId    String
@@ -621,11 +501,8 @@ model Branch {
   products            Product[]
   supplierTypes       SupplierType[]
   suppliers           Supplier[]
-  vouchers            Voucher[]
   orders              Order[]
   areas               Area[]
-  discountIssues      DiscountIssue[]
-  discountCodes       DiscountCode[]
   orderDetails        OrderDetail[]
   customerRequests    CustomerRequest[]
   tables              Table[]
