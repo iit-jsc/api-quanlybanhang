@@ -213,8 +213,9 @@ export class UserService {
           accountId
         )
       ])
+      console.log(shopId, data.ids, 99999)
 
-      return prisma.user.deleteMany({
+      return await prisma.user.deleteMany({
         where: {
           id: {
             in: data.ids
