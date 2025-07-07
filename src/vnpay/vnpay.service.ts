@@ -7,7 +7,6 @@ import { PrismaService } from 'nestjs-prisma'
 import { SetupMerchantDto } from './dto/merchant.dto'
 import {
   ActivityAction,
-  Order,
   OrderDetailStatus,
   OrderStatus,
   OrderType,
@@ -19,13 +18,7 @@ import {
 import { CreateQrCodeDto } from './dto/qrCode.dto'
 import { CheckTransactionDto } from './dto/check-transaction.dto'
 import { VNPayIPNDto } from './dto/vnpay-ipn.dto'
-import {
-  generateCode,
-  getCustomerDiscount,
-  getDiscountCode,
-  getOrderTotal,
-  getVoucher
-} from 'utils/Helps'
+import { generateCode, getCustomerDiscount, getOrderTotal } from 'utils/Helps'
 import { orderSelect } from 'responses/order.response'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -71,7 +64,12 @@ export class VNPayService {
     })
   }
   async generateQrCode(data: CreateQrCodeDto, branchId: string, accountId: string) {
-    console.log('Generating QR Code for branchId:', branchId, 1)
+    if (data.tableId && data.orderId) {
+      throw new HttpException(
+        `Chỉ được cung cấp một trong hai: tableId hoặc orderId!`,
+        HttpStatus.BAD_REQUEST
+      )
+    }
 
     const merchantInfo = await this.getMerchantInfo(branchId)
 
@@ -256,7 +254,7 @@ export class VNPayService {
    */
   private async createNewQrCode(
     merchantInfo: MerchantInfo,
-    targetOrder: Order,
+    targetOrder: any,
     data: CreateQrCodeDto,
     branchId: string
   ) {
@@ -341,28 +339,11 @@ export class VNPayService {
     const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
 
     return await this.prisma.$transaction(async prisma => {
-      // Lấy thông tin giảm giá (nếu có truyền vào mã giảm giá/voucher/customerId thì lấy từ data)
-      const voucherParams = {
-        voucherId: data.voucherId,
-        branchId,
-        orderDetails: orderDetailsInTable,
-        voucherCheckRequest: {
-          orderTotal: orderTotalNotDiscount,
-          totalPeople: data.totalPeople
-        }
-      }
-
-      const [voucher, discountCodeValue, customerDiscountValue] = await Promise.all([
-        getVoucher(voucherParams, this.prisma),
-        getDiscountCode(data.discountCode, orderTotalNotDiscount, branchId, this.prisma),
+      const [customerDiscountValue] = await Promise.all([
         getCustomerDiscount(data.customerId, orderTotalNotDiscount, this.prisma)
       ])
 
-      const orderTotal =
-        orderTotalNotDiscount -
-        (voucher.voucherValue || 0) -
-        (discountCodeValue || 0) -
-        (customerDiscountValue || 0)
+      const orderTotal = orderTotalNotDiscount - (customerDiscountValue || 0)
 
       // Tạo đơn hàng nháp
       const order = await prisma.order.create({
@@ -376,9 +357,6 @@ export class VNPayService {
           status: OrderStatus.SUCCESS,
           createdBy: accountId,
           branchId,
-          discountCodeValue: discountCodeValue,
-          voucherValue: voucher.voucherValue,
-          voucherProducts: voucher.voucherProducts,
           customerDiscountValue: customerDiscountValue,
           paymentMethodId: paymentMethod?.id,
           ...(data.customerId && { customerId: data.customerId }),
@@ -548,7 +526,7 @@ export class VNPayService {
       amount
     } = ipnDto
 
-    console.log(new Date(), `VNPay IPN Callback`, ipnDto, 1111)
+    console.log(new Date(), `VNPay IPN Callback`, ipnDto)
 
     // 1. Lấy transaction theo txnId
     const transaction = await this.prisma.vNPayTransaction.findUnique({
