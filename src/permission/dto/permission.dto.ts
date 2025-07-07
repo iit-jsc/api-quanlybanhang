@@ -1,7 +1,9 @@
+import { Transform, TransformFnParams } from 'class-transformer'
 import { IsNotEmpty } from 'class-validator'
 
 export class CreatePermissionDto {
   @IsNotEmpty()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   name: string
 
   @IsNotEmpty()

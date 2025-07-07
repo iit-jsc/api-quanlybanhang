@@ -53,6 +53,7 @@ export class CreateOrderProductsDto {
   productId: string
 
   @IsNotEmpty()
+  @Min(1)
   amount: number
 
   note?: string
@@ -134,7 +135,7 @@ export class OrderDetailSeparateDto {
   id: string
 
   @IsNumber()
-  @Min(0)
+  @Min(1)
   amount: number
 }
 export class SeparateTableDto {

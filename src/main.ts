@@ -47,7 +47,7 @@ async function bootstrap() {
         exceptionFactory: (errors: ValidationError[]) => {
           return new BadRequestException({
             statusCode: HttpStatus.BAD_REQUEST,
-            message: 'Validation failed!',
+            message: 'Dữ liệu không hợp lệ',
             errors: errorFormatter(errors)
           })
         }

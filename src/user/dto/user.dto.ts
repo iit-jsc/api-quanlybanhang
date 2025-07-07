@@ -17,6 +17,7 @@ import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class CreateUserDto {
   @IsNotEmpty()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   name: string
 
   @IsNotEmpty()

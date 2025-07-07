@@ -6,6 +6,7 @@ import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateProductDto {
   @IsNotEmpty()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
   name: string
 
   @IsNotEmpty()
