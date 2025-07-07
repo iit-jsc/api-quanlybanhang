@@ -22,6 +22,7 @@ export class FindManyOrderDetailDto extends FindManyDto {
   @IsEnum(OrderDetailStatus, { each: true })
   statuses?: OrderDetailStatus[]
 
+  @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return value?.split(',').map((id: OrderType) => id?.trim())
   })
