@@ -9,8 +9,8 @@ export class PrismaExceptionFilter extends BaseExceptionFilter implements Except
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
 
-    let status = HttpStatus.INTERNAL_SERVER_ERROR
-    let message = 'Internal server error'
+    let status = HttpStatus.BAD_REQUEST
+    let message = 'Có lỗi xảy ra!'
 
     switch (exception.code) {
       case 'P2002': // Unique constraint violation
