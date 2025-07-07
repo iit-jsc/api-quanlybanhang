@@ -1,19 +1,13 @@
 import { Transform, TransformFnParams } from 'class-transformer'
-import {
-  IsString,
-  IsNotEmpty,
-  IsOptional,
-  IsDate,
-  IsEmail
-} from 'class-validator'
+import { IsString, IsNotEmpty, IsOptional, IsDate, IsEmail } from 'class-validator'
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class LoginForManagerDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @IsVietnamesePhoneNumber()
   phone: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @IsString()
   password: string
 
@@ -23,27 +17,27 @@ export class LoginForManagerDto {
 }
 
 export class LoginForCustomerDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @IsString()
   otp: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsEmail()
   email: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @IsString()
   shopId: string
 }
 
 export class LoginDto {
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
   username: string
 
-  @IsNotEmpty({ message: 'Không được để trống!' })
+  @IsNotEmpty()
   @IsString()
   password: string
 }

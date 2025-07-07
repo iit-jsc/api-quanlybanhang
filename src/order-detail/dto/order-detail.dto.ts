@@ -15,14 +15,17 @@ import {
 import { FindManyDto } from 'utils/Common.dto'
 
 export class FindManyOrderDetailDto extends FindManyDto {
+  @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: OrderDetailStatus) => id)
+    return value?.split(',').map((id: OrderDetailStatus) => id?.trim())
   })
+  @IsEnum(OrderDetailStatus, { each: true })
   statuses?: OrderDetailStatus[]
 
   @Transform(({ value }: TransformFnParams) => {
-    return value?.split(',').map((id: OrderType) => id)
+    return value?.split(',').map((id: OrderType) => id?.trim())
   })
+  @IsEnum(OrderType, { each: true })
   orderTypes?: OrderType[]
 
   @Transform(({ value }) => value?.toString().toLowerCase() === 'true')
@@ -73,5 +76,7 @@ export class CancelOrderDetailsDto {
   @Min(1)
   amount: number
 
-  cancelReason?: string
+  @IsNotEmpty()
+  @Transform(({ value }: TransformFnParams) => value?.trim())
+  cancelReason: string
 }

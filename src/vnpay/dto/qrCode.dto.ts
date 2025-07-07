@@ -1,5 +1,5 @@
 import { OrderStatus } from '@prisma/client'
-import { IsEnum, IsNotEmpty, IsOptional, Min, ValidateIf } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator'
 
 export class CreateQrCodeDto {
   @ValidateIf(o => !o.orderId)
@@ -13,17 +13,10 @@ export class CreateQrCodeDto {
   orderId?: string
 
   @IsOptional()
-  @Min(1)
-  moneyReceived: number
-
-  @IsOptional()
   @IsEnum(OrderStatus)
   status: OrderStatus
 
-  voucherId?: string
-  discountCode?: string
   customerId?: string
   note?: string
-  totalPeople?: number
   code?: string
 }

@@ -83,6 +83,7 @@ export class OrderPaymentService {
         const newOrder = await prisma.order.update({
           where: { id },
           data: {
+            isDraft: false,
             paymentStatus: PaymentStatus.SUCCESS,
             note: data.note,
             type: data.type,

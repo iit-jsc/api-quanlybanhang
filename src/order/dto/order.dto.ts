@@ -30,11 +30,11 @@ export class IsNotCancelConstraint implements ValidatorConstraintInterface {
 export class CreateOrderDto {
   @IsOptional()
   @IsEnum(OrderStatus)
-  status: OrderStatus
+  status: OrderStatus = OrderStatus.APPROVED
 
   @IsOptional()
   @IsEnum(OrderType)
-  type: OrderType
+  type: OrderType = OrderType.OFFLINE
 
   @IsNotEmpty()
   @ArrayNotEmpty()
@@ -45,6 +45,7 @@ export class CreateOrderDto {
   code?: string
   customerId?: string
   note?: string
+  isDraft?: boolean = false
 }
 
 export class CreateOrderProductsDto {
@@ -52,6 +53,7 @@ export class CreateOrderProductsDto {
   productId: string
 
   @IsNotEmpty()
+  @Min(1)
   amount: number
 
   note?: string
@@ -133,7 +135,7 @@ export class OrderDetailSeparateDto {
   id: string
 
   @IsNumber()
-  @Min(0)
+  @Min(1)
   amount: number
 }
 export class SeparateTableDto {
