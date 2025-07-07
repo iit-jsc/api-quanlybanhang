@@ -25,7 +25,6 @@ import { GatewayModule } from './gateway/gateway.module'
 import { OrderDetailModule } from './order-detail/order-detail.module'
 import { MailerModule } from '@nestjs-modules/mailer'
 import { TransformInterceptor } from 'utils/ApiResponse'
-import { QrSettingModule } from './qr-setting/qr-setting.module'
 import { PaymentMethodModule } from './payment-method/payment-method.module'
 import { ProductOptionGroupModule } from './product-option-group/product-option-group.module'
 import { CustomerRequestModule } from './customer-request/customer-request.module'
@@ -103,7 +102,6 @@ import { BranchSettingModule } from './branch-setting/branch-setting.module'
     SupplierTypeModule,
     OrderDetailModule,
     PermissionGroupModule,
-    QrSettingModule,
     PaymentMethodModule,
     ProductOptionGroupModule,
     CustomerRequestModule,
