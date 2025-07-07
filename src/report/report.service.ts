@@ -3,18 +3,19 @@ import { PrismaService } from 'nestjs-prisma'
 import { Injectable } from '@nestjs/common'
 import { ReportAmountDto, ReportBestSellerDto, ReportDto, ReportRevenueDto } from './dto/report.dto'
 import { accountShortSelect } from 'responses/account.response'
+import { RevenueData, RevenueReportItem } from './report.types'
+
 @Injectable()
 export class ReportService {
   constructor(private readonly prisma: PrismaService) {}
 
-  async reportRevenue(params: ReportRevenueDto, branchId: string) {
+  async reportRevenue(params: ReportRevenueDto, branchId: string): Promise<RevenueReportItem[]> {
     const { from, to, type } = params
-
     const where = this.buildCreatedAtFilter(from, to)
 
-    // Perform groupBy query
+    // Get revenue data grouped by time and payment method
     const revenue = await this.prisma.order.groupBy({
-      by: ['createdAt'],
+      by: ['createdAt', 'paymentMethodId'],
       where: {
         branchId,
         paymentStatus: PaymentStatus.SUCCESS,
@@ -22,40 +23,127 @@ export class ReportService {
         isDraft: false,
         ...where
       },
-      _sum: {
-        orderTotal: true
-      },
-      orderBy: {
-        createdAt: 'asc'
-      }
+      _sum: { orderTotal: true },
+      orderBy: { createdAt: 'asc' }
     })
 
-    const formatKey = (date: Date) => {
-      const iso = date.toISOString().split('T')[0] // yyyy-MM-dd
-      const [year, month, day] = iso.split('-')
-      if (type === 'hour') {
-        const hours = date.getHours().toString().padStart(2, '0')
-        return `${day}-${month}-${year} ${hours}:00`
+    // Get payment methods info for categorization
+    const paymentMethodMap = await this.getPaymentMethodMap(revenue)
+
+    // Process revenue data by time periods
+    const revenueMap = this.processRevenueByTime(revenue, paymentMethodMap, type)
+
+    // Convert to sorted array
+    return this.convertToSortedArray(revenueMap, type)
+  }
+
+  /**
+   * Get payment method mapping for revenue categorization
+   */
+  private async getPaymentMethodMap(revenue: any[]): Promise<Map<string, string>> {
+    const paymentMethodIds = [...new Set(revenue.map(r => r.paymentMethodId).filter(Boolean))]
+
+    if (paymentMethodIds.length === 0) {
+      return new Map()
+    }
+
+    const paymentMethods = await this.prisma.paymentMethod.findMany({
+      where: { id: { in: paymentMethodIds } },
+      select: { id: true, type: true }
+    })
+
+    return new Map(paymentMethods.map(pm => [pm.id, pm.type]))
+  }
+
+  /**
+   * Process revenue data and group by time periods
+   */
+  private processRevenueByTime(
+    revenue: any[],
+    paymentMethodMap: Map<string, string>,
+    type: string
+  ): Map<string, RevenueData> {
+    const revenueMap = new Map<string, RevenueData>()
+
+    revenue.forEach(({ createdAt, paymentMethodId, _sum }) => {
+      const timeKey = this.formatTimeKey(new Date(createdAt), type)
+      const amount = _sum.orderTotal || 0
+
+      // Initialize time period data if not exists
+      if (!revenueMap.has(timeKey)) {
+        revenueMap.set(timeKey, {
+          totalRevenue: 0,
+          totalCash: 0,
+          totalTransfer: 0,
+          totalVnpay: 0
+        })
       }
-      if (type === 'month') return `${month}-${year}`
-      if (type === 'year') return year
-      return `${day}-${month}-${year}` // dd-MM-yyyy
+
+      const record = revenueMap.get(timeKey)!
+      record.totalRevenue += amount
+
+      // Categorize by payment method type
+      this.categorizePaymentAmount(record, amount, paymentMethodId, paymentMethodMap)
+    })
+
+    return revenueMap
+  }
+  /**
+   * Format time key based on report type
+   */
+  private formatTimeKey(date: Date, type: string): string {
+    const [year, month, day] = date.toISOString().split('T')[0].split('-')
+    const hours = date.getHours().toString().padStart(2, '0')
+
+    switch (type) {
+      case 'hour':
+        return `${day}-${month}-${year} ${hours}:00`
+      case 'month':
+        return `${month}-${year}`
+      case 'year':
+        return year
+      default:
+        return `${day}-${month}-${year}` // day
     }
+  }
 
-    const grouped = new Map<string, number>()
+  /**
+   * Categorize payment amount by method type
+   */
+  private categorizePaymentAmount(
+    record: RevenueData,
+    amount: number,
+    paymentMethodId: string | null,
+    paymentMethodMap: Map<string, string>
+  ): void {
+    const paymentType = paymentMethodId ? paymentMethodMap.get(paymentMethodId) : 'CASH'
 
-    for (const { createdAt, _sum } of revenue) {
-      const key = formatKey(new Date(createdAt))
-      grouped.set(key, (grouped.get(key) || 0) + (_sum.orderTotal || 0))
+    switch (paymentType) {
+      case 'CASH':
+        record.totalCash += amount
+        break
+      case 'BANKING':
+        record.totalTransfer += amount
+        break
+      case 'VNPAY':
+        record.totalVnpay += amount
+        break
+      default:
+        record.totalCash += amount // Default to cash for unknown types
     }
-
-    return Array.from(grouped.entries())
-      .map(([time, totalRevenue]) => ({ time, totalRevenue }))
+  }
+  /**
+   * Convert revenue map to sorted array
+   */
+  private convertToSortedArray(
+    revenueMap: Map<string, RevenueData>,
+    type: string
+  ): RevenueReportItem[] {
+    return Array.from(revenueMap.entries())
+      .map(([time, data]) => ({ time, ...data }))
       .sort((a, b) => {
         if (type === 'day' || type === 'hour') {
-          const dateA = new Date(a.time)
-          const dateB = new Date(b.time)
-          return dateA.getTime() - dateB.getTime()
+          return new Date(a.time).getTime() - new Date(b.time).getTime()
         }
         return a.time.localeCompare(b.time)
       })

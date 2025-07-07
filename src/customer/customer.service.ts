@@ -205,4 +205,28 @@ export class CustomerService {
 
     return record === null
   }
+
+  /**
+   * Check if a customer exists by field and value
+   * Returns detailed response with exists flag
+   */
+  async checkExists(data: CheckUniqDto, shopId: string) {
+    const { field, value, id } = data
+
+    const record = await this.prisma.customer.findFirst({
+      where: {
+        [field]: value,
+        shopId,
+        ...(id && { id: { not: id } })
+      },
+      select: { id: true, [field]: true }
+    })
+
+    return {
+      exists: record !== null,
+      field,
+      value,
+      ...(record && { foundRecord: record })
+    }
+  }
 }

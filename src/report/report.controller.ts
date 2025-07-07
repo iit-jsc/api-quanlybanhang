@@ -3,6 +3,7 @@ import { ReportService } from './report.service'
 import { RequestJWT } from 'interfaces/common.interface'
 import { ReportAmountDto, ReportBestSellerDto, ReportDto, ReportRevenueDto } from './dto/report.dto'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
+import { RevenueReportItem } from './report.types'
 
 @Controller('report')
 export class ReportController {
@@ -27,7 +28,10 @@ export class ReportController {
   @Get('/revenue')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  reportRevenue(@Req() req: RequestJWT, @Query() data: ReportRevenueDto) {
+  reportRevenue(
+    @Req() req: RequestJWT,
+    @Query() data: ReportRevenueDto
+  ): Promise<RevenueReportItem[]> {
     const { branchId } = req
     return this.reportService.reportRevenue(data, branchId)
   }

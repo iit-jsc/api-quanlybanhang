@@ -44,6 +44,15 @@ export class CustomerController {
     return this.customerService.checkValidField(data, shopId)
   }
 
+  @Get('/check-exists')
+  @HttpCode(HttpStatus.OK)
+  @Roles(...extractPermissions(permissions.customer))
+  checkExists(@Query() data: CheckUniqDto, @Req() req: RequestJWT) {
+    const { shopId } = req
+
+    return this.customerService.checkExists(data, shopId)
+  }
+
   @Get('')
   @HttpCode(HttpStatus.OK)
   @Roles(...extractPermissions(permissions.customer))
