@@ -1,5 +1,6 @@
-import { Type } from 'class-transformer'
-import { IsNotEmpty, MinLength, ValidateNested } from 'class-validator'
+import { PartialType } from '@nestjs/swagger'
+import { IsEmail, IsNotEmpty, IsOptional, MinLength } from 'class-validator'
+import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -14,25 +15,18 @@ export class CreateUserDto {
 
 export class CreateShopDto {
   @IsNotEmpty()
-  businessTypeCode: string
-
-  @IsNotEmpty()
+  @MinLength(3)
   name: string
 
-  @IsNotEmpty()
-  code: string
-
-  @IsNotEmpty()
-  totalBranches: number
-
+  @IsOptional()
+  @IsVietnamesePhoneNumber()
   phone?: string
-  email?: string
-  address?: string
-  photoURL?: string
-  domain?: string
 
-  @ValidateNested({ each: true })
-  @Type(() => CreateUserDto)
-  @IsNotEmpty()
-  user: CreateUserDto
+  @IsOptional()
+  @IsEmail()
+  email?: string
+
+  address?: string
 }
+
+export class UpdateShopDto extends PartialType(CreateShopDto) {}
