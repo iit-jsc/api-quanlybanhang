@@ -233,7 +233,6 @@ export class UserService {
   }
   async checkValidField(data: CheckUniqUserDto, shopId?: string) {
     const { field, id, value } = data
-    console.log(field, id, value)
 
     let record = null
 
