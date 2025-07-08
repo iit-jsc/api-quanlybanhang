@@ -33,13 +33,13 @@ export class PrismaExceptionFilter extends BaseExceptionFilter implements Except
         }
 
       case 'P2025': // Record not found
-        return { status: HttpStatus.BAD_REQUEST, message: 'Dữ liệu liên kết không đúng' }
+        return { status: HttpStatus.NOT_FOUND, message: 'Dữ liệu không tồn tại' }
 
       case 'P2014': // Invalid ID
         return { status: HttpStatus.BAD_REQUEST, message: 'ID không hợp lệ' }
 
       case 'P2009': // Record not found in nested write
-        return { status: HttpStatus.NOT_FOUND, message: 'Không tìm thấy dữ liệu' }
+        return { status: HttpStatus.NOT_FOUND, message: 'Dữ liệu không tồn tại' }
 
       case 'P2016': // Query interpretation error
         return { status: HttpStatus.BAD_REQUEST, message: 'Truy vấn không hợp lệ' }
