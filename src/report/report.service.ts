@@ -1,9 +1,15 @@
 import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 import { Injectable } from '@nestjs/common'
-import { ReportAmountDto, ReportBestSellerDto, ReportDto, ReportRevenueDto } from './dto/report.dto'
+import {
+  ReportAmountDto,
+  ReportBestSellerDto,
+  ReportDto,
+  ReportRevenueDto,
+  ReportSummaryDto
+} from './dto/report.dto'
 import { accountShortSelect } from 'responses/account.response'
-import { RevenueData, RevenueReportItem } from './report.types'
+import { RevenueData, RevenueReportItem, ReportSummaryData } from './report.types'
 
 @Injectable()
 export class ReportService {
@@ -302,6 +308,122 @@ export class ReportService {
     }
 
     return
+  }
+
+  async reportSummary(params: ReportSummaryDto, branchId: string): Promise<ReportSummaryData> {
+    const { from, to } = params
+    const where = this.buildCreatedAtFilter(from, to)
+
+    // 1. Tổng số đơn hàng và doanh thu
+    const orderSummary = await this.prisma.order.aggregate({
+      _count: { id: true },
+      _sum: { orderTotal: true },
+      where: {
+        branchId,
+        paymentStatus: PaymentStatus.SUCCESS,
+        status: { not: OrderStatus.CANCELLED },
+        isDraft: false,
+        ...where
+      }
+    })
+
+    // 2. Phương thức thanh toán - Group by payment method
+    const paymentSummary = await this.prisma.order.groupBy({
+      by: ['paymentMethodId'],
+      where: {
+        branchId,
+        paymentStatus: PaymentStatus.SUCCESS,
+        status: { not: OrderStatus.CANCELLED },
+        isDraft: false,
+        ...where
+      },
+      _sum: { orderTotal: true }
+    })
+
+    // 3. Số sản phẩm bán ra
+    const productsSold = await this.prisma.orderDetail.aggregate({
+      _sum: { amount: true },
+      where: {
+        order: {
+          branchId,
+          paymentStatus: PaymentStatus.SUCCESS,
+          status: { not: OrderStatus.CANCELLED },
+          isDraft: false,
+          ...where
+        }
+      }
+    })
+
+    // 4. Số sản phẩm hủy
+    const productsCanceled = await this.prisma.canceledOrderDetail.aggregate({
+      _sum: { amount: true },
+      where: {
+        orderDetail: {
+          order: {
+            branchId,
+            paymentStatus: PaymentStatus.SUCCESS,
+            status: { not: OrderStatus.CANCELLED }
+          }
+        },
+        ...where
+      }
+    })
+
+    // 5. Tổng số khách hàng được thêm mới
+    const newCustomers = await this.prisma.customer.count({
+      where: {
+        branchId,
+        ...where
+      }
+    })
+
+    // 6. Xử lý phương thức thanh toán
+    const paymentMethodMap = await this.getPaymentMethodMap(paymentSummary)
+    const paymentBreakdown = this.calculatePaymentBreakdown(paymentSummary, paymentMethodMap)
+
+    return {
+      totalOrders: orderSummary._count.id || 0,
+      totalRevenue: orderSummary._sum.orderTotal || 0,
+      paymentSummary: paymentBreakdown,
+      totalProductsSold: productsSold._sum.amount || 0,
+      totalProductsCanceled: productsCanceled._sum.amount || 0,
+      totalNewCustomers: newCustomers
+    }
+  }
+
+  /**
+   * Tính toán breakdown theo phương thức thanh toán
+   */
+  private calculatePaymentBreakdown(
+    paymentSummary: any[],
+    paymentMethodMap: Map<string, string>
+  ): { totalCash: number; totalTransfer: number; totalVnpay: number } {
+    const breakdown = {
+      totalCash: 0,
+      totalTransfer: 0,
+      totalVnpay: 0
+    }
+
+    paymentSummary.forEach(({ paymentMethodId, _sum }) => {
+      const amount = _sum.orderTotal || 0
+      const paymentType = paymentMethodId ? paymentMethodMap.get(paymentMethodId) : 'CASH'
+
+      switch (paymentType) {
+        case 'CASH':
+          breakdown.totalCash += amount
+          break
+        case 'BANKING':
+          breakdown.totalTransfer += amount
+          break
+        case 'VNPAY':
+          breakdown.totalVnpay += amount
+          break
+        default:
+          breakdown.totalCash += amount // Default to cash
+      }
+    })
+
+    return breakdown
   }
 
   buildCreatedAtFilter(from?: Date, to?: Date): any {

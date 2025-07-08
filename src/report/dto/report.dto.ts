@@ -34,3 +34,29 @@ export class ReportAmountDto extends ReportDto {
   @IsEnum(Prisma.ModelName)
   type: Prisma.ModelName
 }
+
+export class ReportSummaryDto {
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  @Transform(({ value }) => {
+    const date = new Date(value)
+    if (isNaN(date.getTime())) {
+      return null
+    }
+    return date
+  })
+  from?: Date
+
+  @IsOptional()
+  @Type(() => Date)
+  @IsDate()
+  @Transform(({ value }) => {
+    const date = new Date(value)
+    if (isNaN(date.getTime())) {
+      return null
+    }
+    return date
+  })
+  to?: Date
+}

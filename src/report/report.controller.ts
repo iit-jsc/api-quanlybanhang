@@ -1,9 +1,15 @@
 import { Controller, Get, HttpCode, HttpStatus, Query, Req, UseGuards } from '@nestjs/common'
 import { ReportService } from './report.service'
 import { RequestJWT } from 'interfaces/common.interface'
-import { ReportAmountDto, ReportBestSellerDto, ReportDto, ReportRevenueDto } from './dto/report.dto'
+import {
+  ReportAmountDto,
+  ReportBestSellerDto,
+  ReportDto,
+  ReportRevenueDto,
+  ReportSummaryDto
+} from './dto/report.dto'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
-import { RevenueReportItem } from './report.types'
+import { RevenueReportItem, ReportSummaryData } from './report.types'
 
 @Controller('report')
 export class ReportController {
@@ -42,5 +48,16 @@ export class ReportController {
   reportAmount(@Req() req: RequestJWT, @Query() data: ReportAmountDto) {
     const { branchId } = req
     return this.reportService.reportAmount(data, branchId)
+  }
+
+  @Get('/summary')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async reportSummary(
+    @Req() req: RequestJWT,
+    @Query() data: ReportSummaryDto
+  ): Promise<ReportSummaryData> {
+    const { branchId } = req
+    return this.reportService.reportSummary(data, branchId)
   }
 }
