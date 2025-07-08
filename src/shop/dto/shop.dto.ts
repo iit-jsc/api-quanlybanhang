@@ -15,7 +15,6 @@ export class CreateUserDto {
 
 export class CreateShopDto {
   @IsNotEmpty()
-  @MinLength(3)
   name: string
 
   @IsOptional()
