@@ -47,7 +47,7 @@ export class RevenueReportService extends BaseReportService {
           totalRevenue: 0,
           totalCash: 0,
           totalTransfer: 0,
-          totalVnpay: 0
+          totalVNPay: 0
         })
       }
 
@@ -99,7 +99,7 @@ export class RevenueReportService extends BaseReportService {
         record.totalTransfer += amount
         break
       case 'VNPAY':
-        record.totalVnpay += amount
+        record.totalVNPay += amount
         break
     }
   }

@@ -2,7 +2,7 @@ export interface RevenueData {
   totalRevenue: number
   totalCash: number
   totalTransfer: number
-  totalVnpay: number
+  totalVNPay: number
 }
 
 export interface RevenueReportItem extends RevenueData {
@@ -15,7 +15,7 @@ export interface ReportSummaryData {
   paymentSummary: {
     totalCash: number
     totalTransfer: number
-    totalVnpay: number
+    totalVNPay: number
   }
   totalProductsSold: number
   totalProductsCanceled: number

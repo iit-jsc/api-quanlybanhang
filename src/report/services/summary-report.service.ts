@@ -1,5 +1,5 @@
-import { Injectable } from '@nestjs/common'
 import { Prisma } from '@prisma/client'
+import { Injectable } from '@nestjs/common'
 import { ReportAmountDto, ReportSummaryDto } from '../dto/report.dto'
 import { ReportSummaryData } from '../report.types'
 import { BaseReportService } from './base-report.service'
@@ -8,17 +8,17 @@ import { BaseReportService } from './base-report.service'
 export class SummaryReportService extends BaseReportService {
   async getSummaryReport(params: ReportSummaryDto, branchId: string): Promise<ReportSummaryData> {
     const { from, to } = params
-    const where = this.buildCreatedAtFilter(from, to)
-    const orderFilter = this.getSuccessOrderFilter(branchId, where)
+    const dateFilter = this.buildCreatedAtFilter(from, to)
+    const orderFilter = this.getSuccessOrderFilter(branchId, dateFilter)
 
     // Run all queries in parallel for better performance
     const [orderSummary, paymentSummary, productsSold, productsCanceled, newCustomers] =
       await Promise.all([
         this.getOrderSummary(orderFilter),
         this.getPaymentSummary(orderFilter),
-        this.getProductsSold(branchId, where),
-        this.getProductsCanceled(branchId, where),
-        this.getNewCustomers(branchId, where)
+        this.getProductsSold(branchId, dateFilter),
+        this.getProductsCanceled(branchId, dateFilter),
+        this.getNewCustomers(branchId, dateFilter)
       ])
 
     // Process payment breakdown
@@ -37,26 +37,30 @@ export class SummaryReportService extends BaseReportService {
 
   async getAmountReport(params: ReportAmountDto, branchId: string) {
     const { from, to, type } = params
-    const where = this.buildCreatedAtFilter(from, to)
+    const dateFilter = this.buildCreatedAtFilter(from, to)
 
     switch (type) {
       case Prisma.ModelName.Product:
-        return this.prisma.product.count({ where: { branchId, ...where } })
+        return this.prisma.product.count({
+          where: {
+            branchId,
+            ...dateFilter
+          }
+        })
 
       case Prisma.ModelName.CanceledOrderDetail:
-        const canceled = await this.getProductsCanceled(branchId, where)
+        const canceled = await this.getProductsCanceled(branchId, dateFilter)
         return canceled._sum.amount || 0
 
       case Prisma.ModelName.OrderDetail:
-        const sold = await this.getProductsSold(branchId, where)
+        const sold = await this.getProductsSold(branchId, dateFilter)
         return sold._sum.amount || 0
 
       default:
         return 0
     }
   }
-
-  private async getOrderSummary(orderFilter: any) {
+  private async getOrderSummary(orderFilter: Prisma.OrderWhereInput) {
     return this.prisma.order.aggregate({
       _count: { id: true },
       _sum: { orderTotal: true },
@@ -64,56 +68,66 @@ export class SummaryReportService extends BaseReportService {
     })
   }
 
-  private async getPaymentSummary(orderFilter: any) {
+  private async getPaymentSummary(orderFilter: Prisma.OrderWhereInput) {
     return this.prisma.order.groupBy({
       by: ['paymentMethodId'],
       where: orderFilter,
       _sum: { orderTotal: true }
     })
   }
-
-  private async getProductsSold(branchId: string, where: any) {
+  private async getProductsSold(
+    branchId: string,
+    dateFilter: { createdAt?: { gte?: Date; lte?: Date } }
+  ) {
     return this.prisma.orderDetail.aggregate({
       _sum: { amount: true },
       where: {
-        order: this.getSuccessOrderFilter(branchId, where)
+        order: this.getSuccessOrderFilter(branchId, dateFilter)
       }
     })
   }
-
-  private async getProductsCanceled(branchId: string, where: any) {
+  private async getProductsCanceled(
+    branchId: string,
+    dateFilter: { createdAt?: { gte?: Date; lte?: Date } }
+  ) {
     return this.prisma.canceledOrderDetail.aggregate({
       _sum: { amount: true },
       where: {
         orderDetail: {
-          order: {
-            branchId,
-            paymentStatus: 'SUCCESS',
-            status: { not: 'CANCELLED' }
+          branchId
+        },
+        ...dateFilter
+      }
+    })
+  }
+  private async getNewCustomers(
+    branchId: string,
+    where: Prisma.CustomerWhereInput
+  ): Promise<number> {
+    return this.prisma.customer.count({
+      where: {
+        shop: {
+          branches: {
+            some: {
+              id: branchId
+            }
           }
         },
         ...where
       }
     })
   }
-
-  private async getNewCustomers(branchId: string, where: any) {
-    return this.prisma.customer.count({
-      where: { branchId, ...where }
-    })
-  }
-
   /**
    * Calculate payment breakdown by method type
    */
   private calculatePaymentBreakdown(
-    paymentSummary: any[],
+    paymentSummary: Array<{ paymentMethodId: string; _sum: { orderTotal: number | null } }>,
     paymentMethodMap: Map<string, string>
-  ): { totalCash: number; totalTransfer: number; totalVnpay: number } {
+  ): { totalCash: number; totalTransfer: number; totalVNPay: number } {
     const breakdown = {
       totalCash: 0,
       totalTransfer: 0,
-      totalVnpay: 0
+      totalVNPay: 0
     }
 
     paymentSummary.forEach(({ paymentMethodId, _sum }) => {
@@ -128,7 +142,7 @@ export class SummaryReportService extends BaseReportService {
           breakdown.totalTransfer += amount
           break
         case 'VNPAY':
-          breakdown.totalVnpay += amount
+          breakdown.totalVNPay += amount
           break
       }
     })

@@ -42,7 +42,7 @@ export class PaymentCalculator {
       totalRevenue: 0,
       totalCash: 0,
       totalTransfer: 0,
-      totalVnpay: 0
+      totalVNPay: 0
     }
   }
 
@@ -50,7 +50,7 @@ export class PaymentCalculator {
     return {
       totalCash: 0,
       totalTransfer: 0,
-      totalVnpay: 0
+      totalVNPay: 0
     }
   }
 }

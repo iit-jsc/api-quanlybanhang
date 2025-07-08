@@ -1,16 +1,15 @@
 import { Injectable } from '@nestjs/common'
-import { OrderStatus, PaymentStatus } from '@prisma/client'
+import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 
 @Injectable()
 export class BaseReportService {
   constructor(protected readonly prisma: PrismaService) {}
-
   /**
-   * Build date filter for createdAt field
+   * Build date filter for createdAt field - generic version
    */
-  buildCreatedAtFilter(from?: Date, to?: Date): any {
-    const where: any = {}
+  buildCreatedAtFilter(from?: Date, to?: Date): { createdAt?: { gte?: Date; lte?: Date } } {
+    const where: { createdAt?: { gte?: Date; lte?: Date } } = {}
 
     if (from && to) {
       where.createdAt = { gte: from, lte: to }
@@ -22,11 +21,13 @@ export class BaseReportService {
 
     return where
   }
-
   /**
    * Get common order filter conditions
    */
-  getSuccessOrderFilter(branchId: string, dateFilter: any = {}) {
+  getSuccessOrderFilter(
+    branchId: string,
+    dateFilter: Prisma.OrderWhereInput = {}
+  ): Prisma.OrderWhereInput {
     return {
       branchId,
       paymentStatus: PaymentStatus.SUCCESS,
@@ -39,7 +40,9 @@ export class BaseReportService {
   /**
    * Get payment method mapping for categorization
    */
-  async getPaymentMethodMap(records: any[]): Promise<Map<string, string>> {
+  async getPaymentMethodMap(
+    records: Array<{ paymentMethodId: string }>
+  ): Promise<Map<string, string>> {
     const paymentMethodIds = [...new Set(records.map(r => r.paymentMethodId).filter(Boolean))]
 
     if (paymentMethodIds.length === 0) {
