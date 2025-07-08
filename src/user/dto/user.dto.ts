@@ -98,8 +98,9 @@ export class ChangeMyPassword {
   accountStatus: AccountStatus
 }
 
-export class CheckUniqDto {
+export class CheckUniqUserDto {
   @IsNotEmpty()
+  @IsEnum(['phone', 'email', 'code'])
   field: string
 
   @IsNotEmpty()
