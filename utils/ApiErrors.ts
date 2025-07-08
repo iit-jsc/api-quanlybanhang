@@ -1,12 +1,4 @@
-import {
-  ExceptionFilter,
-  Catch,
-  ArgumentsHost,
-  ValidationError,
-  HttpException,
-  HttpStatus
-} from '@nestjs/common'
-import { Response } from 'express'
+import { ValidationError, HttpException } from '@nestjs/common'
 import { AnyObject } from 'interfaces/common.interface'
 interface ErrorResponse {
   statusCode: number
@@ -49,54 +41,4 @@ export function errorFormatter(
   })
 
   return message
-}
-
-@Catch()
-export class PrismaExceptionFilter implements ExceptionFilter {
-  catch(exception: any, host: ArgumentsHost) {
-    const ctx = host.switchToHttp()
-    const response = ctx.getResponse<Response>()
-
-    if (exception.code === 'P2002') {
-      return response.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: HttpStatus.CONFLICT,
-        message: 'Dữ liệu đã tồn tại!'
-      })
-    }
-
-    if (exception.code === 'P2011') {
-      return response.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Validation failed',
-        errors: {
-          [exception.meta.constraint[0]]: `Dữ liệu không tồn tại (1)!`
-        }
-      })
-    }
-
-    if (exception.code === 'P2003' || exception.code === 'P2025') {
-      return response.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: HttpStatus.NOT_FOUND,
-        message: 'Dữ liệu không tồn tại (2)!'
-      })
-    }
-
-    if (exception instanceof HttpException) {
-      const status = exception.getStatus()
-      const { message, errors, data } = exception.getResponse() as any
-
-      return response.status(HttpStatus.BAD_REQUEST).json({
-        statusCode: status,
-        message: message || 'UNKNOWN ERROR',
-        errors: errors || errors?.length > 0 ? errors : undefined,
-        data: data || undefined
-      })
-    }
-
-    return response.status(HttpStatus.BAD_REQUEST).json({
-      statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
-      message: 'UNKNOWN ERROR',
-      error: exception
-    })
-  }
 }

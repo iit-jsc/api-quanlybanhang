@@ -8,110 +8,47 @@ export class PrismaExceptionFilter extends BaseExceptionFilter implements Except
   catch(exception: Prisma.PrismaClientKnownRequestError, host: ArgumentsHost) {
     const ctx = host.switchToHttp()
     const response = ctx.getResponse<Response>()
-
-    let status = HttpStatus.BAD_REQUEST
-    let message = 'Có lỗi xảy ra!'
-
-    switch (exception.code) {
-      case 'P2002': // Unique constraint violation
-        status = HttpStatus.CONFLICT
-        message = 'Dữ liệu đã tồn tại'
-        break
-
-      case 'P2003': // Foreign key constraint violation
-        status = HttpStatus.NOT_FOUND
-        message = this.getForeignKeyErrorMessage(exception)
-        break
-
-      case 'P2025': // Record not found
-        status = HttpStatus.NOT_FOUND
-        message = 'Không tìm thấy dữ liệu'
-        break
-
-      case 'P2014': // Invalid ID
-        status = HttpStatus.BAD_REQUEST
-        message = 'ID không hợp lệ'
-        break
-
-      default:
-        // Fallback to default behavior for unknown errors
-        super.catch(exception, host)
-        return
-    }
+    const { status, message } = this.getErrorResponse(exception)
 
     response.status(status).json({
       statusCode: status,
       message,
-      error: process.env.NODE_ENV === 'development' ? exception.message : undefined
+      errors: {
+        cause: exception.message // Chỉ có cause trả thông tin lỗi từ Prisma
+      }
     })
   }
 
-  private getForeignKeyErrorMessage(exception: Prisma.PrismaClientKnownRequestError): string {
-    const meta = exception.meta as any
-    if (meta?.field_name) {
-      const fieldName = meta.field_name
+  private getErrorResponse(exception: Prisma.PrismaClientKnownRequestError) {
+    switch (exception.code) {
+      case 'P2002': // Unique constraint violation
+        return { status: HttpStatus.CONFLICT, message: 'Dữ liệu đã tồn tại' }
 
-      // Map field names to user-friendly messages
-      const fieldMessages: Record<string, string> = {
-        // Product related
-        productTypeId: 'Loại sản phẩm không tồn tại',
-        unitId: 'Đơn vị tính không tồn tại',
-        productId: 'Sản phẩm không tồn tại',
-        productOriginId: 'Sản phẩm gốc không tồn tại',
-        productOptionGroupId: 'Nhóm tùy chọn sản phẩm không tồn tại',
+      case 'P2003': // Foreign key constraint violation
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          message: exception.message.includes('delete()')
+            ? 'Không thể xóa dữ liệu này vì đang được sử dụng'
+            : 'Dữ liệu tham chiếu không hợp lệ'
+        }
 
-        // Branch & Shop related
-        branchId: 'Chi nhánh không tồn tại',
-        shopId: 'Cửa hàng không tồn tại',
+      case 'P2025': // Record not found
+        return { status: HttpStatus.BAD_REQUEST, message: 'Dữ liệu liên kết không đúng' }
 
-        // Customer related
-        customerId: 'Khách hàng không tồn tại',
-        customerTypeId: 'Loại khách hàng không tồn tại',
+      case 'P2014': // Invalid ID
+        return { status: HttpStatus.BAD_REQUEST, message: 'ID không hợp lệ' }
 
-        // Employee related
-        employeeId: 'Nhân viên không tồn tại',
-        employeeGroupId: 'Nhóm nhân viên không tồn tại',
+      case 'P2009': // Record not found in nested write
+        return { status: HttpStatus.NOT_FOUND, message: 'Không tìm thấy dữ liệu' }
 
-        // Order related
-        orderId: 'Đơn hàng không tồn tại',
-        orderDetailId: 'Chi tiết đơn hàng không tồn tại',
+      case 'P2016': // Query interpretation error
+        return { status: HttpStatus.BAD_REQUEST, message: 'Truy vấn không hợp lệ' }
 
-        // Payment related
-        paymentMethodId: 'Phương thức thanh toán không tồn tại',
+      case 'P2017': // Records for relation not connected
+        return { status: HttpStatus.BAD_REQUEST, message: 'Dữ liệu liên kết không đúng' }
 
-        // Voucher related
-        voucherId: 'Voucher không tồn tại',
-        voucherConditionGroupId: 'Nhóm điều kiện voucher không tồn tại',
-
-        // Discount related
-        discountIssueId: 'Đợt phát hành giảm giá không tồn tại',
-
-        // Area & Table related
-        areaId: 'Khu vực không tồn tại',
-        tableId: 'Bàn không tồn tại',
-
-        // Supplier related
-        supplierTypeId: 'Loại nhà cung cấp không tồn tại',
-
-        // Account & Role related
-        userId: 'Người dùng không tồn tại',
-        accountId: 'Tài khoản không tồn tại',
-        roleId: 'Vai trò không tồn tại',
-
-        // Permission related
-        groupCode: 'Nhóm quyền không tồn tại',
-
-        // Business related
-        businessTypeCode: 'Loại hình kinh doanh không tồn tại',
-
-        // Creator/Updater fields
-        createdBy: 'Người tạo không tồn tại',
-        updatedBy: 'Người cập nhật không tồn tại'
-      }
-
-      return fieldMessages[fieldName] || `Dữ liệu tham chiếu không hợp lệ: ${fieldName}`
+      default:
+        return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Có lỗi xảy ra' }
     }
-
-    return 'Dữ liệu tham chiếu không hợp lệ'
   }
 }
