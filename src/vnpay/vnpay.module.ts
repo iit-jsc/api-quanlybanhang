@@ -11,10 +11,10 @@ import { TrashService } from 'src/trash/trash.service'
   controllers: [TrashController],
   providers: [TrashService]
 })
-export class VnpayModule {
+export class VNPayModule {
   static forRoot(options?: { isGlobal?: boolean }): DynamicModule {
     return {
-      module: VnpayModule,
+      module: VNPayModule,
       global: options?.isGlobal ?? false,
       imports: [HttpModule],
       providers: [VNPayService],

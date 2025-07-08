@@ -23,11 +23,9 @@ import { BusinessTypeModule } from './business-type/business-type.module'
 import { SupplierTypeModule } from './supplier-type/supplier-type.module'
 import { GatewayModule } from './gateway/gateway.module'
 import { OrderDetailModule } from './order-detail/order-detail.module'
-import { MailerModule } from '@nestjs-modules/mailer'
 import { TransformInterceptor } from 'utils/ApiResponse'
 import { PaymentMethodModule } from './payment-method/payment-method.module'
 import { ProductOptionGroupModule } from './product-option-group/product-option-group.module'
-import { CustomerRequestModule } from './customer-request/customer-request.module'
 import { TrashModule } from './trash/trash.module'
 import { RoleModule } from './role/role.module'
 import { PermissionGroupModule } from './permission-group/permission-group.module'
@@ -35,7 +33,7 @@ import { NotifyModule } from './notify/notify.module'
 import { CommonModule } from './common/common.module'
 import { ActivityLogModule } from './activity-log/activity-log.module'
 import { PermissionModule } from './permission/permission.module'
-import { VnpayModule } from './vnpay/vnpay.module'
+import { VNPayModule } from './vnpay/vnpay.module'
 import { HttpModule } from '@nestjs/axios'
 import { SecurityModule } from '../security'
 import { BranchSettingModule } from './branch-setting/branch-setting.module'
@@ -52,24 +50,13 @@ import { BranchSettingModule } from './branch-setting/branch-setting.module'
     TrashModule.forRoot({
       isGlobal: true
     }),
-    VnpayModule.forRoot({
+    VNPayModule.forRoot({
       isGlobal: true
     }),
     JwtModule.register({
       global: true,
       secret: process.env.SECRET_KEY,
       signOptions: { expiresIn: process.env.EXPIRES_IN_ACCESS_TOKEN }
-    }),
-    MailerModule.forRoot({
-      transport: {
-        host: process.env.EMAIL_HOST,
-        port: +process.env.EMAIL_PORT,
-        secure: false,
-        auth: {
-          user: process.env.EMAIL_ID,
-          pass: process.env.EMAIL_PASS
-        }
-      }
     }),
     GatewayModule.forRoot({
       isGlobal: true
@@ -104,7 +91,6 @@ import { BranchSettingModule } from './branch-setting/branch-setting.module'
     PermissionGroupModule,
     PaymentMethodModule,
     ProductOptionGroupModule,
-    CustomerRequestModule,
     CommonModule,
     PermissionModule,
     BranchSettingModule
