@@ -521,8 +521,8 @@ model AccountSocket {
   deviceId  String   @unique
   branchId  String
   branch    Branch?  @relation(fields: [branchId], references: [id])
-  account   Account? @relation(fields: [accountId], references: [id])
-  accountId String
+  account   Account? @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  accountId String?
   createdAt DateTime @default(now())
 }
 
@@ -574,8 +574,8 @@ model ActivityLog {
   targetName   String
   relatedName  String?
   relatedModel String?
-  accountId    String
-  account      Account?       @relation(fields: [accountId], references: [id])
+  accountId    String?
+  account      Account?       @relation(fields: [accountId], references: [id], onDelete: Cascade)
   branchId     String?
   branch       Branch?        @relation(fields: [branchId], references: [id])
   shopId       String?

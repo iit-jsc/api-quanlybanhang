@@ -16,7 +16,7 @@ import { UserService } from './user.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RolesGuard } from 'guards/roles.guard'
 import { RequestJWT } from 'interfaces/common.interface'
-import { CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
+import { CheckUniqUserDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
 import { Roles } from 'guards/roles.decorator'
@@ -69,6 +69,13 @@ export class UserController {
     const { accountId, shopId } = req
 
     return this.userService.deleteMany(data, accountId, shopId)
+  }
+
+  @Get('/check-valid-field')
+  @HttpCode(HttpStatus.OK)
+  checkValidField(@Query() data: CheckUniqUserDto, @Req() req: RequestJWT) {
+    const { shopId } = req
+    return this.userService.checkValidField(data, shopId)
   }
 
   @Get(':id')

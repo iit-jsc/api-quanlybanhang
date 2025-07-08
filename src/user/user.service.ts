@@ -1,9 +1,9 @@
 import * as bcrypt from 'bcrypt'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
+import { CheckUniqUserDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
 import { AccountStatus, ActivityAction, Prisma, PrismaClient } from '@prisma/client'
-import { CheckUniqDto, DeleteManyDto } from 'utils/Common.dto'
+import { DeleteManyDto } from 'utils/Common.dto'
 import { customPaginate, generateCode } from 'utils/Helps'
 import { userDetailSelect } from 'responses/user.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
@@ -213,8 +213,9 @@ export class UserService {
           accountId
         )
       ])
+      console.log(shopId, data.ids, 99999)
 
-      return prisma.user.deleteMany({
+      return await prisma.user.deleteMany({
         where: {
           id: {
             in: data.ids
@@ -230,20 +231,43 @@ export class UserService {
       })
     })
   }
-
-  async checkExists(data: CheckUniqDto) {
+  async checkValidField(data: CheckUniqUserDto, shopId?: string) {
     const { field, id, value } = data
+    console.log(field, id, value)
 
     let record = null
 
-    record = await this.prisma.user.findFirst({
-      where: {
-        [field]: value,
-        id: { not: id }
-      }
-    })
+    if (field === 'phone') {
+      // Phone: findUnique globally (không theo shopId)
+      record = await this.prisma.user.findUnique({
+        where: {
+          phone: value
+        },
+        select: { id: true }
+      })
+    }
 
-    return record !== null
+    if (field === 'email') {
+      // Email: findUnique globally (không theo shopId)
+      record = await this.prisma.user.findUnique({
+        where: {
+          email: value
+        },
+        select: { id: true }
+      })
+    }
+
+    if (field === 'code' && shopId) {
+      // Code: findUnique theo shopId
+      record = await this.prisma.user.findUnique({
+        where: {
+          code: value
+        },
+        select: { id: true }
+      })
+    }
+
+    return record === null || (id ? record.id === id : false)
   }
 
   async uploadMyInformation(data: ChangeMyInformation, accountId: string) {

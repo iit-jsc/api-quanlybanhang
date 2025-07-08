@@ -204,7 +204,6 @@ export class ReportService {
     })
     return result
   }
-
   async reportBestStaff(params: ReportDto, branchId: string) {
     const { from, to } = params
 
@@ -231,21 +230,21 @@ export class ReportService {
       }
     })
 
-    const createdByIds = orderDetails.map(p => p.createdBy)
-
-    if (!createdByIds || !createdByIds.length) {
-      return []
-    }
-
-    const accountInfos = await this.prisma.account.findMany({
-      where: { id: { in: createdByIds || [] } },
-      select: accountShortSelect
-    })
+    const createdByIds = orderDetails
+      .map(p => p.createdBy)
+      .filter(id => id !== null && id !== undefined)
+    const accountInfos =
+      createdByIds.length > 0
+        ? await this.prisma.account.findMany({
+            where: { id: { in: createdByIds } },
+            select: accountShortSelect
+          })
+        : []
 
     const accountInfoMap = new Map(accountInfos.map(({ id, ...rest }) => [id, rest]))
 
     const result = orderDetails.map(({ createdBy, _sum }) => {
-      const account = accountInfoMap.get(createdBy) ?? {}
+      const account = accountInfoMap.get(createdBy) ?? { user: { name: 'Tài khoản đã xóa' } }
       return {
         account,
         amountSold: _sum.amount ?? 0
