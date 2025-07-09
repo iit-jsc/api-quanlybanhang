@@ -1,5 +1,5 @@
 import { Prisma, PrismaClient, ActivityAction } from '@prisma/client'
-import { Injectable } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateTableDto, FindManyTableDto, UpdateTableDto } from '../dto/table.dto'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -118,6 +118,28 @@ export class TableCrudService {
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     const result = await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      // Kiểm tra xem có orderDetail nào đang sử dụng các table này không
+      const orderDetailsUsingTables = await prisma.orderDetail.findMany({
+        where: {
+          tableId: { in: data.ids }
+        },
+        select: {
+          tableId: true,
+          table: {
+            select: { name: true }
+          }
+        }
+      })
+
+      if (orderDetailsUsingTables.length > 0) {
+        const tableNames = [...new Set(orderDetailsUsingTables.map(od => od.table?.name))].filter(
+          Boolean
+        )
+        throw new BadRequestException(
+          `Không thể xóa: ${tableNames.join(', ')} vì đang được sử dụng`
+        )
+      }
+
       const entities = await prisma.table.findMany({
         where: { id: { in: data.ids } }
       })
