@@ -96,6 +96,9 @@ export class UserService {
           some: {
             shopId
           }
+        },
+        status: {
+          not: AccountStatus.DELETED
         }
       }
     }
@@ -123,6 +126,9 @@ export class UserService {
             some: {
               shopId
             }
+          },
+          status: {
+            not: AccountStatus.DELETED
           }
         }
       },
