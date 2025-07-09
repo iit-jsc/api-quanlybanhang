@@ -120,7 +120,7 @@ export class BlockUsersDto {
   @IsArray()
   @ArrayNotEmpty()
   @IsNotEmpty({ each: true })
-  userIds: string[]
+  ids: string[]
 
   @IsOptional()
   @IsBoolean()
