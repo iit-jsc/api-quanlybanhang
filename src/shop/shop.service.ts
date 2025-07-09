@@ -11,9 +11,6 @@ export class ShopService {
       where: { id: shopId },
       data: {
         name: data.name,
-        phone: data.phone,
-        email: data.email,
-        address: data.address,
         updatedBy: accountId
       },
       include: {

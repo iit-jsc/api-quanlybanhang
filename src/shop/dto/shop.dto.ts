@@ -1,6 +1,5 @@
 import { PartialType } from '@nestjs/swagger'
-import { IsEmail, IsNotEmpty, IsOptional, MinLength } from 'class-validator'
-import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
+import { IsNotEmpty, MinLength } from 'class-validator'
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -16,16 +15,6 @@ export class CreateUserDto {
 export class CreateShopDto {
   @IsNotEmpty()
   name: string
-
-  @IsOptional()
-  @IsVietnamesePhoneNumber()
-  phone?: string
-
-  @IsOptional()
-  @IsEmail()
-  email?: string
-
-  address?: string
 }
 
 export class UpdateShopDto extends PartialType(CreateShopDto) {}

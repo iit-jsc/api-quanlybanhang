@@ -88,7 +88,6 @@ export class RegistrationService {
                   create: {
                     code: shopCode,
                     name: data.shopName,
-                    address: data.address,
                     businessTypeCode: DEFAULT_BUSINESS_TYPE
                   }
                 }

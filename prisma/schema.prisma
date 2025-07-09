@@ -151,11 +151,6 @@ model Shop {
   businessTypeCode String
   status           ShopStatus      @default(ACTIVE)
   businessType     BusinessType?   @relation(fields: [businessTypeCode], references: [code])
-  phone            String?
-  email            String?
-  address          String?         @db.Text
-  photoURL         String?         @db.Text
-  domain           String?         @db.Text
   createdAt        DateTime        @default(now())
   updatedAt        DateTime        @updatedAt
   branches         Branch[]
