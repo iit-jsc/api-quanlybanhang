@@ -1,12 +1,16 @@
 import * as bcrypt from 'bcrypt'
-import { Injectable } from '@nestjs/common'
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { CheckUniqUserDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
-import { AccountStatus, ActivityAction, Prisma, PrismaClient } from '@prisma/client'
-import { DeleteManyDto } from 'utils/Common.dto'
+import {
+  BlockUsersDto,
+  CheckUniqUserDto,
+  CreateUserDto,
+  FindManyUserDto,
+  UpdateUserDto
+} from './dto/user.dto'
+import { AccountStatus, ActivityAction, Prisma } from '@prisma/client'
 import { customPaginate, generateCode } from 'utils/Helps'
 import { userDetailSelect } from 'responses/user.response'
-import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { TrashService } from 'src/trash/trash.service'
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
@@ -92,6 +96,9 @@ export class UserService {
           some: {
             shopId
           }
+        },
+        status: {
+          not: AccountStatus.DELETED
         }
       }
     }
@@ -119,6 +126,9 @@ export class UserService {
             some: {
               shopId
             }
+          },
+          status: {
+            not: AccountStatus.DELETED
           }
         }
       },
@@ -186,51 +196,51 @@ export class UserService {
     })
   }
 
-  async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
-    return await this.prisma.$transaction(async (prisma: PrismaClient) => {
-      const entities = await prisma.user.findMany({
-        where: { id: { in: data.ids } },
-        include: {
-          account: true
-        }
-      })
+  // async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
+  //   return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+  //     const entities = await prisma.user.findMany({
+  //       where: { id: { in: data.ids } },
+  //       include: {
+  //         account: true
+  //       }
+  //     })
 
-      const dataTrash: CreateManyTrashDto = {
-        accountId,
-        modelName: 'User',
-        entities
-      }
+  //     const dataTrash: CreateManyTrashDto = {
+  //       accountId,
+  //       modelName: 'User',
+  //       entities
+  //     }
 
-      await Promise.all([
-        this.trashService.createMany(dataTrash, prisma),
-        this.activityLogService.create(
-          {
-            action: ActivityAction.DELETE,
-            modelName: 'User',
-            targetName: entities.map(item => item.name).join(', ')
-          },
-          { shopId },
-          accountId
-        )
-      ])
-      console.log(shopId, data.ids, 99999)
+  //     await Promise.all([
+  //       this.trashService.createMany(dataTrash, prisma),
+  //       this.activityLogService.create(
+  //         {
+  //           action: ActivityAction.DELETE,
+  //           modelName: 'User',
+  //           targetName: entities.map(item => item.name).join(', ')
+  //         },
+  //         { shopId },
+  //         accountId
+  //       )
+  //     ])
+  //     console.log(shopId, data.ids, 99999)
 
-      return await prisma.user.deleteMany({
-        where: {
-          id: {
-            in: data.ids
-          },
-          account: {
-            branches: {
-              some: {
-                shopId
-              }
-            }
-          }
-        }
-      })
-    })
-  }
+  //     return await prisma.user.deleteMany({
+  //       where: {
+  //         id: {
+  //           in: data.ids
+  //         },
+  //         account: {
+  //           branches: {
+  //             some: {
+  //               shopId
+  //             }
+  //           }
+  //         }
+  //       }
+  //     })
+  //   })
+  // }
   async checkValidField(data: CheckUniqUserDto, shopId?: string) {
     const { field, id, value } = data
 
@@ -299,6 +309,56 @@ export class UserService {
         user: {
           select: userDetailSelect
         }
+      }
+    })
+  }
+
+  async blockUsers(data: BlockUsersDto, shopId: string, accountId: string) {
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: { in: data.ids },
+        account: {
+          branches: {
+            some: {
+              shopId
+            }
+          }
+        }
+      },
+      include: {
+        account: true
+      }
+    })
+
+    if (users.length === 0) {
+      throw new HttpException('Không tìm thấy người dùng nào để chặn!', HttpStatus.BAD_REQUEST)
+    }
+
+    // Kiểm tra không cho phép block tài khoản của chính mình
+    const currentUserAccount = users.find(user => user.account?.id === accountId)
+
+    if (currentUserAccount && data.accountStatus !== AccountStatus.ACTIVE) {
+      throw new HttpException('Không thể khóa tài khoản của chính bạn', HttpStatus.BAD_REQUEST)
+    }
+
+    return this.prisma.$transaction(async prisma => {
+      // Tìm tất cả users và accounts liên quan
+      const accountIds = users.map(user => user.account?.id).filter(Boolean) as string[]
+
+      // Cập nhật trạng thái tất cả accounts thành INACTIVE
+      await prisma.account.updateMany({
+        where: {
+          id: { in: accountIds }
+        },
+        data: {
+          status: data.accountStatus,
+          updatedBy: accountId
+        }
+      })
+
+      return {
+        count: accountIds.length,
+        userIds: users.map(user => user.id)
       }
     })
   }

@@ -286,7 +286,7 @@ model CustomerType {
 
 model Customer {
   id             String        @id @default(uuid())
-  code           String
+  code           String        @default("")
   name           String
   phone          String?
   organizeName   String?

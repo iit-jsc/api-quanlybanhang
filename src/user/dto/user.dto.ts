@@ -24,9 +24,6 @@ export class CreateUserDto {
   @IsVietnamesePhoneNumber()
   phone: string
 
-  @IsNotEmpty()
-  employeeGroupId: string
-
   @IsArray()
   @ArrayNotEmpty()
   @IsNotEmpty({ each: true })
@@ -69,6 +66,7 @@ export class CreateUserDto {
   @IsEnum(AccountStatus)
   status: AccountStatus
 
+  employeeGroupId?: string
   photoURL?: string
   address?: string
   code?: string
@@ -115,4 +113,22 @@ export class FindManyUserDto extends FindManyDto {
     return value?.split(',')
   })
   employeeGroupIds?: string[]
+}
+
+export class BlockUsersDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNotEmpty({ each: true })
+  ids: string[]
+
+  @IsOptional()
+  @IsEnum(AccountStatus)
+  accountStatus: AccountStatus
+}
+
+export class UnblockUsersDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNotEmpty({ each: true })
+  userIds: string[]
 }
