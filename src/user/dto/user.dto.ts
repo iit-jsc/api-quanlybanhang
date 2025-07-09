@@ -4,7 +4,6 @@ import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   ArrayNotEmpty,
   IsArray,
-  IsBoolean,
   IsDate,
   IsEmail,
   IsEnum,
@@ -123,8 +122,8 @@ export class BlockUsersDto {
   ids: string[]
 
   @IsOptional()
-  @IsBoolean()
-  isBlock: boolean
+  @IsEnum(AccountStatus)
+  accountStatus: AccountStatus
 }
 
 export class UnblockUsersDto {

@@ -337,9 +337,7 @@ export class UserService {
     // Kiểm tra không cho phép block tài khoản của chính mình
     const currentUserAccount = users.find(user => user.account?.id === accountId)
 
-    console.log(currentUserAccount, data.isBlock, 99999)
-
-    if (currentUserAccount && data.isBlock) {
+    if (currentUserAccount && data.accountStatus !== AccountStatus.ACTIVE) {
       throw new HttpException('Không thể khóa tài khoản của chính bạn', HttpStatus.BAD_REQUEST)
     }
 
@@ -353,7 +351,7 @@ export class UserService {
           id: { in: accountIds }
         },
         data: {
-          status: data.isBlock ? AccountStatus.INACTIVE : AccountStatus.ACTIVE,
+          status: data.accountStatus,
           updatedBy: accountId
         }
       })
