@@ -335,7 +335,7 @@
       },
       {
         "code": "DELETE_USER",
-        "name": "Xóa người dùng"
+        "name": "Khóa tài khoản người dùng"
       },
       {
         "code": "VIEW_USER",
