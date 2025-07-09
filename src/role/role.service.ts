@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateRoleDto, FindManyRoleDto, UpdateRoleDto } from './dto/role.dto'
 import { customPaginate, removeDiacritics } from 'utils/Helps'
@@ -119,9 +119,39 @@ export class RoleService {
       select: roleSelect
     })
   }
-
   async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
+      // Kiểm tra xem có role nào đang được sử dụng bởi account không
+      const rolesWithAccounts = await prisma.role.findMany({
+        where: {
+          id: { in: data.ids },
+          shopId
+        },
+        select: {
+          id: true,
+          name: true,
+          accounts: {
+            select: {
+              id: true,
+              user: {
+                select: { name: true }
+              }
+            }
+          }
+        }
+      })
+
+      const rolesInUse = rolesWithAccounts.filter(role => role.accounts.length > 0)
+
+      if (rolesInUse.length > 0) {
+        const roleNames = rolesInUse.map(role => role.name)
+
+        throw new HttpException(
+          `Không thể xóa vai trò ${roleNames.join(', ')} vì đang đươc sử dụng!`,
+          HttpStatus.BAD_REQUEST
+        )
+      }
+
       const entities = await prisma.role.findMany({
         where: { id: { in: data.ids } },
         include: {
