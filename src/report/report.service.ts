@@ -107,15 +107,19 @@ export class ReportService {
 
     const productInfoMap = new Map(productInfos.map(({ id, ...rest }) => [id, rest]))
 
-    const result = products.map(({ productOriginId, _sum }) => {
-      const product = productInfoMap.get(productOriginId) ?? {}
-      return {
-        product,
-        amountSold: _sum.amount ?? 0
-      }
-    })
+    const result = products
+      .map(({ productOriginId, _sum }) => {
+        const product = productInfoMap.get(productOriginId) ?? {}
+        return {
+          product,
+          amountSold: _sum.amount ?? 0
+        }
+      })
+      .filter(item => Object.keys(item.product).length > 0) // Ẩn sản phẩm bị xóa
+
     return result
   }
+
   async reportBestStaff(params: ReportDto, branchId: string) {
     const { from, to } = params
 
