@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, BadRequestException } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -121,9 +121,37 @@ export class AreaService {
       return area
     })
   }
-
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
     return this.prisma.$transaction(async (prisma: PrismaClient) => {
+      // Kiểm tra xem có orderDetail nào đang sử dụng bàn thuộc các khu vực này không
+      const orderDetailsUsingTables = await prisma.orderDetail.findMany({
+        where: {
+          table: {
+            areaId: { in: data.ids }
+          }
+        },
+        select: {
+          tableId: true,
+          table: {
+            select: {
+              name: true,
+              area: {
+                select: { name: true }
+              }
+            }
+          }
+        }
+      })
+
+      if (orderDetailsUsingTables.length > 0) {
+        const areaNames = [
+          ...new Set(orderDetailsUsingTables.map(od => od.table?.area?.name))
+        ].filter(Boolean)
+        throw new BadRequestException(
+          `Không thể xóa ${areaNames.join(', ')} vì khu vực này có bàn đang sử dụng`
+        )
+      }
+
       const entities = await prisma.area.findMany({
         where: { id: { in: data.ids } },
         include: {
