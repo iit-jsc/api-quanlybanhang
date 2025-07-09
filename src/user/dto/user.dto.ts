@@ -4,6 +4,7 @@ import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   ArrayNotEmpty,
   IsArray,
+  IsBoolean,
   IsDate,
   IsEmail,
   IsEnum,
@@ -23,9 +24,6 @@ export class CreateUserDto {
   @IsNotEmpty()
   @IsVietnamesePhoneNumber()
   phone: string
-
-  @IsNotEmpty()
-  employeeGroupId: string
 
   @IsArray()
   @ArrayNotEmpty()
@@ -69,6 +67,7 @@ export class CreateUserDto {
   @IsEnum(AccountStatus)
   status: AccountStatus
 
+  employeeGroupId?: string
   photoURL?: string
   address?: string
   code?: string
@@ -115,4 +114,22 @@ export class FindManyUserDto extends FindManyDto {
     return value?.split(',')
   })
   employeeGroupIds?: string[]
+}
+
+export class BlockUsersDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNotEmpty({ each: true })
+  userIds: string[]
+
+  @IsOptional()
+  @IsBoolean()
+  isBlock: boolean
+}
+
+export class UnblockUsersDto {
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsNotEmpty({ each: true })
+  userIds: string[]
 }

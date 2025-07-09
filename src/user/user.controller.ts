@@ -16,8 +16,13 @@ import { UserService } from './user.service'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RolesGuard } from 'guards/roles.guard'
 import { RequestJWT } from 'interfaces/common.interface'
-import { CheckUniqUserDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
-import { DeleteManyDto } from 'utils/Common.dto'
+import {
+  CheckUniqUserDto,
+  CreateUserDto,
+  FindManyUserDto,
+  UpdateUserDto,
+  BlockUsersDto
+} from './dto/user.dto'
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
@@ -45,6 +50,15 @@ export class UserController {
     return this.userService.uploadMyInformation(data, accountId)
   }
 
+  @Patch('/block')
+  @HttpCode(HttpStatus.OK)
+  @Roles(permissions.user.delete)
+  blockUsers(@Body() data: BlockUsersDto, @Req() req: RequestJWT) {
+    const { accountId, shopId } = req
+
+    return this.userService.blockUsers(data, shopId, accountId)
+  }
+
   @Patch('/:id')
   @HttpCode(HttpStatus.OK)
   @Roles(permissions.user.update)
@@ -60,15 +74,6 @@ export class UserController {
     const { accountId } = req
 
     return this.userService.deleteMyAccount(accountId)
-  }
-
-  @Delete('')
-  @HttpCode(HttpStatus.OK)
-  @Roles(permissions.user.delete)
-  deleteManyEmployee(@Body() data: DeleteManyDto, @Req() req: RequestJWT) {
-    const { accountId, shopId } = req
-
-    return this.userService.deleteMany(data, accountId, shopId)
   }
 
   @Get('/check-valid-field')

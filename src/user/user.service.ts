@@ -1,7 +1,13 @@
 import * as bcrypt from 'bcrypt'
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { CheckUniqUserDto, CreateUserDto, FindManyUserDto, UpdateUserDto } from './dto/user.dto'
+import {
+  BlockUsersDto,
+  CheckUniqUserDto,
+  CreateUserDto,
+  FindManyUserDto,
+  UpdateUserDto
+} from './dto/user.dto'
 import { AccountStatus, ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { customPaginate, generateCode } from 'utils/Helps'
@@ -299,6 +305,56 @@ export class UserService {
         user: {
           select: userDetailSelect
         }
+      }
+    })
+  }
+
+  async blockUsers(data: BlockUsersDto, shopId: string, accountId: string) {
+    const users = await this.prisma.user.findMany({
+      where: {
+        id: { in: data.userIds },
+        account: {
+          branches: {
+            some: {
+              shopId
+            }
+          }
+        }
+      },
+      include: {
+        account: true
+      }
+    })
+
+    if (users.length === 0) {
+      throw new Error('Không tìm thấy người dùng nào để chặn')
+    }
+
+    // Kiểm tra không cho phép block tài khoản của chính mình
+    const currentUserAccount = users.find(user => user.account?.id === accountId)
+
+    if (currentUserAccount && data.isBlock) {
+      throw new Error('Không thể khóa tài khoản của chính bạn')
+    }
+
+    return this.prisma.$transaction(async prisma => {
+      // Tìm tất cả users và accounts liên quan
+      const accountIds = users.map(user => user.account?.id).filter(Boolean) as string[]
+
+      // Cập nhật trạng thái tất cả accounts thành INACTIVE
+      await prisma.account.updateMany({
+        where: {
+          id: { in: accountIds }
+        },
+        data: {
+          status: data.isBlock ? AccountStatus.INACTIVE : AccountStatus.ACTIVE,
+          updatedBy: accountId
+        }
+      })
+
+      return {
+        blockedCount: accountIds.length,
+        blockedUserIds: users.map(user => user.id)
       }
     })
   }
