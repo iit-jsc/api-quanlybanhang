@@ -27,7 +27,7 @@ export class PrismaExceptionFilter extends BaseExceptionFilter implements Except
       case 'P2003': // Foreign key constraint violation
         return {
           status: HttpStatus.BAD_REQUEST,
-          message: exception.message.includes('delete()')
+          message: exception.message.includes('deleteMany()')
             ? 'Không thể xóa dữ liệu này vì đang được sử dụng'
             : 'Dữ liệu tham chiếu không hợp lệ'
         }
