@@ -8,6 +8,7 @@ import { BadRequestException, HttpStatus, ValidationPipe } from '@nestjs/common'
 import { TransformInterceptor } from 'utils/ApiResponse'
 import { PrismaClientExceptionFilter } from 'nestjs-prisma'
 import { PrismaExceptionFilter } from './common/exceptions/prisma-exception.filter'
+import { AllExceptionsFilter } from './common/exceptions/all-exceptions.filter'
 import { ValidationError } from 'class-validator'
 import { errorFormatter } from 'utils/ApiErrors'
 import { SecurityInterceptor } from '../security'
@@ -20,8 +21,7 @@ async function bootstrap() {
     const cfgService = app.get(ConfigService)
     const { httpAdapter } = app.get(HttpAdapterHost)
 
-    // app.use(helmet(...))    // CORS - Allow everything
-    app.enableCors()
+    // app.use(helmet(...))    // CORS - Allow everything    app.enableCors()
     app.use((req, res, next) => {
       res.header('Access-Control-Allow-Origin', '*')
       res.header('Access-Control-Allow-Methods', '*')
@@ -37,7 +37,11 @@ async function bootstrap() {
     // Security interceptors và global guards
     app.useGlobalInterceptors(new TransformInterceptor(), new SecurityInterceptor())
 
-    app.useGlobalFilters(new PrismaClientExceptionFilter(httpAdapter), new PrismaExceptionFilter())
+    app.useGlobalFilters(
+      new AllExceptionsFilter(),
+      new PrismaClientExceptionFilter(httpAdapter),
+      new PrismaExceptionFilter()
+    )
     app.useGlobalPipes(
       new ValidationPipe({
         transform: true,
