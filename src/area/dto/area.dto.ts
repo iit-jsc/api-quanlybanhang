@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger'
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsNotEmpty, IsOptional } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsString } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateAreaDto {
@@ -8,7 +8,9 @@ export class CreateAreaDto {
   @Transform(({ value }: TransformFnParams) => value?.trim())
   name: string
 
-  photoURL?: string
+  @IsOptional()
+  @IsString()
+  photoURL: string
 }
 
 export class FindManyAreaDto extends FindManyDto {
