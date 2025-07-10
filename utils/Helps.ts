@@ -39,9 +39,16 @@ export function detailPermissionFilter(tokenPayload: TokenPayload) {
 }
 
 const imageFileFilter = (req, file, callback) => {
-  if (!file.originalname.match(/\.(jpg|jpeg|png|webp)$/)) {
-    return callback(new Error('Only image files are allowed!'), false)
+  // Kiểm tra mimetype thay vì chỉ dựa vào extension
+  const allowedMimeTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp']
+
+  if (!allowedMimeTypes.includes(file.mimetype)) {
+    return callback(
+      new HttpException('Chỉ cho phép tải lên file ảnh!', HttpStatus.BAD_REQUEST),
+      false
+    )
   }
+
   callback(null, true)
 }
 

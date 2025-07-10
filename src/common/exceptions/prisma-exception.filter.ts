@@ -18,7 +18,6 @@ export class PrismaExceptionFilter extends BaseExceptionFilter implements Except
       }
     })
   }
-
   private getErrorResponse(exception: Prisma.PrismaClientKnownRequestError) {
     switch (exception.code) {
       case 'P2002': // Unique constraint violation
@@ -46,6 +45,12 @@ export class PrismaExceptionFilter extends BaseExceptionFilter implements Except
 
       case 'P2017': // Records for relation not connected
         return { status: HttpStatus.BAD_REQUEST, message: 'Dữ liệu liên kết không đúng' }
+
+      case 'P2000': // The provided value for the column is too long for the column's type
+        return {
+          status: HttpStatus.BAD_REQUEST,
+          message: 'Dữ liệu nhập vào vượt quá giới hạn cho phép'
+        }
 
       default:
         return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Có lỗi xảy ra' }
