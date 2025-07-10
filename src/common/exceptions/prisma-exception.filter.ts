@@ -18,6 +18,7 @@ export class PrismaExceptionFilter extends BaseExceptionFilter implements Except
       }
     })
   }
+
   private getErrorResponse(exception: Prisma.PrismaClientKnownRequestError) {
     switch (exception.code) {
       case 'P2002': // Unique constraint violation
@@ -53,7 +54,7 @@ export class PrismaExceptionFilter extends BaseExceptionFilter implements Except
         }
 
       default:
-        return { status: HttpStatus.INTERNAL_SERVER_ERROR, message: 'Có lỗi xảy ra' }
+        return { status: HttpStatus.BAD_REQUEST, message: 'Có lỗi xảy ra' }
     }
   }
 }
