@@ -178,7 +178,7 @@ model Shop {
 
 model MeasurementUnit {
   id        String    @id @default(uuid())
-  name      String
+  name      String    @db.Text
   code      String
   branch    Branch?   @relation(fields: [branchId], references: [id])
   branchId  String?
@@ -197,7 +197,7 @@ model ProductType {
   id             String          @id @default(uuid())
   branchId       String
   branch         Branch?         @relation(fields: [branchId], references: [id])
-  name           String
+  name           String          @db.Text
   slug           String
   description    String?         @db.Text
   createdAt      DateTime        @default(now())
@@ -216,7 +216,7 @@ model Product {
   id                       String             @id @default(uuid())
   branchId                 String
   unitId                   String
-  name                     String
+  name                     String             @db.Text
   slug                     String
   productTypeId            String
   price                    Float
@@ -277,7 +277,7 @@ model ProductOptionGroup {
 
 model CustomerType {
   id           String       @id @default(uuid())
-  name         String
+  name         String       @db.Text
   description  String?      @db.Text
   discount     Float        @default(0)
   discountType DiscountType @default(VALUE)
@@ -294,7 +294,7 @@ model CustomerType {
 
 model Customer {
   id                  String        @id @default(uuid())
-  name                String
+  name                String        @db.Text
   phone               String
   isOrganize          Boolean       @default(false)
   shopId              String
@@ -302,8 +302,8 @@ model Customer {
   email               String?
   address             String?       @db.Text
   description         String?       @db.Text
-  representativeName  String?
-  representativePhone String?
+  representativeName  String?       @db.Text
+  representativePhone String?       @db.Text
   birthday            DateTime?
   discountFor         DiscountFor?  @default(CUSTOMER_TYPE)
   discount            Float         @default(0)
@@ -328,7 +328,7 @@ model Customer {
 model SupplierType {
   id          String     @id @default(uuid())
   branchId    String
-  name        String
+  name        String     @db.Text
   description String?    @db.Text
   createdBy   String?
   updatedBy   String?
@@ -343,13 +343,13 @@ model SupplierType {
 model Supplier {
   id                  String        @id @default(uuid())
   branchId            String
-  name                String
+  name                String        @db.Text
   email               String?
   phone               String
   address             String?       @db.Text
   note                String?       @db.Text
-  representativeName  String?
-  representativePhone String?
+  representativeName  String?       @db.Text
+  representativePhone String?       @db.Text
   supplierTypeId      String?
   createdBy           String?
   updatedBy           String?
@@ -367,7 +367,7 @@ model Supplier {
 model Voucher {
   id              String                  @id @default(uuid())
   branchId        String
-  name            String
+  name            String                  @db.Text
   startDate       DateTime
   amount          Int
   type            VoucherType
@@ -475,7 +475,7 @@ model OrderDetail {
   branchId             String
   amount               Float
   orderId              String?
-  note                 String?
+  note                 String?               @db.Text
   status               OrderDetailStatus?    @default(APPROVED)
   productOptions       Json?
   product              Json?
@@ -511,7 +511,7 @@ model CanceledOrderDetail {
 model Area {
   id        String   @id @unique @default(uuid())
   branchId  String
-  name      String
+  name      String   @db.Text
   photoURL  String?  @db.Text
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -527,7 +527,7 @@ model Table {
   id                String             @id @default(uuid())
   branchId          String
   areaId            String
-  name              String
+  name              String             @db.Text
   seat              Int?
   orderDetails      OrderDetail[]
   createdAt         DateTime           @default(now())
@@ -546,7 +546,7 @@ model Table {
 model DiscountIssue {
   id            String         @id @default(uuid())
   branchId      String
-  name          String
+  name          String         @db.Text
   code          String
   isLimit       Boolean        @default(false)
   discount      Float          @default(0)
@@ -590,7 +590,7 @@ model DiscountCode {
 model CustomerRequest {
   id          String         @id @default(uuid())
   branchId    String
-  code        String?
+  code        String?        @db.Text
   tableId     String
   requestType RequestType
   content     String         @db.Text
@@ -605,7 +605,7 @@ model CustomerRequest {
 
 model Branch {
   id                  String               @id @default(uuid())
-  name                String
+  name                String               @db.Text
   shopId              String
   shop                Shop?                @relation(fields: [shopId], references: [id])
   photoURL            String?              @db.Text
@@ -656,10 +656,10 @@ model PaymentMethod {
   id             String            @id @default(uuid())
   branchId       String
   branch         Branch?           @relation(fields: [branchId], references: [id])
-  bankName       String?
-  bankCode       String?
-  representative String?
-  photoURL       String?
+  bankName       String?           @db.Text
+  bankCode       String?           @db.Text
+  representative String?           @db.Text
+  photoURL       String?           @db.Text
   type           PaymentMethodType
   active         Boolean           @default(true)
   createdAt      DateTime          @default(now())
@@ -728,9 +728,9 @@ model VNPayMerchant {
   id                  String   @id @default(uuid())
   branchId            String   @unique
   createdAt           DateTime @default(now())
-  merchantName        String
-  merchantType        String
-  merchantCode        String
+  merchantName        String   @db.Text
+  merchantType        String   @db.Text
+  merchantCode        String   @db.Text
   genQRSecretKey      String?
   checkTransSecretKey String?
   refundSecretKey     String?
