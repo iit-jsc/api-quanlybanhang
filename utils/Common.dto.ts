@@ -1,5 +1,14 @@
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import { ArrayNotEmpty, IsDate, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator'
+import {
+  ArrayNotEmpty,
+  IsDate,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Max,
+  Min
+} from 'class-validator'
 import { FIND_UNIQ_TYPE } from 'enums/common.enum'
 import { AnyObject } from 'interfaces/common.interface'
 
@@ -48,8 +57,18 @@ export class FindUniqDto {
 }
 
 export class FindManyDto {
-  page?: number
-  perPage?: number
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  page: number
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  perPage: number
 
   @Transform(({ value }) => {
     if (value) {
