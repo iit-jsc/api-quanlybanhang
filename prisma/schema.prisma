@@ -102,6 +102,8 @@ model Account {
   canceledOrderDetails      CanceledOrderDetail[] @relation("creator")
   accountSockets            AccountSocket[]
   updaterBranchSetting      BranchSetting[]       @relation("updater")
+  updaterInvoiceSetting     InvoiceSetting[]      @relation("invoiceSettingUpdater")
+  updaterInvoiceProvider    InvoiceProvider[]     @relation("invoiceProviderUpdater")
 }
 
 model User {
@@ -508,6 +510,8 @@ model Branch {
   vnPayMerchants      VNPayMerchant[]
   vNPayTransaction    VNPayTransaction[]
   branchSetting       BranchSetting?
+  invoiceSetting      InvoiceSetting?
+  invoiceProviders    InvoiceProvider[]
 }
 
 model AccountSocket {
@@ -616,6 +620,49 @@ model BranchSetting {
   updater               Account? @relation("updater", fields: [updatedBy], references: [id])
   createdAt             DateTime @default(now())
   updatedAt             DateTime @updatedAt
+}
+
+model InvoiceSetting {
+  id             String      @id @default(uuid())
+  branchId       String      @unique
+  branch         Branch?     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  invoiceType    InvoiceType @default(SALES_INVOICE)
+  defaultVatRate Float?      @default(10)
+  updatedBy      String?
+  updater        Account?    @relation("invoiceSettingUpdater", fields: [updatedBy], references: [id])
+  updatedAt      DateTime    @updatedAt
+}
+
+model InvoiceProvider {
+  id           String              @id @default(uuid())
+  branchId     String
+  branch       Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  providerType InvoiceProviderType
+  isActive     Boolean             @default(false)
+  providerName String              @db.Text
+  createdBy    String?
+  updatedBy    String?
+  updater      Account?            @relation("invoiceProviderUpdater", fields: [updatedBy], references: [id])
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  invConfig    InvoiceConfig?
+
+  @@unique([branchId, providerType])
+}
+
+model InvoiceConfig {
+  id                  String           @id @default(uuid())
+  invProviderId       String           @unique
+  invProvider         InvoiceProvider? @relation(fields: [invProviderId], references: [id], onDelete: Cascade)
+  vnptApiUrl          String?          @db.Text
+  vnptUsername        String?          @db.Text
+  vnptPassword        String?          @db.Text
+  vnptAccount         String?          @db.Text
+  vnptAccountPassword String?          @db.Text
+  invPattern          String?          @db.Text
+  invSerial           String?          @db.Text
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
 }
 
 enum ActivityAction {
@@ -753,4 +800,13 @@ enum PaymentStatus {
   REVIEWING
   SUCCESS
   FAILED
+}
+
+enum InvoiceType {
+  SALES_INVOICE
+  VAT_INVOICE
+}
+
+enum InvoiceProviderType {
+  VNPT
 }
