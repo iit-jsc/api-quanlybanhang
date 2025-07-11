@@ -1,12 +1,22 @@
 import { PartialType } from '@nestjs/swagger'
 import { ProductStatus } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import { IsArray, IsEnum, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator'
+import {
+  IsArray,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  MaxLength,
+  Min
+} from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateProductDto {
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
+  @MaxLength(255)
   name: string
 
   @IsNotEmpty()

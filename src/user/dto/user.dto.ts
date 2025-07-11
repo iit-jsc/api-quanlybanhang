@@ -10,6 +10,7 @@ import {
   IsNotEmpty,
   IsOptional,
   MaxDate,
+  MaxLength,
   MinLength
 } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
@@ -18,6 +19,7 @@ import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 export class CreateUserDto {
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
+  @MaxLength(100)
   name: string
 
   @IsNotEmpty()
@@ -35,6 +37,7 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsEmail()
+  @MaxLength(50)
   email: string
 
   @IsOptional()
@@ -68,10 +71,19 @@ export class CreateUserDto {
 
   employeeGroupId?: string
   photoURL?: string
-  address?: string
   code?: string
-  cardId?: string
-  cardAddress?: string
+
+  @IsOptional()
+  @MaxLength(20)
+  cardId: string
+
+  @IsOptional()
+  @MaxLength(255)
+  cardAddress: string
+
+  @IsOptional()
+  @MaxLength(255)
+  address: string
 }
 
 export class UpdateUserDto extends PartialType(CreateUserDto) {

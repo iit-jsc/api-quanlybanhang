@@ -1,18 +1,31 @@
 import { PartialType } from '@nestjs/swagger'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
-import { ArrayNotEmpty, IsNotEmpty, IsString, ValidateNested, IsNumber, Min } from 'class-validator'
+import {
+  ArrayNotEmpty,
+  IsNotEmpty,
+  IsString,
+  ValidateNested,
+  IsNumber,
+  Min,
+  MaxLength,
+  IsOptional,
+  Max
+} from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreateTableDto {
   @IsNotEmpty()
   @Transform(({ value }: TransformFnParams) => value?.trim())
   @IsString()
+  @MaxLength(25)
   name: string
 
   @IsNotEmpty()
   @IsString()
   areaId: string
 
+  @IsOptional()
+  @Max(1000)
   seat?: number
 }
 
