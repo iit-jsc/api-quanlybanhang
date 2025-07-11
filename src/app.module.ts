@@ -38,6 +38,8 @@ import { HttpModule } from '@nestjs/axios'
 import { SecurityModule } from '../security'
 import { BranchSettingModule } from './branch-setting/branch-setting.module'
 import { AdminModule } from './admin/admin.module'
+import { InvoiceProviderModule } from './invoice-provider/invoice-provider.module'
+import { InvoiceConfigModule } from './invoice-config/invoice-config.module';
 
 @Module({
   imports: [
@@ -95,7 +97,9 @@ import { AdminModule } from './admin/admin.module'
     CommonModule,
     PermissionModule,
     BranchSettingModule,
-    AdminModule
+    AdminModule,
+    InvoiceProviderModule,
+    InvoiceConfigModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]

@@ -24,7 +24,6 @@ const INVOICE_CONFIG = {
   DEFAULT_VAT_RATE: 10.0,
   INVOICE_TYPE: 'VAT_INVOICE' as const,
   PROVIDER_TYPE: 'VNPT' as const,
-  PROVIDER_NAME: 'VNPT Invoice Service',
   EMPTY_CONFIG: {
     vnptApiUrl: '',
     vnptUsername: '',
@@ -65,8 +64,7 @@ async function createInvoiceProvider(branchId: string): Promise<string | null> {
       data: {
         branchId,
         providerType: INVOICE_CONFIG.PROVIDER_TYPE,
-        isActive: true,
-        providerName: INVOICE_CONFIG.PROVIDER_NAME
+        isActive: true
       }
     })
     return provider.id

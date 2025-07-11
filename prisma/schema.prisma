@@ -639,7 +639,6 @@ model InvoiceProvider {
   branch       Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   providerType InvoiceProviderType
   isActive     Boolean             @default(false)
-  providerName String              @db.Text
   createdBy    String?
   updatedBy    String?
   updater      Account?            @relation("invoiceProviderUpdater", fields: [updatedBy], references: [id])
