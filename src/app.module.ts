@@ -39,7 +39,6 @@ import { SecurityModule } from '../security'
 import { BranchSettingModule } from './branch-setting/branch-setting.module'
 import { AdminModule } from './admin/admin.module'
 import { InvoiceProviderModule } from './invoice-provider/invoice-provider.module'
-import { InvoiceConfigModule } from './invoice-config/invoice-config.module';
 
 @Module({
   imports: [
@@ -98,8 +97,7 @@ import { InvoiceConfigModule } from './invoice-config/invoice-config.module';
     PermissionModule,
     BranchSettingModule,
     AdminModule,
-    InvoiceProviderModule,
-    InvoiceConfigModule
+    InvoiceProviderModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]
