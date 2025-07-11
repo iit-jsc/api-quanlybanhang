@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CancelOrderDto, SaveOrderDto } from '../dto/order.dto'
-import { ActivityAction, OrderStatus } from '@prisma/client'
+import { ActivityAction, OrderStatus, PaymentStatus } from '@prisma/client'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -106,12 +106,26 @@ export class OrderOperationsService {
       return order
     })
   }
-
   async updatePayment(id: string, data: UpdatePaymentDto, accountId: string, branchId: string) {
-    return this.prisma.order.update({
-      where: { id, branchId },
-      data: { paymentStatus: data.paymentStatus, updatedBy: accountId },
-      select: orderSelect
+    return this.prisma.$transaction(async prisma => {
+      // Kiểm tra trạng thái payment hiện tại
+      const existingOrder = await prisma.order.findFirstOrThrow({
+        where: { id, branchId },
+        select: { paymentStatus: true }
+      })
+
+      if (existingOrder.paymentStatus === PaymentStatus.SUCCESS) {
+        throw new HttpException(
+          'Không thể cập nhật trạng thái thanh toán vì đơn hàng đã được thanh toán thành công',
+          HttpStatus.BAD_REQUEST
+        )
+      }
+
+      return await prisma.order.update({
+        where: { id, branchId },
+        data: { paymentStatus: data.paymentStatus, updatedBy: accountId },
+        select: orderSelect
+      })
     })
   }
 }

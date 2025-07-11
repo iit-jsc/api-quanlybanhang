@@ -93,7 +93,6 @@ export class OrderCrudService {
         data: {
           status: data.status,
           note: data.note,
-          paymentStatus: data.paymentStatus,
           bankingImages: data.bankingImages,
           updatedBy: accountId
         },
