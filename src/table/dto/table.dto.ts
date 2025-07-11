@@ -7,7 +7,9 @@ import {
   ValidateNested,
   IsNumber,
   Min,
-  MaxLength
+  MaxLength,
+  IsOptional,
+  Max
 } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
@@ -22,6 +24,8 @@ export class CreateTableDto {
   @IsString()
   areaId: string
 
+  @IsOptional()
+  @Max(1000)
   seat?: number
 }
 
