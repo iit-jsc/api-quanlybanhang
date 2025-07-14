@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateOrderDto, FindManyOrderDto, UpdateOrderDto } from '../dto/order.dto'
-import { ActivityAction, OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
+import { ActivityAction, NotifyType, OrderDetailStatus, Prisma, PrismaClient } from '@prisma/client'
 import { customPaginate, generateCode, getOrderDetails, getOrderTotal } from 'utils/Helps'
 import { orderSelect } from 'responses/order.response'
 import { DeleteManyDto } from 'utils/Common.dto'
@@ -10,6 +10,7 @@ import { TrashService } from 'src/trash/trash.service'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
+import { NotifyService } from 'src/notify/notify.service'
 
 @Injectable()
 export class OrderCrudService {
@@ -18,7 +19,8 @@ export class OrderCrudService {
     private readonly orderGatewayHandler: OrderGatewayHandler,
     private readonly trashService: TrashService,
     private readonly orderDetailGatewayHandler: OrderDetailGatewayHandler,
-    private readonly activityLogService: ActivityLogService
+    private readonly activityLogService: ActivityLogService,
+    private readonly notifyService: NotifyService
   ) {}
 
   async create(data: CreateOrderDto, accountId: string, branchId: string, deviceId: string) {
@@ -70,7 +72,16 @@ export class OrderCrudService {
           order.orderDetails,
           branchId,
           deviceId
-        )
+        ),
+        !data.isDraft &&
+          this.notifyService.create(
+            {
+              type: NotifyType.INFORMED_DISH,
+              content: `Có món yêu cầu chế biến!`
+            },
+            branchId,
+            deviceId
+          )
       ])
 
       return order
