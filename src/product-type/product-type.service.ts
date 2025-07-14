@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common'
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import {
   CreateProductTypeDto,
@@ -20,9 +20,22 @@ export class ProductTypeService {
     private readonly trashService: TrashService,
     private readonly activityLogService: ActivityLogService
   ) {}
-
   async create(data: CreateProductTypeDto, accountId: string, branchId: string) {
     return this.prisma.$transaction(async prisma => {
+      // Kiểm tra tên đã tồn tại (không phân biệt chữ hoa thường nhưng phân biệt dấu)
+      const allProductTypes = await prisma.productType.findMany({
+        where: { branchId },
+        select: { name: true }
+      })
+
+      const nameExists = allProductTypes.some(
+        pt => pt.name.toLowerCase() === data.name.toLowerCase()
+      )
+
+      if (nameExists) {
+        throw new HttpException(`Tên loại sản phẩm ${data.name} đã tồn tại`, HttpStatus.CONFLICT)
+      }
+
       const productType = await prisma.productType.create({
         data: {
           name: data.name,
@@ -86,6 +99,23 @@ export class ProductTypeService {
 
   async update(id: string, data: UpdateProductTypeDto, accountId: string, branchId: string) {
     return this.prisma.$transaction(async prisma => {
+      // Kiểm tra tên đã tồn tại (không phân biệt chữ hoa thường nhưng phân biệt dấu), loại trừ record hiện tại
+      const allProductTypes = await prisma.productType.findMany({
+        where: {
+          branchId,
+          id: { not: id }
+        },
+        select: { name: true }
+      })
+
+      const nameExists = allProductTypes.some(
+        pt => pt.name.toLowerCase() === data.name.toLowerCase()
+      )
+
+      if (nameExists) {
+        throw new HttpException(`Tên loại sản phẩm ${data.name} đã tồn tại`, HttpStatus.CONFLICT)
+      }
+
       const productType = await prisma.productType.update({
         where: {
           id,
