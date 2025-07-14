@@ -116,7 +116,7 @@ export class OrderOperationsService {
 
       if (existingOrder.paymentStatus === PaymentStatus.SUCCESS) {
         throw new HttpException(
-          'Không thể cập nhật trạng thái thanh toán vì đơn hàng đã được thanh toán thành công',
+          'Không thể cập nhật vì đơn hàng đã thanh toán.',
           HttpStatus.BAD_REQUEST
         )
       }
