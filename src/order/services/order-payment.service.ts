@@ -3,7 +3,6 @@ import { PrismaService } from 'nestjs-prisma'
 import { PaymentOrderDto } from '../dto/payment.dto'
 import {
   ActivityAction,
-  NotifyType,
   OrderDetailStatus,
   OrderStatus,
   PaymentMethodType,
@@ -14,15 +13,13 @@ import { getCustomerDiscount, getOrderTotal, handleOrderDetailsBeforePayment } f
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
-import { NotifyService } from 'src/notify/notify.service'
 
 @Injectable()
 export class OrderPaymentService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly activityLogService: ActivityLogService,
-    private readonly orderGatewayHandler: OrderGatewayHandler,
-    private readonly notifyService: NotifyService
+    private readonly orderGatewayHandler: OrderGatewayHandler
   ) {}
 
   async payment(
@@ -111,15 +108,7 @@ export class OrderPaymentService {
             { branchId },
             accountId
           ),
-          this.orderGatewayHandler.handleCreateOrder(newOrder, branchId, deviceId),
-          this.notifyService.create(
-            {
-              type: NotifyType.INFORMED_DISH,
-              content: `Có món yêu cầu chế biến!`
-            },
-            branchId,
-            deviceId
-          )
+          this.orderGatewayHandler.handleCreateOrder(newOrder, branchId, deviceId)
         ])
 
         return newOrder

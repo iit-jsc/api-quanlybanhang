@@ -12,34 +12,6 @@ export class PaymentMethodService {
     private readonly prisma: PrismaService,
     private readonly activityLogService: ActivityLogService
   ) {}
-  // async create(data: CreatePaymentMethodDto, accountId: string, branchId: string) {
-  //   // Kiểm tra VNPayMerchant nếu đang tạo phương thức VNPay
-  //   if (data.type === PaymentMethodType.VNPAY) {
-  //     const vnpayMerchant = await this.prisma.vNPayMerchant.findUnique({
-  //       where: { branchId }
-  //     })
-  //     if (!vnpayMerchant) {
-  //       throw new HttpException(
-  //         'Vui lòng liên hệ để thiết lập VNPay Merchant trước khi sử dụng phương thức này',
-  //         HttpStatus.UNPROCESSABLE_ENTITY
-  //       )
-  //     }
-  //   }
-
-  //   return this.prisma.paymentMethod.create({
-  //     data: {
-  //       active: data.active,
-  //       bankCode: data.bankCode,
-  //       bankName: data.bankName,
-  //       photoURL: data.photoURL,
-  //       representative: data.representative,
-  //       type: data.type,
-  //       createdBy: accountId,
-  //       branchId
-  //     },
-  //     select: paymentMethodSelect
-  //   })
-  // }
 
   async update(id: string, data: UpdatePaymentMethodDto, accountId: string, branchId: string) {
     return this.prisma.$transaction(async prisma => {
@@ -75,6 +47,24 @@ export class PaymentMethodService {
 
       if (paymentMethod.type === PaymentMethodType.CASH)
         throw new HttpException('Không thể cập nhật phương thức này!', HttpStatus.BAD_REQUEST)
+
+      if (paymentMethod.type === PaymentMethodType.BANKING) {
+        const missingFields = []
+
+        if (!paymentMethod.bankName) {
+          missingFields.push('tên ngân hàng')
+        }
+        if (!paymentMethod.bankCode) {
+          missingFields.push('mã ngân hàng')
+        }
+
+        if (missingFields.length > 0) {
+          throw new HttpException(
+            `Vui lòng cung cấp ${missingFields.join(' và ')}!`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
+      }
 
       await this.activityLogService.create(
         {

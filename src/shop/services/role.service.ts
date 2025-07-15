@@ -8,7 +8,8 @@ export class RoleService {
       {
         name: 'Bếp',
         description: 'Vai trò dành cho bếp trong cửa hàng',
-        permissions: ['VIEW_AREA', 'VIEW_TABLE', 'VIEW_ORDER', 'CHEF_VIEW']
+        permissions: ['VIEW_AREA', 'VIEW_TABLE', 'VIEW_ORDER', 'CHEF_VIEW'],
+        isRoot: false
       },
       {
         name: 'Thu ngân',
@@ -37,7 +38,8 @@ export class RoleService {
           'PAYMENT_ORDER',
           'SAVE_ORDER',
           'CASHIER_VIEW'
-        ]
+        ],
+        isRoot: false
       },
       {
         name: 'Nhân viên',
@@ -65,7 +67,8 @@ export class RoleService {
           'SAVE_ORDER',
           'PAYMENT_ORDER',
           'STAFF_VIEW'
-        ]
+        ],
+        isRoot: false
       },
       {
         name: 'Quản trị viên',
@@ -143,7 +146,8 @@ export class RoleService {
           'CHEF_VIEW',
           'MANAGE_VIEW',
           'UPDATE_BRANCH'
-        ]
+        ],
+        isRoot: true
       }
     ]
 
@@ -152,6 +156,7 @@ export class RoleService {
         data: {
           name: role.name,
           description: role.description,
+          isRoot: role.isRoot,
           shopId,
           permissions: {
             connect: role.permissions.map(code => ({ code }))

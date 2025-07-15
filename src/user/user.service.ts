@@ -135,9 +135,67 @@ export class UserService {
       select: userDetailSelect
     })
   }
-
   async update(id: string, data: UpdateUserDto, accountId: string, shopId: string) {
     return this.prisma.$transaction(async prisma => {
+      // Lấy thông tin user hiện tại và roles của user đó
+      const currentUser = await prisma.user.findFirstOrThrow({
+        where: { id },
+        include: {
+          account: {
+            include: {
+              roles: {
+                select: { id: true, name: true, isRoot: true }
+              }
+            }
+          }
+        }
+      })
+
+      // Kiểm tra nếu user hiện tại có role isRoot
+      const hasRootRole = currentUser.account.roles.some(role => role.isRoot)
+
+      const currentUserAccount = currentUser.account.id === accountId
+
+      if (currentUserAccount && data.status !== AccountStatus.ACTIVE) {
+        throw new HttpException('Không thể khóa tài khoản của chính bạn', HttpStatus.BAD_REQUEST)
+      }
+
+      if (hasRootRole && data.roleIds) {
+        // Kiểm tra các role mới có role isRoot không
+        const newHasRootRoleCount = await prisma.role.count({
+          where: {
+            id: { in: data.roleIds },
+            isRoot: true
+          }
+        })
+
+        // Nếu user hiện tại có root role nhưng role mới không có root role
+        if (newHasRootRoleCount === 0) {
+          // Đếm số user khác có root role trong shop này
+          const otherUsersWithRootRoleCount = await prisma.user.count({
+            where: {
+              id: { not: id },
+              account: {
+                branches: {
+                  some: { shopId }
+                },
+                status: { not: 'DELETED' },
+                roles: {
+                  some: { isRoot: true }
+                }
+              }
+            }
+          })
+
+          if (otherUsersWithRootRoleCount === 0) {
+            throw new HttpException(
+              `Không thể cập nhật vai trò của "${currentUser.name}" vì đây là người duy nhất có quyền quản trị hệ thống trong cửa hàng!`,
+              HttpStatus.BAD_REQUEST
+            )
+          }
+        }
+      }
+
       const user = await prisma.user.update({
         data: {
           name: data.name,
@@ -312,7 +370,6 @@ export class UserService {
       }
     })
   }
-
   async blockUsers(data: BlockUsersDto, shopId: string, accountId: string) {
     const users = await this.prisma.user.findMany({
       where: {
@@ -326,7 +383,13 @@ export class UserService {
         }
       },
       include: {
-        account: true
+        account: {
+          include: {
+            roles: {
+              select: { id: true, name: true, isRoot: true }
+            }
+          }
+        }
       }
     })
 
@@ -339,6 +402,37 @@ export class UserService {
 
     if (currentUserAccount && data.accountStatus !== AccountStatus.ACTIVE) {
       throw new HttpException('Không thể khóa tài khoản của chính bạn', HttpStatus.BAD_REQUEST)
+    }
+
+    // Kiểm tra nếu có user nào có root role và sẽ bị block
+    if (data.accountStatus !== AccountStatus.ACTIVE) {
+      const usersWithRootRole = users.filter(user => user.account?.roles?.some(role => role.isRoot))
+
+      if (usersWithRootRole.length > 0) {
+        // Đếm tổng số user có root role trong shop (không tính những user sẽ bị block)
+        const totalUsersWithRootRole = await this.prisma.user.count({
+          where: {
+            id: { notIn: data.ids },
+            account: {
+              branches: {
+                some: { shopId }
+              },
+              status: AccountStatus.ACTIVE,
+              roles: {
+                some: { isRoot: true }
+              }
+            }
+          }
+        })
+
+        if (totalUsersWithRootRole === 0) {
+          const rootUserNames = usersWithRootRole.map(user => user.name)
+          throw new HttpException(
+            `Không thể khóa tài khoản ${rootUserNames.join(', ')} vì đây là những người duy nhất có quyền quản trị hệ thống trong cửa hàng!`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
+      }
     }
 
     return this.prisma.$transaction(async prisma => {

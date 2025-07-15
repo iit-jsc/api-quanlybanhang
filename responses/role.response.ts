@@ -10,6 +10,7 @@ export const roleSelect: Prisma.RoleSelect = {
   id: true,
   name: true,
   description: true,
+  isRoot: true,
   permissions: {
     select: {
       code: true,
