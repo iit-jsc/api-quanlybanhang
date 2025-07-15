@@ -35,6 +35,7 @@ model Role {
   id          String       @id @default(uuid())
   name        String
   description String?      @db.Text
+  isRoot      Boolean      @default(false)
   permissions Permission[]
   shop        Shop?        @relation(fields: [shopId], references: [id])
   shopId      String?

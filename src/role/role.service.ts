@@ -72,9 +72,21 @@ export class RoleService {
       }
     )
   }
-
   async update(id: string, data: UpdateRoleDto, accountId: string, shopId: string) {
     return this.prisma.$transaction(async prisma => {
+      // Kiểm tra xem role có isRoot = true không
+      const existingRole = await prisma.role.findFirstOrThrow({
+        where: { id, shopId },
+        select: { id: true, name: true, isRoot: true }
+      })
+
+      if (existingRole.isRoot) {
+        throw new HttpException(
+          `Không thể cập nhật vai trò "${existingRole.name}" vì đây là vai trò quản trị!`,
+          HttpStatus.BAD_REQUEST
+        )
+      }
+
       const role = await prisma.role.update({
         data: {
           name: data.name,
@@ -119,6 +131,7 @@ export class RoleService {
       select: roleSelect
     })
   }
+
   async deleteMany(data: DeleteManyDto, accountId: string, shopId: string) {
     return await this.prisma.$transaction(async (prisma: PrismaClient) => {
       // Kiểm tra xem có role nào đang được sử dụng bởi account không
@@ -130,6 +143,7 @@ export class RoleService {
         select: {
           id: true,
           name: true,
+          isRoot: true,
           accounts: {
             select: {
               id: true,
@@ -140,6 +154,16 @@ export class RoleService {
           }
         }
       })
+
+      // Kiểm tra role có isRoot = true
+      const rootRoles = rolesWithAccounts.filter(role => role.isRoot)
+      if (rootRoles.length > 0) {
+        const rootRoleNames = rootRoles.map(role => role.name)
+        throw new HttpException(
+          `Không thể xóa vai trò ${rootRoleNames.join(', ')} vì đây là vai trò quản trị!`,
+          HttpStatus.BAD_REQUEST
+        )
+      }
 
       const rolesInUse = rolesWithAccounts.filter(role => role.accounts.length > 0)
 

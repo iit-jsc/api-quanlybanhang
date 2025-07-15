@@ -143,7 +143,8 @@ export class RoleService {
           'CHEF_VIEW',
           'MANAGE_VIEW',
           'UPDATE_BRANCH'
-        ]
+        ],
+        isRoot: true
       }
     ]
 
