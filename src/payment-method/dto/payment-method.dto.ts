@@ -2,10 +2,14 @@ import { PartialType } from '@nestjs/swagger'
 import { PaymentMethodType } from '@prisma/client'
 import { Transform } from 'class-transformer'
 import { IsEnum, IsOptional } from 'class-validator'
+import { BankNameEnum } from 'enums/bankName.enum'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreatePaymentMethodDto {
-  bankName?: string
+  @IsOptional()
+  @IsEnum(BankNameEnum)
+  bankName?: BankNameEnum
+
   bankCode?: string
 
   @IsOptional()
