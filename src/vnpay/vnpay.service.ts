@@ -349,7 +349,6 @@ export class VNPayService {
       // Tạo đơn hàng nháp
       const order = await prisma.order.create({
         data: {
-          paymentStatus: PaymentStatus.UNPAID,
           isDraft: true,
           tableId: data.tableId,
           orderTotal,
