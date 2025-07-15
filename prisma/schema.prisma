@@ -204,30 +204,30 @@ model ProductType {
 }
 
 model Product {
-  id                       String             @id @default(uuid())
-  branchId                 String
-  unitId                   String
-  name                     String             @db.Text
-  slug                     String             @db.VarChar(300)
-  productTypeId            String
-  price                    Float
-  code                     String?
-  oldPrice                 Float?
-  description              String?            @db.Text
-  thumbnail                String?            @db.Text
-  photoURLs                Json?
-  status                   ProductStatus?     @default(SELL_ALLOW)
-  productType              ProductType?       @relation(fields: [productTypeId], references: [id])
-  createdAt                DateTime           @default(now())
-  updatedAt                DateTime           @updatedAt
-  branch                   Branch?            @relation(fields: [branchId], references: [id])
-  measurementUnit          MeasurementUnit?   @relation(fields: [unitId], references: [id])
-  createdBy                String?
-  updatedBy                String?
-  creator                  Account?           @relation("creator", fields: [createdBy], references: [id])
-  updater                  Account?           @relation("updater", fields: [updatedBy], references: [id])
-  orderDetails             OrderDetail[]
-  productOptions           ProductOption[]
+  id              String           @id @default(uuid())
+  branchId        String
+  unitId          String
+  name            String           @db.Text
+  slug            String           @db.VarChar(300)
+  productTypeId   String
+  price           Float
+  code            String?
+  oldPrice        Float?
+  description     String?          @db.Text
+  thumbnail       String?          @db.Text
+  photoURLs       Json?
+  status          ProductStatus?   @default(SELL_ALLOW)
+  productType     ProductType?     @relation(fields: [productTypeId], references: [id])
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  branch          Branch?          @relation(fields: [branchId], references: [id])
+  measurementUnit MeasurementUnit? @relation(fields: [unitId], references: [id])
+  createdBy       String?
+  updatedBy       String?
+  creator         Account?         @relation("creator", fields: [createdBy], references: [id])
+  updater         Account?         @relation("updater", fields: [updatedBy], references: [id])
+  orderDetails    OrderDetail[]
+  productOptions  ProductOption[]
 
   @@unique([branchId, slug])
   @@unique([branchId, code])
@@ -372,7 +372,7 @@ model Order {
   taxAmount             Float?             @default(0)
   bankingImages         Json?              @default("[]")
   paymentMethod         PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
-  paymentStatus         PaymentStatus?     @default(UNPAID)
+  paymentStatus         PaymentStatus?
   createdBy             String?
   updatedBy             String?
   createdAt             DateTime           @default(now())
@@ -796,7 +796,6 @@ enum TransactionStatus {
 }
 
 enum PaymentStatus {
-  UNPAID
   REVIEWING
   SUCCESS
   FAILED
