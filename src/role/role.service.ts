@@ -82,7 +82,7 @@ export class RoleService {
 
       if (existingRole.isRoot) {
         throw new HttpException(
-          `Không thể cập nhật vai trò "${existingRole.name}" vì đây là vai trò quản trị!`,
+          `Không thể cập nhật vai trò ${existingRole.name} vì đây là vai trò quản trị!`,
           HttpStatus.BAD_REQUEST
         )
       }
