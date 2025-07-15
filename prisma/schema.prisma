@@ -453,7 +453,7 @@ model Order {
   bankingImages         Json?              @default("[]")
   voucherProducts       Json?
   paymentMethod         PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
-  paymentStatus         PaymentStatus?     @default(UNPAID)
+  paymentStatus         PaymentStatus?    
   isSave                Boolean?           @default(false)
   isDraft               Boolean?           @default(false)
   createdBy             String?
@@ -882,7 +882,6 @@ enum TransactionStatus {
 }
 
 enum PaymentStatus {
-  UNPAID
   REVIEWING
   SUCCESS
   FAILED

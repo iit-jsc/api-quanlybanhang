@@ -114,11 +114,11 @@ export class OrderOperationsService {
         select: { paymentStatus: true }
       })
 
-      if (existingOrder.paymentStatus === PaymentStatus.SUCCESS) {
-        throw new HttpException(
-          'Không thể cập nhật vì đơn hàng đã thanh toán.',
-          HttpStatus.BAD_REQUEST
-        )
+      if (
+        existingOrder.paymentStatus === PaymentStatus.SUCCESS ||
+        existingOrder.paymentStatus === PaymentStatus.FAILED
+      ) {
+        throw new HttpException('Không thể cập nhật trạng thái đơn này.', HttpStatus.BAD_REQUEST)
       }
 
       return await prisma.order.update({
