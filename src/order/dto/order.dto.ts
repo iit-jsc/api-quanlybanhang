@@ -30,7 +30,7 @@ export class IsNotCancelConstraint implements ValidatorConstraintInterface {
 export class CreateOrderDto {
   @IsOptional()
   @IsEnum(OrderStatus)
-  status: OrderStatus = OrderStatus.APPROVED
+  status: OrderStatus = OrderStatus.SUCCESS
 
   @IsOptional()
   @IsEnum(OrderType)

@@ -108,6 +108,8 @@ model Account {
   creatorInvoiceProvider    InvoiceProvider[]     @relation("creator")
   updaterInvoice            Invoice[]             @relation("updater")
   creatorInvoice            Invoice[]             @relation("creator")
+  updaterVATGroup           VATGroup[]            @relation("updater")
+  creatorVATGroup           VATGroup[]            @relation("creator")
 }
 
 model User {
@@ -687,6 +689,10 @@ model VATGroup {
   branch    Branch?   @relation(fields: [branchId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
+  createdBy String?
+  updatedBy String?
+  creator   Account?  @relation("creator", fields: [createdBy], references: [id])
+  updater   Account?  @relation("updater", fields: [updatedBy], references: [id])
   products  Product[]
 }
 
