@@ -23,12 +23,6 @@ export class AreaService {
         data: {
           name: data.name,
           photoURL: data.photoURL,
-          tables: {
-            create: {
-              name: 'Bàn 01',
-              branchId
-            }
-          },
           branchId,
           createdBy: accountId
         }

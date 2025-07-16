@@ -103,8 +103,11 @@ model Account {
   canceledOrderDetails      CanceledOrderDetail[] @relation("creator")
   accountSockets            AccountSocket[]
   updaterBranchSetting      BranchSetting[]       @relation("updater")
-  updaterInvoiceSetting     InvoiceSetting[]      @relation("invoiceSettingUpdater")
-  updaterInvoiceProvider    InvoiceProvider[]     @relation("invoiceProviderUpdater")
+  updaterTaxSetting         TaxSetting[]          @relation("updater")
+  updaterInvoiceProvider    InvoiceProvider[]     @relation("updater")
+  creatorInvoiceProvider    InvoiceProvider[]     @relation("creator")
+  updaterInvoice            Invoice[]             @relation("updater")
+  creatorInvoice            Invoice[]             @relation("creator")
 }
 
 model User {
@@ -211,6 +214,9 @@ model Product {
   slug            String           @db.VarChar(300)
   productTypeId   String
   price           Float
+  vatGroupId      String?
+  hasVat          Boolean?         @default(false)
+  priceBeforeVat  Float?
   code            String?
   oldPrice        Float?
   description     String?          @db.Text
@@ -218,6 +224,7 @@ model Product {
   photoURLs       Json?
   status          ProductStatus?   @default(SELL_ALLOW)
   productType     ProductType?     @relation(fields: [productTypeId], references: [id])
+  vatGroup        VATGroup?        @relation(fields: [vatGroupId], references: [id])
   createdAt       DateTime         @default(now())
   updatedAt       DateTime         @updatedAt
   branch          Branch?          @relation(fields: [branchId], references: [id])
@@ -384,6 +391,7 @@ model Order {
   creator               Account?           @relation("creator", fields: [createdBy], references: [id])
   updater               Account?           @relation("updater", fields: [updatedBy], references: [id])
   vnPayTransactions     VNPayTransaction[]
+  invoice               Invoice?
 
   @@unique([branchId, code])
 }
@@ -413,6 +421,7 @@ model OrderDetail {
   creator              Account?              @relation("creator", fields: [createdBy], references: [id])
   updater              Account?              @relation("updater", fields: [updatedBy], references: [id])
   canceledOrderDetails CanceledOrderDetail[]
+  invoiceDetail        InvoiceDetail[]
 }
 
 model CanceledOrderDetail {
@@ -511,8 +520,10 @@ model Branch {
   vnPayMerchants      VNPayMerchant[]
   vNPayTransaction    VNPayTransaction[]
   branchSetting       BranchSetting?
-  invoiceSetting      InvoiceSetting?
+  taxSetting          TaxSetting?
   invoiceProviders    InvoiceProvider[]
+  vatGroups           VATGroup[]
+  invoices            Invoice[]
 }
 
 model AccountSocket {
@@ -624,15 +635,16 @@ model BranchSetting {
   updatedAt             DateTime @updatedAt
 }
 
-model InvoiceSetting {
-  id             String      @id @default(uuid())
-  branchId       String      @unique
-  branch         Branch?     @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  invoiceType    InvoiceType @default(SALES_INVOICE)
-  defaultVatRate Float?      @default(10)
-  updatedBy      String?
-  updater        Account?    @relation("invoiceSettingUpdater", fields: [updatedBy], references: [id])
-  updatedAt      DateTime    @updatedAt
+model TaxSetting {
+  id                 String              @id @default(uuid())
+  branchId           String              @unique
+  branch             Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  vatMethod          VatMethod           @default(DEDUCTION)
+  vatReductionOption VatReductionOption?
+  vatRateOption      Int?
+  updatedBy          String?
+  updater            Account?            @relation("updater", fields: [updatedBy], references: [id])
+  updatedAt          DateTime            @updatedAt
 }
 
 model InvoiceProvider {
@@ -643,7 +655,8 @@ model InvoiceProvider {
   isActive     Boolean             @default(false)
   createdBy    String?
   updatedBy    String?
-  updater      Account?            @relation("invoiceProviderUpdater", fields: [updatedBy], references: [id])
+  creator      Account?            @relation("creator", fields: [createdBy], references: [id])
+  updater      Account?            @relation("updater", fields: [updatedBy], references: [id])
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   invConfig    InvoiceConfig?
@@ -664,6 +677,81 @@ model InvoiceConfig {
   invSerial           String?          @db.Text
   createdAt           DateTime         @default(now())
   updatedAt           DateTime         @updatedAt
+}
+
+model VATGroup {
+  id        String    @id @default(uuid())
+  name      String    @db.Text
+  vatRate   Float     @default(0)
+  branchId  String?
+  branch    Branch?   @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  products  Product[]
+}
+
+model Invoice {
+  id               String          @id @default(uuid())
+  branchId         String
+  branch           Branch?         @relation(fields: [branchId], references: [id])
+  orderId          String          @unique
+  order            Order?          @relation(fields: [orderId], references: [id])
+  customerName     String          @db.Text
+  customerTaxCode  String?         @db.Text
+  customerCardId   String?         @db.Text
+  customerAddress  String?         @db.Text
+  customerPhone    String?         @db.Text
+  customerEmail    String?         @db.Text
+  customerBankName String?         @db.Text
+  customerBankCode String?         @db.Text
+  totalBeforeVAT   Float
+  totalVATAmount   Float
+  totalAfterVAT    Float
+  status           InvoiceStatus   @default(PENDING)
+  createdBy        String?
+  updatedBy        String?
+  creator          Account?        @relation("creator", fields: [createdBy], references: [id])
+  updater          Account?        @relation("updater", fields: [updatedBy], references: [id])
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  invoiceDetails   InvoiceDetail[]
+}
+
+model InvoiceDetail {
+  id            String      @id @default(uuid())
+  invoiceId     String
+  invoice       Invoice?    @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  productName   String      @db.Text
+  productCode   String?     @db.Text
+  unit          String?     @db.Text
+  unitPrice     Float
+  amount        Float
+  vatRate       Float       @default(0)
+  vatAmount     Float       @default(0)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  orderDetail   OrderDetail @relation(fields: [orderDetailId], references: [id])
+  orderDetailId String
+}
+
+enum VatMethod {
+  DEDUCTION
+  DIRECT
+}
+
+enum VatReductionOption {
+  ALWAYS
+  OPTIONAL
+}
+
+enum InvoiceProviderType {
+  VNPT
+}
+
+enum InvoiceStatus {
+  PENDING
+  SUCCESS
+  ERROR
 }
 
 enum ActivityAction {
@@ -690,11 +778,6 @@ enum AccountStatus {
   ACTIVE
   INACTIVE
   DELETED
-}
-
-enum ShopStatus {
-  ACTIVE
-  INACTIVE
 }
 
 enum ProductStatus {
@@ -735,11 +818,6 @@ enum PaymentMethodType {
   VNPAY
 }
 
-enum VoucherType {
-  VALUE
-  PRODUCT
-}
-
 enum OrderType {
   TAKE_AWAY
   ONLINE
@@ -747,9 +825,6 @@ enum OrderType {
 }
 
 enum OrderStatus {
-  WAITING
-  APPROVED
-  TRANSPORTING
   SUCCESS
   CANCELLED
 }
@@ -765,23 +840,6 @@ enum PermissionGroupType {
   FOOD_BEVERAGE
   FASHION
   SHARED
-}
-
-enum VoucherProductType {
-  SHOP_PRODUCT
-  OTHER_PRODUCT
-  DISCOUNT_PRODUCT
-}
-
-enum VoucherConditionType {
-  MIN_CUSTOMER
-  MIN_ORDER_TOTAL
-  MIN_PRODUCT_QUANTITY
-}
-
-enum ConditionOperator {
-  AND
-  OR
 }
 
 enum ProductOptionType {
@@ -805,8 +863,4 @@ enum PaymentStatus {
 enum InvoiceType {
   SALES_INVOICE
   VAT_INVOICE
-}
-
-enum InvoiceProviderType {
-  VNPT
 }
