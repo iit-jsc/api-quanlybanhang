@@ -117,7 +117,7 @@ export class RegistrationService {
 
   private async setupRolesAndPermissions(accountId: string, shopId: string, prisma: PrismaClient) {
     const roles = await this.roleService.createRoles(shopId, prisma)
-    const adminRole = roles.find(role => role.name === 'Quản trị viên')
+    const adminRole = roles.find(role => role.name === 'Vai trò gốc')
 
     if (!adminRole) {
       throw new HttpException('Không thể tạo role admin!', HttpStatus.INTERNAL_SERVER_ERROR)
