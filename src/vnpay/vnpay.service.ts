@@ -613,7 +613,6 @@ export class VNPayService {
     // 7. Cập nhật trạng thái đơn hàng nếu thành công
     if (transaction.orderId && code === '00') {
       await this.handlePaymentSuccess(
-        this.prisma,
         transaction.orderId,
         transaction.branchId,
         transaction.deviceId
@@ -634,20 +633,15 @@ export class VNPayService {
     }
   }
 
-  private async handlePaymentSuccess(
-    prisma: PrismaClient,
-    orderId: string,
-    branchId: string,
-    deviceId: string
-  ) {
+  private async handlePaymentSuccess(orderId: string, branchId: string, deviceId: string) {
     // Kiểm tra xem có setting sử dụng bếp hay không
-    const branchSetting = await prisma.branchSetting.findUnique({
+    const branchSetting = await this.prisma.branchSetting.findUnique({
       where: {
         branchId
       }
     })
 
-    await prisma.orderDetail.updateMany({
+    await this.prisma.orderDetail.updateMany({
       where: { orderId },
       data: {
         tableId: null,
@@ -656,7 +650,7 @@ export class VNPayService {
       }
     })
 
-    const updatedOrder = await prisma.order.update({
+    const updatedOrder = await this.prisma.order.update({
       where: { id: orderId },
       data: { paymentStatus: PaymentStatus.SUCCESS, isDraft: false, paymentAt: new Date() },
       select: orderSelect
