@@ -27,9 +27,9 @@ export class VNPayController {
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async generateQrCode(@Body() data: CreateQrCodeDto, @Req() reqJWT: RequestJWT) {
-    const { accountId, branchId } = reqJWT
+    const { accountId, branchId, deviceId } = reqJWT
 
-    return await this.vnPayService.generateQrCode(data, branchId, accountId)
+    return await this.vnPayService.generateQrCode(data, branchId, accountId, deviceId)
   }
 
   @UseGuards(IpWhitelistGuard)

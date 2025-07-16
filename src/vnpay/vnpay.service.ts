@@ -64,7 +64,12 @@ export class VNPayService {
       }
     })
   }
-  async generateQrCode(data: CreateQrCodeDto, branchId: string, accountId: string) {
+  async generateQrCode(
+    data: CreateQrCodeDto,
+    branchId: string,
+    accountId: string,
+    deviceId: string
+  ) {
     if (data.tableId && data.orderId) {
       throw new HttpException(
         `Chỉ được cung cấp một trong hai: tableId hoặc orderId!`,
@@ -91,7 +96,7 @@ export class VNPayService {
     const targetOrder = await this.getOrCreateOrder(data, accountId, branchId)
 
     // Tạo QR code mới
-    return this.createNewQrCode(merchantInfo, targetOrder, data, branchId)
+    return this.createNewQrCode(merchantInfo, targetOrder, data, branchId, deviceId)
   }
 
   /**
@@ -257,7 +262,8 @@ export class VNPayService {
     merchantInfo: MerchantInfo,
     targetOrder: Order,
     data: CreateQrCodeDto,
-    branchId: string
+    branchId: string,
+    deviceId: string
   ) {
     const payload = this.buildVNPayPayload(
       merchantInfo,
@@ -284,7 +290,8 @@ export class VNPayService {
           vnpTxnRef: targetOrder.code,
           status: TransactionStatus.PENDING,
           expiresAt: new Date(Date.now() + 10 * 60 * 1000),
-          qrCode: qrCodeImage
+          qrCode: qrCodeImage,
+          deviceId
         }
       })
 
@@ -526,8 +533,6 @@ export class VNPayService {
       amount
     } = ipnDto
 
-    console.log(new Date(), `VNPay IPN Callback`, ipnDto)
-
     // 1. Lấy transaction theo txnId
     const transaction = await this.prisma.vNPayTransaction.findUnique({
       where: { vnpTxnRef: txnId },
@@ -573,7 +578,7 @@ export class VNPayService {
     // 4. Kiểm tra số tiền thanh toán có đúng không (amount từ VNPay IPN & orderTotal từ Order & orderDetails từ Table)
     const orderAmount = transaction.order.orderTotal
     const orderDetails = await this.prisma.orderDetail.findMany({
-      where: { tableId: transaction.order.tableId }
+      where: { tableId: transaction.order.tableId, branchId: transaction.order.branchId }
     })
 
     const totalCurrentAmount = getOrderTotal(orderDetails)
@@ -608,7 +613,11 @@ export class VNPayService {
 
     // 7. Cập nhật trạng thái đơn hàng nếu thành công
     if (transaction.orderId && code === '00') {
-      await this.handlePaymentSuccess(this.prisma, transaction.orderId, transaction.branchId)
+      await this.handlePaymentSuccess(
+        transaction.orderId,
+        transaction.branchId,
+        transaction.deviceId
+      )
 
       return {
         code: '00',
@@ -625,15 +634,15 @@ export class VNPayService {
     }
   }
 
-  private async handlePaymentSuccess(prisma: PrismaClient, orderId: string, branchId: string) {
+  private async handlePaymentSuccess(orderId: string, branchId: string, deviceId: string) {
     // Kiểm tra xem có setting sử dụng bếp hay không
-    const branchSetting = await prisma.branchSetting.findUnique({
+    const branchSetting = await this.prisma.branchSetting.findUnique({
       where: {
         branchId
       }
     })
 
-    await prisma.orderDetail.updateMany({
+    await this.prisma.orderDetail.updateMany({
       where: { orderId },
       data: {
         tableId: null,
@@ -642,15 +651,13 @@ export class VNPayService {
       }
     })
 
-    const updatedOrder = await prisma.order.update({
+    const updatedOrder = await this.prisma.order.update({
       where: { id: orderId },
       data: { paymentStatus: PaymentStatus.SUCCESS, isDraft: false, paymentAt: new Date() },
       select: orderSelect
     })
 
-    const promises = [
-      this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, updatedOrder.branchId)
-    ]
+    const promises = [this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, deviceId)]
 
     // Chỉ bắn handleUpdateTable khi có table
     if (updatedOrder.table) {

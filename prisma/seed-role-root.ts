@@ -36,11 +36,12 @@ async function main() {
     // Cập nhật isRoot = true cho các role "Quản trị viên"
     const result = await prisma.role.updateMany({
       where: {
-        name: 'Quản trị viên',
-        isRoot: { not: true }
+        name: 'Quản trị viên'
       },
       data: {
         isRoot: true,
+        name: 'Vai trò gốc',
+        description: 'Vai trò gốc với tất cả quyền hạn, không thể điều chỉnh',
         updatedAt: new Date()
       }
     })

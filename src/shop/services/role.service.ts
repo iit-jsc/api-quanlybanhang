@@ -71,8 +71,8 @@ export class RoleService {
         isRoot: false
       },
       {
-        name: 'Quản trị viên',
-        description: 'Vai trò dành cho quản lý cửa hàng',
+        name: 'Vai trò gốc',
+        description: 'Vai trò gốc với tất cả quyền hạn, không thể điều chỉnh',
         permissions: [
           'CREATE_AREA',
           'UPDATE_AREA',
