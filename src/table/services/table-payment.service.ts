@@ -5,7 +5,8 @@ import {
   OrderType,
   PaymentMethodType,
   PaymentStatus,
-  PrismaClient
+  PrismaClient,
+  TaxApplyMode
 } from '@prisma/client'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
@@ -22,6 +23,7 @@ import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { TableOrderService } from './table-order.service'
+import { calculateTax } from 'helpers/tax.helper'
 
 @Injectable()
 export class TablePaymentService {
@@ -40,7 +42,7 @@ export class TablePaymentService {
     branchId: string,
     deviceId: string
   ) {
-    // 1. Lấy thông tin phương thức thanh toán và setting chi nhánh
+    // Lấy thông tin phương thức thanh toán và setting chi nhánh
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [paymentMethod, branchSetting, taxSetting] = await Promise.all([
       this.prisma.paymentMethod.findUniqueOrThrow({
@@ -54,14 +56,17 @@ export class TablePaymentService {
       })
     ])
 
+    let totalTax = 0
+    let totalTaxDiscount = 0
+
     const newOrder = await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
-        // 2. Validate phương thức thanh toán
+        // Validate phương thức thanh toán
         if (paymentMethod.type === PaymentMethodType.VNPAY) {
           throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
         }
 
-        // 3. Xử lý trạng thái món khi không sử dụng bếp
+        // Xử lý trạng thái món khi không sử dụng bếp
         if (!branchSetting.useKitchen) {
           await prisma.orderDetail.updateMany({
             where: { tableId, branchId },
@@ -72,24 +77,40 @@ export class TablePaymentService {
           })
         }
 
-        // 4. Lấy chi tiết món và tính tổng tiền
+        // Lấy chi tiết món và tính tổng tiền
         const [, orderDetailsInTable] = await Promise.all([
           handleOrderDetailsBeforePayment(prisma, { tableId, branchId }),
           getOrderDetailsInTable(tableId, prisma)
         ])
 
         const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
+
         const customerDiscountValue = await getCustomerDiscount(
           data.customerId,
           orderTotalNotDiscount,
           prisma
         )
-        const orderTotal = orderTotalNotDiscount - customerDiscountValue
 
-        if (taxSetting && taxSetting.vatMethod) {
+        // Tính tổng tiền sau giảm giá
+        let orderTotal = orderTotalNotDiscount - customerDiscountValue
+
+        // Tính thuế nếu có
+        if (data.isTaxApplied && !taxSetting && !taxSetting?.isActive)
+          throw new HttpException('Thuế chưa được cài đặt!', HttpStatus.BAD_REQUEST)
+        else {
+          if (data.isTaxApplied || taxSetting.taxApplyMode === TaxApplyMode.ALWAYS) {
+            ;({ totalTax, totalTaxDiscount } = calculateTax(
+              taxSetting,
+              orderDetailsInTable,
+              orderTotal
+            ))
+          }
         }
 
-        // 5. Xử lý thanh toán tiền mặt hoặc chuyển khoản
+        // Tính tổng tiền sau thuế
+        orderTotal = orderTotal + totalTax - totalTaxDiscount
+
+        // Xử lý thanh toán tiền mặt hoặc chuyển khoản
         if (
           paymentMethod.type === PaymentMethodType.CASH ||
           paymentMethod.type === PaymentMethodType.BANKING
@@ -115,6 +136,8 @@ export class TablePaymentService {
               moneyReceived: data.moneyReceived,
               paymentAt: new Date(),
               paymentMethodId: data.paymentMethodId,
+              totalTax,
+              totalTaxDiscount,
               createdBy: accountId,
               branchId,
               ...(data.customerId && { customerId: data.customerId })

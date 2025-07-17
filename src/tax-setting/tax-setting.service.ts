@@ -22,38 +22,36 @@ export class TaxSettingService {
   }
 
   async update(data: UpdateTaxSettingDto, accountId: string, branchId: string) {
-    return this.prisma.$transaction(async prisma => {
-      const taxSetting = await prisma.taxSetting.upsert({
-        where: { branchId },
-        update: {
-          vatRateOption: data.vatRateOption,
-          vatReductionOption: data.vatReductionOption,
-          vatMethod: data.vatMethod,
-          isActive: data.isActive,
-          updatedBy: accountId
-        },
-        create: {
-          branchId,
-          vatRateOption: data.vatRateOption,
-          vatReductionOption: data.vatReductionOption,
-          vatMethod: data.vatMethod,
-          isActive: data.isActive,
-          updatedBy: accountId
-        }
-      })
-
-      await this.activityLogService.create(
-        {
-          action: ActivityAction.UPDATE,
-          modelName: 'TaxSetting',
-          targetName: taxSetting.branchId,
-          targetId: taxSetting.branchId
-        },
-        { branchId },
-        accountId
-      )
-
-      return taxSetting
+    const taxSetting = await this.prisma.taxSetting.upsert({
+      where: { branchId },
+      update: {
+        taxDirectRate: data.taxDirectRate,
+        taxApplyMode: data.taxApplyMode,
+        taxMethod: data.taxMethod,
+        isActive: data.isActive,
+        updatedBy: accountId
+      },
+      create: {
+        taxDirectRate: data.taxDirectRate,
+        taxApplyMode: data.taxApplyMode,
+        taxMethod: data.taxMethod,
+        isActive: data.isActive,
+        updatedBy: accountId,
+        branchId: branchId
+      }
     })
+
+    await this.activityLogService.create(
+      {
+        action: ActivityAction.UPDATE,
+        modelName: 'TaxSetting',
+        targetName: taxSetting.branchId,
+        targetId: taxSetting.branchId
+      },
+      { branchId },
+      accountId
+    )
+
+    return taxSetting
   }
 }

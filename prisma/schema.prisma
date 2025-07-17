@@ -377,7 +377,8 @@ model Order {
   discountValue         Float?             @default(0)
   moneyReceived         Float?
   paymentMethodId       String?
-  taxAmount             Float?             @default(0)
+  totalTax              Float?             @default(0)
+  totalTaxDiscount      Float?             @default(0)
   bankingImages         Json?              @default("[]")
   paymentMethod         PaymentMethod?     @relation(fields: [paymentMethodId], references: [id])
   paymentStatus         PaymentStatus?
@@ -636,15 +637,15 @@ model BranchSetting {
 }
 
 model TaxSetting {
-  branchId           String             @unique
-  branch             Branch?            @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  isActive           Boolean            @default(false)
-  vatMethod          VatMethod
-  vatReductionOption VatReductionOption
-  vatRateOption      Int
-  updatedBy          String?
-  updater            Account?           @relation("updater", fields: [updatedBy], references: [id])
-  updatedAt          DateTime           @updatedAt
+  branchId      String       @unique
+  branch        Branch?      @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  isActive      Boolean      @default(false)
+  taxMethod     TaxMethod    @default(DIRECT)
+  taxApplyMode  TaxApplyMode @default(ALWAYS)
+  taxDirectRate Float        @default(0)
+  updatedBy     String?
+  updater       Account?     @relation("updater", fields: [updatedBy], references: [id])
+  updatedAt     DateTime     @updatedAt
 }
 
 model InvoiceProvider {
@@ -740,12 +741,12 @@ model InvoiceDetail {
   orderDetailId String
 }
 
-enum VatMethod {
+enum TaxMethod {
   DEDUCTION
   DIRECT
 }
 
-enum VatReductionOption {
+enum TaxApplyMode {
   ALWAYS
   OPTIONAL
 }
