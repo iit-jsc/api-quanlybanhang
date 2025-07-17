@@ -4,7 +4,7 @@ import { PrismaService } from 'nestjs-prisma'
 import { AddDishesDto, addDishDto } from '../dto/table.dto'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
-import { productShortSelect } from 'responses/product.response'
+import { productSelect } from 'responses/product.response'
 import { productOptionSelect } from 'responses/product-option-group.response'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 
@@ -27,7 +27,7 @@ export class TableOrderService {
         const [product, productOptions] = await Promise.all([
           this.prisma.product.findUniqueOrThrow({
             where: { id: item.productId },
-            select: productShortSelect
+            select: productSelect
           }),
           this.prisma.productOption.findMany({
             where: { id: { in: item.productOptionIds || [] } },
@@ -66,16 +66,10 @@ export class TableOrderService {
     branchId: string,
     deviceId: string
   ) {
-    const [product, productOptions] = await Promise.all([
-      this.prisma.product.findUniqueOrThrow({
-        where: { id: data.productId },
-        select: productShortSelect
-      }),
-      this.prisma.productOption.findMany({
-        where: { id: { in: data.productOptionIds || [] } },
-        select: productOptionSelect
-      })
-    ])
+    const product = await this.prisma.product.findUniqueOrThrow({
+      where: { id: data.productId },
+      select: productSelect
+    })
 
     const newOrderDetail = await this.prisma.orderDetail.create({
       data: {
@@ -83,7 +77,6 @@ export class TableOrderService {
         tableId: tableId,
         productOriginId: data.productId,
         product,
-        productOptions,
         note: data.note,
         status: OrderDetailStatus.APPROVED,
         createdBy: accountId,

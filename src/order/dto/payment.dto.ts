@@ -1,8 +1,19 @@
-import { OrderStatus, OrderType, PaymentStatus } from '@prisma/client'
-import { ArrayMaxSize, IsArray, IsEnum, IsNotEmpty, IsOptional, Min } from 'class-validator'
+import { OrderType, PaymentStatus } from '@prisma/client'
+import {
+  ArrayMaxSize,
+  IsArray,
+  IsBoolean,
+  IsEnum,
+  IsNotEmpty,
+  IsNumber,
+  IsOptional,
+  IsString,
+  Min
+} from 'class-validator'
 
 export class PaymentDto {
   @IsNotEmpty()
+  @IsString()
   paymentMethodId: string
 
   @IsOptional()
@@ -12,14 +23,16 @@ export class PaymentDto {
 
   @IsOptional()
   @Min(1)
+  @IsNumber()
   moneyReceived: number
 
   @IsOptional()
-  @IsEnum(OrderStatus)
-  status: OrderStatus
+  @IsString()
+  customerId: string
 
-  customerId?: string
-  note?: string
+  @IsOptional()
+  @IsString()
+  note: string
 }
 
 export class PaymentOrderDto extends PaymentDto {
@@ -36,9 +49,9 @@ export class PaymentReviewingOrderDto {
 }
 
 export class PaymentFromTableDto extends PaymentDto {
-  totalPeople?: number
-
-  code?: string
+  @IsOptional()
+  @IsBoolean()
+  isTaxApplied: boolean = false
 }
 
 export class RequestPaymentDto {

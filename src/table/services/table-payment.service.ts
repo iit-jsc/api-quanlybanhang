@@ -40,24 +40,29 @@ export class TablePaymentService {
     branchId: string,
     deviceId: string
   ) {
-    return await this.prisma.$transaction(
-      async (prisma: PrismaClient) => {
-        const [paymentMethod, branchSetting] = await Promise.all([
-          prisma.paymentMethod.findUniqueOrThrow({
-            where: {
-              id: data.paymentMethodId
-            }
-          }),
-          prisma.branchSetting.findUniqueOrThrow({
-            where: {
-              branchId
-            }
-          }),
-          handleOrderDetailsBeforePayment(prisma, { tableId: tableId, branchId })
-        ])
+    // 1. Lấy thông tin phương thức thanh toán và setting chi nhánh
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [paymentMethod, branchSetting, taxSetting] = await Promise.all([
+      this.prisma.paymentMethod.findUniqueOrThrow({
+        where: { id: data.paymentMethodId }
+      }),
+      this.prisma.branchSetting.findUniqueOrThrow({
+        where: { branchId }
+      }),
+      this.prisma.taxSetting.findUnique({
+        where: { branchId }
+      })
+    ])
 
-        // Kiểm tra xem có setting sử dụng bếp hay không
-        if (!branchSetting.useKitchen)
+    const newOrder = await this.prisma.$transaction(
+      async (prisma: PrismaClient) => {
+        // 2. Validate phương thức thanh toán
+        if (paymentMethod.type === PaymentMethodType.VNPAY) {
+          throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
+        }
+
+        // 3. Xử lý trạng thái món khi không sử dụng bếp
+        if (!branchSetting.useKitchen) {
           await prisma.orderDetail.updateMany({
             where: { tableId, branchId },
             data: {
@@ -65,45 +70,46 @@ export class TablePaymentService {
               successAt: new Date()
             }
           })
-
-        if (paymentMethod.type === PaymentMethodType.VNPAY) {
-          throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
         }
 
-        // Cập nhật món amount = 0 to SUCCESS và lấy orderDetails cùng lúc
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const [_, orderDetailsInTable] = await Promise.all([
+        // 4. Lấy chi tiết món và tính tổng tiền
+        const [, orderDetailsInTable] = await Promise.all([
           handleOrderDetailsBeforePayment(prisma, { tableId, branchId }),
           getOrderDetailsInTable(tableId, prisma)
         ])
 
         const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
-
-        // Lấy thông tin giảm giá
-        const [customerDiscountValue] = await Promise.all([
-          getCustomerDiscount(data.customerId, orderTotalNotDiscount, prisma)
-        ])
-
+        const customerDiscountValue = await getCustomerDiscount(
+          data.customerId,
+          orderTotalNotDiscount,
+          prisma
+        )
         const orderTotal = orderTotalNotDiscount - customerDiscountValue
 
-        // Thanh toán với tiền mặt | chuyển khoản
+        if (taxSetting && taxSetting.vatMethod) {
+        }
+
+        // 5. Xử lý thanh toán tiền mặt hoặc chuyển khoản
         if (
           paymentMethod.type === PaymentMethodType.CASH ||
           paymentMethod.type === PaymentMethodType.BANKING
         ) {
-          if (orderTotal > data.moneyReceived)
+          // Validate số tiền nhận
+          if (orderTotal > data.moneyReceived) {
             throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.CONFLICT)
+          }
 
+          // Tạo đơn hàng
           const createOrderPromise = prisma.order.create({
             data: {
               isDraft: false,
               paymentStatus: PaymentStatus.SUCCESS,
               tableId,
               orderTotal,
-              code: data.code || generateCode('DH', 15),
+              code: generateCode('DH', 15),
               note: data.note,
               type: OrderType.OFFLINE,
-              status: data.status || OrderStatus.SUCCESS,
+              status: OrderStatus.SUCCESS,
               customerDiscountValue,
               bankingImages: data.bankingImages,
               moneyReceived: data.moneyReceived,
@@ -126,36 +132,18 @@ export class TablePaymentService {
             )
           })
 
+          // Thực thi tạo order và chuyển chi tiết đơn hàng từ bàn sang đơn
           // eslint-disable-next-line @typescript-eslint/no-unused-vars
           const [newOrder, _] = await Promise.all([createOrderPromise, passOrderDetailPromise])
 
-          // Clear table
-          const newTable = { ...newOrder.table, orderDetails: [] }
+          // Xây dựng response
+          const updatedTable = { ...newOrder.table, orderDetails: [] }
 
-          // Đơn hàng chi tiết (món mới chuyển từ bàn)
-          const fullOrder = {
+          return {
             ...newOrder,
             orderDetails: orderDetailsInTable,
-            table: newTable
+            table: updatedTable
           }
-
-          // Gửi socket, lưu log
-          await Promise.all([
-            this.activityLogService.create(
-              {
-                action: ActivityAction.PAYMENT,
-                modelName: 'Order',
-                targetName: fullOrder.code,
-                targetId: fullOrder.id
-              },
-              { branchId },
-              accountId
-            ),
-            this.orderGatewayHandler.handleCreateOrder(fullOrder, branchId, deviceId),
-            this.tableGatewayHandler.handleUpdateTable(newTable, branchId, deviceId)
-          ])
-
-          return fullOrder
         }
       },
       {
@@ -163,5 +151,23 @@ export class TablePaymentService {
         maxWait: 15_000
       }
     )
+
+    // Gửi socket và lưu log
+    await Promise.all([
+      this.activityLogService.create(
+        {
+          action: ActivityAction.PAYMENT,
+          modelName: 'Order',
+          targetName: newOrder.code,
+          targetId: newOrder.id
+        },
+        { branchId },
+        accountId
+      ),
+      this.orderGatewayHandler.handleCreateOrder(newOrder, branchId, deviceId),
+      this.tableGatewayHandler.handleUpdateTable(newOrder.table, branchId, deviceId)
+    ])
+
+    return newOrder
   }
 }

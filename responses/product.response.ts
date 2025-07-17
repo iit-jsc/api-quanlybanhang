@@ -28,22 +28,3 @@ export const productSelect: Prisma.ProductSelect = {
   },
   updatedAt: true
 }
-
-export const productShortSelect: Prisma.ProductSelect = {
-  id: true,
-  branchId: true,
-  unitId: true,
-  name: true,
-  code: true,
-  price: true,
-  thumbnail: true,
-  oldPrice: true,
-  description: true,
-  photoURLs: true,
-  status: true,
-  slug: true,
-  measurementUnit: {
-    select: measurementUnitSelect
-  },
-  updatedAt: true
-}

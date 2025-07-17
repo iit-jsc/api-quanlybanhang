@@ -6,7 +6,6 @@ import { FileInterceptor, FilesInterceptor } from '@nestjs/platform-express'
 import { diskStorage } from 'multer'
 import { extname } from 'path'
 import { PER_PAGE } from 'enums/common.enum'
-import { productShortSelect } from 'responses/product.response'
 import { productOptionSelect } from 'responses/product-option-group.response'
 import { DiscountType, NotifyType, OrderDetailStatus, PrismaClient } from '@prisma/client'
 import { CreateOrderProductsDto } from 'src/order/dto/order.dto'
@@ -15,6 +14,7 @@ import { customerSelect } from 'responses/customer.response'
 import { IProduct } from 'interfaces/product.interface'
 import { IProductOption } from 'interfaces/productOption.interface'
 import { orderDetailShortSelect } from 'responses/order-detail.response'
+import { productSelect } from 'responses/product.response'
 
 const prisma = new PrismaClient()
 
@@ -175,7 +175,7 @@ export async function getOrderDetails(
 
       const product = await prisma.product.findUniqueOrThrow({
         where: { id: item.productId },
-        select: productShortSelect
+        select: productSelect
       })
 
       if (item.productOptionIds)

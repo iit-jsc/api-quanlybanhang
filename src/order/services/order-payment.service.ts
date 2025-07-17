@@ -87,7 +87,7 @@ export class OrderPaymentService {
             orderTotal,
             customerDiscountValue,
             moneyReceived: data.moneyReceived,
-            status: data.status || OrderStatus.SUCCESS,
+            status: OrderStatus.SUCCESS,
             bankingImages: data.bankingImages,
             customerId: data.customerId,
             paymentMethodId: data.paymentMethodId,
