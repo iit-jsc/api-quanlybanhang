@@ -29,6 +29,7 @@ export class TaxSettingService {
           vatRateOption: data.vatRateOption,
           vatReductionOption: data.vatReductionOption,
           vatMethod: data.vatMethod,
+          isActive: data.isActive,
           updatedBy: accountId
         },
         create: {
@@ -36,6 +37,7 @@ export class TaxSettingService {
           vatRateOption: data.vatRateOption,
           vatReductionOption: data.vatReductionOption,
           vatMethod: data.vatMethod,
+          isActive: data.isActive,
           updatedBy: accountId
         }
       })

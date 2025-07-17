@@ -1,6 +1,6 @@
 import { PartialType } from '@nestjs/swagger'
 import { VatMethod, VatReductionOption } from '@prisma/client'
-import { IsNotEmpty, IsOptional, IsEnum, IsIn } from 'class-validator'
+import { IsNotEmpty, IsOptional, IsEnum, IsIn, IsBoolean } from 'class-validator'
 
 export class CreateTaxSettingDto {
   @IsEnum(VatMethod)
@@ -13,7 +13,11 @@ export class CreateTaxSettingDto {
 
   @IsOptional()
   @IsIn([1, 2, 3, 5])
-  vatRateOption?: number
+  vatRateOption: number
+
+  @IsOptional()
+  @IsBoolean()
+  isActive: boolean
 }
 
 export class UpdateTaxSettingDto extends PartialType(CreateTaxSettingDto) {}

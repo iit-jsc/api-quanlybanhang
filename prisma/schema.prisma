@@ -638,6 +638,7 @@ model BranchSetting {
 model TaxSetting {
   branchId           String             @unique
   branch             Branch?            @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  isActive           Boolean            @default(false)
   vatMethod          VatMethod
   vatReductionOption VatReductionOption
   vatRateOption      Int
