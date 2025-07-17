@@ -17,7 +17,6 @@ export const productSelect: Prisma.ProductSelect = {
   status: true,
   slug: true,
   hasVat: true,
-  priceBeforeVat: true,
   vatGroup: {
     select: vatGroupSelect
   },
