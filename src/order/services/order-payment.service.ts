@@ -9,7 +9,7 @@ import {
   PaymentStatus,
   PrismaClient
 } from '@prisma/client'
-import { getCustomerDiscount, getOrderTotal, handleOrderDetailsBeforePayment } from 'utils/Helps'
+import { getCustomerDiscount, getOrderTotal, handleOrderDetailsBeforePayment } from 'helpers'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'

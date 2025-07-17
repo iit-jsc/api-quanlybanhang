@@ -19,7 +19,7 @@ import { RequestJWT } from 'interfaces/common.interface'
 import { DeleteManyDto } from 'utils/Common.dto'
 import { RolesGuard } from 'guards/roles.guard'
 import { Roles } from 'guards/roles.decorator'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 import { permissions } from 'enums/permissions.enum'
 
 @Controller('area')

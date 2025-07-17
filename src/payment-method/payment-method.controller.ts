@@ -17,7 +17,7 @@ import { RequestJWT } from 'interfaces/common.interface'
 import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from './dto/payment-method.dto'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('payment-method')

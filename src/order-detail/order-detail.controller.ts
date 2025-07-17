@@ -23,7 +23,7 @@ import { RequestJWT } from 'interfaces/common.interface'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 
 @UseGuards(JwtAuthGuard)
 @Controller('order-detail')

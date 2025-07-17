@@ -20,7 +20,7 @@ import { DeleteManyDto } from 'utils/Common.dto'
 import { CreateRoleDto, FindManyRoleDto, UpdateRoleDto } from './dto/role.dto'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 @Controller('role')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class RoleController {

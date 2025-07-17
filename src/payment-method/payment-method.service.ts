@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { FindManyPaymentMethodDto, UpdatePaymentMethodDto } from './dto/payment-method.dto'
 import { ActivityAction, PaymentMethodType, Prisma } from '@prisma/client'
-import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { removeDiacritics, customPaginate } from 'helpers'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { paymentMethodSelect } from 'responses/payment-method.response'
 

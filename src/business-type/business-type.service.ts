@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 
 import { PrismaService } from 'nestjs-prisma'
 import { FindManyDto } from 'utils/Common.dto'
-import { customPaginate } from 'utils/Helps'
+import { customPaginate } from 'helpers'
 
 @Injectable()
 export class BusinessTypeService {

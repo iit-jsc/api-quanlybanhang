@@ -26,7 +26,7 @@ import {
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 
 @Controller('user')
 @UseGuards(JwtAuthGuard, RolesGuard)

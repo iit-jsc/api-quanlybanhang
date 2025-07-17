@@ -1,7 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateRoleDto, FindManyRoleDto, UpdateRoleDto } from './dto/role.dto'
-import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { customPaginate, removeDiacritics } from 'helpers'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
 import { roleSelect } from 'responses/role.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'

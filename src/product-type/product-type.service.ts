@@ -6,7 +6,7 @@ import {
   UpdateProductTypeDto
 } from './dto/product-type.dto'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
-import { customPaginate, generateSlug } from 'utils/Helps'
+import { customPaginate, generateSlug } from 'helpers'
 import { productTypeSelect } from 'responses/product-type.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'

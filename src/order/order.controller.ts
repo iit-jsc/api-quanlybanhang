@@ -21,7 +21,7 @@ import { RolesGuard } from 'guards/roles.guard'
 import { PaymentOrderDto, UpdatePaymentDto } from './dto/payment.dto'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('order')

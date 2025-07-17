@@ -21,7 +21,7 @@ import { RequestJWT } from 'interfaces/common.interface'
 import { FindManyDto, DeleteManyDto } from 'utils/Common.dto'
 import { CreateCustomerTypeDto, UpdateCustomerTypeDto } from './dto/customer-type.dto'
 import { permissions } from 'enums/permissions.enum'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 
 @Controller('customer-type')
 @UseGuards(JwtAuthGuard, RolesGuard)

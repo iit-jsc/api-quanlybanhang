@@ -21,7 +21,7 @@ import { FindManyDto, DeleteManyDto } from 'utils/Common.dto'
 import { CreateEmployeeGroupDto, UpdateEmployeeGroupDto } from './dto/employee-group.dto'
 import { permissions } from 'enums/permissions.enum'
 import { Roles } from 'guards/roles.decorator'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 
 @Controller('employee-group')
 @UseGuards(JwtAuthGuard, RolesGuard)

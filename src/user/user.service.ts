@@ -9,7 +9,7 @@ import {
   UpdateUserDto
 } from './dto/user.dto'
 import { AccountStatus, ActivityAction, Prisma } from '@prisma/client'
-import { customPaginate, generateCode } from 'utils/Helps'
+import { customPaginate, generateCode } from 'helpers'
 import { userDetailSelect } from 'responses/user.response'
 import { TrashService } from 'src/trash/trash.service'
 import { ChangeMyInformation } from 'src/auth/dto/change-information.dto'

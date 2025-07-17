@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreatePermissionGroupDto, FindManyPermissionGroupDto } from './dto/permission-group.dto'
 import { Prisma } from '@prisma/client'
-import { customPaginate } from 'utils/Helps'
+import { customPaginate } from 'helpers'
 
 @Injectable()
 export class PermissionGroupService {

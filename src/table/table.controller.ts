@@ -26,7 +26,7 @@ import {
 import { Roles } from 'guards/roles.decorator'
 import { RolesGuard } from 'guards/roles.guard'
 import { permissions } from 'enums/permissions.enum'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 import { PaymentFromTableDto, RequestPaymentDto } from 'src/order/dto/payment.dto'
 import { SeparateTableDto } from 'src/order/dto/order.dto'
 

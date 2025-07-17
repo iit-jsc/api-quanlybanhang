@@ -16,7 +16,7 @@ import {
   getOrderDetailsInTable,
   getOrderTotal,
   handleOrderDetailsBeforePayment
-} from 'utils/Helps'
+} from 'helpers'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'

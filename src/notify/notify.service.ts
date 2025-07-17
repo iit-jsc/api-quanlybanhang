@@ -3,7 +3,7 @@ import { PrismaService } from 'nestjs-prisma'
 import { CreateNotifyDto } from './dto/notify.dto'
 import { FindManyDto } from 'utils/Common.dto'
 import { Prisma } from '@prisma/client'
-import { customPaginate } from 'utils/Helps'
+import { customPaginate } from 'helpers'
 import { notifySelect } from 'responses/notify.response'
 import { NotifyGatewayHandler } from 'src/gateway/handlers/notify.handler'
 

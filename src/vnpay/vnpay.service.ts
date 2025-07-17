@@ -19,7 +19,7 @@ import {
 import { CreateQrCodeDto } from './dto/qrCode.dto'
 import { CheckTransactionDto } from './dto/check-transaction.dto'
 import { VNPayIPNDto } from './dto/vnpay-ipn.dto'
-import { generateCode, getCustomerDiscount, getOrderTotal } from 'utils/Helps'
+import { generateCode, getCustomerDiscount, getOrderTotal } from 'helpers'
 import { orderSelect } from 'responses/order.response'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'

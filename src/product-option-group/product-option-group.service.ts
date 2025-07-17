@@ -7,7 +7,7 @@ import {
   UpdateProductOptionGroupDto
 } from './dto/product-option-group.dto'
 import { ActivityAction, Prisma, PrismaClient } from '@prisma/client'
-import { removeDiacritics, customPaginate } from 'utils/Helps'
+import { removeDiacritics, customPaginate } from 'helpers'
 import { productOptionGroupSelect } from 'responses/product-option-group.response'
 import { CreateManyTrashDto } from 'src/trash/dto/trash.dto'
 import { DeleteManyDto } from 'utils/Common.dto'

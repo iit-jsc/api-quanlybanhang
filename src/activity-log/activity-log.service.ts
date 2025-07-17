@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateActivityLogDto, FindManyActivityLogDto } from './dto/activity-log.dto'
 import { Prisma } from '@prisma/client'
-import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { customPaginate, removeDiacritics } from 'helpers'
 @Injectable()
 export class ActivityLogService {
   constructor(private readonly prisma: PrismaService) {}

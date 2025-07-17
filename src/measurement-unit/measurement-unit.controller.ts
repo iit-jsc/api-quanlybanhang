@@ -20,7 +20,7 @@ import { FindManyDto, DeleteManyDto } from 'utils/Common.dto'
 import { CreateMeasurementUnitDto, UpdateMeasurementUnitDto } from './dto/measurement-unit.dto'
 import { Roles } from 'guards/roles.decorator'
 import { permissions } from 'enums/permissions.enum'
-import { extractPermissions } from 'utils/Helps'
+import { extractPermissions } from 'helpers'
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('measurement-unit')
 export class MeasurementUnitController {

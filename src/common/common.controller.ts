@@ -7,7 +7,7 @@ import {
   UploadedFiles,
   UseInterceptors
 } from '@nestjs/common'
-import { CustomFilesInterceptor } from 'utils/Helps'
+import { CustomFilesInterceptor } from 'helpers'
 import { CommonService } from './common.service'
 
 @Controller('common')

@@ -2,7 +2,7 @@ import { Prisma, PrismaClient } from '@prisma/client'
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CreateManyTrashDto, CreateTrashDto, FindManyTrashDto } from './dto/trash.dto'
-import { customPaginate } from 'utils/Helps'
+import { customPaginate } from 'helpers'
 
 @Injectable()
 export class TrashService {

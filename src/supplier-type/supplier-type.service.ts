@@ -4,7 +4,7 @@ import { DeleteManyResponse, TokenPayload } from 'interfaces/common.interface'
 import { Prisma } from '@prisma/client'
 import { DeleteManyDto, FindManyDto } from 'utils/Common.dto'
 import { PrismaService } from 'nestjs-prisma'
-import { customPaginate, removeDiacritics } from 'utils/Helps'
+import { customPaginate, removeDiacritics } from 'helpers'
 // import { ACTIVITY_LOG_TYPE } from 'enums/common.enum'
 
 @Injectable()

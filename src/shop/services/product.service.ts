@@ -1,7 +1,7 @@
 import slugify from 'slugify'
 import { Injectable } from '@nestjs/common'
 import { PrismaClient } from '@prisma/client'
-import { generateCode } from 'utils/Helps'
+import { generateCode } from 'helpers'
 
 @Injectable()
 export class ProductService {
