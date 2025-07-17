@@ -127,6 +127,7 @@ export class ProductService {
         photoURLs: data.photoURLs,
         productTypeId: data.productTypeId,
         unitId: data.unitId,
+        vatGroupId: data.vatGroupId,
         branchId,
         updatedBy: accountId
       },
