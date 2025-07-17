@@ -1,6 +1,7 @@
 import { Prisma } from '@prisma/client'
 import { productTypeShortSelect } from './product-type.response'
 import { measurementUnitSelect } from './measurement-unit.response'
+import { vatGroupSelect } from './vat-group.response'
 
 export const productSelect: Prisma.ProductSelect = {
   id: true,
@@ -15,6 +16,11 @@ export const productSelect: Prisma.ProductSelect = {
   photoURLs: true,
   status: true,
   slug: true,
+  hasVat: true,
+  priceBeforeVat: true,
+  vatGroup: {
+    select: vatGroupSelect
+  },
   measurementUnit: {
     select: measurementUnitSelect
   },

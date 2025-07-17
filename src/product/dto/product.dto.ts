@@ -3,6 +3,7 @@ import { ProductStatus } from '@prisma/client'
 import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   IsArray,
+  IsBoolean,
   IsEnum,
   IsNotEmpty,
   IsNumber,
@@ -20,9 +21,11 @@ export class CreateProductDto {
   name: string
 
   @IsNotEmpty()
+  @IsString()
   productTypeId: string
 
   @IsNotEmpty()
+  @IsString()
   unitId: string
 
   @IsOptional()
@@ -31,7 +34,16 @@ export class CreateProductDto {
 
   @IsNotEmpty()
   @Min(0)
+  @IsNumber()
   price: number
+
+  @IsNotEmpty()
+  @IsBoolean()
+  hasVat: boolean = false
+
+  @IsOptional()
+  @IsString()
+  vatGroupId: string
 
   @IsOptional()
   @IsNumber()
@@ -42,10 +54,22 @@ export class CreateProductDto {
   @IsEnum(ProductStatus)
   status: ProductStatus
 
-  slug?: string
-  description?: string
-  thumbnail?: string
-  code?: string
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  slug: string
+
+  @IsOptional()
+  @IsString()
+  description: string
+
+  @IsOptional()
+  @IsString()
+  thumbnail: string
+
+  @IsOptional()
+  @IsString()
+  code: string
 }
 
 export class FindManyProductDto extends FindManyDto {

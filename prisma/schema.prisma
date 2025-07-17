@@ -683,7 +683,7 @@ model InvoiceConfig {
 
 model VATGroup {
   id        String    @id @default(uuid())
-  name      String    @db.Text
+  name      String
   vatRate   Float     @default(0)
   branchId  String?
   branch    Branch?   @relation(fields: [branchId], references: [id], onDelete: Cascade)
@@ -694,6 +694,8 @@ model VATGroup {
   creator   Account?  @relation("creator", fields: [createdBy], references: [id])
   updater   Account?  @relation("updater", fields: [updatedBy], references: [id])
   products  Product[]
+
+  @@unique([branchId, name])
 }
 
 model Invoice {

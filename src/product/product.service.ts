@@ -18,39 +18,49 @@ export class ProductService {
   ) {}
 
   async create(data: CreateProductDto, accountId: string, branchId: string) {
-    return this.prisma.$transaction(async prisma => {
-      const product = await prisma.product.create({
-        data: {
-          name: data.name,
-          description: data.description,
-          slug: data.slug || generateSlug(data.name),
-          code: data.code ?? generateCode('SP'),
-          price: data.price,
-          thumbnail: data.thumbnail,
-          oldPrice: data.oldPrice,
-          status: data.status,
-          photoURLs: data.photoURLs,
-          productTypeId: data.productTypeId,
-          unitId: data.unitId,
-          branchId,
-          createdBy: accountId
-        },
-        select: productSelect
+    let priceBeforeVat = data.price
+
+    if (data.hasVat) {
+      const vatGroup = await this.prisma.vATGroup.findFirstOrThrow({
+        where: { id: data.vatGroupId }
       })
 
-      await this.activityLogService.create(
-        {
-          action: ActivityAction.CREATE,
-          modelName: 'Product',
-          targetName: product.name,
-          targetId: product.id
-        },
-        { branchId },
-        accountId
-      )
+      priceBeforeVat = +(data.price / (1 + vatGroup.vatRate / 100)).toFixed(2)
+    }
 
-      return product
+    const product = await this.prisma.product.create({
+      data: {
+        name: data.name,
+        description: data.description,
+        slug: data.slug || generateSlug(data.name),
+        code: data.code ?? generateCode('SP'),
+        price: data.price,
+        thumbnail: data.thumbnail,
+        oldPrice: data.oldPrice,
+        status: data.status,
+        photoURLs: data.photoURLs,
+        productTypeId: data.productTypeId,
+        unitId: data.unitId,
+        vatGroupId: data.vatGroupId,
+        priceBeforeVat: priceBeforeVat,
+        branchId,
+        createdBy: accountId
+      },
+      select: productSelect
     })
+
+    await this.activityLogService.create(
+      {
+        action: ActivityAction.CREATE,
+        modelName: 'Product',
+        targetName: product.name,
+        targetId: product.id
+      },
+      { branchId },
+      accountId
+    )
+
+    return product
   }
 
   async findAll(params: FindManyProductDto) {
@@ -109,43 +119,59 @@ export class ProductService {
   }
 
   async update(id: string, data: UpdateProductDto, accountId: string, branchId: string) {
-    return this.prisma.$transaction(async prisma => {
-      const product = await prisma.product.update({
-        where: {
-          id,
-          branchId
-        },
-        data: {
-          name: data.name,
-          description: data.description,
-          slug: data.slug,
-          code: data.code,
-          price: data.price,
-          thumbnail: data.thumbnail,
-          oldPrice: data.oldPrice,
-          status: data.status,
-          photoURLs: data.photoURLs,
-          productTypeId: data.productTypeId,
-          unitId: data.unitId,
-          branchId,
-          updatedBy: accountId
-        },
-        select: productSelect
-      })
+    let priceBeforeVat: number | undefined
 
-      await this.activityLogService.create(
-        {
-          action: ActivityAction.UPDATE,
-          modelName: 'Product',
-          targetId: product.id,
-          targetName: product.name
-        },
-        { branchId },
-        accountId
-      )
+    const [productExisting, vatGroup] = await Promise.all([
+      this.prisma.product.findUnique({ where: { id, branchId }, select: { price: true } }),
+      data.hasVat
+        ? this.prisma.vATGroup.findFirst({ where: { id: data.vatGroupId } })
+        : Promise.resolve(undefined)
+    ])
 
-      return product
+    if (data.hasVat && vatGroup) {
+      const productPrice = data.price ?? productExisting?.price ?? 0
+      priceBeforeVat = +(productPrice / (1 + vatGroup.vatRate / 100)).toFixed(2)
+    } else {
+      priceBeforeVat = data.price ?? productExisting?.price ?? 0
+    }
+
+    const product = await this.prisma.product.update({
+      where: {
+        id,
+        branchId
+      },
+      data: {
+        name: data.name,
+        description: data.description,
+        slug: data.slug,
+        code: data.code,
+        price: data.price,
+        hasVat: data.hasVat,
+        priceBeforeVat: priceBeforeVat,
+        thumbnail: data.thumbnail,
+        oldPrice: data.oldPrice,
+        status: data.status,
+        photoURLs: data.photoURLs,
+        productTypeId: data.productTypeId,
+        unitId: data.unitId,
+        branchId,
+        updatedBy: accountId
+      },
+      select: productSelect
     })
+
+    await this.activityLogService.create(
+      {
+        action: ActivityAction.UPDATE,
+        modelName: 'Product',
+        targetId: product.id,
+        targetName: product.name
+      },
+      { branchId },
+      accountId
+    )
+
+    return product
   }
 
   async deleteMany(data: DeleteManyDto, accountId: string, branchId: string) {
