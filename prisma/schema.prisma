@@ -218,7 +218,6 @@ model Product {
   price           Float
   vatGroupId      String?
   hasVat          Boolean?         @default(false)
-  priceBeforeVat  Float?
   code            String?
   oldPrice        Float?
   description     String?          @db.Text
@@ -638,15 +637,14 @@ model BranchSetting {
 }
 
 model TaxSetting {
-  id                 String              @id @default(uuid())
-  branchId           String              @unique
-  branch             Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
-  vatMethod          VatMethod           @default(DEDUCTION)
-  vatReductionOption VatReductionOption?
-  vatRateOption      Int?
+  branchId           String             @unique
+  branch             Branch?            @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  vatMethod          VatMethod
+  vatReductionOption VatReductionOption
+  vatRateOption      Int
   updatedBy          String?
-  updater            Account?            @relation("updater", fields: [updatedBy], references: [id])
-  updatedAt          DateTime            @updatedAt
+  updater            Account?           @relation("updater", fields: [updatedBy], references: [id])
+  updatedAt          DateTime           @updatedAt
 }
 
 model InvoiceProvider {

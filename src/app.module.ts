@@ -40,6 +40,7 @@ import { BranchSettingModule } from './branch-setting/branch-setting.module'
 import { AdminModule } from './admin/admin.module'
 import { InvoiceProviderModule } from './invoice-provider/invoice-provider.module'
 import { VatGroupModule } from './vat-group/vat-group.module'
+import { TaxSettingModule } from './tax-setting/tax-setting.module';
 
 @Module({
   imports: [
@@ -99,7 +100,8 @@ import { VatGroupModule } from './vat-group/vat-group.module'
     BranchSettingModule,
     AdminModule,
     InvoiceProviderModule,
-    VatGroupModule
+    VatGroupModule,
+    TaxSettingModule
   ],
   controllers: [AppController],
   providers: [AppService, TransformInterceptor, PrismaService]
