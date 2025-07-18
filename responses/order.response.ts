@@ -7,7 +7,6 @@ import { tableSelect } from './table.response'
 export const orderSelect: Prisma.OrderSelect = {
   id: true,
   code: true,
-  status: true,
   type: true,
   paymentStatus: true,
   orderTotal: true,

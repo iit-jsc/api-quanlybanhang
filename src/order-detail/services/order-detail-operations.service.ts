@@ -33,8 +33,7 @@ export class OrderDetailOperationsService {
           order: {
             select: {
               paymentStatus: true,
-              code: true,
-              status: true
+              code: true
             }
           }
         }

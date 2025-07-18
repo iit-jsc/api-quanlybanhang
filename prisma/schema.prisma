@@ -364,7 +364,6 @@ model Order {
   code                  String             @unique
   orderTotal            Float
   type                  OrderType
-  status                OrderStatus
   isSave                Boolean            @default(false)
   isDraft               Boolean            @default(false)
   tableId               String?

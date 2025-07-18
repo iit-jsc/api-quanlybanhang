@@ -1,7 +1,7 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { CancelOrderDto, SaveOrderDto } from '../dto/order.dto'
-import { ActivityAction, OrderStatus, PaymentStatus } from '@prisma/client'
+import { ActivityAction, PaymentStatus } from '@prisma/client'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -54,7 +54,6 @@ export class OrderOperationsService {
         data: {
           cancelDate: new Date(),
           cancelReason: data.cancelReason,
-          status: OrderStatus.CANCELLED,
           updatedBy: accountId
         },
         select: orderSelect

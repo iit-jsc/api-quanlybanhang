@@ -1,5 +1,4 @@
-import { OrderStatus } from '@prisma/client'
-import { IsEnum, IsNotEmpty, IsOptional, ValidateIf } from 'class-validator'
+import { IsNotEmpty, ValidateIf } from 'class-validator'
 
 export class CreateQrCodeDto {
   @ValidateIf(o => !o.orderId)
@@ -11,10 +10,6 @@ export class CreateQrCodeDto {
   @ValidateIf(o => !o.tableId)
   @IsNotEmpty({ message: 'orderId is required when tableId is not available' })
   orderId?: string
-
-  @IsOptional()
-  @IsEnum(OrderStatus)
-  status: OrderStatus
 
   customerId?: string
   note?: string

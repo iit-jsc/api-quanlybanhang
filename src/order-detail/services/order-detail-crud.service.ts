@@ -86,8 +86,7 @@ export class OrderDetailCrudService {
         order: {
           select: {
             paymentStatus: true,
-            code: true,
-            status: true
+            code: true
           }
         }
       }

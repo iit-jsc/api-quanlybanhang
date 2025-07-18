@@ -9,29 +9,13 @@ import {
   IsOptional,
   Min,
   ArrayMaxSize,
-  Validate,
   ValidateNested,
-  ValidatorConstraint,
-  ValidatorConstraintInterface
+  IsString
 } from 'class-validator'
-import { OrderDetailStatus, OrderStatus, OrderType, PaymentStatus } from '@prisma/client'
+import { OrderDetailStatus, OrderType, PaymentStatus } from '@prisma/client'
 import { FindManyDto } from 'utils/Common.dto'
 
-@ValidatorConstraint({ name: 'isNotCancel', async: false })
-export class IsNotCancelConstraint implements ValidatorConstraintInterface {
-  validate(status: OrderStatus) {
-    return status !== OrderStatus.CANCELLED
-  }
-
-  defaultMessage() {
-    return 'Không thể cập nhật trạng thái hủy!'
-  }
-}
 export class CreateOrderDto {
-  @IsOptional()
-  @IsEnum(OrderStatus)
-  status: OrderStatus = OrderStatus.SUCCESS
-
   @IsOptional()
   @IsEnum(OrderType)
   type: OrderType = OrderType.OFFLINE
@@ -73,11 +57,6 @@ export class UpdateOrderDto {
 
   note?: string
   cancelReason?: string
-
-  @IsOptional()
-  @IsEnum(OrderStatus)
-  @Validate(IsNotCancelConstraint)
-  status: OrderStatus
 }
 
 export class CancelOrderDto {
@@ -97,25 +76,18 @@ export class FindManyOrderDto extends FindManyDto {
   types: OrderType[]
 
   @IsOptional()
-  @Transform(({ value }: TransformFnParams) => {
-    if (typeof value === 'string') {
-      return value.split(',').map((id: string) => id.trim())
-    }
-    return Array.isArray(value) ? value : []
-  })
-  @IsArray()
-  @IsEnum(OrderStatus, { each: true })
-  statuses: OrderStatus[]
-
-  @IsOptional()
   @IsEnum(PaymentStatus)
   paymentStatus?: PaymentStatus
 
+  @IsOptional()
   @Transform(({ value }: TransformFnParams) => {
     return Boolean(+value)
   })
-  isSave?: boolean
+  @IsBoolean()
+  isSave: boolean
 
+  @IsOptional()
+  @IsString()
   customerId?: string
 }
 

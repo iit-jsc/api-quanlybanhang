@@ -39,7 +39,6 @@ export class OrderCrudService {
           note: data.note,
           isDraft: data.isDraft,
           type: data.type,
-          status: data.status,
           code: generateCode('DH', 15),
           orderTotal: orderTotalNotDiscount,
           ...(data.customerId && {
@@ -102,7 +101,6 @@ export class OrderCrudService {
           branchId
         },
         data: {
-          status: data.status,
           note: data.note,
           bankingImages: data.bankingImages,
           updatedBy: accountId
@@ -128,19 +126,8 @@ export class OrderCrudService {
   }
 
   async findAll(params: FindManyOrderDto, branchId: string) {
-    const {
-      page,
-      perPage,
-      keyword,
-      customerId,
-      from,
-      to,
-      types,
-      paymentStatus,
-      orderBy,
-      isSave,
-      statuses
-    } = params
+    const { page, perPage, keyword, customerId, from, to, types, paymentStatus, orderBy, isSave } =
+      params
 
     const keySearch = ['code']
 
@@ -176,9 +163,6 @@ export class OrderCrudService {
         }),
       ...(types?.length && {
         type: { in: types }
-      }),
-      ...(statuses?.length && {
-        status: { in: statuses }
       }),
       ...(paymentStatus && { paymentStatus: paymentStatus }),
       ...(typeof isSave !== 'undefined' && { isSave: isSave })

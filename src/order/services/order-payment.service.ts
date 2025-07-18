@@ -4,7 +4,6 @@ import { PaymentOrderDto } from '../dto/payment.dto'
 import {
   ActivityAction,
   OrderDetailStatus,
-  OrderStatus,
   PaymentMethodType,
   PaymentStatus,
   PrismaClient
@@ -87,7 +86,6 @@ export class OrderPaymentService {
             orderTotal,
             customerDiscountValue,
             moneyReceived: data.moneyReceived,
-            status: OrderStatus.SUCCESS,
             bankingImages: data.bankingImages,
             customerId: data.customerId,
             paymentMethodId: data.paymentMethodId,

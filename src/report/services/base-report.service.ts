@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { OrderStatus, PaymentStatus, Prisma } from '@prisma/client'
+import { PaymentStatus, Prisma } from '@prisma/client'
 import { PrismaService } from 'nestjs-prisma'
 
 @Injectable()
@@ -31,7 +31,6 @@ export class BaseReportService {
     return {
       branchId,
       paymentStatus: PaymentStatus.SUCCESS,
-      status: { not: OrderStatus.CANCELLED },
       isDraft: false,
       ...dateFilter
     }

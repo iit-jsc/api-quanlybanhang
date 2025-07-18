@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { ReportBestSellerDto } from '../dto/report.dto'
 import { BaseReportService } from './base-report.service'
-import { OrderStatus, PaymentStatus } from '@prisma/client'
+import { PaymentStatus } from '@prisma/client'
 
 @Injectable()
 export class BestSellerReportService extends BaseReportService {
@@ -16,7 +16,6 @@ export class BestSellerReportService extends BaseReportService {
         order: {
           paymentStatus: PaymentStatus.SUCCESS,
           branchId,
-          status: { not: OrderStatus.CANCELLED },
           isDraft: false
         },
         ...where

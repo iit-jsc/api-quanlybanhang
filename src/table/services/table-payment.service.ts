@@ -1,7 +1,6 @@
 import {
   ActivityAction,
   OrderDetailStatus,
-  OrderStatus,
   OrderType,
   PaymentMethodType,
   PaymentStatus,
@@ -130,7 +129,6 @@ export class TablePaymentService {
               code: generateCode('DH', 15),
               note: data.note,
               type: OrderType.OFFLINE,
-              status: OrderStatus.SUCCESS,
               customerDiscountValue,
               bankingImages: data.bankingImages,
               moneyReceived: data.moneyReceived,
