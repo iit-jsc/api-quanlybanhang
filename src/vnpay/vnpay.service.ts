@@ -18,7 +18,7 @@ import {
 import { CreateQrCodeDto } from './dto/qrCode.dto'
 import { CheckTransactionDto } from './dto/check-transaction.dto'
 import { VNPayIPNDto } from './dto/vnpay-ipn.dto'
-import { generateCode, getCustomerDiscount, getOrderTotal } from 'helpers'
+import { generateCode, getOrderTotal } from 'helpers'
 import { orderSelect } from 'responses/order.response'
 import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -346,33 +346,26 @@ export class VNPayService {
     // Tính tổng tiền chưa giảm giá
     const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
 
-    return await this.prisma.$transaction(async prisma => {
-      const [customerDiscountValue] = await Promise.all([
-        getCustomerDiscount(data.customerId, orderTotalNotDiscount, this.prisma)
-      ])
+    if (orderTotalNotDiscount < data.discountValue)
+      throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
 
-      const orderTotal = orderTotalNotDiscount - (customerDiscountValue || 0)
+    const orderTotal = orderTotalNotDiscount - data.discountValue
 
-      // Tạo đơn hàng nháp
-      const order = await prisma.order.create({
-        data: {
-          isDraft: true,
-          tableId: data.tableId,
-          orderTotal,
-          code: data.code || generateCode('DH', 15),
-          type: OrderType.OFFLINE,
-          createdBy: accountId,
-          branchId,
-          customerDiscountValue: customerDiscountValue,
-          paymentMethodId: paymentMethod?.id,
-          ...(data.customerId && { customerId: data.customerId }),
-          orderDetails: {
-            connect: orderDetailsInTable.map(od => ({ id: od.id }))
-          }
+    return await this.prisma.order.create({
+      data: {
+        isDraft: true,
+        tableId: data.tableId,
+        orderTotal,
+        code: data.code || generateCode('DH', 15),
+        type: OrderType.OFFLINE,
+        createdBy: accountId,
+        branchId,
+        paymentMethodId: paymentMethod?.id,
+        ...(data.customerId && { customerId: data.customerId }),
+        orderDetails: {
+          connect: orderDetailsInTable.map(od => ({ id: od.id }))
         }
-      })
-
-      return order
+      }
     })
   }
 

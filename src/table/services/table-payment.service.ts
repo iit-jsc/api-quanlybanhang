@@ -12,7 +12,6 @@ import { PrismaService } from 'nestjs-prisma'
 import { PaymentFromTableDto } from 'src/order/dto/payment.dto'
 import {
   generateCode,
-  getCustomerDiscount,
   getOrderDetailsInTable,
   getOrderTotal,
   handleOrderDetailsBeforePayment
@@ -63,13 +62,13 @@ export class TablePaymentService {
     let totalTax = 0
     let totalTaxDiscount = 0
 
+    // Validate phương thức thanh toán
+    if (paymentMethod.type === PaymentMethodType.VNPAY) {
+      throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
+    }
+
     const newOrder = await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
-        // Validate phương thức thanh toán
-        if (paymentMethod.type === PaymentMethodType.VNPAY) {
-          throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
-        }
-
         // Xử lý trạng thái món khi không sử dụng bếp
         if (!branchSetting.useKitchen) {
           await prisma.orderDetail.updateMany({
@@ -82,21 +81,19 @@ export class TablePaymentService {
         }
 
         // Lấy chi tiết món và tính tổng tiền
-        const [, orderDetailsInTable] = await Promise.all([
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const [_, orderDetailsInTable] = await Promise.all([
           handleOrderDetailsBeforePayment(prisma, { tableId, branchId }),
           getOrderDetailsInTable(tableId, prisma)
         ])
 
         const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
 
-        const customerDiscountValue = await getCustomerDiscount(
-          data.customerId,
-          orderTotalNotDiscount,
-          prisma
-        )
+        if (orderTotalNotDiscount < data.discountValue)
+          throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
 
-        // Tính tổng tiền sau giảm giá
-        let orderTotal = orderTotalNotDiscount - customerDiscountValue
+        // Tính tổng tiền sau giảm giá theo khách
+        const orderTotalWithDiscount = orderTotalNotDiscount - data.discountValue
 
         // Tính thuế nếu có
         if (data.isTaxApplied && !taxSetting && !taxSetting?.isActive)
@@ -106,13 +103,13 @@ export class TablePaymentService {
             ;({ totalTax, totalTaxDiscount } = calculateTax(
               taxSetting,
               orderDetailsInTable,
-              orderTotal
+              orderTotalWithDiscount
             ))
           }
         }
 
         // Tính tổng tiền sau thuế
-        orderTotal = orderTotal + totalTax - totalTaxDiscount
+        const orderTotalFinal = orderTotalWithDiscount + totalTax - totalTaxDiscount
 
         // Xử lý thanh toán tiền mặt hoặc chuyển khoản
         if (
@@ -120,8 +117,12 @@ export class TablePaymentService {
           paymentMethod.type === PaymentMethodType.BANKING
         ) {
           // Validate số tiền nhận
-          if (orderTotal > data.moneyReceived) {
+          if (orderTotalFinal > data.moneyReceived) {
             throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.CONFLICT)
+          }
+
+          if (data.moneyReceived !== undefined && orderTotalFinal > data.moneyReceived) {
+            throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
           }
 
           // Tạo đơn hàng
@@ -130,11 +131,10 @@ export class TablePaymentService {
               isDraft: false,
               paymentStatus: PaymentStatus.SUCCESS,
               tableId,
-              orderTotal,
+              orderTotal: orderTotalFinal,
               code: generateCode('DH', 15),
               note: data.note,
               type: OrderType.OFFLINE,
-              customerDiscountValue,
               bankingImages: data.bankingImages,
               moneyReceived: data.moneyReceived,
               paymentAt: new Date(),

@@ -9,7 +9,7 @@ import {
   PrismaClient,
   TaxApplyMode
 } from '@prisma/client'
-import { getCustomerDiscount, getOrderTotal, handleOrderDetailsBeforePayment } from 'helpers'
+import { getOrderTotal, handleOrderDetailsBeforePayment } from 'helpers'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
@@ -31,37 +31,43 @@ export class OrderPaymentService {
     branchId: string,
     deviceId: string
   ) {
-    const branch = await this.prisma.branch.findUniqueOrThrow({
-      where: {
-        id: branchId
-      },
-      select: {
-        branchSetting: true,
-        taxSetting: true,
-        paymentMethods: {
-          where: {
-            id: data.paymentMethodId
+    const [branch, order] = await Promise.all([
+      this.prisma.branch.findUniqueOrThrow({
+        where: {
+          id: branchId
+        },
+        select: {
+          branchSetting: true,
+          taxSetting: true,
+          paymentMethods: {
+            where: {
+              id: data.paymentMethodId
+            }
           }
         }
-      }
-    })
+      }),
+      this.prisma.order.findUniqueOrThrow({
+        where: { id },
+        select: orderSelect
+      })
+    ])
 
     const { branchSetting, taxSetting } = branch
     const paymentMethod = branch.paymentMethods[0]
     let totalTax = 0
     let totalTaxDiscount = 0
 
+    if (order.paymentStatus === PaymentStatus.SUCCESS)
+      throw new HttpException('Đơn hàng này đã thanh toán!', HttpStatus.CONFLICT)
+
+    if (paymentMethod.type === PaymentMethodType.VNPAY) {
+      throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
+    }
+
     const newOrder = await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
+        // Xử lý chi tiết đơn hàng trước khi thanh toán
         await handleOrderDetailsBeforePayment(prisma, { orderId: id, branchId })
-
-        const order = await prisma.order.findUniqueOrThrow({
-          where: { id },
-          select: orderSelect
-        })
-
-        if (order.paymentStatus === PaymentStatus.SUCCESS)
-          throw new HttpException('Đơn hàng này đã thanh toán!', HttpStatus.CONFLICT)
 
         // Kiểm tra xem có setting sử dụng bếp hay không
         if (!branchSetting.useKitchen)
@@ -73,22 +79,10 @@ export class OrderPaymentService {
             }
           })
 
-        // Kiểm tra phương thức thanh toán
-        if (paymentMethod.type === PaymentMethodType.VNPAY) {
-          throw new HttpException('Không thể chọn phương thức này!', HttpStatus.CONFLICT)
-        }
-
         const orderTotalNotDiscount = getOrderTotal(order.orderDetails)
 
-        const customerDiscountValue = await getCustomerDiscount(
-          data.customerId,
-          orderTotalNotDiscount,
-          prisma
-        )
-
         // Tính tổng tiền sau khi áp dụng giảm giá
-        let orderTotal = orderTotalNotDiscount - customerDiscountValue
-        console.log('taxSetting', taxSetting)
+        const orderTotalWithDiscount = orderTotalNotDiscount - data.discountValue
 
         // Tính thuế nếu có
         if (data.isTaxApplied && !taxSetting && !taxSetting?.isActive)
@@ -98,23 +92,31 @@ export class OrderPaymentService {
             ;({ totalTax, totalTaxDiscount } = calculateTax(
               taxSetting,
               order.orderDetails,
-              orderTotal
+              orderTotalWithDiscount
             ))
           }
         }
 
         // Tính tổng tiền cuối cùng
-        orderTotal = orderTotal + totalTax - totalTaxDiscount
+        const orderTotalFinal = orderTotalWithDiscount + totalTax - totalTaxDiscount
+
+        // validate tiền giảm giá và tiền nhận
+        if (orderTotalFinal < data.discountValue) {
+          throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
+        }
+
+        if (data.moneyReceived !== undefined && orderTotalFinal > data.moneyReceived) {
+          throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.CONFLICT)
+        }
 
         return await prisma.order.update({
-          where: { id },
+          where: { id, branchId },
           data: {
             isDraft: false,
             paymentStatus: PaymentStatus.SUCCESS,
             note: data.note,
             type: data.type,
-            orderTotal,
-            customerDiscountValue,
+            orderTotal: orderTotalFinal,
             moneyReceived: data.moneyReceived,
             bankingImages: data.bankingImages,
             customerId: data.customerId,

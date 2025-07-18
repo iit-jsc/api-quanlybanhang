@@ -103,8 +103,11 @@ export async function getCustomerDiscount(
   if (customer.customerType?.discountType === DiscountType.PERCENT)
     return (orderTotal * customer.customerType?.discount) / 100
 
-  if (customer.customerType?.discountType === DiscountType.VALUE)
-    return customer.customerType?.discount
+  if (customer.customerType?.discountType === DiscountType.VALUE) {
+    // Nếu giá trị giảm giá lớn hơn tổng tiền, trả về tổng tiền
+    if (customer.customerType?.discount > orderTotal) return orderTotal
+    else return customer.customerType?.discount
+  }
 }
 
 export async function handleOrderDetailsBeforePayment(

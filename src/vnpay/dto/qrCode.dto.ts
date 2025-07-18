@@ -1,4 +1,4 @@
-import { IsNotEmpty, ValidateIf } from 'class-validator'
+import { IsNotEmpty, IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator'
 
 export class CreateQrCodeDto {
   @ValidateIf(o => !o.orderId)
@@ -11,7 +11,19 @@ export class CreateQrCodeDto {
   @IsNotEmpty({ message: 'orderId is required when tableId is not available' })
   orderId?: string
 
-  customerId?: string
-  note?: string
-  code?: string
+  @IsOptional()
+  @IsString()
+  customerId: string
+
+  @IsOptional()
+  @IsString()
+  note: string
+
+  @IsOptional()
+  @IsString()
+  code: string
+
+  @IsOptional()
+  @IsNumber()
+  discountValue: number
 }

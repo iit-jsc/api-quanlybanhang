@@ -11,7 +11,6 @@ export const orderSelect: Prisma.OrderSelect = {
   paymentStatus: true,
   orderTotal: true,
   moneyReceived: true,
-  customerDiscountValue: true,
   isSave: true,
   note: true,
   bankingImages: true,

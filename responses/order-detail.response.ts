@@ -73,7 +73,6 @@ export const orderDetailSelect: Prisma.OrderDetailSelect = {
       code: true,
       type: true,
       paymentStatus: true,
-      customerDiscountValue: true,
       isSave: true,
       note: true,
       bankingImages: true,

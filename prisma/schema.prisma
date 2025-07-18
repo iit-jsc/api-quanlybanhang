@@ -372,7 +372,6 @@ model Order {
   cancelReason          String?            @db.Text
   cancelDate            DateTime?
   note                  String?            @db.Text
-  customerDiscountValue Float?             @default(0)
   discountValue         Float?             @default(0)
   moneyReceived         Float?
   paymentMethodId       String?
