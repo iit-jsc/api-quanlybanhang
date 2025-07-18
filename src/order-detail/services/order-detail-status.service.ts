@@ -7,6 +7,7 @@ import { getNotifyInfo } from 'helpers'
 import { NotifyService } from 'src/notify/notify.service'
 import { IOrderDetail } from 'interfaces/orderDetail.interface'
 import { OrderDetailGatewayHandler } from 'src/gateway/handlers/order-detail-gateway.handler'
+import { MAX_WAIT, TIMEOUT } from 'enums/common.enum'
 
 const statusLevel: Record<OrderDetailStatus, number> = {
   [OrderDetailStatus.APPROVED]: 1,
@@ -49,7 +50,10 @@ export class OrderDetailStatusService {
 
         return [...updateOrderDetail, ...newOrderDetails]
       },
-      { timeout: 10_000, maxWait: 15_000 }
+      {
+        timeout: TIMEOUT,
+        maxWait: MAX_WAIT
+      }
     )
 
     await this.handleNotifications(data.status, result, branchId, deviceId)

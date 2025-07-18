@@ -26,6 +26,7 @@ import { decrypt, encrypt } from 'utils/encrypt'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { PaymentReviewingOrderDto } from 'src/order/dto/payment.dto'
 import { orderDetailSelect } from 'responses/order-detail.response'
+import { MAX_WAIT, TIMEOUT } from 'enums/common.enum'
 
 export type MerchantInfo = {
   branchId: string
@@ -773,8 +774,8 @@ export class VNPayService {
         return updatedOrder
       },
       {
-        timeout: 10_000,
-        maxWait: 15_000
+        timeout: TIMEOUT,
+        maxWait: MAX_WAIT
       }
     )
   }

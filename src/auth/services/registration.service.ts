@@ -8,10 +8,9 @@ import { UserService } from 'src/shop/services/user.service'
 import { CustomerService } from 'src/shop/services/customer.service'
 import { PaymentMethodService } from 'src/shop/services/payment-method.service'
 import { PasswordService } from './password.service'
+import { MAX_WAIT, TIMEOUT } from 'enums/common.enum'
 
 // Constants
-const TRANSACTION_TIMEOUT = 10_000
-const TRANSACTION_MAX_WAIT = 5_000
 const DEFAULT_BUSINESS_TYPE = 'FOOD_BEVERAGE'
 const DEFAULT_TRIAL_DAYS = 60
 
@@ -53,8 +52,8 @@ export class RegistrationService {
         return { success: true, userId: user.id, branchId, shopId }
       },
       {
-        timeout: TRANSACTION_TIMEOUT,
-        maxWait: TRANSACTION_MAX_WAIT
+        timeout: TIMEOUT,
+        maxWait: MAX_WAIT
       }
     )
   }

@@ -33,6 +33,10 @@ export class PaymentDto {
   @IsOptional()
   @IsString()
   note: string
+
+  @IsOptional()
+  @IsBoolean()
+  isTaxApplied: boolean = false
 }
 
 export class PaymentOrderDto extends PaymentDto {
@@ -48,11 +52,7 @@ export class PaymentReviewingOrderDto {
   orderId: string
 }
 
-export class PaymentFromTableDto extends PaymentDto {
-  @IsOptional()
-  @IsBoolean()
-  isTaxApplied: boolean = false
-}
+export class PaymentFromTableDto extends PaymentDto {}
 
 export class RequestPaymentDto {
   @IsNotEmpty()

@@ -29,7 +29,7 @@ interface OrderDetail {
   id: string
   branchId: string
   amount: number
-  product?: Product
+  product?: Product | any
   productOriginId?: string
 }
 
@@ -45,10 +45,8 @@ export function calculateTax(
   orderTotalAfterDiscount: number
 ): { totalTax: number; totalTaxDiscount: number } {
   // Nếu cài đặt thuế không active, trả về 0
-  if (taxSetting.taxMethod === TaxMethod.DIRECT) {
-    if (!taxSetting.isActive) {
-      return { totalTax: 0, totalTaxDiscount: 0 }
-    }
+  if (taxSetting.taxMethod === TaxMethod.DEDUCTION) {
+    if (!taxSetting.isActive) return { totalTax: 0, totalTaxDiscount: 0 }
 
     let totalTax = 0
 
@@ -72,10 +70,8 @@ export function calculateTax(
     }
   }
 
-  if (taxSetting.taxMethod === TaxMethod.DEDUCTION) {
+  if (taxSetting.taxMethod === TaxMethod.DIRECT) {
     // Tính thuế theo phương pháp khấu trừ = Tổng tiền sau giảm giá * tỷ lệ thuế trực tiếp * 0.02
-    console.log(orderTotalAfterDiscount, taxSetting.taxDirectRate)
-
     return {
       totalTax: 0,
       totalTaxDiscount: Number(

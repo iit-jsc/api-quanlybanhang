@@ -16,3 +16,5 @@ export const TIME_TYPE = {
 }
 
 export const PER_PAGE = 20
+export const TIMEOUT = 10_000
+export const MAX_WAIT = 15_000

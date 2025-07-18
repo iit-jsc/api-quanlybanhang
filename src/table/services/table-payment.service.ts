@@ -23,6 +23,7 @@ import { TableGatewayHandler } from 'src/gateway/handlers/table.handler'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
 import { TableOrderService } from './table-order.service'
 import { calculateTax } from 'helpers/tax.helper'
+import { MAX_WAIT, TIMEOUT } from 'enums/common.enum'
 
 @Injectable()
 export class TablePaymentService {
@@ -43,17 +44,21 @@ export class TablePaymentService {
   ) {
     // Lấy thông tin phương thức thanh toán và setting chi nhánh
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [paymentMethod, branchSetting, taxSetting] = await Promise.all([
-      this.prisma.paymentMethod.findUniqueOrThrow({
-        where: { id: data.paymentMethodId }
-      }),
-      this.prisma.branchSetting.findUniqueOrThrow({
-        where: { branchId }
-      }),
-      this.prisma.taxSetting.findUnique({
-        where: { branchId }
-      })
-    ])
+    const branch = await this.prisma.branch.findUniqueOrThrow({
+      where: { id: branchId },
+      select: {
+        branchSetting: true,
+        taxSetting: true,
+        paymentMethods: {
+          where: {
+            id: data.paymentMethodId
+          }
+        }
+      }
+    })
+
+    const { branchSetting, taxSetting } = branch
+    const paymentMethod = branch.paymentMethods[0]
 
     let totalTax = 0
     let totalTaxDiscount = 0
@@ -168,8 +173,8 @@ export class TablePaymentService {
         }
       },
       {
-        timeout: 10_000,
-        maxWait: 15_000
+        timeout: TIMEOUT,
+        maxWait: MAX_WAIT
       }
     )
 

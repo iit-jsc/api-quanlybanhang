@@ -6,12 +6,15 @@ import {
   OrderDetailStatus,
   PaymentMethodType,
   PaymentStatus,
-  PrismaClient
+  PrismaClient,
+  TaxApplyMode
 } from '@prisma/client'
 import { getCustomerDiscount, getOrderTotal, handleOrderDetailsBeforePayment } from 'helpers'
 import { orderSelect } from 'responses/order.response'
 import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { OrderGatewayHandler } from 'src/gateway/handlers/order-gateway.handler'
+import { calculateTax } from 'helpers/tax.helper'
+import { MAX_WAIT, TIMEOUT } from 'enums/common.enum'
 
 @Injectable()
 export class OrderPaymentService {
@@ -28,7 +31,27 @@ export class OrderPaymentService {
     branchId: string,
     deviceId: string
   ) {
-    return this.prisma.$transaction(
+    const branch = await this.prisma.branch.findUniqueOrThrow({
+      where: {
+        id: branchId
+      },
+      select: {
+        branchSetting: true,
+        taxSetting: true,
+        paymentMethods: {
+          where: {
+            id: data.paymentMethodId
+          }
+        }
+      }
+    })
+
+    const { branchSetting, taxSetting } = branch
+    const paymentMethod = branch.paymentMethods[0]
+    let totalTax = 0
+    let totalTaxDiscount = 0
+
+    const newOrder = await this.prisma.$transaction(
       async (prisma: PrismaClient) => {
         await handleOrderDetailsBeforePayment(prisma, { orderId: id, branchId })
 
@@ -39,19 +62,6 @@ export class OrderPaymentService {
 
         if (order.paymentStatus === PaymentStatus.SUCCESS)
           throw new HttpException('Đơn hàng này đã thanh toán!', HttpStatus.CONFLICT)
-
-        const [paymentMethod, branchSetting] = await Promise.all([
-          prisma.paymentMethod.findUniqueOrThrow({
-            where: {
-              id: data.paymentMethodId
-            }
-          }),
-          prisma.branchSetting.findUniqueOrThrow({
-            where: {
-              branchId
-            }
-          })
-        ])
 
         // Kiểm tra xem có setting sử dụng bếp hay không
         if (!branchSetting.useKitchen)
@@ -70,13 +80,33 @@ export class OrderPaymentService {
 
         const orderTotalNotDiscount = getOrderTotal(order.orderDetails)
 
-        const [customerDiscountValue] = await Promise.all([
-          getCustomerDiscount(data.customerId, orderTotalNotDiscount, prisma)
-        ])
+        const customerDiscountValue = await getCustomerDiscount(
+          data.customerId,
+          orderTotalNotDiscount,
+          prisma
+        )
 
-        const orderTotal = orderTotalNotDiscount - customerDiscountValue
+        // Tính tổng tiền sau khi áp dụng giảm giá
+        let orderTotal = orderTotalNotDiscount - customerDiscountValue
+        console.log('taxSetting', taxSetting)
 
-        const newOrder = await prisma.order.update({
+        // Tính thuế nếu có
+        if (data.isTaxApplied && !taxSetting && !taxSetting?.isActive)
+          throw new HttpException('Thuế chưa được cài đặt!', HttpStatus.BAD_REQUEST)
+        else {
+          if (data.isTaxApplied || taxSetting.taxApplyMode === TaxApplyMode.ALWAYS) {
+            ;({ totalTax, totalTaxDiscount } = calculateTax(
+              taxSetting,
+              order.orderDetails,
+              orderTotal
+            ))
+          }
+        }
+
+        // Tính tổng tiền cuối cùng
+        orderTotal = orderTotal + totalTax - totalTaxDiscount
+
+        return await prisma.order.update({
           where: { id },
           data: {
             isDraft: false,
@@ -90,31 +120,33 @@ export class OrderPaymentService {
             customerId: data.customerId,
             paymentMethodId: data.paymentMethodId,
             paymentAt: new Date(),
-            updatedBy: accountId
+            updatedBy: accountId,
+            totalTax,
+            totalTaxDiscount
           },
           select: orderSelect
         })
-
-        await Promise.all([
-          this.activityLogService.create(
-            {
-              action: ActivityAction.PAYMENT,
-              modelName: 'Order',
-              targetName: newOrder.code,
-              targetId: newOrder.id
-            },
-            { branchId },
-            accountId
-          ),
-          this.orderGatewayHandler.handleCreateOrder(newOrder, branchId, deviceId)
-        ])
-
-        return newOrder
       },
       {
-        timeout: 10_000,
-        maxWait: 15_000
+        timeout: TIMEOUT,
+        maxWait: MAX_WAIT
       }
     )
+
+    await Promise.all([
+      this.activityLogService.create(
+        {
+          action: ActivityAction.PAYMENT,
+          modelName: 'Order',
+          targetName: newOrder.code,
+          targetId: newOrder.id
+        },
+        { branchId },
+        accountId
+      ),
+      this.orderGatewayHandler.handleCreateOrder(newOrder, branchId, deviceId)
+    ])
+
+    return newOrder
   }
 }
