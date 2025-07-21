@@ -25,9 +25,9 @@ export class CreateQrCodeDto {
 
   @IsOptional()
   @IsNumber()
-  discountValue: number
+  discountValue: number = 0
 
   @IsOptional()
   @IsBoolean()
-  isTaxApplied: boolean
+  isTaxApplied: boolean = false
 }

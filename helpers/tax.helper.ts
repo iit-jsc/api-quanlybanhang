@@ -46,6 +46,8 @@ export function calculateTax(
 ): { totalTax: number; totalTaxDiscount: number } {
   // Nếu cài đặt thuế không active, trả về 0
   if (taxSetting.taxMethod === TaxMethod.DEDUCTION) {
+    console.log(111)
+
     if (!taxSetting.isActive) return { totalTax: 0, totalTaxDiscount: 0 }
 
     let totalTax = 0

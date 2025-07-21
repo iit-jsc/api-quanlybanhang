@@ -39,8 +39,8 @@ export class PaymentDto {
   isTaxApplied: boolean = false
 
   @IsOptional()
-  @IsString()
-  discountValue: number
+  @IsNumber()
+  discountValue: number = 0
 }
 
 export class PaymentOrderDto extends PaymentDto {
