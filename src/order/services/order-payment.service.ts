@@ -106,7 +106,7 @@ export class OrderPaymentService {
         }
 
         if (data.moneyReceived !== undefined && orderTotalFinal > data.moneyReceived) {
-          throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.CONFLICT)
+          throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.BAD_REQUEST)
         }
 
         return await prisma.order.update({

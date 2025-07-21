@@ -116,13 +116,13 @@ export class TablePaymentService {
           paymentMethod.type === PaymentMethodType.CASH ||
           paymentMethod.type === PaymentMethodType.BANKING
         ) {
-          // Validate số tiền nhận
-          if (orderTotalFinal > data.moneyReceived) {
-            throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.CONFLICT)
+          // validate tiền giảm giá và tiền nhận
+          if (orderTotalFinal < data.discountValue) {
+            throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
           }
 
           if (data.moneyReceived !== undefined && orderTotalFinal > data.moneyReceived) {
-            throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
+            throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.BAD_REQUEST)
           }
 
           // Tạo đơn hàng

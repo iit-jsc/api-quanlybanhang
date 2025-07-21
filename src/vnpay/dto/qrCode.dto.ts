@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator'
+import { IsBoolean, IsNotEmpty, IsNumber, IsOptional, IsString, ValidateIf } from 'class-validator'
 
 export class CreateQrCodeDto {
   @ValidateIf(o => !o.orderId)
@@ -26,4 +26,8 @@ export class CreateQrCodeDto {
   @IsOptional()
   @IsNumber()
   discountValue: number
+
+  @IsOptional()
+  @IsBoolean()
+  isTaxApplied: boolean
 }

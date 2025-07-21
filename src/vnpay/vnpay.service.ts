@@ -13,6 +13,7 @@ import {
   PaymentMethodType,
   PaymentStatus,
   PrismaClient,
+  TaxApplyMode,
   TransactionStatus
 } from '@prisma/client'
 import { CreateQrCodeDto } from './dto/qrCode.dto'
@@ -27,6 +28,7 @@ import { ActivityLogService } from 'src/activity-log/activity-log.service'
 import { PaymentReviewingOrderDto } from 'src/order/dto/payment.dto'
 import { orderDetailSelect } from 'responses/order-detail.response'
 import { MAX_WAIT, TIMEOUT } from 'enums/common.enum'
+import { calculateTax } from 'helpers/tax.helper'
 
 export type MerchantInfo = {
   branchId: string
@@ -312,11 +314,33 @@ export class VNPayService {
     if (!data.tableId && !data.orderId)
       throw new HttpException('Không thể truyền cả 2 tableId và orderId!', HttpStatus.BAD_REQUEST)
 
-    const paymentMethod = await this.prisma.paymentMethod.findUnique({
-      where: {
-        type_branchId: { type: PaymentMethodType.VNPAY, branchId }
+    const branch = await this.prisma.branch.findUniqueOrThrow({
+      where: { id: branchId },
+      select: {
+        branchSetting: true,
+        taxSetting: true,
+        paymentMethods: {
+          where: {
+            type: PaymentMethodType.VNPAY
+          }
+        }
       }
     })
+
+    const { taxSetting, branchSetting } = branch
+    const paymentMethod = branch.paymentMethods[0]
+    let totalTax = 0
+    let totalTaxDiscount = 0
+
+    if (!branchSetting.useKitchen) {
+      await this.prisma.orderDetail.updateMany({
+        where: { tableId: data.tableId, branchId },
+        data: {
+          status: OrderDetailStatus.SUCCESS,
+          successAt: new Date()
+        }
+      })
+    }
 
     // Lấy danh sách món từ bàn
     const orderDetailsInTable = await this.prisma.orderDetail.findMany({
@@ -345,17 +369,30 @@ export class VNPayService {
 
     // Tính tổng tiền chưa giảm giá
     const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
-
+    const orderTotalWithDiscount = orderTotalNotDiscount - data.discountValue
     if (orderTotalNotDiscount < data.discountValue)
       throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
 
-    const orderTotal = orderTotalNotDiscount - data.discountValue
+    // Tính thuế nếu có
+    if (data.isTaxApplied && !taxSetting && !taxSetting?.isActive)
+      throw new HttpException('Thuế chưa được cài đặt!', HttpStatus.BAD_REQUEST)
+    else {
+      if (data.isTaxApplied || taxSetting.taxApplyMode === TaxApplyMode.ALWAYS) {
+        ;({ totalTax, totalTaxDiscount } = calculateTax(
+          taxSetting,
+          orderDetailsInTable,
+          orderTotalWithDiscount
+        ))
+      }
+    }
 
     return await this.prisma.order.create({
       data: {
         isDraft: true,
+        totalTax,
+        totalTaxDiscount,
         tableId: data.tableId,
-        orderTotal,
+        orderTotal: orderTotalWithDiscount,
         code: data.code || generateCode('DH', 15),
         type: OrderType.OFFLINE,
         createdBy: accountId,

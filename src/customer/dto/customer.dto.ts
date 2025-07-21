@@ -1,12 +1,22 @@
 import { PartialType } from '@nestjs/swagger'
 import { SexType } from '@prisma/client'
 import { Transform, TransformFnParams } from 'class-transformer'
-import { IsEmail, IsEnum, IsNotEmpty, IsOptional, MaxDate } from 'class-validator'
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxDate,
+  MaxLength
+} from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
 
 export class CreateCustomerDto {
   @IsNotEmpty()
+  @IsString()
+  @MaxLength(100)
   name: string
 
   @IsNotEmpty()
@@ -18,6 +28,8 @@ export class CreateCustomerDto {
 
   @IsOptional()
   @IsEmail()
+  @IsString()
+  @MaxLength(50)
   email: string
 
   @IsOptional()
@@ -29,12 +41,33 @@ export class CreateCustomerDto {
   @IsEnum(SexType)
   sex: SexType
 
-  organizeName?: string
-  description?: string
-  address?: string
-  customerTypeId?: string
-  code?: string
-  tax?: string
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  organizeName: string
+
+  @IsOptional()
+  @IsString()
+  description: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  address: string
+
+  @IsOptional()
+  @IsString()
+  customerTypeId: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(10)
+  code: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  tax: string
 }
 
 export class UpdateCustomerDto extends PartialType(CreateCustomerDto) {}
