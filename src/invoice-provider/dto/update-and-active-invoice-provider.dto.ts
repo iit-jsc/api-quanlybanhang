@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsOptional, IsString } from 'class-validator'
+import { IsEnum, IsNotEmpty, IsOptional, IsString, MaxLength } from 'class-validator'
 import { InvoiceProviderType } from '@prisma/client'
 
 export class UpdateAndActiveInvoiceProviderDto {
@@ -8,29 +8,34 @@ export class UpdateAndActiveInvoiceProviderDto {
 
   @IsOptional()
   @IsString()
-  vnptApiUrl?: string
+  @MaxLength(255)
+  vnptApiUrl: string
 
   @IsOptional()
   @IsString()
-  vnptUsername?: string
+  @MaxLength(50)
+  vnptUsername: string
 
   @IsOptional()
   @IsString()
-  vnptPassword?: string
+  vnptPassword: string
 
   @IsOptional()
   @IsString()
-  vnptAccount?: string
+  @MaxLength(50)
+  vnptAccount: string
 
   @IsOptional()
   @IsString()
-  vnptAccountPassword?: string
+  vnptAccountPassword: string
 
   @IsOptional()
   @IsString()
-  invPattern?: string
+  @MaxLength(20)
+  invPattern: string
 
   @IsOptional()
   @IsString()
-  invSerial?: string
+  @MaxLength(20)
+  invSerial: string
 }

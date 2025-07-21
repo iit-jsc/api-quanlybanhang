@@ -287,7 +287,6 @@ model CustomerType {
   updatedBy    String?
   creator      Account?     @relation("creator", fields: [createdBy], references: [id])
   updater      Account?     @relation("updater", fields: [updatedBy], references: [id])
-
   @@unique([shopId, name])
 }
 

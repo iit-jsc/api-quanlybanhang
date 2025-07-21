@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { invoiceProviderSelect } from 'responses/invoice-provider.response'
 import { UpdateAndActiveInvoiceProviderDto } from './dto/update-and-active-invoice-provider.dto'
+import { encrypt } from 'utils/encrypt'
 
 @Injectable()
 export class InvoiceProviderService {
@@ -35,26 +36,43 @@ export class InvoiceProviderService {
         }
       })
 
-      return await prisma.invoiceProvider.update({
+      return await prisma.invoiceProvider.upsert({
         where: {
           branchId_providerType: {
             branchId: branchId,
             providerType: data.providerType
           }
         },
-        data: {
+        update: {
           isActive: true,
           invConfig: {
             update: {
               data: {
                 vnptApiUrl: data.vnptApiUrl,
                 vnptUsername: data.vnptUsername,
-                vnptPassword: data.vnptPassword,
+                vnptPassword: encrypt(data.vnptPassword),
                 vnptAccount: data.vnptAccount,
-                vnptAccountPassword: data.vnptAccountPassword,
+                vnptAccountPassword: encrypt(data.vnptAccountPassword),
                 invPattern: data.invPattern,
                 invSerial: data.invSerial
               }
+            }
+          }
+        },
+        create: {
+          isActive: true,
+          branchId: branchId,
+          providerType: data.providerType,
+          createdBy: updatedBy,
+          invConfig: {
+            create: {
+              vnptApiUrl: data.vnptApiUrl,
+              vnptUsername: data.vnptUsername,
+              vnptPassword: encrypt(data.vnptPassword),
+              vnptAccount: data.vnptAccount,
+              vnptAccountPassword: encrypt(data.vnptAccountPassword),
+              invPattern: data.invPattern,
+              invSerial: data.invSerial
             }
           }
         },
