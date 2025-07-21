@@ -1,24 +1,39 @@
 import { PartialType } from '@nestjs/swagger'
 import { PaymentMethodType } from '@prisma/client'
 import { Transform } from 'class-transformer'
-import { IsEnum, IsOptional } from 'class-validator'
+import { IsBoolean, IsEnum, IsOptional, IsString, Matches, MaxLength } from 'class-validator'
 import { BankNameEnum } from 'enums/bankName.enum'
 import { FindManyDto } from 'utils/Common.dto'
 
 export class CreatePaymentMethodDto {
   @IsOptional()
   @IsEnum(BankNameEnum)
-  bankName?: BankNameEnum
+  bankName: BankNameEnum
 
-  bankCode?: string
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  @Matches(/^(?!\s*$)[a-zA-Z0-9\s]*$/, {
+    message: 'bankCode không được chứa ký tự đặc biệt hoặc khoảng trắng'
+  })
+  bankCode: string
 
   @IsOptional()
   @IsEnum(PaymentMethodType)
   type: PaymentMethodType
 
-  representative?: string
-  photoURL?: string
-  active?: boolean
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  representative: string
+
+  @IsOptional()
+  @IsString()
+  photoURL: string
+
+  @IsOptional()
+  @IsBoolean()
+  active: boolean
 }
 
 export class UpdatePaymentMethodDto extends PartialType(CreatePaymentMethodDto) {}

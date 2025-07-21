@@ -3,6 +3,7 @@ import { Transform, TransformFnParams, Type } from 'class-transformer'
 import {
   ArrayNotEmpty,
   IsEnum,
+  IsInt,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -46,6 +47,7 @@ export class OrderDetailAmount {
   id: string
 
   @IsNumber()
+  @IsInt()
   @Min(0)
   amount: number
 }
@@ -75,6 +77,7 @@ export class UpdateStatusOrderDetailsDto {
 export class CancelOrderDetailsDto {
   @IsNumber()
   @Min(1)
+  @IsInt()
   amount: number
 
   @IsNotEmpty()

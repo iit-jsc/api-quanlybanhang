@@ -278,7 +278,7 @@ model ProductOptionGroup {
 
 model CustomerType {
   id           String       @id @default(uuid())
-  name         String       @db.Text
+  name         String
   description  String?      @db.Text
   discount     Float        @default(0)
   discountType DiscountType @default(VALUE)
@@ -291,6 +291,8 @@ model CustomerType {
   updatedBy    String?
   creator      Account?     @relation("creator", fields: [createdBy], references: [id])
   updater      Account?     @relation("updater", fields: [updatedBy], references: [id])
+
+  @@unique([shopId, name])
 }
 
 model Customer {
@@ -437,7 +439,7 @@ model Order {
   branchId              String
   code                  String             @unique
   type                  OrderType
-  status                OrderStatus
+  status                OrderStatus        @default(APPROVED)
   tableId               String?
   table                 Table?             @relation(fields: [tableId], references: [id])
   customerId            String?

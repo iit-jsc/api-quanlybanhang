@@ -12,7 +12,8 @@ import {
   Validate,
   ValidateNested,
   ValidatorConstraint,
-  ValidatorConstraintInterface
+  ValidatorConstraintInterface,
+  IsInt
 } from 'class-validator'
 import { OrderDetailStatus, OrderStatus, OrderType, PaymentStatus } from '@prisma/client'
 import { FindManyDto } from 'utils/Common.dto'
@@ -54,6 +55,7 @@ export class CreateOrderProductsDto {
 
   @IsNotEmpty()
   @Min(1)
+  @IsInt()
   amount: number
 
   note?: string
@@ -132,6 +134,7 @@ export class OrderDetailSeparateDto {
 
   @IsNumber()
   @Min(1)
+  @IsInt()
   amount: number
 }
 export class SeparateTableDto {

@@ -9,7 +9,8 @@ import {
   Min,
   MaxLength,
   IsOptional,
-  Max
+  Max,
+  IsInt
 } from 'class-validator'
 import { FindManyDto } from 'utils/Common.dto'
 
@@ -42,6 +43,7 @@ export class AddDishItemDto {
 
   @IsNotEmpty()
   @IsNumber()
+  @IsInt()
   @Min(1)
   amount: number
 
