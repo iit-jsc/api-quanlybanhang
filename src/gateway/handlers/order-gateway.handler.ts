@@ -44,13 +44,7 @@ export class OrderGatewayHandler {
   async handleCancelOrder(payload: any, branchId: string, deviceId?: string) {
     await this.emitToBranch('cancel-order', payload, branchId, deviceId)
   }
-  async handlePaymentSuccessfully(payload: any, deviceId?: string) {
-    // Chỉ emit tới socketId của account có deviceId cụ thể
-    const accountSocket = await prisma.accountSocket.findUnique({
-      where: { deviceId }
-    })
-
-    if (accountSocket?.socketId)
-      this.server.to(accountSocket.socketId).emit('payment-successfully', payload)
+  async handlePaymentSuccessfully(payload: any, branchId: string) {
+    await this.emitToBranch('payment-successfully', payload, branchId)
   }
 }
