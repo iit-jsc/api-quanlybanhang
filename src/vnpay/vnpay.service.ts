@@ -311,9 +311,6 @@ export class VNPayService {
   }
 
   async createOrderByTableId(data: CreateQrCodeDto, accountId: string, branchId: string) {
-    if (!data.tableId && !data.orderId)
-      throw new HttpException('Không thể truyền cả 2 tableId và orderId!', HttpStatus.BAD_REQUEST)
-
     const branch = await this.prisma.branch.findUniqueOrThrow({
       where: { id: branchId },
       select: {
