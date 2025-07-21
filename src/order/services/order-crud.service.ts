@@ -56,24 +56,24 @@ export class OrderCrudService {
         select: orderSelect
       })
 
-      await Promise.all([
-        this.activityLogService.create(
-          {
-            action: ActivityAction.CREATE,
-            modelName: 'Order',
-            targetName: order.code,
-            targetId: order.id
-          },
-          { branchId },
-          accountId
-        ),
-        this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId),
-        this.orderDetailGatewayHandler.handleCreateOrderDetails(
-          order.orderDetails,
-          branchId,
-          deviceId
-        ),
-        !data.isDraft &&
+      if (!data.isDraft) {
+        await Promise.all([
+          this.activityLogService.create(
+            {
+              action: ActivityAction.CREATE,
+              modelName: 'Order',
+              targetName: order.code,
+              targetId: order.id
+            },
+            { branchId },
+            accountId
+          ),
+          this.orderGatewayHandler.handleCreateOrder(order, branchId, deviceId),
+          this.orderDetailGatewayHandler.handleCreateOrderDetails(
+            order.orderDetails,
+            branchId,
+            deviceId
+          ),
           this.notifyService.create(
             {
               type: NotifyType.INFORMED_DISH,
@@ -82,7 +82,8 @@ export class OrderCrudService {
             branchId,
             deviceId
           )
-      ])
+        ])
+      }
 
       return order
     })

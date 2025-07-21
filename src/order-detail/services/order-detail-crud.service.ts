@@ -55,7 +55,28 @@ export class OrderDetailCrudService {
         tableId: {
           not: null
         }
-      })
+      }),
+      OR: [
+        {
+          AND: [
+            {
+              order: {
+                isNot: null
+              }
+            },
+            {
+              order: {
+                isDraft: false
+              }
+            }
+          ]
+        },
+        {
+          tableId: {
+            not: null
+          }
+        }
+      ]
     }
 
     return await customPaginate(

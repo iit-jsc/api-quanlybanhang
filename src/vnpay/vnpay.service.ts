@@ -656,7 +656,7 @@ export class VNPayService {
       select: orderSelect
     })
 
-    const promises = [this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder, deviceId)]
+    const promises = [this.orderGatewayHandler.handlePaymentSuccessfully(updatedOrder)]
 
     // Chỉ bắn handleUpdateTable khi có table
     if (updatedOrder.table) {
