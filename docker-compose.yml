@@ -15,16 +15,11 @@ services:
     networks:
       - backend
 
-  phpmyadmin:
-    image: phpmyadmin/phpmyadmin
-    container_name: pma
-    restart: always
+  adminer:
+    container_name: hrm_adminer
+    image: adminer
     ports:
-      - "8080:80"
-    environment:
-      PMA_HOST: mysql
-      PMA_USER: root
-      PMA_PASSWORD: anhemiit123
+      - "81:8080"
     networks:
       - backend
 
