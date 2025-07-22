@@ -289,8 +289,6 @@ model CustomerType {
   updater      Account?     @relation("updater", fields: [updatedBy], references: [id])
 
   @@unique([shopId, name])
-
-  @@unique([shopId, name])
 }
 
 model Customer {
