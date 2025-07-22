@@ -370,10 +370,14 @@ export class VNPayService {
     if (orderTotalNotDiscount < data.discountValue)
       throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
 
-    // Tính thuế nếu có
-    if (data.isTaxApplied && !taxSetting && !taxSetting?.isActive)
-      throw new HttpException('Thuế chưa được cài đặt!', HttpStatus.BAD_REQUEST)
-    else {
+    if (taxSetting) {
+      // Tính thuế nếu có
+      if (data.isTaxApplied && !taxSetting.isActive)
+        throw new HttpException(
+          'Thuế chưa được cài đặt hoặc chưa được bật!',
+          HttpStatus.BAD_REQUEST
+        )
+
       if (data.isTaxApplied || taxSetting.taxApplyMode === TaxApplyMode.ALWAYS) {
         ;({ totalTax, totalTaxDiscount } = calculateTax(
           taxSetting,
@@ -382,7 +386,6 @@ export class VNPayService {
         ))
       }
     }
-
     return await this.prisma.order.create({
       data: {
         isDraft: true,
