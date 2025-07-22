@@ -44,41 +44,67 @@ export function calculateTax(
   orderDetails: OrderDetail[],
   orderTotalAfterDiscount: number
 ): { totalTax: number; totalTaxDiscount: number } {
-  // Nếu cài đặt thuế không active, trả về 0
+  // Nếu thuế không được kích hoạt, trả về 0
+  if (!taxSetting.isActive) {
+    return { totalTax: 0, totalTaxDiscount: 0 }
+  }
+
+  // Trường hợp phương pháp KHẤU TRỪ (DEDUCTION)
   if (taxSetting.taxMethod === TaxMethod.DEDUCTION) {
-    console.log(111)
-
-    if (!taxSetting.isActive) return { totalTax: 0, totalTaxDiscount: 0 }
-
     let totalTax = 0
+    let totalPriceBeforeDiscount = 0
 
-    for (const orderDetail of orderDetails) {
-      const amount = orderDetail.amount
-      const product = orderDetail.product
-      const vatRate = product?.vatGroup?.vatRate || 0
+    // Tính tổng giá trị đơn hàng trước giảm giá
+    for (const detail of orderDetails) {
+      const price = detail.product?.price || 0
+      const amount = detail.amount
 
-      // Nếu sản phẩm đã bao gồm VAT
-      if (product && product.hasVat) {
-        totalTax += amount * (product.price - product.price / (1 + vatRate / 100))
+      totalPriceBeforeDiscount += price * amount
+    }
+
+    for (const detail of orderDetails) {
+      const vatRate = detail.product?.vatGroup?.vatRate || 0
+      const hasVat = detail.product?.hasVat
+      const price = detail.product?.price || 0
+      const amount = detail.amount
+
+      const lineTotal = price * amount
+
+      // Tính tỷ lệ của từng dòng trong tổng đơn hàng
+      const ratio = totalPriceBeforeDiscount ? lineTotal / totalPriceBeforeDiscount : 0
+
+      // Phân bổ phần tiền sau giảm giá
+      const discountedLineTotal = orderTotalAfterDiscount * ratio
+
+      let lineTax = 0
+
+      if (hasVat) {
+        // Nếu giá đã bao gồm VAT → tách VAT ra
+        lineTax = discountedLineTotal - discountedLineTotal / (1 + vatRate / 100)
       } else {
-        // Nếu sản phẩm không có VAT
-        totalTax += amount * (product.price * (vatRate / 100))
+        // Nếu giá chưa bao gồm VAT → tính VAT bình thường
+        lineTax = discountedLineTotal * (vatRate / 100)
       }
+
+      totalTax += lineTax
     }
 
     return {
-      totalTax: Number(totalTax.toFixed(0)),
+      totalTax: Math.round(totalTax),
       totalTaxDiscount: 0
     }
   }
 
+  // Trường hợp phương pháp TRỰC TIẾP (DIRECT)
   if (taxSetting.taxMethod === TaxMethod.DIRECT) {
-    // Tính thuế theo phương pháp khấu trừ = Tổng tiền sau giảm giá * tỷ lệ thuế trực tiếp * 0.02
+    // Giảm trực tiếp 2% của tỷ lệ thuế vào đơn hàng
+    const taxDiscount = orderTotalAfterDiscount * (taxSetting.taxDirectRate / 100) * 0.2
+
     return {
       totalTax: 0,
-      totalTaxDiscount: Number(
-        Math.round(orderTotalAfterDiscount * (taxSetting.taxDirectRate / 100) * 0.2)
-      )
+      totalTaxDiscount: Math.round(taxDiscount)
     }
   }
+
+  return { totalTax: 0, totalTaxDiscount: 0 }
 }

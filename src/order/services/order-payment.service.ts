@@ -54,8 +54,10 @@ export class OrderPaymentService {
 
     const { branchSetting, taxSetting } = branch
     const paymentMethod = branch.paymentMethods[0]
+
     let totalTax = 0
     let totalTaxDiscount = 0
+    let isTaxTrulyIncluded = false
 
     if (order.paymentStatus === PaymentStatus.SUCCESS)
       throw new HttpException('Đơn hàng này đã thanh toán!', HttpStatus.CONFLICT)
@@ -81,6 +83,9 @@ export class OrderPaymentService {
 
         const orderTotalNotDiscount = getOrderTotal(order.orderDetails)
 
+        if (orderTotalNotDiscount < data.discountValue)
+          throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
+
         // Tính tổng tiền sau khi áp dụng giảm giá
         const orderTotalWithDiscount = orderTotalNotDiscount - data.discountValue
 
@@ -98,16 +103,14 @@ export class OrderPaymentService {
               order.orderDetails,
               orderTotalWithDiscount
             ))
+
+            // Kiểm tra xem thuế có thực sự được áp dụng hay không
+            isTaxTrulyIncluded = true
           }
         }
 
         // Tính tổng tiền cuối cùng
         const orderTotalFinal = orderTotalWithDiscount + totalTax - totalTaxDiscount
-
-        // validate tiền giảm giá và tiền nhận
-        if (orderTotalFinal < data.discountValue) {
-          throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
-        }
 
         if (data.moneyReceived !== undefined && orderTotalFinal > data.moneyReceived) {
           throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.BAD_REQUEST)
@@ -129,7 +132,7 @@ export class OrderPaymentService {
             updatedBy: accountId,
             totalTax,
             totalTaxDiscount,
-            isTaxApplied: !totalTax || !totalTaxDiscount
+            isTaxApplied: isTaxTrulyIncluded
           },
           select: orderSelect
         })

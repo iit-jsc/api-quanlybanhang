@@ -10,6 +10,7 @@ import {
   IsString,
   Min
 } from 'class-validator'
+import { Transform } from 'class-transformer'
 
 export class PaymentDto {
   @IsNotEmpty()
@@ -24,6 +25,7 @@ export class PaymentDto {
   @IsOptional()
   @Min(1)
   @IsNumber()
+  @Transform(({ value }) => Math.round(Number(value)))
   moneyReceived: number
 
   @IsOptional()
@@ -37,9 +39,9 @@ export class PaymentDto {
   @IsOptional()
   @IsBoolean()
   isTaxApplied: boolean = false
-
   @IsOptional()
   @IsNumber()
+  @Transform(({ value }) => Math.round(Number(value)))
   discountValue: number = 0
 }
 

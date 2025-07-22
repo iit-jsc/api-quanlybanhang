@@ -324,10 +324,11 @@ export class VNPayService {
       }
     })
 
-    const { taxSetting, branchSetting } = branch
-    const paymentMethod = branch.paymentMethods[0]
     let totalTax = 0
     let totalTaxDiscount = 0
+    let isTaxTrulyIncluded = false
+    const { taxSetting, branchSetting } = branch
+    const paymentMethod = branch.paymentMethods[0]
 
     if (!branchSetting.useKitchen) {
       await this.prisma.orderDetail.updateMany({
@@ -367,6 +368,7 @@ export class VNPayService {
     // Tính tổng tiền chưa giảm giá
     const orderTotalNotDiscount = getOrderTotal(orderDetailsInTable)
     const orderTotalWithDiscount = orderTotalNotDiscount - data.discountValue
+
     if (orderTotalNotDiscount < data.discountValue)
       throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
 
@@ -384,6 +386,9 @@ export class VNPayService {
           orderDetailsInTable,
           orderTotalWithDiscount
         ))
+
+        // Kiểm tra xem thuế có thực sự được áp dụng hay không
+        isTaxTrulyIncluded = true
       }
     }
     return await this.prisma.order.create({
@@ -402,7 +407,7 @@ export class VNPayService {
         orderDetails: {
           connect: orderDetailsInTable.map(od => ({ id: od.id }))
         },
-        isTaxApplied: !totalTax || !totalTaxDiscount
+        isTaxApplied: isTaxTrulyIncluded
       }
     })
   }

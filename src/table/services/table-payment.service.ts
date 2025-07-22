@@ -61,6 +61,7 @@ export class TablePaymentService {
 
     let totalTax = 0
     let totalTaxDiscount = 0
+    let isTaxTrulyIncluded = false
 
     // Validate phương thức thanh toán
     if (paymentMethod.type === PaymentMethodType.VNPAY) {
@@ -109,6 +110,9 @@ export class TablePaymentService {
               orderDetailsInTable,
               orderTotalWithDiscount
             ))
+
+            // Kiểm tra xem thuế có thực sự được áp dụng hay không
+            isTaxTrulyIncluded = true
           }
         }
 
@@ -120,11 +124,7 @@ export class TablePaymentService {
           paymentMethod.type === PaymentMethodType.CASH ||
           paymentMethod.type === PaymentMethodType.BANKING
         ) {
-          // validate tiền giảm giá và tiền nhận
-          if (orderTotalFinal < data.discountValue) {
-            throw new HttpException('Giá trị giảm giá không hợp lệ!', HttpStatus.BAD_REQUEST)
-          }
-
+          // validate tiền nhận
           if (data.moneyReceived !== undefined && orderTotalFinal > data.moneyReceived) {
             throw new HttpException('Tiền nhận không hợp lệ!', HttpStatus.BAD_REQUEST)
           }
@@ -133,7 +133,7 @@ export class TablePaymentService {
           const createOrderPromise = prisma.order.create({
             data: {
               isDraft: false,
-              isTaxApplied: !totalTax || !totalTaxDiscount,
+              isTaxApplied: isTaxTrulyIncluded,
               paymentStatus: PaymentStatus.SUCCESS,
               tableId,
               orderTotal: orderTotalFinal,
