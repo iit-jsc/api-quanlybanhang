@@ -133,6 +133,7 @@ export class TablePaymentService {
           const createOrderPromise = prisma.order.create({
             data: {
               isDraft: false,
+              isTaxApplied: !totalTax || !totalTaxDiscount,
               paymentStatus: PaymentStatus.SUCCESS,
               tableId,
               orderTotal: orderTotalFinal,
@@ -147,7 +148,7 @@ export class TablePaymentService {
               totalTaxDiscount,
               createdBy: accountId,
               branchId,
-              ...(data.customerId && { customerId: data.customerId })
+              customerId: data.customerId
             },
             select: orderSelect
           })

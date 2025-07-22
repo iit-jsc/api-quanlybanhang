@@ -398,10 +398,11 @@ export class VNPayService {
         createdBy: accountId,
         branchId,
         paymentMethodId: paymentMethod?.id,
-        ...(data.customerId && { customerId: data.customerId }),
+        customerId: data.customerId,
         orderDetails: {
           connect: orderDetailsInTable.map(od => ({ id: od.id }))
-        }
+        },
+        isTaxApplied: !totalTax || !totalTaxDiscount
       }
     })
   }

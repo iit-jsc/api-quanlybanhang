@@ -128,7 +128,8 @@ export class OrderPaymentService {
             paymentAt: new Date(),
             updatedBy: accountId,
             totalTax,
-            totalTaxDiscount
+            totalTaxDiscount,
+            isTaxApplied: !totalTax || !totalTaxDiscount
           },
           select: orderSelect
         })
