@@ -1,7 +1,7 @@
 import { PartialType } from '@nestjs/swagger'
 import { PaymentMethodType } from '@prisma/client'
 import { Transform } from 'class-transformer'
-import { IsBoolean, IsEnum, IsOptional, IsString, MaxLength } from 'class-validator'
+import { IsBoolean, IsEnum, IsOptional, IsString, Matches, MaxLength } from 'class-validator'
 import { BankNameEnum } from 'enums/bankName.enum'
 import { FindManyDto } from 'utils/Common.dto'
 
@@ -9,12 +9,15 @@ export class CreatePaymentMethodDto {
   @IsOptional()
   @IsEnum(BankNameEnum)
   @IsString()
-  @MaxLength(255)
-  bankName?: BankNameEnum
+  @MaxLength(50)
+  bankName: BankNameEnum
 
   @IsOptional()
   @IsString()
   @MaxLength(50)
+  @Matches(/^(?!\s*$)[a-zA-Z0-9\s]*$/, {
+    message: 'bankCode không được chứa ký tự đặc biệt hoặc khoảng trắng'
+  })
   bankCode: string
 
   @IsOptional()

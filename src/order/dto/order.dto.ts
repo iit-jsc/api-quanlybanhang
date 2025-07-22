@@ -10,7 +10,8 @@ import {
   Min,
   ArrayMaxSize,
   ValidateNested,
-  IsString
+  IsString,
+  IsInt
 } from 'class-validator'
 import { OrderDetailStatus, OrderType, PaymentStatus } from '@prisma/client'
 import { FindManyDto } from 'utils/Common.dto'
@@ -38,6 +39,7 @@ export class CreateOrderProductsDto {
 
   @IsNotEmpty()
   @Min(1)
+  @IsInt()
   amount: number
 
   note?: string
@@ -104,6 +106,7 @@ export class OrderDetailSeparateDto {
 
   @IsNumber()
   @Min(1)
+  @IsInt()
   amount: number
 }
 export class SeparateTableDto {
