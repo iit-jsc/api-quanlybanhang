@@ -20,19 +20,14 @@ export class InvoiceProviderService {
     })
   }
 
-  async updateAndActive(
-    data: UpdateAndActiveInvoiceProviderDto,
-    branchId: string,
-    updatedBy: string
-  ) {
+  async updateAndActive(data: UpdateAndActiveInvoiceProviderDto, branchId: string) {
     return await this.prisma.$transaction(async prisma => {
       await prisma.invoiceProvider.updateMany({
         where: {
           branchId: branchId
         },
         data: {
-          isActive: false,
-          updatedBy: updatedBy
+          isActive: false
         }
       })
 
@@ -49,6 +44,7 @@ export class InvoiceProviderService {
             update: {
               data: {
                 vnptApiUrl: data.vnptApiUrl,
+                vnptLookupUrl: data.vnptLookupUrl,
                 vnptUsername: data.vnptUsername,
                 vnptPassword: encrypt(data.vnptPassword),
                 vnptAccount: data.vnptAccount,
@@ -63,11 +59,11 @@ export class InvoiceProviderService {
           isActive: true,
           branchId: branchId,
           providerType: data.providerType,
-          createdBy: updatedBy,
           invConfig: {
             create: {
               vnptApiUrl: data.vnptApiUrl,
               vnptUsername: data.vnptUsername,
+              vnptLookupUrl: data.vnptLookupUrl,
               vnptPassword: encrypt(data.vnptPassword),
               vnptAccount: data.vnptAccount,
               vnptAccountPassword: encrypt(data.vnptAccountPassword),

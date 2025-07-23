@@ -21,7 +21,7 @@ export class InvoiceProviderController {
    */
   @Patch('update-and-active')
   @HttpCode(HttpStatus.OK)
-  async updateAndActive(@Body() data: UpdateAndActiveInvoiceProviderDto, @Req() req: RequestJWT) {
-    return this.invoiceProviderService.updateAndActive(data, req.branchId, req.accountId)
+  async updateAndActive(@Body() data: UpdateAndActiveInvoiceProviderDto) {
+    return this.invoiceProviderService.updateAndActive(data, data.branchId)
   }
 }

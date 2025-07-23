@@ -128,6 +128,7 @@ export class OrderPaymentService {
             bankingImages: data.bankingImages,
             customerId: data.customerId,
             paymentMethodId: data.paymentMethodId,
+            discountValue: data.discountValue,
             paymentAt: new Date(),
             updatedBy: accountId,
             totalTax,

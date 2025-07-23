@@ -396,6 +396,7 @@ export class VNPayService {
         isDraft: true,
         totalTax,
         totalTaxDiscount,
+        discountValue: data.discountValue,
         tableId: data.tableId,
         orderTotal: orderTotalWithDiscount,
         code: data.code || generateCode('DH', 15),

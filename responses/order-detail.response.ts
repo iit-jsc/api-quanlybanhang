@@ -8,6 +8,7 @@ export const orderDetailShortSelect: Prisma.OrderDetailSelect = {
   status: true,
   product: true,
   productOptions: true,
+  productOriginId: true,
   updatedAt: true,
   createdAt: true,
   informAt: true,

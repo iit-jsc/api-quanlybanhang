@@ -1,44 +1,18 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Param,
-  HttpCode,
-  HttpStatus,
-  UseGuards,
-  Req,
-  Query
-} from '@nestjs/common'
-import { InvoiceService } from './invoice.service'
+import { Controller, Post, Body, HttpCode, HttpStatus, UseGuards, Req } from '@nestjs/common'
 import { JwtAuthGuard } from 'guards/jwt-auth.guard'
 import { RolesGuard } from 'guards/roles.guard'
 import { RequestJWT } from 'interfaces/common.interface'
-import { CreateInvoiceDto } from './dto/invoice.dto'
-import { FindManyDto } from 'utils/Common.dto'
+import { ExportInvoicesDto } from './dto/invoice.dto'
+import { InvoiceService } from './invoice.service'
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('invoice')
 export class InvoiceController {
   constructor(private readonly invoiceService: InvoiceService) {}
-  @Post('create')
-  @HttpCode(HttpStatus.OK)
-  async createInvoice(@Body() data: CreateInvoiceDto, @Req() req: RequestJWT) {
-    const { accountId, branchId } = req
-    return this.invoiceService.createInvoice(data, accountId, branchId)
-  }
 
-  @Get('')
+  @Post('export-batch')
   @HttpCode(HttpStatus.OK)
-  async getInvoices(@Req() req: RequestJWT, @Query() data: FindManyDto) {
-    const { branchId } = req
-    return this.invoiceService.getInvoicesByBranch(data, branchId)
-  }
-
-  @Get(':id')
-  @HttpCode(HttpStatus.OK)
-  async getInvoiceById(@Param('id') id: string, @Req() req: RequestJWT) {
-    const { branchId } = req
-    return this.invoiceService.getInvoiceById(id, branchId)
+  async exportInvoices(@Body() data: ExportInvoicesDto, @Req() req: RequestJWT) {
+    return await this.invoiceService.exportInvoices(data, req.accountId, req.branchId)
   }
 }

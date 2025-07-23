@@ -36,7 +36,8 @@ export class CustomerService {
           }),
           shopId,
           createdBy: accountId
-        }
+        },
+        select: customerSelect
       })
 
       await this.activityLogService.create(
@@ -139,7 +140,8 @@ export class CustomerService {
           customerTypeId: data.customerTypeId
         }),
         updatedBy: accountId
-      }
+      },
+      select: customerSelect
     })
 
     await this.activityLogService.create(

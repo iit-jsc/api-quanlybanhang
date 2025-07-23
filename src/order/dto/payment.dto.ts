@@ -39,6 +39,7 @@ export class PaymentDto {
   @IsOptional()
   @IsBoolean()
   isTaxApplied: boolean = false
+
   @IsOptional()
   @IsNumber()
   @Transform(({ value }) => Math.round(Number(value)))

@@ -2,6 +2,10 @@ import { IsEnum, IsNotEmpty, IsOptional, IsString, IsUrl, MaxLength } from 'clas
 import { InvoiceProviderType } from '@prisma/client'
 
 export class UpdateAndActiveInvoiceProviderDto {
+  @IsNotEmpty()
+  @IsString()
+  branchId: string
+
   @IsEnum(InvoiceProviderType)
   @IsNotEmpty()
   providerType: InvoiceProviderType
@@ -11,6 +15,12 @@ export class UpdateAndActiveInvoiceProviderDto {
   @MaxLength(255)
   @IsUrl()
   vnptApiUrl: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  @IsUrl()
+  vnptLookupUrl: string
 
   @IsOptional()
   @IsString()

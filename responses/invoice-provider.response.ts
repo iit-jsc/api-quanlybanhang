@@ -5,8 +5,6 @@ export const invoiceProviderSelect: Prisma.InvoiceProviderSelect = {
   branchId: true,
   providerType: true,
   isActive: true,
-  createdBy: true,
-  updatedBy: true,
   createdAt: true,
   updatedAt: true,
   invConfig: {

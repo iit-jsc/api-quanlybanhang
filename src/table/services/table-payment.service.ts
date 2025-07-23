@@ -141,6 +141,7 @@ export class TablePaymentService {
               note: data.note,
               type: OrderType.OFFLINE,
               bankingImages: data.bankingImages,
+              discountValue: data.discountValue,
               moneyReceived: data.moneyReceived,
               paymentAt: new Date(),
               paymentMethodId: data.paymentMethodId,

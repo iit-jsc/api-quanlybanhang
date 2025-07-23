@@ -104,8 +104,6 @@ model Account {
   accountSockets            AccountSocket[]
   updaterBranchSetting      BranchSetting[]       @relation("updater")
   updaterTaxSetting         TaxSetting[]          @relation("updater")
-  updaterInvoiceProvider    InvoiceProvider[]     @relation("updater")
-  creatorInvoiceProvider    InvoiceProvider[]     @relation("creator")
   updaterInvoice            Invoice[]             @relation("updater")
   creatorInvoice            Invoice[]             @relation("creator")
   updaterVATGroup           VATGroup[]            @relation("updater")
@@ -424,7 +422,6 @@ model OrderDetail {
   creator              Account?              @relation("creator", fields: [createdBy], references: [id])
   updater              Account?              @relation("updater", fields: [updatedBy], references: [id])
   canceledOrderDetails CanceledOrderDetail[]
-  invoiceDetail        InvoiceDetail[]
 }
 
 model CanceledOrderDetail {
@@ -655,13 +652,10 @@ model InvoiceProvider {
   branch       Branch?             @relation(fields: [branchId], references: [id], onDelete: Cascade)
   providerType InvoiceProviderType
   isActive     Boolean             @default(false)
-  createdBy    String?
-  updatedBy    String?
-  creator      Account?            @relation("creator", fields: [createdBy], references: [id])
-  updater      Account?            @relation("updater", fields: [updatedBy], references: [id])
   createdAt    DateTime            @default(now())
   updatedAt    DateTime            @updatedAt
   invConfig    InvoiceConfig?
+  Invoice      Invoice[]
 
   @@unique([branchId, providerType])
 }
@@ -675,6 +669,7 @@ model InvoiceConfig {
   vnptPassword        String?          @db.Text
   vnptAccount         String?          @db.Text
   vnptAccountPassword String?          @db.Text
+  vnptLookupUrl       String?          @db.Text
   invPattern          String?          @db.Text
   invSerial           String?          @db.Text
   createdAt           DateTime         @default(now())
@@ -699,33 +694,36 @@ model VATGroup {
 }
 
 model Invoice {
-  id                     String          @id @default(uuid())
+  id                     String           @id @default(uuid())
   branchId               String
-  branch                 Branch?         @relation(fields: [branchId], references: [id])
-  orderId                String          @unique
-  order                  Order?          @relation(fields: [orderId], references: [id])
-  customerName           String          @db.Text
-  originalName           String          @db.Text
-  customerTaxCode        String?         @db.Text
-  customerCardId         String?         @db.Text
-  passport               String?         @db.Text
-  customerAddress        String?         @db.Text
-  customerPhone          String?         @db.Text
-  customerEmail          String?         @db.Text
-  customerBankName       String?         @db.Text
-  customerBankCode       String?         @db.Text
-  commercialInvoiceTotal Float?          @default(0)
+  branch                 Branch?          @relation(fields: [branchId], references: [id])
+  orderId                String           @unique
+  order                  Order?           @relation(fields: [orderId], references: [id])
+  customerName           String           @db.Text
+  originalName           String           @db.Text
+  customerTaxCode        String?          @db.Text
+  customerCardId         String?          @db.Text
+  passport               String?          @db.Text
+  customerAddress        String?          @db.Text
+  customerPhone          String?          @db.Text
+  customerEmail          String?          @db.Text
+  customerBankName       String?          @db.Text
+  customerBankCode       String?          @db.Text
+  commercialInvoiceTotal Float?           @default(0)
   totalBeforeTax         Float?
-  totalTax               Float?          @default(0)
-  totalTaxDiscount       Float?          @default(0)
+  totalTax               Float?           @default(0)
+  totalTaxDiscount       Float?           @default(0)
   totalAfterTax          Float?
-  status                 InvoiceStatus   @default(PENDING)
+  status                 InvoiceStatus    @default(PENDING)
+  invoiceProviderId      String?
+  invoiceProvider        InvoiceProvider? @relation(fields: [invoiceProviderId], references: [id])
+  lookupKey              String?          @unique
   createdBy              String?
   updatedBy              String?
-  creator                Account?        @relation("creator", fields: [createdBy], references: [id])
-  updater                Account?        @relation("updater", fields: [updatedBy], references: [id])
-  createdAt              DateTime        @default(now())
-  updatedAt              DateTime        @updatedAt
+  creator                Account?         @relation("creator", fields: [createdBy], references: [id])
+  updater                Account?         @relation("updater", fields: [updatedBy], references: [id])
+  createdAt              DateTime         @default(now())
+  updatedAt              DateTime         @updatedAt
   invoiceDetails         InvoiceDetail[]
 }
 
@@ -739,11 +737,8 @@ model InvoiceDetail {
   unitPrice     Float
   amount        Float
   vatRate       Float       @default(0)
-  vatAmount     Float       @default(0)
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
-  orderDetail   OrderDetail @relation(fields: [orderDetailId], references: [id])
-  orderDetailId String
 }
 
 enum TaxMethod {
