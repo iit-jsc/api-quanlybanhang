@@ -9,4 +9,12 @@ export class AppController {
   getHello(): string {
     return this.appService.getHello()
   }
+
+  @Get('test-ip-blocking')
+  testIpBlocking(): { message: string; timestamp: string } {
+    return {
+      message: 'IP Blocking test endpoint',
+      timestamp: new Date().toISOString()
+    }
+  }
 }

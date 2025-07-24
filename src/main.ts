@@ -11,7 +11,7 @@ import { PrismaExceptionFilter } from './common/exceptions/prisma-exception.filt
 import { AllExceptionsFilter } from './common/exceptions/all-exceptions.filter'
 import { ValidationError } from 'class-validator'
 import { errorFormatter } from 'utils/ApiErrors'
-import { SecurityInterceptor } from '../security'
+import { SecurityInterceptor, IpBlockGuard } from '../security'
 
 async function bootstrap() {
   try {
@@ -34,7 +34,9 @@ async function bootstrap() {
     app.use(json({ limit: '5mb' }))
     app.use(cookieParser())
 
-    // Security interceptors và global guards
+    // Security interceptors và global guards - IP blocking phải đứng đầu
+    const ipBlockGuard = app.get(IpBlockGuard)
+    app.useGlobalGuards(ipBlockGuard)
     app.useGlobalInterceptors(new TransformInterceptor(), new SecurityInterceptor())
 
     app.useGlobalFilters(
