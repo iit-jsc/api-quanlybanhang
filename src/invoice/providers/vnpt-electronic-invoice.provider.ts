@@ -269,8 +269,7 @@ export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider
                                     <DLieu>MTT</DLieu>
                                 </TTin>
                             </TTKhac>
-                        </TTChung>                        <NDHDon>
-                            <NMua>
+                        </TTChung>                        <NDHDon>                            <NMua>
                                 <Ten>${data.buyerInfo.name}</Ten>
                                 ${data.buyerInfo.taxCode ? `<MST>${data.buyerInfo.taxCode}</MST>` : ''}
                                 ${data.buyerInfo.phone ? `<SDThoai>${data.buyerInfo.phone}</SDThoai>` : ''}
@@ -280,6 +279,8 @@ export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider
                                 <MKHang></MKHang>
                                 <DChi>${data.buyerInfo.address}</DChi>
                                 ${data.buyerInfo.contactPerson && data.buyerInfo.contactPerson !== data.buyerInfo.name ? `<HVTNMHang>${data.buyerInfo.contactPerson}</HVTNMHang>` : ''}
+                                ${data.buyerInfo.bankName ? `<STKNHang>${data.buyerInfo.bankCode}</STKNHang>` : ''}
+                                ${data.buyerInfo.bankName ? `<TNHang>${data.buyerInfo.bankName}</TNHang>` : ''}
                                 <TTKhac>
                                     <TTin>
                                         <TTruong>Extra6</TTruong>
@@ -296,17 +297,75 @@ export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider
                                         <KDLieu>string</KDLieu>
                                         <DLieu>Extra8 test</DLieu>
                                     </TTin>
+                                    ${
+                                      data.buyerInfo.bankName
+                                        ? `
+                                    <TTin>
+                                        <TTruong>CustomerBankName</TTruong>
+                                        <KDLieu>string</KDLieu>
+                                        <DLieu>${data.buyerInfo.bankName}</DLieu>
+                                    </TTin>`
+                                        : ''
+                                    }
+                                    ${
+                                      data.buyerInfo.bankCode
+                                        ? `
+                                    <TTin>
+                                        <TTruong>CustomerBankCode</TTruong>
+                                        <KDLieu>string</KDLieu>
+                                        <DLieu>${data.buyerInfo.bankCode}</DLieu>
+                                    </TTin>`
+                                        : ''
+                                    }
                                 </TTKhac>
                             </NMua>
                             <DSHHDVu>${itemsXML}
-                            </DSHHDVu>
-                            <TToan>
+                            </DSHHDVu>                            <TToan>
                                 ${vatSummaryXML}
                                 <TgTCThue>${data.totalInfo.totalBeforeTax}</TgTCThue>
                                 ${data.totalInfo.totalTax > 0 ? `<TgTThue>${data.totalInfo.totalTax}</TgTThue>` : ''}
-                                <TTCKTMai>${data.totalInfo.totalAfterTax - data.totalInfo.totalBeforeTax - (data.totalInfo.totalTax || 0)}</TTCKTMai>
+                                <TTCKTMai>0</TTCKTMai>
                                 <TgTTTBSo>${data.totalInfo.totalAfterTax}</TgTTTBSo>
                                 <TgTTTBChu>${data.totalInfo.totalInWords}</TgTTTBChu>
+                                <TTKhac>
+                                    <TTin>
+                                        <TTruong>Extra9</TTruong>
+                                        <KDLieu>string</KDLieu>
+                                        <DLieu>Extra9 test</DLieu>
+                                    </TTin>
+                                    <TTin>
+                                        <TTruong>Extra10</TTruong>
+                                        <KDLieu>string</KDLieu>
+                                        <DLieu>Extra10 test</DLieu>
+                                    </TTin>
+                                    <TTin>
+                                        <TTruong>Extra11</TTruong>
+                                        <KDLieu>DateTime</KDLieu>
+                                        <DLieu>${data.invoiceDate}</DLieu>
+                                    </TTin>
+                                    ${
+                                      data.totalInfo.totalTaxDiscount &&
+                                      data.totalInfo.totalTaxDiscount > 0
+                                        ? `
+                                    <TTin>
+                                        <TTruong>TaxDiscount</TTruong>
+                                        <KDLieu>number</KDLieu>
+                                        <DLieu>${data.totalInfo.totalTaxDiscount}</DLieu>
+                                    </TTin>`
+                                        : ''
+                                    }
+                                    ${
+                                      data.totalInfo.totalTaxDiscount &&
+                                      data.totalInfo.totalTaxDiscount > 0
+                                        ? `
+                                    <TTin>
+                                        <TTruong>TaxDiscountNote</TTruong>
+                                        <KDLieu>string</KDLieu>
+                                        <DLieu>Giảm trừ thuế theo Nghị quyết 204/2025/QH15</DLieu>
+                                    </TTin>`
+                                        : ''
+                                    }
+                                </TTKhac>
                             </TToan>
                         </NDHDon>
                     </DLHDon>
