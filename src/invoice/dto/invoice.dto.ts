@@ -19,6 +19,12 @@ export enum InvoiceType {
   VAT_INVOICE = 'VAT_INVOICE'
 }
 
+export enum PaymentMethod {
+  TM = 'TM',
+  CK = 'CK',
+  KHAC = 'KHAC'
+}
+
 export class CreateInvoiceDetailDto {
   @IsNotEmpty()
   @IsString()
@@ -138,8 +144,8 @@ export class CreateInvoiceDto {
 
   @IsOptional()
   @IsString()
-  @IsEnum(['TM', 'CK', 'KHAC'])
-  paymentMethod: string
+  @IsEnum(PaymentMethod)
+  paymentMethod: PaymentMethod
 
   @IsArray()
   @ArrayNotEmpty()

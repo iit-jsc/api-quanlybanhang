@@ -152,8 +152,17 @@ export class InvoiceService {
         )
       }
 
-      // Validate VAT nếu có
-      if (detail.vatRate && detail.vatAmount) {
+      // Validate VAT nếu có thuế suất
+      if (detail.vatRate && detail.vatRate > 0) {
+        // Nếu có thuế suất > 0 thì bắt buộc phải có tiền thuế
+        if (!detail.vatAmount || detail.vatAmount <= 0) {
+          throw new HttpException(
+            `Chi tiết ${index + 1}: Khi có thuế suất ${detail.vatRate}% thì bắt buộc phải có tiền thuế VAT > 0`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
+
+        // Validate tính toán VAT chính xác
         const expectedVat = (detail.unitPrice * detail.amount * detail.vatRate) / 100
         if (Math.abs(expectedVat - detail.vatAmount) > 0.01) {
           throw new HttpException(
@@ -161,6 +170,12 @@ export class InvoiceService {
             HttpStatus.BAD_REQUEST
           )
         }
+      } else if (detail.vatAmount && detail.vatAmount > 0) {
+        // Nếu có tiền thuế nhưng không có thuế suất thì báo lỗi
+        throw new HttpException(
+          `Chi tiết ${index + 1}: Có tiền thuế ${detail.vatAmount} nhưng không có thuế suất`,
+          HttpStatus.BAD_REQUEST
+        )
       }
     })
 
@@ -187,6 +202,17 @@ export class InvoiceService {
       throw new HttpException('Hóa đơn VAT bắt buộc phải có tổng tiền thuế', HttpStatus.BAD_REQUEST)
     }
 
+    // Kiểm tra logic: nếu có bất kỳ chi tiết nào có thuế suất > 0 thì tổng tiền thuế phải > 0
+    const hasVATItems = invoiceData.invoiceDetails.some(
+      detail => detail.vatRate && detail.vatRate > 0
+    )
+    if (hasVATItems && invoiceData.totalTax <= 0) {
+      throw new HttpException(
+        'Hóa đơn có sản phẩm chịu thuế VAT nhưng tổng tiền thuế = 0',
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
     // Validate các chi tiết hóa đơn có VAT rate và VAT amount
     invoiceData.invoiceDetails.forEach((detail, index) => {
       if (detail.vatRate === undefined || detail.vatRate === null) {
@@ -196,11 +222,14 @@ export class InvoiceService {
         )
       }
 
-      if (detail.vatAmount === undefined || detail.vatAmount === null) {
-        throw new HttpException(
-          `Chi tiết ${index + 1}: Hóa đơn VAT bắt buộc phải có tiền thuế`,
-          HttpStatus.BAD_REQUEST
-        )
+      // Nếu thuế suất > 0 thì bắt buộc phải có tiền thuế
+      if (detail.vatRate > 0) {
+        if (detail.vatAmount === undefined || detail.vatAmount === null || detail.vatAmount <= 0) {
+          throw new HttpException(
+            `Chi tiết ${index + 1}: Hóa đơn VAT với thuế suất ${detail.vatRate}% bắt buộc phải có tiền thuế > 0`,
+            HttpStatus.BAD_REQUEST
+          )
+        }
       }
     })
   }
