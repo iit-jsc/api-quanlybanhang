@@ -2,7 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
 import { ExportInvoicesDto, CreateInvoiceDto, InvoiceType } from './dto/invoice.dto'
 import { VNPTElectronicInvoiceProvider } from './providers'
-import { InvoiceStatus, TaxMethod } from '@prisma/client'
+import { InvoiceProviderType, InvoiceStatus, TaxMethod } from '@prisma/client'
 
 @Injectable()
 export class InvoiceService {
@@ -17,7 +17,7 @@ export class InvoiceService {
     const results = []
 
     // Optimized query: Fetch all required data in one go
-    const branchData = await this.prisma.branch.findFirstOrThrow({
+    const branchData = await this.prisma.branch.findUniqueOrThrow({
       where: { id: branchId },
       include: {
         taxSetting: true,
@@ -37,15 +37,6 @@ export class InvoiceService {
     }
 
     // Get all order IDs to fetch order codes in batch
-    const orderIds = data.invoices.map(inv => inv.orderId)
-
-    const orders = await this.prisma.order.findMany({
-      where: { id: { in: orderIds }, branchId },
-      select: { id: true, code: true }
-    })
-
-    const orderCodeMap = new Map(orders.map(order => [order.id, order.code]))
-
     for (const invoiceData of data.invoices) {
       try {
         // 1. Determine invoice type automatically if not specified
@@ -56,8 +47,6 @@ export class InvoiceService {
 
         // 3. Create invoice record in database
         const invoice = await this.createInvoiceRecord(finalInvoiceData, accountId, branchId)
-
-        const orderCode = orderCodeMap.get(invoiceData.orderId)
 
         // 4. Handle electronic vs non-electronic export
         const vnptResult = await this.exportToVNPT(invoice, finalInvoiceData)
@@ -72,7 +61,6 @@ export class InvoiceService {
         results.push({
           success: vnptResult.success,
           orderId: invoiceData.orderId,
-          orderCode: orderCode,
           message: vnptResult.success ? 'Xuất hóa đơn thành công' : vnptResult.error,
           ...(vnptResult.success && {
             exportData: {
@@ -84,11 +72,9 @@ export class InvoiceService {
           })
         })
       } catch (error) {
-        const orderCode = orderCodeMap.get(invoiceData.orderId)
         results.push({
           success: false,
           orderId: invoiceData.orderId,
-          orderCode: orderCode,
           message: error.message
         })
       }
@@ -253,6 +239,7 @@ export class InvoiceService {
           customerAddress: invoiceData.customerAddress,
           customerPhone: invoiceData.customerPhone,
           customerEmail: invoiceData.customerEmail,
+          paymentMethod: invoiceData.paymentMethod,
           totalBeforeTax: invoiceData.totalBeforeTax,
           totalTax: invoiceData.totalTax,
           totalTaxDiscount: invoiceData.totalTaxDiscount || 0,
@@ -287,13 +274,13 @@ export class InvoiceService {
   ) {
     // Lấy provider config
     const invoiceProvider = await this.prisma.invoiceProvider.findFirst({
-      where: { branchId: invoice.branchId, providerType: 'VNPT', isActive: true },
+      where: { branchId: invoice.branchId, providerType: InvoiceProviderType.VNPT, isActive: true },
       include: { invConfig: true }
     })
 
     const providerData = {
       providerType: invoiceProvider.providerType,
-      providerName: 'VNPT',
+      providerName: InvoiceProviderType.VNPT,
       isActive: invoiceProvider.isActive,
       config: {
         id: invoiceProvider.id,
@@ -315,31 +302,17 @@ export class InvoiceService {
         id: `temp-${Date.now()}-${Math.random()}`,
         invoiceId: invoice.id,
         productName: detail.productName,
-        productCode: detail.productCode,
-        unit: detail.unit,
+        productCode: detail.productCode || '',
+        unit: detail.unit || '',
         unitPrice: detail.unitPrice,
         amount: detail.amount,
-        vatRate: detail.vatRate,
-        vatAmount: detail.vatAmount,
+        vatRate: detail.vatRate || 0,
         createdAt: new Date(),
         updatedAt: new Date()
-      })),
-      order: {
-        id: invoiceData.orderId,
-        code: `ORD-${invoiceData.orderId.slice(0, 8)}`,
-        orderTotal: invoiceData.totalAfterTax,
-        customer: {
-          name: invoiceData.customerName,
-          tax: invoiceData.customerTaxCode,
-          address: invoiceData.customerAddress,
-          phone: invoiceData.customerPhone,
-          email: invoiceData.customerEmail
-        },
-        paymentMethod: null
-      }
+      }))
     }
 
-    return this.vnptProvider.exportInvoice(providerData, invoiceForVNPT, invoice.totalTax || 0)
+    return this.vnptProvider.exportInvoice(providerData, invoiceForVNPT)
   }
 
   /**

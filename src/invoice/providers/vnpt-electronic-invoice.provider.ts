@@ -29,21 +29,19 @@ interface VNPTConfig extends ElectronicInvoiceProvider {
 export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider {
   providerType = 'VNPT'
   providerName = 'VNPT Invoice'
-
   /**
    * Export electronic invoice to VNPT
    */
   async exportInvoice(
     provider: ElectronicInvoiceProvider,
-    invoice: InvoiceWithRelations,
-    totalTax: number
+    invoice: InvoiceWithRelations
   ): Promise<ElectronicInvoiceResponse> {
     try {
       // Validate and cast provider config
       const vnptProvider = this.validateAndCastProvider(provider)
 
       // Prepare invoice data
-      const invoiceData = this.prepareInvoiceData(invoice, totalTax)
+      const invoiceData = this.prepareInvoiceData(invoice)
 
       // Create SOAP envelope
       const soapEnvelope = this.createSOAPEnvelope(vnptProvider, invoiceData)
@@ -272,6 +270,7 @@ export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider
                                 ${data.buyerInfo.taxCode ? `<MST>${data.buyerInfo.taxCode}</MST>` : ''}
                                 <DChi>${data.buyerInfo.address}</DChi>
                                 ${data.buyerInfo.phone ? `<SDThoai>${data.buyerInfo.phone}</SDThoai>` : ''}
+                                ${data.buyerInfo.cardId ? `<CCCDan>${data.buyerInfo.cardId}</CCCDan>` : ''}
                                 ${data.buyerInfo.email ? `<DCTDTu>${data.buyerInfo.email}</DCTDTu>` : ''}
                                 <HVTNMHang>${data.buyerInfo.contactPerson}</HVTNMHang>
                             </NMua>

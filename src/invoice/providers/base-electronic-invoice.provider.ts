@@ -27,8 +27,7 @@ export interface ElectronicInvoiceData {
     phone?: string
     email?: string
     contactPerson?: string
-    cardId?: string // CCCD/CMND
-    customerCode?: string // Mã khách hàng
+    cardId?: string
     passport?: string
     bankName?: string
     bankCode?: string
@@ -65,41 +64,10 @@ export interface ElectronicInvoiceResponse {
   providerType?: string
 }
 
-// Invoice with relations for providers
+// Invoice with relations for providers - simplified to use direct data from DTO
 export interface InvoiceWithRelations extends Invoice {
-  order?: {
-    id: string
-    code: string
-    orderTotal: number
-    customer?: {
-      name?: string | null
-      tax?: string | null
-      address?: string | null
-      phone?: string | null
-      email?: string | null
-    } | null
-    paymentMethod?: {
-      id: string
-      branchId: string
-      bankName: string
-      bankCode: string
-      representative: string
-      photoURL: string
-      type: any
-      active: boolean
-      createdBy: string
-      updatedBy: string
-    } | null
-  } | null
-  invoiceDetails?: Array<
-    InvoiceDetail & {
-      orderDetail?: {
-        id: string
-        amount: number
-        product: any
-      } | null
-    }
-  >
+  // Use invoice data directly from DTO instead of relying on order relations
+  invoiceDetails?: Array<InvoiceDetail>
 }
 
 // Product information interface
@@ -119,14 +87,12 @@ export interface ProductInfo {
 export abstract class BaseElectronicInvoiceProvider {
   abstract providerType: string
   abstract providerName: string
-
   /**
    * Export electronic invoice
    */
   abstract exportInvoice(
     provider: ElectronicInvoiceProvider,
-    invoice: InvoiceWithRelations,
-    totalTax: number
+    invoice: InvoiceWithRelations
   ): Promise<ElectronicInvoiceResponse>
 
   /**
@@ -147,43 +113,22 @@ export abstract class BaseElectronicInvoiceProvider {
   /**
    * Prepare invoice data from invoice with relations
    */
-  protected prepareInvoiceData(
-    invoice: InvoiceWithRelations,
-    totalTax: number
-  ): ElectronicInvoiceData {
-    const order = invoice.order
+  protected prepareInvoiceData(invoice: InvoiceWithRelations): ElectronicInvoiceData {
     const invoiceDetails = invoice.invoiceDetails || []
 
-    if (!order) {
-      throw new Error('Order information is required for invoice preparation')
-    }
-
-    // Prepare items from invoice details
+    // Prepare items from invoice details - use data directly from invoice
     const items = invoiceDetails.map((detail, index: number) => {
-      let productInfo: ProductInfo | null = null
-      if (detail.orderDetail?.product) {
-        try {
-          productInfo =
-            typeof detail.orderDetail.product === 'string'
-              ? JSON.parse(detail.orderDetail.product)
-              : detail.orderDetail.product
-        } catch (e) {
-          productInfo = null
-        }
-      }
-
-      const productName = productInfo?.name
       const unitPrice = detail.unitPrice
       const quantity = detail.amount
       const totalAmount = unitPrice * quantity
-      const vatRate = detail.vatRate || productInfo?.vatGroup?.vatRate || 0
+      const vatRate = detail.vatRate || 0
       const vatAmount = (totalAmount * vatRate) / 100
 
       return {
         stt: index + 1,
-        productCode: detail.productCode,
-        productName: productName,
-        unit: detail.unit,
+        productCode: detail.productCode || '',
+        productName: detail.productName || 'Sản phẩm',
+        unit: detail.unit || '',
         quantity: quantity,
         unitPrice: unitPrice,
         totalAmount: totalAmount,
@@ -193,47 +138,36 @@ export abstract class BaseElectronicInvoiceProvider {
     })
 
     // Convert number to words
-    const totalInWords = this.convertNumberToWords(order.orderTotal)
+    const totalInWords = this.convertNumberToWords(invoice.totalAfterTax || 0)
 
     // Generate shorter key: IITPOS-HD{invoiceId}-{3 digit random}
-    const random3Digits = Math.floor(100 + Math.random() * 900)
-    const shortInvoiceId = invoice.id.split('-')[0] // Take first part of UUID
-    const key = `IITPOS-HD${shortInvoiceId}-${random3Digits}`
-
-    console.log('🔑 [Invoice Key] Generated:', {
-      fullInvoiceId: invoice.id,
-      shortInvoiceId: shortInvoiceId,
-      random: random3Digits,
-      generatedKey: key,
-      keyLength: key.length
-    })
+    // const shortInvoiceId = invoice.id.split('-')[0] // Take first part of UUID
+    const key = invoice.id
 
     return {
       key: key,
       buyerInfo: {
-        name: invoice.customerName || order.customer?.name || 'Khách lẻ',
-        taxCode: invoice.customerTaxCode || order.customer?.tax || '',
-        address: invoice.customerAddress || order.customer?.address || '',
-        phone: invoice.customerPhone || order.customer?.phone || '',
-        email: invoice.customerEmail || order.customer?.email || '',
-        contactPerson:
-          invoice.originalName || invoice.customerName || order.customer?.name || 'Khách hàng',
+        name: invoice.customerName || 'Khách lẻ',
+        taxCode: invoice.customerTaxCode || '',
+        address: invoice.customerAddress || '',
+        phone: invoice.customerPhone || '',
+        email: invoice.customerEmail || '',
+        contactPerson: invoice.originalName || invoice.customerName || 'Khách hàng',
         cardId: invoice.customerCardId || '',
-        customerCode: '', // Could be derived from customer ID if needed
         passport: invoice.passport || '',
         bankName: invoice.customerBankName || '',
         bankCode: invoice.customerBankCode || ''
       },
       items: items,
       totalInfo: {
-        totalBeforeTax: invoice.totalBeforeTax || order.orderTotal - totalTax,
-        totalTax: invoice.totalTax || totalTax,
-        totalAfterTax: invoice.totalAfterTax || order.orderTotal,
+        totalBeforeTax: invoice.totalBeforeTax || 0,
+        totalTax: invoice.totalTax || 0,
+        totalAfterTax: invoice.totalAfterTax || 0,
         totalInWords: totalInWords
       },
       invoiceDate: new Date().toISOString().split('T')[0],
       currency: 'VND',
-      paymentMethod: order.paymentMethod?.bankName || 'TM'
+      paymentMethod: 'TM' // Default to cash
     }
   }
 

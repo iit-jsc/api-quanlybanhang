@@ -138,7 +138,7 @@ export class CreateInvoiceDto {
 
   @IsOptional()
   @IsString()
-  @MaxLength(100)
+  @IsEnum(['TM', 'CK', 'KHAC'])
   paymentMethod: string
 
   @IsArray()

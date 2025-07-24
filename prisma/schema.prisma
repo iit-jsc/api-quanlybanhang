@@ -702,6 +702,7 @@ model Invoice {
   customerName           String           @db.Text
   originalName           String           @db.Text
   customerTaxCode        String?          @db.Text
+  paymentMethod          String?          @db.Text
   customerCardId         String?          @db.Text
   passport               String?          @db.Text
   customerAddress        String?          @db.Text
@@ -709,7 +710,6 @@ model Invoice {
   customerEmail          String?          @db.Text
   customerBankName       String?          @db.Text
   customerBankCode       String?          @db.Text
-  commercialInvoiceTotal Float?           @default(0)
   totalBeforeTax         Float?
   totalTax               Float?           @default(0)
   totalTaxDiscount       Float?           @default(0)
