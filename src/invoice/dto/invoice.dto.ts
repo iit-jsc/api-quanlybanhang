@@ -75,6 +75,11 @@ export class CreateInvoiceDto {
   @Min(0)
   totalAfterTax: number
 
+  @IsNotEmpty()
+  @IsString()
+  @MaxLength(255)
+  customerName: string
+
   @IsOptional()
   @IsNumber()
   @Min(0)
@@ -85,12 +90,7 @@ export class CreateInvoiceDto {
   @Min(0)
   totalTaxDiscount: number = 0
 
-  @IsNotEmpty()
-  @IsString()
-  @MaxLength(255)
-  customerName: string
-
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   @MaxLength(20)
   @IsVietnamesePhoneNumber()
