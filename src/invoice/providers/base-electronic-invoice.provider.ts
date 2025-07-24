@@ -27,7 +27,7 @@ export interface ElectronicInvoiceData {
     address: string
     phone?: string
     email?: string
-    originalName?: string
+    contactPerson?: string
     cardId?: string
     passport?: string
     bankName?: string
@@ -142,9 +142,8 @@ export abstract class BaseElectronicInvoiceProvider {
     // Convert number to words
     const totalInWords = moneyToVietnameseWords(invoice.totalAfterTax || 0)
 
-    // Generate shorter key: IITPOS-HD{invoiceId}-{3 digit random}
-    // const shortInvoiceId = invoice.id.split('-')[0] // Take first part of UUID
-    const key = invoice.id
+    // Use lookupKey as the key for VNPT (fkey)
+    const key = invoice.lookupKey || `IIT_POS${invoice.id}`
 
     return {
       key: key,
@@ -154,7 +153,7 @@ export abstract class BaseElectronicInvoiceProvider {
         address: invoice.customerAddress || '',
         phone: invoice.customerPhone || '',
         email: invoice.customerEmail || '',
-        originalName: invoice.originalName || '',
+        contactPerson: invoice.originalName || invoice.customerName || 'Khách hàng',
         cardId: invoice.customerCardId || '',
         passport: invoice.passport || '',
         bankName: invoice.customerBankName || '',

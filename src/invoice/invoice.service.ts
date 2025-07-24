@@ -298,7 +298,6 @@ export class InvoiceService {
       )
     }
   }
-
   /**
    * Tạo bản ghi hóa đơn và chi tiết hóa đơn
    */
@@ -315,6 +314,19 @@ export class InvoiceService {
     if (existingInvoice?.status === InvoiceStatus.SUCCESS) {
       throw new HttpException('Hóa đơn đã được xuất thành công', HttpStatus.CONFLICT)
     }
+
+    // Lấy thông tin order để tạo lookupKey
+    const order = await this.prisma.order.findUnique({
+      where: { id: invoiceData.orderId },
+      select: { code: true }
+    })
+
+    if (!order) {
+      throw new HttpException('Không tìm thấy đơn hàng', HttpStatus.NOT_FOUND)
+    }
+
+    // Tạo lookupKey theo format: IIT_POS_<order code>
+    const lookupKey = `IIT_POS_${order.code}`
 
     // Xóa hóa đơn cũ nếu có (PENDING hoặc ERROR)
     if (existingInvoice) {
@@ -333,11 +345,16 @@ export class InvoiceService {
           customerAddress: invoiceData.customerAddress,
           customerPhone: invoiceData.customerPhone,
           customerEmail: invoiceData.customerEmail,
+          customerCardId: invoiceData.customerCardId, // Thêm trường này
+          passport: invoiceData.passport, // Thêm trường này
+          customerBankName: invoiceData.customerBankName, // Thêm trường này
+          customerBankCode: invoiceData.customerBankCode, // Thêm trường này
           paymentMethod: invoiceData.paymentMethod,
           totalBeforeTax: invoiceData.totalBeforeTax,
           totalTax: invoiceData.totalTax,
           totalTaxDiscount: invoiceData.totalTaxDiscount || 0,
           totalAfterTax: invoiceData.totalAfterTax,
+          lookupKey: lookupKey, // Thêm lookupKey
           status: InvoiceStatus.PENDING,
           createdBy: accountId
         }

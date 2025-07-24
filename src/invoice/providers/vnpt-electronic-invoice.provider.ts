@@ -29,6 +29,7 @@ interface VNPTConfig extends ElectronicInvoiceProvider {
 export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider {
   providerType = 'VNPT'
   providerName = 'VNPT Invoice'
+
   /**
    * Export electronic invoice to VNPT
    */
@@ -49,8 +50,13 @@ export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider
       // Call VNPT API
       const response = await this.callVNPTSOAPAPI(vnptProvider, soapEnvelope)
 
+      // Return our custom lookupKey as fkey instead of VNPT's generated key
       return {
-        ...response,
+        success: response.success,
+        invoiceId: response.invoiceId,
+        fkey: invoice.lookupKey || response.fkey, // Use our lookupKey as fkey
+        error: response.error,
+        rawResponse: response.rawResponse,
         providerType: this.providerType
       }
     } catch (error) {
@@ -264,15 +270,15 @@ export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider
                                 </TTin>
                             </TTKhac>
                         </TTChung>
-                        <NDHDon>
-                            <NMua>
+                        <NDHDon>                            <NMua>
                                 <Ten>${data.buyerInfo.name}</Ten>
                                 ${data.buyerInfo.taxCode ? `<MST>${data.buyerInfo.taxCode}</MST>` : ''}
-                                <DChi>${data.buyerInfo.address}</DChi>
                                 ${data.buyerInfo.phone ? `<SDThoai>${data.buyerInfo.phone}</SDThoai>` : ''}
                                 ${data.buyerInfo.cardId ? `<CCCDan>${data.buyerInfo.cardId}</CCCDan>` : ''}
                                 ${data.buyerInfo.email ? `<DCTDTu>${data.buyerInfo.email}</DCTDTu>` : ''}
-                                <HVTNMHang>${data.buyerInfo.originalName}</HVTNMHang>
+                                ${data.buyerInfo.passport ? `<SHCC>${data.buyerInfo.passport}</SHCC>` : ''}
+                                <MKHang></MKHang>
+                                <DChi>${data.buyerInfo.address}</DChi>
                             </NMua>
                             <DSHHDVu>${itemsXML}
                             </DSHHDVu>
