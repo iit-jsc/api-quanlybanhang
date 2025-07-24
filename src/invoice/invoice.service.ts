@@ -43,7 +43,7 @@ export class InvoiceService {
         const finalInvoiceData = this.enrichInvoiceWithType(invoiceData, branchData.taxSetting)
 
         // 2. Validate invoice data based on type
-        this.validateInvoiceData(finalInvoiceData)
+        this.validateInvoiceData(finalInvoiceData, branchData.taxSetting)
 
         // 3. Create invoice record in database
         const invoice = await this.createInvoiceRecord(finalInvoiceData, accountId, branchId)
@@ -92,7 +92,7 @@ export class InvoiceService {
   /**
    * Validate dữ liệu hóa đơn theo loại hóa đơn
    */
-  private validateInvoiceData(invoiceData: CreateInvoiceDto): void {
+  private validateInvoiceData(invoiceData: CreateInvoiceDto, taxSetting?: any): void {
     const calculatedTotal = invoiceData.invoiceDetails.reduce(
       (sum, detail) => sum + detail.unitPrice * detail.amount,
       0
@@ -111,6 +111,13 @@ export class InvoiceService {
       )
     }
 
+    // Validate theo loại hóa đơn (trước khi validate tổng tiền)
+    if (invoiceData.invoiceType === InvoiceType.VAT_INVOICE) {
+      this.validateVATInvoiceFields(invoiceData)
+    } else if (invoiceData.invoiceType === InvoiceType.SALES_INVOICE) {
+      this.validateSalesInvoiceFields(invoiceData)
+    }
+
     // Validate tổng tiền thuế (nếu có)
     if (invoiceData.totalTax !== undefined && invoiceData.totalTax !== null) {
       if (Math.abs(calculatedTax - invoiceData.totalTax) > 0.01) {
@@ -123,6 +130,11 @@ export class InvoiceService {
 
     const totalTax = invoiceData.totalTax || 0
     const totalTaxDiscount = invoiceData.totalTaxDiscount || 0
+
+    // Validate totalTaxDiscount for DIRECT (Sales) invoices
+    if (invoiceData.invoiceType === InvoiceType.SALES_INVOICE && totalTaxDiscount > 0) {
+      this.validateDirectTaxDiscount(invoiceData, totalTaxDiscount, taxSetting)
+    }
 
     // Công thức: totalAfterTax = totalBeforeTax + totalTax - totalTaxDiscount
     const expectedAfterTax = calculatedTotal + totalTax - totalTaxDiscount
@@ -152,37 +164,43 @@ export class InvoiceService {
         )
       }
 
-      // Validate VAT nếu có thuế suất
-      if (detail.vatRate && detail.vatRate > 0) {
-        // Nếu có thuế suất > 0 thì bắt buộc phải có tiền thuế
-        if (!detail.vatAmount || detail.vatAmount <= 0) {
+      // Validate VAT theo loại hóa đơn
+      if (invoiceData.invoiceType === InvoiceType.SALES_INVOICE) {
+        // DIRECT invoices không được có VAT fields
+        if ((detail.vatRate && detail.vatRate > 0) || (detail.vatAmount && detail.vatAmount > 0)) {
           throw new HttpException(
-            `Chi tiết ${index + 1}: Khi có thuế suất ${detail.vatRate}% thì bắt buộc phải có tiền thuế VAT > 0`,
+            `Chi tiết ${index + 1}: Hóa đơn bán hàng (DIRECT) không được có thông tin thuế VAT`,
             HttpStatus.BAD_REQUEST
           )
         }
+      } else {
+        // VAT invoices: validate VAT nếu có thuế suất
+        if (detail.vatRate && detail.vatRate > 0) {
+          // Nếu có thuế suất > 0 thì bắt buộc phải có tiền thuế
+          if (!detail.vatAmount || detail.vatAmount <= 0) {
+            throw new HttpException(
+              `Chi tiết ${index + 1}: Khi có thuế suất ${detail.vatRate}% thì bắt buộc phải có tiền thuế VAT > 0`,
+              HttpStatus.BAD_REQUEST
+            )
+          }
 
-        // Validate tính toán VAT chính xác
-        const expectedVat = (detail.unitPrice * detail.amount * detail.vatRate) / 100
-        if (Math.abs(expectedVat - detail.vatAmount) > 0.01) {
+          // Validate tính toán VAT chính xác
+          const expectedVat = (detail.unitPrice * detail.amount * detail.vatRate) / 100
+          if (Math.abs(expectedVat - detail.vatAmount) > 0.01) {
+            throw new HttpException(
+              `Chi tiết ${index + 1}: VAT không chính xác. Tính toán: ${expectedVat}, Nhận được: ${detail.vatAmount}`,
+              HttpStatus.BAD_REQUEST
+            )
+          }
+        } else if (detail.vatAmount && detail.vatAmount > 0) {
+          // Nếu có tiền thuế nhưng không có thuế suất thì báo lỗi
           throw new HttpException(
-            `Chi tiết ${index + 1}: VAT không chính xác. Tính toán: ${expectedVat}, Nhận được: ${detail.vatAmount}`,
+            `Chi tiết ${index + 1}: Có tiền thuế ${detail.vatAmount} nhưng không có thuế suất`,
             HttpStatus.BAD_REQUEST
           )
         }
-      } else if (detail.vatAmount && detail.vatAmount > 0) {
-        // Nếu có tiền thuế nhưng không có thuế suất thì báo lỗi
-        throw new HttpException(
-          `Chi tiết ${index + 1}: Có tiền thuế ${detail.vatAmount} nhưng không có thuế suất`,
-          HttpStatus.BAD_REQUEST
-        )
       }
     })
-
-    // Validate theo loại hóa đơn
-    if (invoiceData.invoiceType === InvoiceType.VAT_INVOICE) {
-      this.validateVATInvoiceFields(invoiceData)
-    }
   }
 
   /**
@@ -232,6 +250,53 @@ export class InvoiceService {
         }
       }
     })
+  }
+
+  /**
+   * Validate các trường bắt buộc cho hóa đơn bán hàng (DIRECT)
+   */
+  private validateSalesInvoiceFields(invoiceData: CreateInvoiceDto): void {
+    // DIRECT Invoice không được có mã số thuế (hoặc có thể có nhưng không bắt buộc)
+    // Không được có tổng tiền thuế VAT
+    if (invoiceData.totalTax && invoiceData.totalTax > 0) {
+      throw new HttpException(
+        'Hóa đơn bán hàng (DIRECT) không được có tổng tiền thuế VAT',
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
+    // Kiểm tra không có chi tiết nào có VAT
+    const hasVATItems = invoiceData.invoiceDetails.some(
+      detail => (detail.vatRate && detail.vatRate > 0) || (detail.vatAmount && detail.vatAmount > 0)
+    )
+
+    if (hasVATItems) {
+      throw new HttpException(
+        'Hóa đơn bán hàng (DIRECT) không được có các mặt hàng chịu thuế VAT',
+        HttpStatus.BAD_REQUEST
+      )
+    }
+  }
+  /**
+   * Validate công thức giảm thuế cho hóa đơn DIRECT theo Nghị quyết 204/2025/QH15
+   */
+  private validateDirectTaxDiscount(
+    invoiceData: CreateInvoiceDto,
+    totalTaxDiscount: number,
+    taxSetting?: any
+  ): void {
+    // Công thức: totalTaxDiscount = totalBeforeTax * 20% * taxDirectRate/100
+    const taxDirectRate = taxSetting?.taxDirectRate || 100 // Lấy từ TaxSetting hoặc mặc định 100%
+    const expectedTaxDiscount = (invoiceData.totalBeforeTax * 20 * taxDirectRate) / (100 * 100)
+
+    if (Math.abs(expectedTaxDiscount - totalTaxDiscount) > 0.01) {
+      throw new HttpException(
+        `Số tiền giảm thuế không chính xác theo Nghị quyết 204/2025/QH15. 
+         Tính toán: ${invoiceData.totalBeforeTax} * 20% * ${taxDirectRate}% = ${expectedTaxDiscount}
+         Nhận được: ${totalTaxDiscount}`,
+        HttpStatus.BAD_REQUEST
+      )
+    }
   }
 
   /**

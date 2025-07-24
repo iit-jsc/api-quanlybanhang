@@ -272,7 +272,7 @@ export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider
                                 ${data.buyerInfo.phone ? `<SDThoai>${data.buyerInfo.phone}</SDThoai>` : ''}
                                 ${data.buyerInfo.cardId ? `<CCCDan>${data.buyerInfo.cardId}</CCCDan>` : ''}
                                 ${data.buyerInfo.email ? `<DCTDTu>${data.buyerInfo.email}</DCTDTu>` : ''}
-                                <HVTNMHang>${data.buyerInfo.contactPerson}</HVTNMHang>
+                                <HVTNMHang>${data.buyerInfo.originalName}</HVTNMHang>
                             </NMua>
                             <DSHHDVu>${itemsXML}
                             </DSHHDVu>

@@ -1,4 +1,5 @@
 import { Invoice, InvoiceDetail } from '@prisma/client'
+import { moneyToVietnameseWords } from '../../../helpers/number-to-words.helper'
 
 // Base interfaces for all electronic invoice providers
 export interface ElectronicInvoiceProvider {
@@ -26,7 +27,7 @@ export interface ElectronicInvoiceData {
     address: string
     phone?: string
     email?: string
-    contactPerson?: string
+    originalName?: string
     cardId?: string
     passport?: string
     bankName?: string
@@ -47,6 +48,7 @@ export interface ElectronicInvoiceData {
     totalBeforeTax: number
     totalTax: number
     totalAfterTax: number
+    totalTaxDiscount?: number // Add support for tax discount
     totalInWords: string
   }
   invoiceDate: string
@@ -138,7 +140,7 @@ export abstract class BaseElectronicInvoiceProvider {
     })
 
     // Convert number to words
-    const totalInWords = this.convertNumberToWords(invoice.totalAfterTax || 0)
+    const totalInWords = moneyToVietnameseWords(invoice.totalAfterTax || 0)
 
     // Generate shorter key: IITPOS-HD{invoiceId}-{3 digit random}
     // const shortInvoiceId = invoice.id.split('-')[0] // Take first part of UUID
@@ -152,7 +154,7 @@ export abstract class BaseElectronicInvoiceProvider {
         address: invoice.customerAddress || '',
         phone: invoice.customerPhone || '',
         email: invoice.customerEmail || '',
-        contactPerson: invoice.originalName || invoice.customerName || 'Khách hàng',
+        originalName: invoice.originalName || '',
         cardId: invoice.customerCardId || '',
         passport: invoice.passport || '',
         bankName: invoice.customerBankName || '',
@@ -163,6 +165,7 @@ export abstract class BaseElectronicInvoiceProvider {
         totalBeforeTax: invoice.totalBeforeTax || 0,
         totalTax: invoice.totalTax || 0,
         totalAfterTax: invoice.totalAfterTax || 0,
+        totalTaxDiscount: invoice.totalTaxDiscount || 0,
         totalInWords: totalInWords
       },
       invoiceDate: new Date().toISOString().split('T')[0],
@@ -170,65 +173,10 @@ export abstract class BaseElectronicInvoiceProvider {
       paymentMethod: 'TM' // Default to cash
     }
   }
-
   /**
    * Convert number to Vietnamese words
    */
   protected convertNumberToWords(number: number): string {
-    if (number === 0) return 'Không đồng'
-
-    const ones = ['', 'một', 'hai', 'ba', 'bốn', 'năm', 'sáu', 'bảy', 'tám', 'chín']
-    const tens = [
-      '',
-      '',
-      'hai mươi',
-      'ba mươi',
-      'bốn mươi',
-      'năm mươi',
-      'sáu mươi',
-      'bảy mươi',
-      'tám mươi',
-      'chín mươi'
-    ]
-
-    if (number < 1000000) {
-      if (number >= 100000) {
-        const hundreds = Math.floor(number / 100000)
-        const remainder = number % 100000
-        let result = ones[hundreds] + ' trăm'
-        if (remainder >= 1000) {
-          const thousands = Math.floor(remainder / 1000)
-          if (thousands > 0) {
-            result += ' ' + ones[thousands] + ' nghìn'
-          }
-          const lastPart = remainder % 1000
-          if (lastPart > 0) {
-            if (lastPart < 100) {
-              result +=
-                ' ' +
-                (lastPart < 10
-                  ? 'lẻ ' + ones[lastPart]
-                  : tens[Math.floor(lastPart / 10)] +
-                    (lastPart % 10 > 0 ? ' ' + ones[lastPart % 10] : ''))
-            } else {
-              result += ' ' + ones[Math.floor(lastPart / 100)] + ' trăm'
-              const remaining = lastPart % 100
-              if (remaining > 0) {
-                result +=
-                  ' ' +
-                  (remaining < 10
-                    ? 'lẻ ' + ones[remaining]
-                    : tens[Math.floor(remaining / 10)] +
-                      (remaining % 10 > 0 ? ' ' + ones[remaining % 10] : ''))
-              }
-            }
-          }
-        }
-        return result + ' đồng'
-      }
-    }
-
-    // Fallback
-    return number.toLocaleString('vi-VN') + ' đồng'
+    return moneyToVietnameseWords(number)
   }
 }
