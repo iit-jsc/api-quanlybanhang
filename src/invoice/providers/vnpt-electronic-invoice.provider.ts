@@ -281,7 +281,7 @@ export class VNPTElectronicInvoiceProvider extends BaseElectronicInvoiceProvider
                                 ${vatSummaryXML}
                                 <TgTCThue>${data.totalInfo.totalBeforeTax}</TgTCThue>
                                 ${data.totalInfo.totalTax > 0 ? `<TgTThue>${data.totalInfo.totalTax}</TgTThue>` : ''}
-                                <TTCKTMai>0</TTCKTMai>
+                                <TTCKTMai>${data.totalInfo.totalAfterTax - data.totalInfo.totalBeforeTax - (data.totalInfo.totalTax || 0)}</TTCKTMai>
                                 <TgTTTBSo>${data.totalInfo.totalAfterTax}</TgTTTBSo>
                                 <TgTTTBChu>${data.totalInfo.totalInWords}</TgTTTBChu>
                             </TToan>

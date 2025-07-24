@@ -27,14 +27,19 @@ export interface ElectronicInvoiceData {
     phone?: string
     email?: string
     contactPerson?: string
+    cardId?: string // CCCD/CMND
+    customerCode?: string // Mã khách hàng
+    passport?: string
+    bankName?: string
+    bankCode?: string
   }
   items: Array<{
     stt: number
     productCode?: string
     productName: string
-    unit: string
-    quantity: number
-    unitPrice: number
+    unit?: string
+    quantity?: number
+    unitPrice?: number
     totalAmount: number
     vatRate: number
     vatAmount: number
@@ -82,8 +87,6 @@ export interface InvoiceWithRelations extends Invoice {
       photoURL: string
       type: any
       active: boolean
-      createdAt: Date
-      updatedAt: Date
       createdBy: string
       updatedBy: string
     } | null
@@ -208,18 +211,24 @@ export abstract class BaseElectronicInvoiceProvider {
     return {
       key: key,
       buyerInfo: {
-        name: order.customer?.name || 'Khách lẻ',
-        taxCode: order.customer?.tax || '',
-        address: order.customer?.address || '',
-        phone: order.customer?.phone || '',
-        email: order.customer?.email || '',
-        contactPerson: order.customer?.name || 'Khách hàng'
+        name: invoice.customerName || order.customer?.name || 'Khách lẻ',
+        taxCode: invoice.customerTaxCode || order.customer?.tax || '',
+        address: invoice.customerAddress || order.customer?.address || '',
+        phone: invoice.customerPhone || order.customer?.phone || '',
+        email: invoice.customerEmail || order.customer?.email || '',
+        contactPerson:
+          invoice.originalName || invoice.customerName || order.customer?.name || 'Khách hàng',
+        cardId: invoice.customerCardId || '',
+        customerCode: '', // Could be derived from customer ID if needed
+        passport: invoice.passport || '',
+        bankName: invoice.customerBankName || '',
+        bankCode: invoice.customerBankCode || ''
       },
       items: items,
       totalInfo: {
-        totalBeforeTax: order.orderTotal - totalTax,
-        totalTax: totalTax,
-        totalAfterTax: order.orderTotal,
+        totalBeforeTax: invoice.totalBeforeTax || order.orderTotal - totalTax,
+        totalTax: invoice.totalTax || totalTax,
+        totalAfterTax: invoice.totalAfterTax || order.orderTotal,
         totalInWords: totalInWords
       },
       invoiceDate: new Date().toISOString().split('T')[0],

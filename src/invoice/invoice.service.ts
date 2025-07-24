@@ -1,8 +1,8 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { ExportInvoicesDto, CreateInvoiceDto } from './dto/invoice.dto'
+import { ExportInvoicesDto, CreateInvoiceDto, InvoiceType } from './dto/invoice.dto'
 import { VNPTElectronicInvoiceProvider } from './providers'
-import { InvoiceProviderType, InvoiceStatus } from '@prisma/client'
+import { InvoiceStatus, TaxMethod } from '@prisma/client'
 
 @Injectable()
 export class InvoiceService {
@@ -10,92 +10,85 @@ export class InvoiceService {
     private readonly prisma: PrismaService,
     private readonly vnptProvider: VNPTElectronicInvoiceProvider
   ) {}
-
   /**
    * Xuất nhiều hóa đơn điện tử
    */
   async exportInvoices(data: ExportInvoicesDto, accountId: string, branchId: string) {
     const results = []
 
-    const invoiceProvider = await this.prisma.invoiceProvider.findFirst({
-      where: { branchId, isActive: true },
-      select: { providerType: true }
+    // Optimized query: Fetch all required data in one go
+    const branchData = await this.prisma.branch.findFirstOrThrow({
+      where: { id: branchId },
+      include: {
+        taxSetting: true,
+        invoiceProviders: {
+          where: { isActive: true },
+          include: { invConfig: true }
+        }
+      }
     })
 
-    if (!invoiceProvider) {
+    // Check if electronic export is requested but no active provider exists
+    if (branchData.invoiceProviders.length === 0) {
       throw new HttpException(
         'Chưa có cấu hình nhà cung cấp hóa đơn điện tử',
         HttpStatus.BAD_REQUEST
       )
     }
 
+    // Get all order IDs to fetch order codes in batch
+    const orderIds = data.invoices.map(inv => inv.orderId)
+
+    const orders = await this.prisma.order.findMany({
+      where: { id: { in: orderIds }, branchId },
+      select: { id: true, code: true }
+    })
+
+    const orderCodeMap = new Map(orders.map(order => [order.id, order.code]))
+
     for (const invoiceData of data.invoices) {
       try {
-        // 1. Validate dữ liệu đầu vào
-        this.validateInvoiceData(invoiceData)
+        // 1. Determine invoice type automatically if not specified
+        const finalInvoiceData = this.enrichInvoiceWithType(invoiceData, branchData.taxSetting)
 
-        // 2. Tạo invoice và invoice details trong database
-        const invoice = await this.createInvoiceRecord(invoiceData, accountId, branchId)
+        // 2. Validate invoice data based on type
+        this.validateInvoiceData(finalInvoiceData)
 
-        // 3. Get order code
-        const order = await this.prisma.order.findUnique({
-          where: { id: invoiceData.orderId },
-          select: { code: true }
-        })
+        // 3. Create invoice record in database
+        const invoice = await this.createInvoiceRecord(finalInvoiceData, accountId, branchId)
 
-        const orderCode = order?.code
+        const orderCode = orderCodeMap.get(invoiceData.orderId)
 
         // 4. Handle electronic vs non-electronic export
-        if (data.exportElectronic) {
-          // Check active invoice provider - fail fast if not found
+        const vnptResult = await this.exportToVNPT(invoice, finalInvoiceData)
 
-          if (invoiceProvider.providerType !== InvoiceProviderType.VNPT) {
-            throw new HttpException('Chỉ hỗ trợ nhà cung cấp VNPT', HttpStatus.BAD_REQUEST)
-          }
+        // Update invoice status
+        await this.updateInvoiceStatus(
+          invoice.id,
+          vnptResult.success ? InvoiceStatus.SUCCESS : InvoiceStatus.ERROR,
+          accountId
+        )
 
-          // Export through VNPT
-          const vnptResult = await this.exportToVNPT(invoice, invoiceData)
-
-          // Update invoice status
-          await this.updateInvoiceStatus(
-            invoice.id,
-            vnptResult.success ? InvoiceStatus.SUCCESS : InvoiceStatus.ERROR,
-            accountId
-          )
-
-          results.push({
-            success: vnptResult.success,
-            orderId: invoiceData.orderId,
-            orderCode: orderCode,
-            message: vnptResult.success ? 'Xuất hóa đơn thành công' : vnptResult.error,
-            ...(vnptResult.success && {
-              exportData: {
-                invoiceNumber: vnptResult.invoiceId,
-                fkey: vnptResult.fkey,
-                providerType: 'VNPT'
-              }
-            })
+        results.push({
+          success: vnptResult.success,
+          orderId: invoiceData.orderId,
+          orderCode: orderCode,
+          message: vnptResult.success ? 'Xuất hóa đơn thành công' : vnptResult.error,
+          ...(vnptResult.success && {
+            exportData: {
+              invoiceNumber: vnptResult.invoiceId,
+              fkey: vnptResult.fkey,
+              providerType: 'VNPT',
+              invoiceType: finalInvoiceData.invoiceType
+            }
           })
-        } else {
-          // Non-electronic export
-          results.push({
-            success: true,
-            orderId: invoiceData.orderId,
-            orderCode: orderCode,
-            message: 'Tạo hóa đơn thành công'
-          })
-        }
-      } catch (error) {
-        // Get order code for error case
-        const order = await this.prisma.order.findUnique({
-          where: { id: invoiceData.orderId },
-          select: { code: true }
         })
-
+      } catch (error) {
+        const orderCode = orderCodeMap.get(invoiceData.orderId)
         results.push({
           success: false,
           orderId: invoiceData.orderId,
-          orderCode: order?.code,
+          orderCode: orderCode,
           message: error.message
         })
       }
@@ -110,9 +103,8 @@ export class InvoiceService {
       }
     }
   }
-
   /**
-   * Validate dữ liệu hóa đơn
+   * Validate dữ liệu hóa đơn theo loại hóa đơn
    */
   private validateInvoiceData(invoiceData: CreateInvoiceDto): void {
     const calculatedTotal = invoiceData.invoiceDetails.reduce(
@@ -125,7 +117,7 @@ export class InvoiceService {
       0
     )
 
-    // Validate tổng tiền hàng
+    // Validate tổng tiền hàng trước thuế
     if (Math.abs(calculatedTotal - invoiceData.totalBeforeTax) > 0.01) {
       throw new HttpException(
         `Tổng tiền hàng không chính xác. Tính toán: ${calculatedTotal}, Nhận được: ${invoiceData.totalBeforeTax}`,
@@ -133,19 +125,27 @@ export class InvoiceService {
       )
     }
 
-    // Validate tổng tiền thuế
-    if (Math.abs(calculatedTax - invoiceData.totalTax) > 0.01) {
-      throw new HttpException(
-        `Tổng tiền thuế không chính xác. Tính toán: ${calculatedTax}, Nhận được: ${invoiceData.totalTax}`,
-        HttpStatus.BAD_REQUEST
-      )
+    // Validate tổng tiền thuế (nếu có)
+    if (invoiceData.totalTax !== undefined && invoiceData.totalTax !== null) {
+      if (Math.abs(calculatedTax - invoiceData.totalTax) > 0.01) {
+        throw new HttpException(
+          `Tổng tiền thuế không chính xác. Tính toán: ${calculatedTax}, Nhận được: ${invoiceData.totalTax}`,
+          HttpStatus.BAD_REQUEST
+        )
+      }
     }
 
-    // Validate tổng tiền sau thuế
-    const expectedAfterTax = calculatedTotal + calculatedTax - (invoiceData.totalTaxDiscount || 0)
+    const totalTax = invoiceData.totalTax || 0
+    const totalTaxDiscount = invoiceData.totalTaxDiscount || 0
+
+    // Công thức: totalAfterTax = totalBeforeTax + totalTax - totalTaxDiscount
+    const expectedAfterTax = calculatedTotal + totalTax - totalTaxDiscount
+
     if (Math.abs(expectedAfterTax - invoiceData.totalAfterTax) > 0.01) {
       throw new HttpException(
-        `Tổng tiền sau thuế không chính xác. Tính toán: ${expectedAfterTax}, Nhận được: ${invoiceData.totalAfterTax}`,
+        `Tổng tiền sau thuế không chính xác. 
+         Tính toán: ${calculatedTotal} + ${totalTax} - ${totalTaxDiscount}  = ${expectedAfterTax}
+         Nhận được: ${invoiceData.totalAfterTax}`,
         HttpStatus.BAD_REQUEST
       )
     }
@@ -175,6 +175,46 @@ export class InvoiceService {
             HttpStatus.BAD_REQUEST
           )
         }
+      }
+    })
+
+    // Validate theo loại hóa đơn
+    if (invoiceData.invoiceType === InvoiceType.VAT_INVOICE) {
+      this.validateVATInvoiceFields(invoiceData)
+    }
+  }
+
+  /**
+   * Validate các trường bắt buộc cho hóa đơn VAT
+   */
+  private validateVATInvoiceFields(invoiceData: CreateInvoiceDto): void {
+    // VAT Invoice bắt buộc có mã số thuế
+    if (!invoiceData.customerTaxCode) {
+      throw new HttpException(
+        'Hóa đơn VAT bắt buộc phải có mã số thuế khách hàng',
+        HttpStatus.BAD_REQUEST
+      )
+    }
+
+    // VAT Invoice bắt buộc có tổng tiền thuế
+    if (invoiceData.totalTax === undefined || invoiceData.totalTax === null) {
+      throw new HttpException('Hóa đơn VAT bắt buộc phải có tổng tiền thuế', HttpStatus.BAD_REQUEST)
+    }
+
+    // Validate các chi tiết hóa đơn có VAT rate và VAT amount
+    invoiceData.invoiceDetails.forEach((detail, index) => {
+      if (detail.vatRate === undefined || detail.vatRate === null) {
+        throw new HttpException(
+          `Chi tiết ${index + 1}: Hóa đơn VAT bắt buộc phải có thuế suất`,
+          HttpStatus.BAD_REQUEST
+        )
+      }
+
+      if (detail.vatAmount === undefined || detail.vatAmount === null) {
+        throw new HttpException(
+          `Chi tiết ${index + 1}: Hóa đơn VAT bắt buộc phải có tiền thuế`,
+          HttpStatus.BAD_REQUEST
+        )
       }
     })
   }
@@ -258,14 +298,14 @@ export class InvoiceService {
       config: {
         id: invoiceProvider.id,
         providerId: invoiceProvider.id,
-        vnptApiUrl: invoiceProvider.invConfig.vnptApiUrl || '',
-        vnptLookupUrl: invoiceProvider.invConfig.vnptLookupUrl || '',
-        vnptUsername: invoiceProvider.invConfig.vnptUsername || '',
-        vnptPassword: invoiceProvider.invConfig.vnptPassword || '',
-        vnptAccount: invoiceProvider.invConfig.vnptAccount || '',
-        vnptAccountPassword: invoiceProvider.invConfig.vnptAccountPassword || '',
-        invPattern: invoiceProvider.invConfig.invPattern || '',
-        invSerial: invoiceProvider.invConfig.invSerial || ''
+        vnptApiUrl: invoiceProvider.invConfig.vnptApiUrl,
+        vnptLookupUrl: invoiceProvider.invConfig.vnptLookupUrl,
+        vnptUsername: invoiceProvider.invConfig.vnptUsername,
+        vnptPassword: invoiceProvider.invConfig.vnptPassword,
+        vnptAccount: invoiceProvider.invConfig.vnptAccount,
+        vnptAccountPassword: invoiceProvider.invConfig.vnptAccountPassword,
+        invPattern: invoiceProvider.invConfig.invPattern,
+        invSerial: invoiceProvider.invConfig.invSerial
       }
     }
 
@@ -310,5 +350,26 @@ export class InvoiceService {
       where: { id: invoiceId },
       data: { status, updatedBy: accountId }
     })
+  }
+
+  /**
+   * Enrich invoice data with type based on TaxSetting if not specified
+   */
+  private enrichInvoiceWithType(invoiceData: CreateInvoiceDto, taxSetting: any): CreateInvoiceDto {
+    // If invoice type is already specified, use it
+    if (invoiceData.invoiceType) {
+      return invoiceData
+    }
+
+    // Determine invoice type from TaxSetting
+    const invoiceType =
+      taxSetting?.taxMethod === TaxMethod.DEDUCTION
+        ? InvoiceType.VAT_INVOICE
+        : InvoiceType.SALES_INVOICE
+
+    return {
+      ...invoiceData,
+      invoiceType
+    }
   }
 }

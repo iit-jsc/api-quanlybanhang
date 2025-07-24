@@ -4,15 +4,20 @@ import {
   IsString,
   IsEmail,
   MaxLength,
-  IsBoolean,
   IsArray,
   ArrayNotEmpty,
   IsNumber,
   ValidateNested,
-  Min
+  Min,
+  IsEnum
 } from 'class-validator'
 import { Type } from 'class-transformer'
 import { IsVietnamesePhoneNumber } from 'utils/CustomValidates'
+
+export enum InvoiceType {
+  SALES_INVOICE = 'SALES_INVOICE',
+  VAT_INVOICE = 'VAT_INVOICE'
+}
 
 export class CreateInvoiceDetailDto {
   @IsNotEmpty()
@@ -56,6 +61,10 @@ export class CreateInvoiceDto {
   @IsString()
   orderId: string
 
+  @IsOptional()
+  @IsEnum(InvoiceType)
+  invoiceType: InvoiceType
+
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
@@ -64,7 +73,17 @@ export class CreateInvoiceDto {
   @IsNotEmpty()
   @IsNumber()
   @Min(0)
-  totalTax: number
+  totalAfterTax: number
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalTax: number = 0
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  totalTaxDiscount: number = 0
 
   @IsNotEmpty()
   @IsString()
@@ -98,14 +117,29 @@ export class CreateInvoiceDto {
   customerEmail: string
 
   @IsOptional()
-  @IsNumber()
-  @Min(0)
-  totalTaxDiscount: number
+  @IsString()
+  @MaxLength(50)
+  customerCardId: string
 
-  @IsNotEmpty()
-  @IsNumber()
-  @Min(0)
-  totalAfterTax: number
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  passport: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  customerBankName: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(50)
+  customerBankCode: string
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  paymentMethod: string
 
   @IsArray()
   @ArrayNotEmpty()
@@ -120,8 +154,4 @@ export class ExportInvoicesDto {
   @ValidateNested({ each: true })
   @Type(() => CreateInvoiceDto)
   invoices: CreateInvoiceDto[]
-
-  @IsNotEmpty()
-  @IsBoolean()
-  exportElectronic: boolean
 }

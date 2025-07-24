@@ -713,6 +713,7 @@ model Invoice {
   totalBeforeTax         Float?
   totalTax               Float?           @default(0)
   totalTaxDiscount       Float?           @default(0)
+  discountValue          Float?           @default(0)
   totalAfterTax          Float?
   status                 InvoiceStatus    @default(PENDING)
   invoiceProviderId      String?

@@ -33,7 +33,8 @@ export class OrderDetailOperationsService {
           order: {
             select: {
               paymentStatus: true,
-              code: true
+              code: true,
+              isDraft: true
             }
           }
         }
@@ -48,7 +49,7 @@ export class OrderDetailOperationsService {
       }
 
       // Kiểm tra đơn đã tạo đơn chưa
-      if (orderDetail.order) {
+      if (orderDetail.order && !orderDetail.order.isDraft) {
         throw new HttpException(
           `Món này thuộc đơn #${orderDetail.order.code} không thể hủy!`,
           HttpStatus.BAD_REQUEST
@@ -95,7 +96,7 @@ export class OrderDetailOperationsService {
       this.notifyService.create(
         {
           type: 'CANCEL_DISH',
-          content: `${contentPrefix} (${data.amount}) ${productName}` // đã được lấy ra trước từ transaction
+          content: `${contentPrefix} (${data.amount}) ${productName}`
         },
         branchId,
         deviceId
