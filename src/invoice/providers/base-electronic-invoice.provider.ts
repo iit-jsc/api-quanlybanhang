@@ -169,7 +169,7 @@ export abstract class BaseElectronicInvoiceProvider {
       },
       invoiceDate: new Date().toISOString().split('T')[0],
       currency: 'VND',
-      paymentMethod: 'TM' // Default to cash
+      paymentMethod: this.mapPaymentMethod(invoice.paymentMethod) // Sử dụng giá trị từ invoice
     }
   }
   /**
@@ -177,5 +177,24 @@ export abstract class BaseElectronicInvoiceProvider {
    */
   protected convertNumberToWords(number: number): string {
     return moneyToVietnameseWords(number)
+  }
+
+  /**
+   * Map payment method to VNPT format
+   */
+  protected mapPaymentMethod(paymentMethod?: string): string {
+    // Map from our PaymentMethod enum to VNPT format
+    switch (paymentMethod) {
+      case 'TM': // Tiền mặt
+        return 'TM'
+      case 'CK': // Chuyển khoản
+        return 'Chuyển khoản'
+      case 'KHAC': // Khác
+        return 'Khác'
+      case 'TM_CK': // Tiền mặt/Chuyển khoản
+        return 'Tiền mặt/Chuyển khoản'
+      default:
+        return 'TM' // Mặc định là tiền mặt
+    }
   }
 }

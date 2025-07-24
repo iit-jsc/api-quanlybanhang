@@ -22,7 +22,8 @@ export enum InvoiceType {
 export enum PaymentMethod {
   TM = 'TM',
   CK = 'CK',
-  KHAC = 'KHAC'
+  KHAC = 'KHAC',
+  TM_CK = 'TM_CK'
 }
 
 export class CreateInvoiceDetailDto {
