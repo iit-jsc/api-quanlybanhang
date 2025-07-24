@@ -1,8 +1,8 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common'
 import { PrismaService } from 'nestjs-prisma'
-import { ExportInvoicesDto, CreateInvoiceDetailDto, CreateInvoiceDto } from './dto/invoice.dto'
+import { ExportInvoicesDto, CreateInvoiceDto } from './dto/invoice.dto'
 import { VNPTElectronicInvoiceProvider } from './providers'
-import { InvoiceStatus } from '@prisma/client'
+import { InvoiceProviderType, InvoiceStatus } from '@prisma/client'
 
 @Injectable()
 export class InvoiceService {
@@ -10,11 +10,24 @@ export class InvoiceService {
     private readonly prisma: PrismaService,
     private readonly vnptProvider: VNPTElectronicInvoiceProvider
   ) {}
+
   /**
    * Xuất nhiều hóa đơn điện tử
    */
   async exportInvoices(data: ExportInvoicesDto, accountId: string, branchId: string) {
     const results = []
+
+    const invoiceProvider = await this.prisma.invoiceProvider.findFirst({
+      where: { branchId, isActive: true },
+      select: { providerType: true }
+    })
+
+    if (!invoiceProvider) {
+      throw new HttpException(
+        'Chưa có cấu hình nhà cung cấp hóa đơn điện tử',
+        HttpStatus.BAD_REQUEST
+      )
+    }
 
     for (const invoiceData of data.invoices) {
       try {
@@ -24,11 +37,26 @@ export class InvoiceService {
         // 2. Tạo invoice và invoice details trong database
         const invoice = await this.createInvoiceRecord(invoiceData, accountId, branchId)
 
-        // 3. Xuất hóa đơn điện tử qua VNPT
+        // 3. Get order code
+        const order = await this.prisma.order.findUnique({
+          where: { id: invoiceData.orderId },
+          select: { code: true }
+        })
+
+        const orderCode = order?.code
+
+        // 4. Handle electronic vs non-electronic export
         if (data.exportElectronic) {
+          // Check active invoice provider - fail fast if not found
+
+          if (invoiceProvider.providerType !== InvoiceProviderType.VNPT) {
+            throw new HttpException('Chỉ hỗ trợ nhà cung cấp VNPT', HttpStatus.BAD_REQUEST)
+          }
+
+          // Export through VNPT
           const vnptResult = await this.exportToVNPT(invoice, invoiceData)
 
-          // 5. Cập nhật trạng thái
+          // Update invoice status
           await this.updateInvoiceStatus(
             invoice.id,
             vnptResult.success ? InvoiceStatus.SUCCESS : InvoiceStatus.ERROR,
@@ -36,29 +64,44 @@ export class InvoiceService {
           )
 
           results.push({
-            invoiceId: invoice.id,
             success: vnptResult.success,
+            orderId: invoiceData.orderId,
+            orderCode: orderCode,
             message: vnptResult.success ? 'Xuất hóa đơn thành công' : vnptResult.error,
-            vnptData: vnptResult
+            ...(vnptResult.success && {
+              exportData: {
+                invoiceNumber: vnptResult.invoiceId,
+                fkey: vnptResult.fkey,
+                providerType: 'VNPT'
+              }
+            })
           })
         } else {
+          // Non-electronic export
           results.push({
-            invoiceId: invoice.id,
             success: true,
+            orderId: invoiceData.orderId,
+            orderCode: orderCode,
             message: 'Tạo hóa đơn thành công'
           })
         }
       } catch (error) {
+        // Get order code for error case
+        const order = await this.prisma.order.findUnique({
+          where: { id: invoiceData.orderId },
+          select: { code: true }
+        })
+
         results.push({
           success: false,
-          message: error.message,
-          error: error
+          orderId: invoiceData.orderId,
+          orderCode: order?.code,
+          message: error.message
         })
       }
     }
 
     return {
-      message: 'Xử lý hoàn thành',
       results,
       summary: {
         total: data.invoices.length,
@@ -69,61 +112,16 @@ export class InvoiceService {
   }
 
   /**
-   * Lấy danh sách hóa đơn theo chi nhánh
-   */
-  async getInvoicesByBranch(branchId: string) {
-    return this.prisma.invoice.findMany({
-      where: { branchId },
-      include: {
-        order: {
-          include: {
-            customer: true
-          }
-        },
-        invoiceDetails: true
-      },
-      orderBy: { createdAt: 'desc' }
-    })
-  }
-
-  /**
-   * Lấy thông tin chi tiết hóa đơn
-   */
-  async getInvoiceById(id: string, branchId: string) {
-    const invoice = await this.prisma.invoice.findFirst({
-      where: { id, branchId },
-      include: {
-        order: {
-          include: {
-            customer: true,
-            paymentMethod: true
-          }
-        },
-        invoiceDetails: true
-      }
-    })
-
-    if (!invoice) {
-      throw new HttpException('Không tìm thấy hóa đơn', HttpStatus.NOT_FOUND)
-    }
-    return invoice
-  }
-  /**
    * Validate dữ liệu hóa đơn
    */
   private validateInvoiceData(invoiceData: CreateInvoiceDto): void {
-    // Validate tiền hàng, thuế, giảm giá
     const calculatedTotal = invoiceData.invoiceDetails.reduce(
-      (sum: number, detail: CreateInvoiceDetailDto) => {
-        return sum + detail.unitPrice * detail.amount
-      },
+      (sum, detail) => sum + detail.unitPrice * detail.amount,
       0
     )
 
     const calculatedTax = invoiceData.invoiceDetails.reduce(
-      (sum: number, detail: CreateInvoiceDetailDto) => {
-        return sum + (detail.vatAmount || 0)
-      },
+      (sum, detail) => sum + (detail.vatAmount || 0),
       0
     )
 
@@ -153,7 +151,7 @@ export class InvoiceService {
     }
 
     // Validate từng chi tiết hóa đơn
-    invoiceData.invoiceDetails.forEach((detail: CreateInvoiceDetailDto, index: number) => {
+    invoiceData.invoiceDetails.forEach((detail, index) => {
       if (detail.amount <= 0) {
         throw new HttpException(
           `Chi tiết ${index + 1}: Số lượng phải lớn hơn 0`,
@@ -180,48 +178,31 @@ export class InvoiceService {
       }
     })
   }
+
   /**
    * Tạo bản ghi hóa đơn và chi tiết hóa đơn
-   * - Nếu hóa đơn đã tạo với status SUCCESS thì không tạo lại
-   * - Nếu status PENDING hoặc ERROR thì xóa cũ và tạo mới
    */
   private async createInvoiceRecord(
     invoiceData: CreateInvoiceDto,
     accountId: string,
     branchId: string
   ) {
-    // Kiểm tra hóa đơn đã tồn tại cho orderId này
+    // Kiểm tra hóa đơn đã tồn tại
     const existingInvoice = await this.prisma.invoice.findUnique({
-      where: {
-        orderId: invoiceData.orderId,
-        branchId
-      }
+      where: { orderId: invoiceData.orderId, branchId }
     })
 
-    if (existingInvoice) {
-      // Nếu đã thành công thì không tạo lại
-      if (existingInvoice.status === InvoiceStatus.SUCCESS) {
-        throw new HttpException(
-          `Hóa đơn cho đơn hàng ${invoiceData.orderId} đã được xuất thành công`,
-          HttpStatus.CONFLICT
-        )
-      }
-
-      // Nếu PENDING hoặc ERROR thì xóa hóa đơn cũ và chi tiết
-      if (
-        existingInvoice.status === InvoiceStatus.PENDING ||
-        existingInvoice.status === InvoiceStatus.ERROR
-      ) {
-        // Xóa hóa đơn (cascade sẽ xóa invoice details)
-        await this.prisma.invoice.delete({
-          where: { id: existingInvoice.id }
-        })
-      }
+    if (existingInvoice?.status === InvoiceStatus.SUCCESS) {
+      throw new HttpException('Hóa đơn đã được xuất thành công', HttpStatus.CONFLICT)
     }
 
-    // Tạo hóa đơn mới với chi tiết trong transaction
+    // Xóa hóa đơn cũ nếu có (PENDING hoặc ERROR)
+    if (existingInvoice) {
+      await this.prisma.invoice.delete({ where: { id: existingInvoice.id } })
+    }
+
+    // Tạo hóa đơn mới
     return this.prisma.$transaction(async tx => {
-      // Tạo hóa đơn
       const invoice = await tx.invoice.create({
         data: {
           branchId,
@@ -241,7 +222,6 @@ export class InvoiceService {
         }
       })
 
-      // Tạo chi tiết hóa đơn
       await tx.invoiceDetail.createMany({
         data: invoiceData.invoiceDetails.map(detail => ({
           invoiceId: invoice.id,
@@ -267,37 +247,10 @@ export class InvoiceService {
   ) {
     // Lấy provider config
     const invoiceProvider = await this.prisma.invoiceProvider.findFirst({
-      where: {
-        branchId: invoice.branchId,
-        providerType: 'VNPT',
-        isActive: true
-      },
-      include: {
-        invConfig: true
-      }
+      where: { branchId: invoice.branchId, providerType: 'VNPT', isActive: true },
+      include: { invConfig: true }
     })
 
-    if (!invoiceProvider) {
-      throw new HttpException('Không tìm thấy cấu hình VNPT', HttpStatus.NOT_FOUND)
-    }
-
-    if (!invoiceProvider.invConfig) {
-      throw new HttpException('Không tìm thấy cấu hình chi tiết VNPT', HttpStatus.NOT_FOUND)
-    }
-
-    console.log('🔍 [Invoice Service] VNPT Provider config loaded:', {
-      providerId: invoiceProvider.id,
-      hasInvConfig: !!invoiceProvider.invConfig,
-      configFields: invoiceProvider.invConfig ? Object.keys(invoiceProvider.invConfig) : [],
-      vnptApiUrl: invoiceProvider.invConfig?.vnptApiUrl || 'NOT_SET',
-      vnptUsername: invoiceProvider.invConfig?.vnptUsername || 'NOT_SET',
-      hasPassword: !!invoiceProvider.invConfig?.vnptPassword,
-      hasAccountPassword: !!invoiceProvider.invConfig?.vnptAccountPassword,
-      invPattern: invoiceProvider.invConfig?.invPattern || 'NOT_SET',
-      invSerial: invoiceProvider.invConfig?.invSerial || 'NOT_SET'
-    })
-
-    // Transform to expected provider format with full config
     const providerData = {
       providerType: invoiceProvider.providerType,
       providerName: 'VNPT',
@@ -316,11 +269,10 @@ export class InvoiceService {
       }
     }
 
-    // Create invoice data with details for VNPT
     const invoiceForVNPT = {
       ...invoice,
       invoiceDetails: invoiceData.invoiceDetails.map(detail => ({
-        id: `temp-${Date.now()}-${Math.random()}`, // Temporary ID
+        id: `temp-${Date.now()}-${Math.random()}`,
         invoiceId: invoice.id,
         productName: detail.productName,
         productCode: detail.productCode,
@@ -334,7 +286,7 @@ export class InvoiceService {
       })),
       order: {
         id: invoiceData.orderId,
-        code: `ORD-${invoiceData.orderId.slice(0, 8)}`, // Generate order code
+        code: `ORD-${invoiceData.orderId.slice(0, 8)}`,
         orderTotal: invoiceData.totalAfterTax,
         customer: {
           name: invoiceData.customerName,
@@ -356,10 +308,7 @@ export class InvoiceService {
   private async updateInvoiceStatus(invoiceId: string, status: InvoiceStatus, accountId: string) {
     return this.prisma.invoice.update({
       where: { id: invoiceId },
-      data: {
-        status,
-        updatedBy: accountId
-      }
+      data: { status, updatedBy: accountId }
     })
   }
 }

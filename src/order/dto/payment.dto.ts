@@ -23,7 +23,7 @@ export class PaymentDto {
   bankingImages: string[]
 
   @IsOptional()
-  @Min(1)
+  @Min(0)
   @IsNumber()
   @Transform(({ value }) => Math.round(Number(value)))
   moneyReceived: number

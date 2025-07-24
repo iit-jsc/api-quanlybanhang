@@ -23,6 +23,7 @@ export const orderSelect: Prisma.OrderSelect = {
   totalTaxDiscount: true,
   customerId: true,
   discountValue: true,
+  paymentAt: true,
   customer: {
     select: customerSelect
   },

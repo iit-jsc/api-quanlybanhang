@@ -1,21 +1,10 @@
 import { Injectable } from '@nestjs/common'
 import { BaseElectronicInvoiceProvider } from './base-electronic-invoice.provider'
-import { VNPTElectronicInvoiceProvider } from './vnpt-electronic-invoice.provider'
 import { InvoiceProvider } from '../types/invoice.types'
-
-export enum ElectronicInvoiceProviderType {
-  VNPT = 'VNPT',
-  MISA = 'MISA',
-  VIETTEL = 'VIETTEL'
-}
 
 @Injectable()
 export class ElectronicInvoiceProviderRegistry {
   private readonly providers = new Map<string, BaseElectronicInvoiceProvider>()
-
-  constructor(private readonly vnptProvider: VNPTElectronicInvoiceProvider) {
-    this.registerProvider(ElectronicInvoiceProviderType.VNPT, vnptProvider)
-  }
 
   /**
    * Đăng ký provider mới

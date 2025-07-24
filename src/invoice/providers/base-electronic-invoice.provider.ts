@@ -169,7 +169,7 @@ export abstract class BaseElectronicInvoiceProvider {
         }
       }
 
-      const productName = productInfo?.name || detail.productName || 'Sản phẩm'
+      const productName = productInfo?.name
       const unitPrice = detail.unitPrice
       const quantity = detail.amount
       const totalAmount = unitPrice * quantity
@@ -178,9 +178,9 @@ export abstract class BaseElectronicInvoiceProvider {
 
       return {
         stt: index + 1,
-        productCode: detail.productCode || productInfo?.code || `SP-${index + 1}`,
+        productCode: detail.productCode,
         productName: productName,
-        unit: detail.unit || productInfo?.measurementUnit?.name || 'cái',
+        unit: detail.unit,
         quantity: quantity,
         unitPrice: unitPrice,
         totalAmount: totalAmount,
