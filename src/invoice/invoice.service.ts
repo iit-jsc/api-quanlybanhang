@@ -326,7 +326,8 @@ export class InvoiceService {
     }
 
     // Tạo lookupKey theo format: IIT_POS_<order code>
-    const lookupKey = `IIT_POS_${order.code}`
+    const randomSuffix = Math.floor(100 + Math.random() * 900)
+    const lookupKey = `IIT_POS_${order.code}_${randomSuffix}`
 
     // Xóa hóa đơn cũ nếu có (PENDING hoặc ERROR)
     if (existingInvoice) {

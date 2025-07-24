@@ -143,17 +143,17 @@ export abstract class BaseElectronicInvoiceProvider {
     const totalInWords = moneyToVietnameseWords(invoice.totalAfterTax || 0)
 
     // Use lookupKey as the key for VNPT (fkey)
-    const key = invoice.lookupKey || `IIT_POS${invoice.id}`
+    const key = invoice.lookupKey
 
     return {
       key: key,
       buyerInfo: {
-        name: invoice.customerName || 'Khách lẻ',
+        name: invoice.customerName || 'Khách lẻ', // Tên người mua hàng
         taxCode: invoice.customerTaxCode || '',
         address: invoice.customerAddress || '',
         phone: invoice.customerPhone || '',
         email: invoice.customerEmail || '',
-        contactPerson: invoice.originalName || invoice.customerName || 'Khách hàng',
+        contactPerson: invoice.originalName || '', // Tên đơn vị/tổ chức
         cardId: invoice.customerCardId || '',
         passport: invoice.passport || '',
         bankName: invoice.customerBankName || '',
