@@ -189,8 +189,6 @@ export abstract class BaseElectronicInvoiceProvider {
         return 'TM'
       case 'CK': // Chuyển khoản
         return 'Chuyển khoản'
-      case 'KHAC': // Khác
-        return 'Khác'
       case 'TM_CK': // Tiền mặt/Chuyển khoản
         return 'Tiền mặt/Chuyển khoản'
       default:
